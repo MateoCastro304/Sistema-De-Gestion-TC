@@ -1,19 +1,19 @@
-# Arquitectura del Sistema — Overview
+# System Architecture — Overview
 
-Este documento describe la arquitectura de alto nivel del sistema de gestión de Tornería Castro SRL. Las decisiones técnicas detalladas están en los [ADRs](../decisions/).
+This document describes the high-level architecture of Tornería Castro SRL's management system. Detailed technical decisions are in the [ADRs](../decisions/).
 
 ---
 
-## Contexto del sistema (C4 Nivel 1)
+## System context (C4 Level 1)
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                   Tornería Castro SRL                   │
-│                  Sistema de Gestión                     │
+│                  Management System                      │
 │                                                         │
 │  ┌──────────────┐    ┌───────────────┐                  │
-│  │  Personal    │    │  Personal     │                  │
-│  │Administrativo│    │  de Taller    │                  │
+│  │Administrative│    │   Workshop    │                  │
+│  │    Staff     │    │    Staff      │                  │
 │  │(EC, ERP, A,  │    │    (JT)       │                  │
 │  │  ER, AT, AS) │    │               │                  │
 │  └──────┬───────┘    └──────┬────────┘                  │
@@ -25,8 +25,8 @@ Este documento describe la arquitectura de alto nivel del sistema de gestión de
 │          │  (Web App)    │                              │
 │          └───────┬───────┘                              │
 │                  │ HTTPS / REST                         │
-│          ┌───────▼───────┐   HTTP interno               │
-│          │   Backend     ├──────────────► Servicio PDF  │
+│          ┌───────▼───────┐   Internal HTTP              │
+│          │   Backend     ├──────────────► PDF Service   │
 │          │  (NestJS)     │               (Python)       │
 │          └───────┬───────┘                              │
 │                  │                                      │
@@ -35,102 +35,102 @@ Este documento describe la arquitectura de alto nivel del sistema de gestión de
 │          └───────────────┘                              │
 │                                                         │
 │          ┌───────────────┐                              │
-│          │  Filesystem   │  ← Planos, fotos, diseños 3D │
-│          │ (local / S3)  │     asociados a cada pieza   │
+│          │  Filesystem   │  ← Drawings, photos, 3D      │
+│          │ (local / S3)  │    designs linked to each    │
+│          │               │    part                      │
 │          └───────────────┘                              │
 └─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Módulos del Backend
+## Backend Modules
 
-El backend se organiza en módulos funcionales alineados con el dominio:
+The backend is organized into functional modules aligned with the domain:
 
 ### `auth`
 
-Autenticación y autorización. JWT + Guards de RBAC. Protege todos los endpoints con validación de rol.
+Authentication and authorization. JWT + RBAC Guards. Protects all endpoints with role validation.
 
-### `usuarios`
+### `usuarios` (users)
 
-Gestión de usuarios del sistema (alta, baja, cambio de rol, reseteo de contraseña). Solo accesible por AS.
+Management of system users (creation, deactivation, role changes, password resets). Accessible only by AS.
 
-### `clientes`
+### `clientes` (clients)
 
-CRUD de clientes (empresas industriales como EDASA, CorBlock, OxyCAM). Almacena datos de contacto y formato de cotización preferido.
+CRUD for clients (industrial companies such as EDASA, CorBlock, OxyCAM). Stores contact details and preferred quotation format.
 
-### `piezas`
+### `piezas` (parts)
 
-Catálogo de piezas cotizadas y fabricadas. Incluye número de plano, ID interno (cuando no hay plano), variantes, archivos adjuntos (planos PDF, diseños 3D).
+Catalog of quoted and manufactured parts. Includes drawing number, internal ID (when there is no drawing), variants, attached files (PDF drawings, 3D designs).
 
-### `cotizaciones`
+### `cotizaciones` (quotations)
 
-Módulo central. Maneja el ciclo de vida de una cotización: creación, desglose por ítems, actualización por dólar, adjudicación total/parcial. Implementa la máquina de estados de Cotización.
+Core module. Manages the lifecycle of a quotation: creation, breakdown by line items, dollar-rate updates, full/partial award. Implements the Quotation state machine.
 
-### `ordenes-de-trabajo`
+### `ordenes-de-trabajo` (work orders)
 
-Generación y seguimiento de OTs. Implementa la máquina de estados de OrdenDeTrabajo. Registro de procesos planificados y ejecutados. Integra con el módulo de reportes para trazabilidad de rentabilidad.
+Generation and tracking of work orders (OTs). Implements the WorkOrder state machine. Records planned and executed processes. Integrates with the reports module for profitability traceability.
 
-### `produccion`
+### `produccion` (production)
 
-Submódulo accesible por JT. Permite registrar avance de procesos y tiempos reales. Sin acceso a datos económicos.
+Submodule accessible by JT. Allows recording process progress and actual times. No access to economic data.
 
-### `reportes`
+### `reportes` (reports)
 
-Estadísticas de decisión: trabajos por empresa, adjudicación de presupuestos, fluctuaciones mensuales, trazabilidad presupuestado vs. real.
+Decision-making statistics: jobs per company, budget award rates, monthly fluctuations, budgeted-vs-actual traceability.
 
 ### `pdf`
 
-Cliente HTTP que comunica con el servicio Python de generación de PDF. Recibe una cotización (con todos sus datos) y devuelve el archivo PDF al frontend.
+HTTP client that communicates with the Python PDF generation service. Receives a quotation (with all its data) and returns the PDF file to the frontend.
 
 ### `scheduler`
 
-Jobs programados:
+Scheduled jobs:
 
-- Vencimiento automático de cotizaciones (diario).
-- (Futuro) Alertas de demoras en OTs.
-
----
-
-## Módulos del Frontend
-
-> ⚠️ Stack frontend pendiente de definición. Esta sección se actualizará una vez confirmado.
-
-Se anticipa una SPA con las siguientes secciones principales:
-
-- Dashboard — resumen de cotizaciones y OTs activas
-- Cotizaciones — listado, detalle, creación, adjudicación
-- Órdenes de Trabajo — listado, detalle, seguimiento de producción
-- Clientes — ABM de clientes
-- Piezas — catálogo con historial
-- Reportes — estadísticas y métricas
-- Configuración — solo AS: usuarios, roles, tipos de proceso, tarifas
+- Automatic quotation expiration (daily).
+- (Future) Work order delay alerts.
 
 ---
 
-## Principios de arquitectura
+## Frontend Modules
 
-**Sin sobreingeniería para esta escala.** No se usa Redis, Kafka, Kubernetes, ni Event Sourcing. El sistema es un monolito modular con un proceso Python auxiliar para PDFs. Esto es suficiente y mantenible para el equipo y volumen actuales.
+> ⚠️ Frontend stack yet to be defined. This section will be updated once confirmed.
 
-**Separación de información pública vs. privada desde el backend.** Los endpoints que devuelven datos de cotización al frontend tienen dos variantes: una con datos completos (roles administrativos) y una sin costos ni márgenes (JT). Nunca se filtra solo en el frontend.
+An SPA is anticipated with the following main sections:
 
-**Jobs con `@nestjs/schedule`.** Suficiente para el vencimiento de cotizaciones y futuras alertas. No requiere infraestructura adicional.
-
-**Almacenamiento de archivos.** Filesystem local en primera instancia. Migración a S3/MinIO posible sin cambios en la lógica de negocio si se abstrae detrás de un servicio de storage.
+- Dashboard — summary of active quotations and work orders
+- Quotations — listing, detail, creation, award
+- Work Orders — listing, detail, production tracking
+- Clients — client CRUD
+- Parts — catalog with history
+- Reports — statistics and metrics
+- Settings — AS only: users, roles, process types, rates
 
 ---
 
-## Pendientes de arquitectura
+## Architecture Principles
 
-| Decisión                      | ADR                                                  | Estado                                    |
-| ----------------------------- | ---------------------------------------------------- | ----------------------------------------- |
-| Framework backend             | [ADR-001](../decisions/001-backend-framework.md)     | Pendiente                                 |
-| Base de datos                 | [ADR-002](../decisions/002-base-de-datos.md)         | Recomendado: PostgreSQL                   |
-| ORM                           | [ADR-003](../decisions/003-orm.md)                   | Pendiente                                 |
-| Generación PDF                | [ADR-004](../decisions/004-generacion-pdf.md)        | Recomendado: Python/WeasyPrint            |
-| Autenticación                 | [ADR-005](../decisions/005-autenticacion.md)         | Pendiente                                 |
-| Stack frontend                | —                                                    | Sin definir                               |
-| Almacenamiento de archivos    | —                                                    | Sin definir (local vs. S3/MinIO)          |
-| WhatsApp integration          | —                                                    | Sin definir (API oficial vs. alternativa) |
-| Infraestructura de deployment | [ADR-009](../decisions/009-deploy-infrastructure.md) | Pending Aproval                           |
-| Integracion de mail           | —                                                    | Sin definir                               |
+**No over-engineering for this scale.** No Redis, Kafka, Kubernetes, or Event Sourcing. The system is a modular monolith with an auxiliary Python process for PDFs. This is sufficient and maintainable for the current team and volume.
+
+**Separation of public vs. private information from the backend.** Endpoints that return quotation data to the frontend have two variants: one with full data (administrative roles) and one without costs or margins (JT). Filtering is never done only on the frontend.
+
+**Jobs with `@nestjs/schedule`.** Sufficient for quotation expiration and future alerts. Requires no additional infrastructure.
+
+**File storage.** Local filesystem in the first instance. Migration to S3/MinIO possible without changes to business logic if abstracted behind a storage service.
+
+---
+
+## Pending Architecture Decisions
+
+| Decision                 | ADR                                                  | Status                          |
+| ------------------------- | ----------------------------------------------------- | -------------------------------- |
+| Backend framework         | [ADR-001](../decisions/001-backend-framework.md)     | Approved                          |
+| Database                  | [ADR-002](../decisions/002-base-de-datos.md)         | Approved          |
+| ORM                       | [ADR-003](../decisions/003-orm.md)                   | Approved                          |
+| PDF generation             | [ADR-004](../decisions/004-generacion-pdf.md)        | Approved   |
+| Authentication             | [ADR-005](../decisions/005-autenticacion.md)         | Approved                          |
+| Frontend stack             | —                                                    | Undefined                        |
+| WhatsApp integration        | —                                                    | Undefined (official API vs. alternative) |
+| Mail integration            | —                                                    | Undefined                        |
+| Deployment infrastructure and file storage  | [ADR-009](../decisions/009-deploy-infrastructure.md) | Approved                 |
