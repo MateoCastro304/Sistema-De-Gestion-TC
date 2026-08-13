@@ -48,34 +48,45 @@ Este documento describe la arquitectura de alto nivel del sistema de gestión de
 El backend se organiza en módulos funcionales alineados con el dominio:
 
 ### `auth`
+
 Autenticación y autorización. JWT + Guards de RBAC. Protege todos los endpoints con validación de rol.
 
 ### `usuarios`
+
 Gestión de usuarios del sistema (alta, baja, cambio de rol, reseteo de contraseña). Solo accesible por AS.
 
 ### `clientes`
+
 CRUD de clientes (empresas industriales como EDASA, CorBlock, OxyCAM). Almacena datos de contacto y formato de cotización preferido.
 
 ### `piezas`
+
 Catálogo de piezas cotizadas y fabricadas. Incluye número de plano, ID interno (cuando no hay plano), variantes, archivos adjuntos (planos PDF, diseños 3D).
 
 ### `cotizaciones`
+
 Módulo central. Maneja el ciclo de vida de una cotización: creación, desglose por ítems, actualización por dólar, adjudicación total/parcial. Implementa la máquina de estados de Cotización.
 
 ### `ordenes-de-trabajo`
+
 Generación y seguimiento de OTs. Implementa la máquina de estados de OrdenDeTrabajo. Registro de procesos planificados y ejecutados. Integra con el módulo de reportes para trazabilidad de rentabilidad.
 
 ### `produccion`
+
 Submódulo accesible por JT. Permite registrar avance de procesos y tiempos reales. Sin acceso a datos económicos.
 
 ### `reportes`
+
 Estadísticas de decisión: trabajos por empresa, adjudicación de presupuestos, fluctuaciones mensuales, trazabilidad presupuestado vs. real.
 
 ### `pdf`
+
 Cliente HTTP que comunica con el servicio Python de generación de PDF. Recibe una cotización (con todos sus datos) y devuelve el archivo PDF al frontend.
 
 ### `scheduler`
+
 Jobs programados:
+
 - Vencimiento automático de cotizaciones (diario).
 - (Futuro) Alertas de demoras en OTs.
 
@@ -111,15 +122,15 @@ Se anticipa una SPA con las siguientes secciones principales:
 
 ## Pendientes de arquitectura
 
-| Decisión | ADR | Estado |
-|----------|-----|--------|
-| Framework backend | [ADR-001](../decisions/001-backend-framework.md) | Pendiente |
-| Base de datos | [ADR-002](../decisions/002-base-de-datos.md) | Recomendado: PostgreSQL |
-| ORM | [ADR-003](../decisions/003-orm.md) | Pendiente |
-| Generación PDF | [ADR-004](../decisions/004-generacion-pdf.md) | Recomendado: Python/WeasyPrint |
-| Autenticación | [ADR-005](../decisions/005-autenticacion.md) | Pendiente |
-| Stack frontend | — | Sin definir |
-| Almacenamiento de archivos | — | Sin definir (local vs. S3/MinIO) |
-| WhatsApp integration | — | Sin definir (API oficial vs. alternativa) |
-| Infraestructura de deployment | — | Sin definir |
-| Integracion de mail | — | Sin definir |
+| Decisión                      | ADR                                                  | Estado                                    |
+| ----------------------------- | ---------------------------------------------------- | ----------------------------------------- |
+| Framework backend             | [ADR-001](../decisions/001-backend-framework.md)     | Pendiente                                 |
+| Base de datos                 | [ADR-002](../decisions/002-base-de-datos.md)         | Recomendado: PostgreSQL                   |
+| ORM                           | [ADR-003](../decisions/003-orm.md)                   | Pendiente                                 |
+| Generación PDF                | [ADR-004](../decisions/004-generacion-pdf.md)        | Recomendado: Python/WeasyPrint            |
+| Autenticación                 | [ADR-005](../decisions/005-autenticacion.md)         | Pendiente                                 |
+| Stack frontend                | —                                                    | Sin definir                               |
+| Almacenamiento de archivos    | —                                                    | Sin definir (local vs. S3/MinIO)          |
+| WhatsApp integration          | —                                                    | Sin definir (API oficial vs. alternativa) |
+| Infraestructura de deployment | [ADR-009](../decisions/009-deploy-infrastructure.md) | Pending Aproval                           |
+| Integracion de mail           | —                                                    | Sin definir                               |
