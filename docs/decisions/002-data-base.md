@@ -1,45 +1,45 @@
-# ADR-002 — Base de Datos
+# ADR-002 — Database
 
-**Fecha:** 2026-08  
-**Estado:** Recomendado (pendiente confirmación formal)  
-**Decisores:** Equipo técnico
+**Date:** 2026-08  
+**Status:** Recommended (pending formal confirmation)  
+**Decision makers:** Technical team
 
 ---
 
-## Contexto
+## Context
 
-El sistema maneja un dominio relacional complejo: cotizaciones con múltiples ítems (Composite), órdenes de trabajo con procesos planificados y ejecutados, historial de cambios de precio, SEQUENCE para números correlativos, y relaciones entre clientes, piezas y planos.
+The system handles a complex relational domain: quotes with multiple items (Composite), work orders with planned and executed processes, price change history, SEQUENCEs for correlative numbers, and relationships between customers, parts, and drawings.
 
-## Opciones evaluadas
+## Options evaluated
 
-### Opción A: PostgreSQL ✅ Recomendada
+### Option A: PostgreSQL
 
-Base de datos relacional con soporte nativo para SEQUENCEs, constraints de integridad, transacciones ACID, JSON para datos semiestructurados cuando sea necesario, y vistas para reportes.
+Relational database with native support for SEQUENCEs, integrity constraints, ACID transactions, JSON for semi-structured data when needed, and views for reporting.
 
-**A favor:**
-- SEQUENCEs nativas para el número correlativo de presupuesto (RN-04) — único enfoque correcto bajo concurrencia.
-- Constraints a nivel de base de datos como segunda línea de defensa para invariantes críticos (precio inmutable post-adjudicación).
-- Soporte robusto para queries de reportes y estadísticas.
-- Ecosistema maduro con Prisma y TypeORM.
-- Herramientas de migración estables.
+**Pros:**
+- Native SEQUENCEs for the correlative quote number (RN-04) — the only correct approach under concurrency.
+- Database-level constraints as a second line of defense for critical invariants (immutable price post-award).
+- Robust support for reporting and statistics queries.
+- Mature ecosystem with Prisma and TypeORM.
+- Stable migration tooling.
 
-**En contra:**
-- Ninguno relevante para este caso de uso.
+**Cons:**
+- None relevant to this use case.
 
-### Opción B: MySQL / MariaDB
+### Option B: MySQL / MariaDB
 
-Similar en capacidades generales, pero con un ecosistema de herramientas algo más limitado en el contexto Node.js y con menor expresividad en SEQUENCEs (AUTO_INCREMENT no es equivalente en todos los escenarios).
+Similar in general capabilities, but with a somewhat more limited tooling ecosystem in the Node.js context and less expressiveness in SEQUENCEs (AUTO_INCREMENT is not equivalent in all scenarios).
 
-### Opción C: MongoDB
+### Option C: MongoDB
 
-Base de datos documental. Inadecuada para este dominio: el sistema tiene relaciones fuertes, integridad referencial crítica, y necesita SEQUENCEs que no existen nativamente en MongoDB.
+Document database. Unsuitable for this domain: the system has strong relationships, critical referential integrity, and needs SEQUENCEs that don't exist natively in MongoDB.
 
-## Decisión
+## Decision
 
-**PostgreSQL**. Es la única opción correcta para este dominio relacional. Las SEQUENCEs para el número correlativo y las constraints para las invariantes de precio no tienen sustituto adecuado en otras opciones.
+**PostgreSQL**. It is the only correct option for this relational domain. SEQUENCEs for the correlative number and constraints for price invariants have no adequate substitute in other options.
 
-## Notas de implementación
+## Implementation notes
 
-- Usar `CREATE SEQUENCE` para el número de presupuesto, no `MAX(id) + 1` en la aplicación.
-- Evaluar constraints de base de datos para el bloqueo de precio post-adjudicación.
-- Usar migraciones versionadas desde el inicio (Prisma Migrate o Flyway).
+- Use `CREATE SEQUENCE` for the quote number, not `MAX(id) + 1` in the application.
+- Evaluate database constraints for locking the price post-award.
+- Use versioned migrations from the start (Prisma Migrate or Flyway).

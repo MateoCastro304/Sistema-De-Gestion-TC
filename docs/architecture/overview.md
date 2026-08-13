@@ -113,11 +113,11 @@ Se anticipa una SPA con las siguientes secciones principales:
 
 | Decisión | ADR | Estado |
 |----------|-----|--------|
-| Framework backend | [ADR-001](../decisions/001-backend-framework.md) | Pendiente |
-| Base de datos | [ADR-002](../decisions/002-base-de-datos.md) | Recomendado: PostgreSQL |
-| ORM | [ADR-003](../decisions/003-orm.md) | Pendiente |
-| Generación PDF | [ADR-004](../decisions/004-generacion-pdf.md) | Recomendado: Python/WeasyPrint |
-| Autenticación | [ADR-005](../decisions/005-autenticacion.md) | Pendiente |
+| Framework backend | [ADR-001](../decisions/001-backend-framework.md) | Definido |
+| Base de datos | [ADR-002](../decisions/002-base-de-datos.md) | Definido |
+| ORM | [ADR-003](../decisions/003-orm.md) | Definido |
+| Generación PDF | [ADR-004](../decisions/004-generacion-pdf.md) | Definido |
+| Autenticación | [ADR-005](../decisions/005-autenticacion.md) | Definido |
 | Stack frontend | — | Sin definir |
 | Almacenamiento de archivos | — | Sin definir (local vs. S3/MinIO) |
 | WhatsApp integration | — | Sin definir (API oficial vs. alternativa) |
