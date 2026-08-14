@@ -22,7 +22,7 @@ This document describes the high-level architecture of Tornería Castro SRL's ma
 │                  │                                      │
 │          ┌───────▼───────┐                              │
 │          │   Frontend    │                              │
-│          │  (Web App)    │                              │
+│          │ (React SPA)   │                              │
 │          └───────┬───────┘                              │
 │                  │ HTTPS / REST                         │
 │          ┌───────▼───────┐   Internal HTTP              │
@@ -95,9 +95,9 @@ Scheduled jobs:
 
 ## Frontend Modules
 
-> ⚠️ Frontend stack yet to be defined. This section will be updated once confirmed.
+The frontend is a **React + TypeScript SPA** built with Vite and served as static assets through Nginx. See [ADR-006](../decisions/006-frontend-stack.md) for the full rationale and supporting libraries.
 
-An SPA is anticipated with the following main sections:
+The SPA is organized into the following main sections:
 
 - Dashboard — summary of active quotations and work orders
 - Quotations — listing, detail, creation, award
@@ -130,7 +130,7 @@ An SPA is anticipated with the following main sections:
 | ORM                       | [ADR-003](../decisions/003-orm.md)                   | Approved                          |
 | PDF generation             | [ADR-004](../decisions/004-generacion-pdf.md)        | Approved   |
 | Authentication             | [ADR-005](../decisions/005-autenticacion.md)         | Approved                          |
-| Frontend stack             | —                                                    | Undefined                        |
+| Frontend stack             | [ADR-006](../decisions/006-frontend-stack.md)        | Pending approval                 |
 | WhatsApp integration        | —                                                    | Undefined (official API vs. alternative) |
 | Mail integration            | —                                                    | Undefined                        |
 | Deployment infrastructure and file storage  | [ADR-009](../decisions/009-deploy-infrastructure.md) | Approved                 |
