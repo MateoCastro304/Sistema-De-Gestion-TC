@@ -1,0 +1,84 @@
+# ADR-007 — Email Integration
+
+**Date:** 2026-08  
+**Status:** Architectural direction defined; provider pending budget confirmation  
+**Decision makers:** Technical team
+
+---
+
+## Context
+
+Email plays the same two roles as WhatsApp in the ERS: reception channel for quotation requests (UC-13, manual registration) and automatic outbound channel for the quotation report (UC-21). The domain model represents this through **SC (Servidor de correo)**, an abstract external actor not tied to any provider.
+
+This decision covers only outbound transactional email (the same PDF sent via WhatsApp, produced by the ADR-004 service). Parsing inbound mailboxes is out of scope, in line with the ERS.
+
+## Options evaluated
+
+### Option A: Corporate SMTP (Gmail / Google Workspace)
+
+**Pros:**
+- No additional cost if the business already has a corporate mailbox.
+- The client receives mail from an address they may recognize.
+
+**Cons:**
+- Built for human use, not automated sending from an application; risk of the provider flagging the sending pattern as suspicious.
+- No reliable tracking of bounces or delivery failures.
+- Requires handling the real corporate account's credentials inside the backend.
+- A reputation problem on the automated channel can affect the mailbox the rest of the company uses.
+
+### Option B: Third-party transactional email service (Resend, SendGrid, Postmark)
+
+**Pros:**
+- Good baseline deliverability, with guided SPF/DKIM/DMARC setup.
+- Delivery and bounce tracking via webhooks.
+- Simple API or SMTP integration.
+- Isolates the automated channel from the company's real mailbox.
+- Free tier sufficient for the project's volume.
+
+**Cons:**
+- Adds a third-party vendor with its own account, dashboard and credentials, outside the AWS account already adopted in ADR-009.
+
+### Option C: Amazon SES
+
+**Pros:**
+- Same deliverability and tracking as Option B.
+- Stays within the AWS account already defined in ADR-009 (same IAM, same billing, bounces can be routed to CloudWatch/SNS).
+- Low per-message cost at the project's estimated volume.
+- Adds no new vendor relationship.
+
+**Cons:**
+- Sending starts in sandbox mode and requires requesting a limit increase before production use.
+- Requires verifying a proper sending domain with SPF/DKIM/DMARC, same as any other option in this category.
+
+### Option D: Self-hosted mail server
+
+**Pros:**
+- Full control over the sending infrastructure.
+
+**Cons:**
+- Requires manually managing IP reputation, SPF/DKIM/DMARC and blocklists.
+- No advantage over a managed service at this volume; considered over-engineering for the project's scale.
+
+## Provisional recommendation
+
+Option D is discarded as over-engineering, and Option A for its lack of delivery traceability and the risk it poses to the company's real mailbox. Between Options B and C, the team provisionally leans toward **Amazon SES** (Option C), for its consistency with the infrastructure already defined in ADR-009. If the budget the client confirms, or some requirement not covered by SES, makes Resend or SendGrid more suitable, Option B remains a valid alternative.
+
+## Decision
+
+The final decision is to adopt a **managed transactional email service** as the architectural direction; corporate SMTP and a self-hosted server are discarded.
+
+The choice between a third-party provider (Option B) and Amazon SES (Option C) is not closed in this ADR: it is conditioned on the Product Owner confirming with the client the monthly budget available for this integration. Until that confirmation, Amazon SES is the provider recommended by the technical team.
+
+## Pending items
+
+**Architectural decisions:** none pending — the use of a managed transactional email service instead of corporate SMTP or a self-hosted server is defined.
+
+**Business / budget decisions:**
+- The Product Owner must consult and confirm with the client the monthly budget available for email, together with the WhatsApp budget, and use it to choose between Amazon SES and a third-party provider (Resend, SendGrid).
+- Confirm with the client whether Tornería Castro already owns a company email domain suitable as the sender address, or whether one needs to be acquired. This applies to Option B or C alike, not only to SES.
+
+**Future implementation tasks:**
+- Verify the sending domain (SPF, DKIM, DMARC) once the provider is defined.
+- Request production access from the chosen provider (e.g., SES sandbox exit).
+- Define the HTML email template matching Tornería Castro's visual identity.
+- Log bounces and delivery failures, and alert the Encargado de Cotización when a quotation email could not be delivered.

@@ -130,7 +130,7 @@ The SPA is organized into the following main sections:
 | ORM                       | [ADR-003](../decisions/003-orm.md)                   | Approved                          |
 | PDF generation             | [ADR-004](../decisions/004-generacion-pdf.md)        | Approved   |
 | Authentication             | [ADR-005](../decisions/005-autenticacion.md)         | Approved                          |
-| Frontend stack             | [ADR-006](../decisions/006-frontend-stack.md)        | Pending approval                 |
-| WhatsApp integration        | —                                                    | Undefined (official API vs. alternative) |
-| Mail integration            | —                                                    | Undefined                        |
+| Frontend stack             | —                                                    | Undefined                        |
+| WhatsApp integration        | [ADR-006](../decisions/006-whatsapp-integration.md)  | Architectural direction approved; provider pending budget |
+| Mail integration            | [ADR-007](../decisions/007-mail-integration.md)      | Architectural direction approved; provider pending budget |
 | Deployment infrastructure and file storage  | [ADR-009](../decisions/009-deploy-infrastructure.md) | Approved                 |
