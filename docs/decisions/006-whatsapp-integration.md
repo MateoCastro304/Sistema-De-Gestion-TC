@@ -10,7 +10,9 @@
 
 The ERS enables WhatsApp at two points: reception of quotation requests (UC-13, manual registration with attached documentation) and automatic sending of the quotation report (UC-21, with the offer's validity tied to that send by business rule RN-06). The domain model represents this through **SM (Servidor de mensajería)**, an abstract external actor not tied to any provider.
 
-Reception of requests and Purchase Orders via WhatsApp remains a manual registration step (RN-01, RN-03); parsing inbound messages is out of scope. What requires a real integration is the outbound send of the quotation PDF and, in the future, work order delay notifications from the scheduler.
+Reception of requests and Purchase Orders via WhatsApp remains a manual registration step (RN-01, RN-03); parsing inbound messages is out of scope. What requires a real integration is the outbound send of the quotation PDF.
+
+The integration is therefore limited to sending the quotation report and a brief accompanying message to the customer's registered WhatsApp number. The system does not manage or automate the subsequent conversation with the customer.
 
 ## Options evaluated
 
@@ -57,6 +59,8 @@ The final decision is to adopt the **official WhatsApp Business Platform** as th
 
 The choice between a third-party BSP (Option B) and AWS End User Messaging Social (Option C) is not closed in this ADR: it is conditioned on the Product Owner confirming with the client the monthly budget available for this integration. Until that confirmation, AWS End User Messaging Social is the provider recommended by the technical team.
 
+The integration will be limited to outbound quotation delivery. The system will send the generated PDF together with a brief message and will not process or automate subsequent customer conversations.
+
 ## Pending items
 
 **Architectural decisions:** none pending — the use of the official WhatsApp Business Platform is defined.
@@ -68,5 +72,5 @@ The choice between a third-party BSP (Option B) and AWS End User Messaging Socia
 **Future implementation tasks:**
 - Start WABA verification in Meta Business Manager.
 - Provision the dedicated WhatsApp Business phone number.
-- Define and submit for approval the required templates (quotation sent, expiration reminder, delay notice, delivery confirmation, generic fallback).
+- Define and submit for approval the required template for quotation delivery, if required by the selected integration and messaging scenario.
 - Log delivery/read status of outbound messages so a failed send can be flagged to the Encargado de Cotización.
