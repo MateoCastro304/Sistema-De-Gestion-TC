@@ -9,5 +9,9 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "devDependencies": {
+    "@redocly/cli": "^2.46.2",
+    "@stoplight/spectral-cli": "^6.16.3"
+  }
 }
