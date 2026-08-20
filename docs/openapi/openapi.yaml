@@ -1,0 +1,20 @@
+openapi: 3.0.3
+info:
+  title: Torneria Castro API
+  description: |
+    ACA VA LA DESCRIPCION DE LA API
+  version: 2.0.0
+  license:
+    name: Proprietary
+  contact:
+    name: Dropouts
+    email: losnodejantes@gmail.com
+servers:
+  - url: http://{host}
+    description: Desarrollo local
+    variables:
+      host:
+        default: localhost:3000
+  - url: ACA VA EL HOST DE PRODUCCION
+    description: Producción
+paths: ACA VA LA DEFINICION DE LOS ENDPOINTS
