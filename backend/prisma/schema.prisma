@@ -1,0 +1,13 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Los modelos (Customer, Supplier, Category, etc.) se agregan a medida
+// que cada ABMC los necesita. Coordinen los cambios a este archivo en el
+// mismo PR de su modulo para evitar conflictos de merge.
+// NOTA: la URL de conexion se configura en prisma.config.ts (Prisma 7),
+// no aca. Se agrega cuando conectemos una base real.
