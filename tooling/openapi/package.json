@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "redocly lint ../../docs/openapi/openapi.yaml",
+    "spectral": "spectral lint ../../docs/openapi/openapi.yaml",
+    "validate": "npm run lint && npm run spectral",
+    "bundle": "redocly bundle ../../docs/openapi/openapi.yaml -o ../../build/openapi.yaml",
+    "build": "npm run validate && npm run bundle"
   },
   "keywords": [],
   "author": "",
