@@ -1,4 +1,4 @@
-# ADR-006 — WhatsApp Integration
+# ADR-008 — WhatsApp Integration
 
 **Date:** 2026-08  
 **Status:** Architectural direction defined; provider pending budget confirmation  
