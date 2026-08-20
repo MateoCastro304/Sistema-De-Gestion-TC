@@ -6,9 +6,9 @@ import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
 import storageConfig from './config/storage.config';
 import { validate } from './config/env.validation';
-import { CustomersModule } from './modules/customers/customers.module';
-import { SuppliersModule } from './modules/catalogs/suppliers/suppliers.module';
-import { CategoriesModule } from './modules/catalogs/categories/categories.module';
+import { CustomersModule } from './customers/customers.module';
+import { SuppliersModule } from './suppliers/suppliers.module';
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
   imports: [
