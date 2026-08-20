@@ -35,8 +35,8 @@ This document describes the high-level architecture of Tornería Castro SRL's ma
 │          └───────────────┘                              │
 │                                                         │
 │          ┌───────────────┐                              │
-│          │  Filesystem   │  ← Drawings, photos, 3D      │
-│          │ (local / S3)  │    designs linked to each    │
+│          │  Amazon S3    │  ← Drawings, photos, 3D      │
+│          │ (object store)│    designs linked to each    │
 │          │               │    part                      │
 │          └───────────────┘                              │
 └─────────────────────────────────────────────────────────┘
@@ -84,6 +84,10 @@ Decision-making statistics: jobs per company, budget award rates, monthly fluctu
 
 HTTP client that communicates with the Python PDF generation service. Receives a quotation (with all its data) and returns the PDF file to the frontend.
 
+### `notificaciones` (notifications)
+
+Sends the quotation PDF to the customer through email (Amazon SES or a third-party provider, see [ADR-007](../decisions/007-mail-integration.md)) and WhatsApp (AWS End User Messaging Social or a third-party BSP, see [ADR-008](../decisions/008-whatsapp-integration.md)). Triggered on quotation send (UC-21); the offer's validity period starts at this send (RN-06). Does not process or automate subsequent customer conversations.
+
 ### `scheduler`
 
 Scheduled jobs:
@@ -111,26 +115,28 @@ The SPA is organized into the following main sections:
 
 ## Architecture Principles
 
-**No over-engineering for this scale.** No Redis, Kafka, Kubernetes, or Event Sourcing. The system is a modular monolith with an auxiliary Python process for PDFs. This is sufficient and maintainable for the current team and volume.
+**No over-engineering for this scale.** No Redis, Kafka, Kubernetes, or Event Sourcing. The system is a modular monolith with an auxiliary Python process for PDFs. This is sufficient and maintainable for the current team and volume (see [ADR-009](../decisions/009-deploy-infrastructure.md)).
 
 **Separation of public vs. private information from the backend.** Endpoints that return quotation data to the frontend have two variants: one with full data (administrative roles) and one without costs or margins (JT). Filtering is never done only on the frontend.
 
 **Jobs with `@nestjs/schedule`.** Sufficient for quotation expiration and future alerts. Requires no additional infrastructure.
 
-**File storage.** Local filesystem in the first instance. Migration to S3/MinIO possible without changes to business logic if abstracted behind a storage service.
+**File storage.** Amazon S3 for persistent object storage (drawings, photos, 3D designs, generated PDFs), abstracted behind a storage service so the underlying provider can change without affecting business logic. See [ADR-009](../decisions/009-deploy-infrastructure.md).
+
+**Deployment.** Docker Compose on a single Amazon EC2 instance, with Nginx as the reverse proxy/HTTPS entry point, PostgreSQL as a container with persistent storage, and GitHub Actions for CI/CD. CloudWatch handles infrastructure metrics and logs; Sentry handles application-level error tracking. See [ADR-009](../decisions/009-deploy-infrastructure.md).
 
 ---
 
-## Pending Architecture Decisions
+## Architecture Decisions (ADRs)
 
 | Decision                 | ADR                                                  | Status                          |
 | ------------------------- | ----------------------------------------------------- | -------------------------------- |
 | Backend framework         | [ADR-001](../decisions/001-backend-framework.md)     | Approved                          |
-| Database                  | [ADR-002](../decisions/002-base-de-datos.md)         | Approved          |
+| Database                  | [ADR-002](../decisions/002-data-base.md)             | Approved          |
 | ORM                       | [ADR-003](../decisions/003-orm.md)                   | Approved                          |
-| PDF generation             | [ADR-004](../decisions/004-generacion-pdf.md)        | Approved   |
-| Authentication             | [ADR-005](../decisions/005-autenticacion.md)         | Approved                          |
-| Frontend stack             | —                                                    | Undefined                        |
-| WhatsApp integration        | [ADR-006](../decisions/006-whatsapp-integration.md)  | Architectural direction approved; provider pending budget |
+| PDF generation             | [ADR-004](../decisions/004-generate-pdf.md)          | Approved   |
+| Authentication             | [ADR-005](../decisions/005-autentication.md)         | Approved                          |
+| Frontend stack             | [ADR-006](../decisions/006-frontend-stack.md)        | Approved                        |
 | Mail integration            | [ADR-007](../decisions/007-mail-integration.md)      | Architectural direction approved; provider pending budget |
+| WhatsApp integration        | [ADR-008](../decisions/008-whatsapp-integration.md)  | Architectural direction approved; provider pending budget |
 | Deployment infrastructure and file storage  | [ADR-009](../decisions/009-deploy-infrastructure.md) | Approved                 |
