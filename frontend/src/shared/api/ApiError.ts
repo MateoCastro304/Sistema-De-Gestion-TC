@@ -35,7 +35,7 @@ export class ApiError extends Error {
 
       /** Datos inválidos. Suele haber algo útil en `details`. */
     get isValidation(): boolean {
-        return this.status === 422 || this.status === 422;
+        return this.status === 422 || this.status === 400;
     }
 
     get isAuth(): boolean {
