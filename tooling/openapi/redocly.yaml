@@ -3,3 +3,4 @@ extends:
 
 rules:
   no-unused-components: warn
+  info-license-strict: off

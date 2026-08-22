@@ -1,20 +1,70 @@
 openapi: 3.0.3
+
 info:
   title: Torneria Castro API
   description: |
-    ACA VA LA DESCRIPCION DE LA API
-  version: 2.0.0
+    REST API for the internal management system of **Torneria Castro SRL**.
+
+    Covers the workshop workflows: management of client factories and their
+    managers, raw material suppliers, and categories. Later sprints will add
+    quotations, work orders, production tracking and reports.
+
+    ## Sprint 1 Modules
+    - **Categories**: CRUD of factory categories.
+    - **Suppliers**: CRUD of raw material suppliers.
+    - **Factories**: CRUD of client factories (legal entities).
+    - **Managers**: CRUD of factory managers (sub-resource of Factory).
+
+    ## Authentication
+    _(pending — will be added together with the Users module)_
+
+    ## Contact
+    Dropouts team — dropouts@gmail.com
+  version: 0.1.0
   license:
-    name: Proprietary
+    name: UNLICENSED
   contact:
     name: Dropouts
-    email: losnodejantes@gmail.com
+    email: dropouts@gmail.com
+
 servers:
-  - url: http://{host}
-    description: Desarrollo local
+  - url: http://{host}/api
+    description: Local development
     variables:
       host:
         default: localhost:3000
-  - url: ACA VA EL HOST DE PRODUCCION
-    description: Producción
-paths: ACA VA LA DEFINICION DE LOS ENDPOINTS
+  # - url: https://TODO-production-host/api
+  #   description: Production
+
+security: []
+
+tags:
+  - name: Categories
+    description: CRUD of factory categories.
+  - name: Suppliers
+    description: CRUD of raw material suppliers.
+  - name: Factories
+    description: CRUD of client factories (legal entities).
+  - name: Managers
+    description: CRUD of factory managers (sub-resource of Factory).
+
+paths:
+  /categories:
+    $ref: './paths/categories.yaml'
+  /categories/{id}:
+    $ref: './paths/categories@{id}.yaml'
+
+  /suppliers:
+    $ref: './paths/suppliers.yaml'
+  /suppliers/{id}:
+    $ref: './paths/suppliers@{id}.yaml'
+
+  /factories:
+    $ref: './paths/factories.yaml'
+  /factories/{id}:
+    $ref: './paths/factories@{id}.yaml'
+
+  /factories/{factoryId}/managers:
+    $ref: './paths/factories@{factoryId}@managers.yaml'
+  /factories/{factoryId}/managers/{id}:
+    $ref: './paths/factories@{factoryId}@managers@{id}.yaml'

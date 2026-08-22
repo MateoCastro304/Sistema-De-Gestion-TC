@@ -1,0 +1,16 @@
+type: object
+description: |
+  Payload required to create a new manager. The factory the manager
+  belongs to is taken from the path (/factories/{factoryId}/managers) —
+  it does not go in the body.
+required:
+  - name
+properties:
+  name:
+    $ref: './Manager.yaml#/properties/name'
+  email:
+    $ref: './Manager.yaml#/properties/email'
+  phone:
+    $ref: './Manager.yaml#/properties/phone'
+  role:
+    $ref: './Manager.yaml#/properties/role'
