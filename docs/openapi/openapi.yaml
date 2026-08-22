@@ -2,13 +2,25 @@ openapi: 3.0.3
 info:
   title: Torneria Castro API
   description: |
-    ACA VA LA DESCRIPCION DE LA API
-  version: 2.0.0
-  license:
-    name: Proprietary
+    API REST del sistema de gestion interno de **Torneria Castro SRL**
+
+    Cubre los flujos de trabajo del taller: gestion de clientes, cotizaciones,
+    ordenes de trabajo, seguimiento de produccion y reportes.
+
+    ## Modulos disponibles
+    - **Clientes**: alta, consulta, modificacion de clientes y sus fabricas asociadas.
+    - **Proveedores**: alta, baja, modificacion y consulta de proveedores de materia prima.
+    - **Rubros**: alta, baja, modificacion y consulta de rubros.
+
+    ## Autenticación
+    _(pendiente - se sumara en el sprint N)_
+
+    ## Contacto
+    Equipo Dropouts - dropouts@gmail.com
+  version: 0.0.1
   contact:
     name: Dropouts
-    email: losnodejantes@gmail.com
+    email: dropouts@gmail.com
 servers:
   - url: http://{host}
     description: Desarrollo local
@@ -17,4 +29,87 @@ servers:
         default: localhost:3000
   - url: ACA VA EL HOST DE PRODUCCION
     description: Producción
-paths: ACA VA LA DEFINICION DE LOS ENDPOINTS
+security: []
+paths:
+  /clientes:
+    get:
+      summary: Listar clientes
+      operationId: listClientes
+      tags:
+        - Clientes
+      parameters:
+        -name: pagina
+         in: query
+         required: false
+         description: Numero de pagina a retornar. (empieza en 1)
+         schema:
+           type: integer
+           minimum: 1
+           default: 1
+
+        -name: limite
+         in: query
+         required: false
+         description: Cantidad de resultados por pagina.
+         schema:
+           type: integer
+           minimum: 1
+           maximum: 100
+           default: 20
+      responses:
+        "200":
+          description: OK - devuelve la lista de clientes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        "401":
+          description: No auntenticado. Token faltante o invalido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /clientes/{id}:
+    parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del cliente
+          schema:
+            type: integer
+    get:
+      summary: Obtener cliente por id
+      operationId: getClienteById
+      tags:
+        - Clientes
+    post:
+      summary: Registrar cliente
+      operationId: createCliente
+      tags:
+        - Clientes
+    patch:
+      summary: Modificar cliente
+      operationId: updateCliente
+      tags:
+        - Clientes
+    responses:
+        "200":
+          description: OK - devuelve el cliente
+          content:
+            application/json:
+              schema:
+                type: object
+        "401":
+          description: No auntenticado. Token faltante o invalido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string 

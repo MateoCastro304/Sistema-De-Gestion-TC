@@ -21,10 +21,6 @@
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
-<<<<<<< HEAD
-    "@nestjs/core": "^11.0.1",
-    "@nestjs/platform-express": "^11.0.1",
-=======
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.2",
@@ -37,7 +33,6 @@
     "class-validator": "^0.15.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
->>>>>>> 988a08671a75c336e6765d9650803e424ec3ad1c
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
