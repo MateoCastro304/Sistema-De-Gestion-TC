@@ -1,0 +1,12 @@
+type: object
+description: |
+  Modifiable fields of a factory. All optional.
+  The taxId cannot be modified.
+minProperties: 1
+properties:
+  legalName:
+    $ref: './Factory.yaml#/properties/legalName'
+  categoryId:
+    $ref: './Factory.yaml#/properties/categoryId'
+  address:
+    $ref: './Factory.yaml#/properties/address'

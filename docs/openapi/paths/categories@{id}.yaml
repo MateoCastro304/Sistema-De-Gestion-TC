@@ -1,0 +1,64 @@
+parameters:
+  - $ref: '../components/parameters/IdParam.yaml'
+
+get:
+  summary: Get a category by id
+  description: Returns the complete data of a category by its identifier.
+  operationId: getCategoryById
+  tags:
+    - Categories
+  responses:
+    '200':
+      description: Requested category.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Category.yaml'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '404':
+      $ref: '../components/responses/NotFound.yaml'
+
+patch:
+  summary: Update a category
+  description: Partial update. Only the fields sent are modified.
+  operationId: updateCategory
+  tags:
+    - Categories
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/CategoryUpdate.yaml'
+  responses:
+    '200':
+      description: Updated category.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Category.yaml'
+    '400':
+      $ref: '../components/responses/BadRequest.yaml'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '404':
+      $ref: '../components/responses/NotFound.yaml'
+
+delete:
+  summary: Delete a category
+  description: |
+    Deletes a category by id. Fails with 409 if the category is
+    in use by any factory.
+  operationId: deleteCategory
+  tags:
+    - Categories
+  responses:
+    '204':
+      description: Category deleted successfully.
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '404':
+      $ref: '../components/responses/NotFound.yaml'
+    '409':
+      $ref: '../components/responses/Conflict.yaml'

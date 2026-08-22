@@ -1,115 +1,70 @@
 openapi: 3.0.3
+
 info:
   title: Torneria Castro API
   description: |
-    API REST del sistema de gestion interno de **Torneria Castro SRL**
+    REST API for the internal management system of **Torneria Castro SRL**.
 
-    Cubre los flujos de trabajo del taller: gestion de clientes, cotizaciones,
-    ordenes de trabajo, seguimiento de produccion y reportes.
+    Covers the workshop workflows: management of client factories and their
+    managers, raw material suppliers, and categories. Later sprints will add
+    quotations, work orders, production tracking and reports.
 
-    ## Modulos disponibles
-    - **Clientes**: alta, consulta, modificacion de clientes y sus fabricas asociadas.
-    - **Proveedores**: alta, baja, modificacion y consulta de proveedores de materia prima.
-    - **Rubros**: alta, baja, modificacion y consulta de rubros.
+    ## Sprint 1 Modules
+    - **Categories**: CRUD of factory categories.
+    - **Suppliers**: CRUD of raw material suppliers.
+    - **Factories**: CRUD of client factories (legal entities).
+    - **Managers**: CRUD of factory managers (sub-resource of Factory).
 
-    ## Autenticación
-    _(pendiente - se sumara en el sprint N)_
+    ## Authentication
+    _(pending — will be added together with the Users module)_
 
-    ## Contacto
-    Equipo Dropouts - dropouts@gmail.com
-  version: 0.0.1
+    ## Contact
+    Dropouts team — dropouts@gmail.com
+  version: 0.1.0
+  license:
+    name: UNLICENSED
   contact:
     name: Dropouts
     email: dropouts@gmail.com
+
 servers:
-  - url: http://{host}
-    description: Desarrollo local
+  - url: http://{host}/api
+    description: Local development
     variables:
       host:
         default: localhost:3000
-  - url: ACA VA EL HOST DE PRODUCCION
-    description: Producción
-security: []
-paths:
-  /clientes:
-    get:
-      summary: Listar clientes
-      operationId: listClientes
-      tags:
-        - Clientes
-      parameters:
-        -name: pagina
-         in: query
-         required: false
-         description: Numero de pagina a retornar. (empieza en 1)
-         schema:
-           type: integer
-           minimum: 1
-           default: 1
+  # - url: https://TODO-production-host/api
+  #   description: Production
 
-        -name: limite
-         in: query
-         required: false
-         description: Cantidad de resultados por pagina.
-         schema:
-           type: integer
-           minimum: 1
-           maximum: 100
-           default: 20
-      responses:
-        "200":
-          description: OK - devuelve la lista de clientes
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-        "401":
-          description: No auntenticado. Token faltante o invalido
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-  /clientes/{id}:
-    parameters:
-        - name: id
-          in: path
-          required: true
-          description: ID del cliente
-          schema:
-            type: integer
-    get:
-      summary: Obtener cliente por id
-      operationId: getClienteById
-      tags:
-        - Clientes
-    post:
-      summary: Registrar cliente
-      operationId: createCliente
-      tags:
-        - Clientes
-    patch:
-      summary: Modificar cliente
-      operationId: updateCliente
-      tags:
-        - Clientes
-    responses:
-        "200":
-          description: OK - devuelve el cliente
-          content:
-            application/json:
-              schema:
-                type: object
-        "401":
-          description: No auntenticado. Token faltante o invalido
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string 
+security: []
+
+tags:
+  - name: Categories
+    description: CRUD of factory categories.
+  - name: Suppliers
+    description: CRUD of raw material suppliers.
+  - name: Factories
+    description: CRUD of client factories (legal entities).
+  - name: Managers
+    description: CRUD of factory managers (sub-resource of Factory).
+
+paths:
+  /categories:
+    $ref: './paths/categories.yaml'
+  /categories/{id}:
+    $ref: './paths/categories@{id}.yaml'
+
+  /suppliers:
+    $ref: './paths/suppliers.yaml'
+  /suppliers/{id}:
+    $ref: './paths/suppliers@{id}.yaml'
+
+  /factories:
+    $ref: './paths/factories.yaml'
+  /factories/{id}:
+    $ref: './paths/factories@{id}.yaml'
+
+  /factories/{factoryId}/managers:
+    $ref: './paths/factories@{factoryId}@managers.yaml'
+  /factories/{factoryId}/managers/{id}:
+    $ref: './paths/factories@{factoryId}@managers@{id}.yaml'

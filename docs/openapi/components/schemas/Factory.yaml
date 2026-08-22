@@ -1,0 +1,47 @@
+type: object
+description: |
+  Client factory (the invoiceable legal entity). Contact people are
+  handled as the Manager sub-resource under /factories/{factoryId}/managers.
+required:
+  - id
+  - legalName
+  - taxId
+  - categoryId
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: integer
+    format: int64
+    readOnly: true
+    example: 1
+  legalName:
+    type: string
+    minLength: 1
+    maxLength: 120
+    example: OxyCAM S.A.
+  taxId:
+    type: string
+    pattern: '^[0-9]{2}-[0-9]{8}-[0-9]{1}$'
+    description: Argentine CUIT. Format XX-XXXXXXXX-X. Immutable.
+    example: '30-71234567-8'
+  categoryId:
+    type: integer
+    format: int64
+    minimum: 1
+    description: ID of the category this factory belongs to (references /categories/{id}).
+    example: 1
+  address:
+    type: string
+    maxLength: 200
+    example: Ruta 9 Km 12, Cordoba
+  createdAt:
+    type: string
+    format: date-time
+    readOnly: true
+    example: '2026-08-22T15:30:00Z'
+  updatedAt:
+    type: string
+    format: date-time
+    readOnly: true
+    example: '2026-08-22T15:30:00Z'
