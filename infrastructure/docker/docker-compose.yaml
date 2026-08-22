@@ -1,18 +1,4 @@
 services:
-  postgres:
-    build:
-      context: ./postgres
-      dockerfile: Dockerfile
-    container_name: torneria-postgres
-    restart: unless-stopped
-    networks:
-      - torneria-network
-    healthcheck:
-      test: ['CMD', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   backend:
     build:
       context: ../../backend
@@ -24,6 +10,20 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  postgres:
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+    container_name: torneria-postgres
+    restart: unless-stopped
+    networks:
+      - torneria-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   torneria-network:
