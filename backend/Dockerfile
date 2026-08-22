@@ -36,6 +36,7 @@ FROM node:20-alpine AS production
 WORKDIR /app
 ENV NODE_ENV=production
 COPY package*.json ./
+COPY prisma ./prisma/
 RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
 RUN npx prisma generate
