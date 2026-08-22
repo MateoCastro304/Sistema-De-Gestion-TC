@@ -1,7 +1,6 @@
 /**
  * Business roles (RBAC) shared across the whole app.
  *
-
  * Note: a user can hold SEVERAL roles at once, so it is always modelled as
  * `Rol[]`, never a single `Rol`.
  */
@@ -28,3 +27,8 @@ export const ROL_LABEL: Record<Rol, string> = {
   AS: 'Administrador del Sistema',
   ER: 'Encargado de Reportes',
 };
+
+/** True if the user holds at least one of the given roles. Used by router guards. */
+export function hasAnyRole(userRoles: Rol[], roles: Rol[]): boolean {
+  return roles.some((role) => userRoles.includes(role));
+}
