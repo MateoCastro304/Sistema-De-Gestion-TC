@@ -1,0 +1,187 @@
+openapi: 3.0.3
+info:
+  title: Torneria Castro API — Customers (Clientes)
+  description: |
+    Contrato PROPUESTO por el frontend (DTC-53) para el catalogo de clientes.
+    Pendiente de confirmacion/ajuste por el backend (DTC-54).
+
+    Campos tomados de la ERS: CU-01..CU-04 y la regla de negocio "Gestion de
+    clientes" (nombre, tipo de persona, direccion, mails, descripcion de pago y
+    rubro). "paymentDescription" es texto libre (descripcionPago del modelo de
+    dominio), no una lista de formas de pago. El telefono aparece en el modelo
+    de dominio y se deja opcional. La baja es logica (CU-04): no se borra, se
+    marca isActive=false.
+  version: 0.1.0
+paths:
+  /customers:
+    get:
+      summary: List customers (CU-03)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+    post:
+      summary: Create customer (CU-01)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '409':
+          description: Conflicto (p. ej. cliente ya registrado)
+  /customers/{id}:
+    parameters:
+      - $ref: '#/components/parameters/CustomerId'
+    get:
+      summary: Get customer by id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '404':
+          description: Not found
+    patch:
+      summary: Update customer (CU-02)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerInput'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '404':
+          description: Not found
+  /customers/{id}/deactivate:
+    parameters:
+      - $ref: '#/components/parameters/CustomerId'
+    patch:
+      summary: Baja logica de un cliente (CU-04)
+      responses:
+        '200':
+          description: Deactivated (isActive=false)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '404':
+          description: Not found
+  /industries:
+    get:
+      summary: List rubros (catalogo referenciado por el cliente)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Industry'
+components:
+  parameters:
+    CustomerId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    PersonType:
+      type: string
+      enum: [individual, business]
+      description: Persona fisica (individual) o juridica (business).
+    Industry:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      required: [id, name]
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        personType:
+          $ref: '#/components/schemas/PersonType'
+        address:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        emails:
+          type: array
+          items:
+            type: string
+            format: email
+        paymentDescription:
+          type: string
+          description: Texto libre con aclaraciones sobre el pago del cliente.
+        industryId:
+          type: string
+        isActive:
+          type: boolean
+      required:
+        - id
+        - name
+        - personType
+        - address
+        - emails
+        - paymentDescription
+        - industryId
+        - isActive
+    CustomerInput:
+      type: object
+      properties:
+        name:
+          type: string
+        personType:
+          $ref: '#/components/schemas/PersonType'
+        address:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        emails:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            format: email
+        paymentDescription:
+          type: string
+          minLength: 1
+        industryId:
+          type: string
+      required:
+        - name
+        - personType
+        - address
+        - emails
+        - paymentDescription
+        - industryId
