@@ -1,6 +1,19 @@
-import { Outlet, NavLink } from 'react-router'
+import { Outlet, NavLink, useLocation } from 'react-router'
+
+/** Label shown in the topbar breadcrumb, keyed by the catalog path segment. */
+const SECTION_LABELS: Record<string, string> = {
+  customers: 'Clientes',
+  suppliers: 'Proveedores',
+}
+
+function sectionLabel(pathname: string): string {
+  const segment = pathname.match(/^\/catalogs\/([^/]+)/)?.[1]
+  return (segment && SECTION_LABELS[segment]) || 'Catálogos'
+}
 
 export function AppLayout() {
+  const { pathname } = useLocation()
+
   return (
     <div className="app">
 
@@ -20,6 +33,13 @@ export function AppLayout() {
             <span className="sidebar__section-label">Administración</span>
             <ul className="sidebar__list">
               <li>
+                <NavLink to="/catalogs/customers" className={({ isActive }) => isActive ? 'sidebar__link sidebar__link--active' : 'sidebar__link'
+                    }
+                    >
+                    Clientes
+                </NavLink>
+              </li>
+              <li>
                 <NavLink to="/catalogs/suppliers" className={({ isActive }) => isActive ? 'sidebar__link sidebar__link--active' : 'sidebar__link'
                     }
                     >
@@ -34,7 +54,9 @@ export function AppLayout() {
       <div className="main">
         <header className="topbar">
           <div className="topbar__breadcrumb">
-            <span className="topbar__breadcrumb-item--current">Proveedores</span>
+            <span className="topbar__breadcrumb-item--current">
+              {sectionLabel(pathname)}
+            </span>
           </div>
         </header>
 
