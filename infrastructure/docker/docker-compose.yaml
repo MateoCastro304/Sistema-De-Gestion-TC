@@ -10,6 +10,10 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      openapi-build:
+        condition: service_completed_successfully
+    volumes:
+      - ../../build:/build:ro
 
   postgres:
     build:
@@ -24,6 +28,17 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  openapi-build:
+    build:
+      context: ../../tooling/openapi
+      dockerfile: Dockerfile
+    container_name: torneria_openapi_build
+    networks:
+      - torneria-network
+    volumes:
+      - ../../docs/openapi:/docs/openapi:ro
+      - ../../build:/build
 
 networks:
   torneria-network:

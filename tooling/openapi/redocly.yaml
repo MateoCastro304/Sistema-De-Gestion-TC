@@ -3,4 +3,5 @@ apis:
     root: docs/openapi/openapi.yaml
 extends:
   - recommended
+rules:
   info-license-strict: off
