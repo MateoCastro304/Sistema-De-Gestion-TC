@@ -1,0 +1,15 @@
+type: object
+description: Payload required to create a new factory.
+required:
+  - legalName
+  - taxId
+  - categoryId
+properties:
+  legalName:
+    $ref: './Factory.yaml#/properties/legalName'
+  taxId:
+    $ref: './Factory.yaml#/properties/taxId'
+  categoryId:
+    $ref: './Factory.yaml#/properties/categoryId'
+  address:
+    $ref: './Factory.yaml#/properties/address'

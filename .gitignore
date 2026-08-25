@@ -5,6 +5,8 @@ node_modules/
 # Environment
 .env
 .env.local
+.env.dev
+.env.prod
 !.env.example
 
 # Build outputs

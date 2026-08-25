@@ -1,0 +1,11 @@
+description: Missing or invalid authentication token.
+content:
+  application/json:
+    schema:
+      $ref: '../schemas/Error.yaml'
+    example:
+      statusCode: 401
+      error: Unauthorized
+      message: Missing or invalid authentication token.
+      path: /api/categories
+      timestamp: '2026-08-22T15:30:00Z'

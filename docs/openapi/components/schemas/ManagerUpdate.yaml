@@ -1,0 +1,12 @@
+type: object
+description: Modifiable fields of a manager. All optional.
+minProperties: 1
+properties:
+  name:
+    $ref: './Manager.yaml#/properties/name'
+  email:
+    $ref: './Manager.yaml#/properties/email'
+  phone:
+    $ref: './Manager.yaml#/properties/phone'
+  role:
+    $ref: './Manager.yaml#/properties/role'

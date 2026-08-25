@@ -1,0 +1,66 @@
+parameters:
+  - $ref: '../components/parameters/IdParam.yaml'
+
+get:
+  summary: Get a factory by id
+  description: Returns the complete data of a factory by its identifier.
+  operationId: getFactoryById
+  tags:
+    - Factories
+  responses:
+    '200':
+      description: Requested factory.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Factory.yaml'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '404':
+      $ref: '../components/responses/NotFound.yaml'
+
+patch:
+  summary: Update a factory
+  description: |
+    Partial update. Only the fields sent are modified.
+    The taxId cannot be modified.
+  operationId: updateFactory
+  tags:
+    - Factories
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/FactoryUpdate.yaml'
+  responses:
+    '200':
+      description: Updated factory.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Factory.yaml'
+    '400':
+      $ref: '../components/responses/BadRequest.yaml'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '404':
+      $ref: '../components/responses/NotFound.yaml'
+
+delete:
+  summary: Delete a factory
+  description: |
+    Deletes a factory by id. Cascades to all its managers.
+    Fails with 409 if the factory has quotations or work orders.
+  operationId: deleteFactory
+  tags:
+    - Factories
+  responses:
+    '204':
+      description: Factory deleted successfully.
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '404':
+      $ref: '../components/responses/NotFound.yaml'
+    '409':
+      $ref: '../components/responses/Conflict.yaml'

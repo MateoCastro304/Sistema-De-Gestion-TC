@@ -1,0 +1,66 @@
+parameters:
+  - $ref: '../components/parameters/IdParam.yaml'
+
+get:
+  summary: Get a supplier by id
+  description: Returns the complete data of a supplier by its identifier.
+  operationId: getSupplierById
+  tags:
+    - Suppliers
+  responses:
+    '200':
+      description: Requested supplier.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Supplier.yaml'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '404':
+      $ref: '../components/responses/NotFound.yaml'
+
+patch:
+  summary: Update a supplier
+  description: |
+    Partial update. Only the fields sent are modified.
+    The taxId cannot be modified.
+  operationId: updateSupplier
+  tags:
+    - Suppliers
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/SupplierUpdate.yaml'
+  responses:
+    '200':
+      description: Updated supplier.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Supplier.yaml'
+    '400':
+      $ref: '../components/responses/BadRequest.yaml'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '404':
+      $ref: '../components/responses/NotFound.yaml'
+
+delete:
+  summary: Delete a supplier
+  description: |
+    Deletes a supplier by id. Fails with 409 if the supplier is
+    still referenced by materials or other records.
+  operationId: deleteSupplier
+  tags:
+    - Suppliers
+  responses:
+    '204':
+      description: Supplier deleted successfully.
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '404':
+      $ref: '../components/responses/NotFound.yaml'
+    '409':
+      $ref: '../components/responses/Conflict.yaml'

@@ -1,0 +1,45 @@
+services:
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    container_name: torneria-backend
+    restart: unless-stopped
+    networks:
+      - torneria-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      openapi-build:
+        condition: service_completed_successfully
+    volumes:
+      - ../../build:/build:ro
+
+  postgres:
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+    container_name: torneria-postgres
+    restart: unless-stopped
+    networks:
+      - torneria-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  openapi-build:
+    build:
+      context: ../../tooling/openapi
+      dockerfile: Dockerfile
+    container_name: torneria_openapi_build
+    networks:
+      - torneria-network
+    volumes:
+      - ../../docs/openapi:/docs/openapi:ro
+      - ../../build:/build
+
+networks:
+  torneria-network:
+    driver: bridge
