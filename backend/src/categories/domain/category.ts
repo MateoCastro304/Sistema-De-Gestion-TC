@@ -2,17 +2,23 @@ export class Category {
   private _active: boolean = true;
 
   private constructor(
-    private readonly _id: string,
+    private readonly _id: number | null,
     private _name: string,
   ) {
     this.validate();
   }
 
-  static create(id: string, name: string): Category {
-    return new Category(id, name);
+  static create(name: string): Category {
+    return new Category(null, name);
   }
 
-  get id(): string {
+  static reconstitute(id: number, name: string, active: boolean): Category {
+    const category = new Category(id, name);
+    if (!active) category.deactivate();
+    return category;
+  }
+
+  get id(): number | null {
     return this._id;
   }
 

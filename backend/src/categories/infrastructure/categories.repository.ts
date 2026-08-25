@@ -10,7 +10,7 @@ export class CategoriesRepository {
     return [];
   }
 
-  async findById(id: string): Promise<Category | null> {
+  async findById(id: number): Promise<Category | null> {
     return null;
   }
 
@@ -18,5 +18,4 @@ export class CategoriesRepository {
     return category;
   }
 
-  async delete(id: string): Promise<void> {}
 }
