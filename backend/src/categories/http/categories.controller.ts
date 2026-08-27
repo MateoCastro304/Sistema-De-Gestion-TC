@@ -19,7 +19,7 @@ function categoryValidationExceptionFactory(errors: ValidationError[]) {
 @UseFilters(CategoryExceptionFilter)
 @UsePipes(
   new ValidationPipe({
-    transform: true,
+    transform: true, // convierta el objeto plano que llega (JSON crudo) en una instancia real de la clase DTO correspondient
     whitelist: true,
     exceptionFactory: categoryValidationExceptionFactory,
   }),
