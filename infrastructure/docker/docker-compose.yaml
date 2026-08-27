@@ -17,6 +17,15 @@ services:
     volumes:
       - ../../build:/build:ro
 
+  frontend:
+    build:
+      context: ../..
+      dockerfile: frontend/Dockerfile
+    container_name: torneria-frontend
+    restart: unless-stopped
+    networks:
+      - torneria-network
+
   postgres:
     build:
       context: ./postgres
