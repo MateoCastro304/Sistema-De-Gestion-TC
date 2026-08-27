@@ -22,9 +22,13 @@ DC_PROD := docker compose -f $(COMPOSE_BASE) -f $(COMPOSE_PROD) --env-file $(ENV
 -include $(ENV_DEV)
 export
 
-.PHONY: help dev dev-build dev-down dev-down-v dev-logs dev-restart ps \
-        prod prod-build prod-down prod-logs \
-        migrate seed shell-backend shell-db clean
+.PHONY: help \
+        dev-up dev-build dev-down dev-down-v dev-logs ps clean \
+        backend-restart backend-logs backend-shell backend-build \
+        migrate seed \
+        frontend-restart frontend-logs frontend-shell frontend-build \
+        shell-db \
+        prod-up prod-build prod-down prod-logs
 
 help: ## Shows this list of commands
 	@echo ""
@@ -34,9 +38,9 @@ help: ## Shows this list of commands
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 
-# ---- Development -----------------------------------------------------------
+# ---- Environment Wide   ---------------------------------------------------
 
-dev-up: ## Starts backend + postgres in development mode (detached)
+dev-up: ## Starts all services in development mode (detached)
 	$(DC_DEV) up -d
 
 dev-build: ## Rebuilds images and starts development
@@ -51,27 +55,27 @@ dev-down-v: ## Stops development and removes volumes (complete local DB reset)
 dev-logs: ## Follows logs from all services (dev)
 	$(DC_DEV) logs -f
 
-dev-restart: ## Restarts backend (dev) without touching postgres
-	$(DC_DEV) restart backend
-
 ps: ## Shows the status of containers (dev)
 	$(DC_DEV) ps
 
-# ---- Production -----------------------------------------------------------
+clean: ## Stops everything, removes volumes and orphaned images/containers (dev)
+	$(DC_DEV) down -v --remove-orphans
 
-prod: ## Starts the production environment (detached)
-	$(DC_PROD) up -d
 
-prod-build: ## Rebuilds images and starts production
-	$(DC_PROD) up -d --build
 
-prod-down: ## Stops production containers
-	$(DC_PROD) down
+# --- Backend Scoped --------------------------------------------------------
 
-prod-logs: ## Follows production logs
-	$(DC_PROD) logs -f
+backend-restart: ## Restarts only backend (dev)
+	$(DC_DEV) restart backend
 
-# ---- Database / Prisma ---------------------------------------------------
+backend-logs: ## Shows only the backend logs
+	$(DC_DEV) logs -f backend
+
+backend-shell: ## Opens a shell inside the backend container (dev)
+	$(DC_DEV) exec backend sh
+
+backend-build: ## Rebuild the backend image only
+	$(DC_DEV) build backend
 
 migrate: ## Runs Prisma migrations inside the backend container (dev)
 	$(DC_DEV) exec backend npx prisma migrate deploy
@@ -79,13 +83,35 @@ migrate: ## Runs Prisma migrations inside the backend container (dev)
 seed: ## Runs Prisma seed inside the backend container (dev)
 	$(DC_DEV) exec backend npx prisma db seed
 
-# ---- Utilities -----------------------------------------------------------
+# ---- Frontend Scoped ------------------------------------------------------
 
-shell-backend: ## Opens a shell inside the backend container (dev)
-	$(DC_DEV) exec backend sh
+fronted-restart: # Restarts only frontend (dev)
+	$(DC_DEV) restart frontend
+
+frontend-logs: # Shows only the frontend logs
+	$(DC_DEV) logs -f frontend
+
+frontend-shell: # Opens a shell inside the frontend container
+	$(DC_DEV) exec frontend sh
+
+frontend-build: # Rebuild the frontend image only
+	$(DC_DEV) build frontend
+
+# ---- Database Scoped ------------------------------------------------------
 
 shell-db: ## Opens psql inside the postgres container (dev)
 	$(DC_DEV) exec postgres psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
 
-clean: ## Stops everything, removes volumes and orphaned images/containers (dev)
-	$(DC_DEV) down -v --remove-orphans
+# ---- Production -----------------------------------------------------------
+
+prod-up: ## Starts the production environment (detached)
+	$(DC_PROD) up -d
+
+prod-build: ## Rebuilds images and starts production
+	$(DC_PROD) up -d --build
+
+prod-logs: ## Follows production logs
+	$(DC_PROD) logs -f
+
+prod-down: ## Stops production containers
+	$(DC_PROD) down
