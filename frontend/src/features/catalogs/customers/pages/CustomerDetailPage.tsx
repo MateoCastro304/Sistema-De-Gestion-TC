@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router'
-import { Badge, Button } from '@/shared/components/ui'
+import { Button } from '@/shared/components/ui'
 import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
 import type { Customer, CustomerInput } from '../types/customer'
@@ -96,11 +96,6 @@ export function CustomerDetailPage() {
         <div>
           <div className="detail-header__title-row">
             <h1 className="content__title">{fullName}</h1>
-            {customer.isActive ? (
-              <Badge variant="si">Activo</Badge>
-            ) : (
-              <Badge variant="pendiente">Inactivo</Badge>
-            )}
           </div>
           <p className="content__subtitle">
             {editing

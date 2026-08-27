@@ -17,11 +17,15 @@ import {
 
 // Customers (EncargadoCliente) --------------------------------------------
 
-/** List all customers (CU-03 Consultar Cliente). */
+/**
+ * List all customers (CU-03 Consultar Cliente). Los dados de baja lógica no se
+ * muestran: se filtran por `isActive` para que no aparezcan en ninguna pantalla.
+ */
 export function useCustomers() {
   return useQuery({
     queryKey: customerKeys.lists(),
     queryFn: listCustomers,
+    select: (data) => data.filter((c) => c.isActive),
   })
 }
 
@@ -70,11 +74,15 @@ export function useDeactivateCustomer() {
 
 // Factories (FabricaCliente) ----------------------------------------------
 
-/** Factories, used by the customer form's selector and the factory modal. */
+/**
+ * Factories, used by the customer form's selector and the factory modal. Solo
+ * activas: las dadas de baja no se muestran en listados ni selectores.
+ */
 export function useFactories() {
   return useQuery({
     queryKey: factoryKeys.lists(),
     queryFn: listFactories,
+    select: (data) => data.filter((f) => f.isActive),
   })
 }
 

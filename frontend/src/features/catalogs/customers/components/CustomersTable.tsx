@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { Badge, Table } from '@/shared/components/ui'
+import { Table } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
 import type { Customer } from '../types/customer'
 import type { Factory } from '../types/factory'
@@ -47,16 +47,6 @@ export function CustomersTable({
       },
     },
     {
-      header: 'Estado',
-      align: 'center',
-      render: (c) =>
-        c.isActive ? (
-          <Badge variant="si">Activo</Badge>
-        ) : (
-          <Badge variant="pendiente">Inactivo</Badge>
-        ),
-    },
-    {
       header: 'Acciones',
       align: 'center',
       render: (c) => (
@@ -64,18 +54,14 @@ export function CustomersTable({
           <Link className="table__action" to={`/catalogs/customers/${c.id}`}>
             Ver
           </Link>
-          {c.isActive && (
-            <>
-              <span className="table__action-sep">·</span>
-              <button
-                type="button"
-                className="table__action table__td--danger"
-                onClick={() => onDeactivate(c)}
-              >
-                Desactivar
-              </button>
-            </>
-          )}
+          <span className="table__action-sep">·</span>
+          <button
+            type="button"
+            className="table__action table__td--danger"
+            onClick={() => onDeactivate(c)}
+          >
+            Desactivar
+          </button>
         </>
       ),
     },

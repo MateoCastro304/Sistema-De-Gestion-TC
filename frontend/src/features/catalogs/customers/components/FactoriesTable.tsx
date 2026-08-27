@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { Badge, Table } from '@/shared/components/ui'
+import { Table } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
 import type { Factory } from '../types/factory'
 import type { Industry } from '../types/industry'
@@ -36,16 +36,6 @@ export function FactoriesTable({
       header: 'Encargados',
       align: 'center',
       render: (f) => contactsByFactory[f.id] ?? 0,
-    },
-    {
-      header: 'Estado',
-      align: 'center',
-      render: (f) =>
-        f.isActive ? (
-          <Badge variant="si">Activa</Badge>
-        ) : (
-          <Badge variant="pendiente">Inactiva</Badge>
-        ),
     },
     {
       header: 'Acciones',

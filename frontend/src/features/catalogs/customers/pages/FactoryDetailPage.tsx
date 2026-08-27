@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router'
-import { Badge, Button, Modal, Table } from '@/shared/components/ui'
+import { Button, Modal, Table } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
 import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
@@ -103,16 +103,6 @@ export function FactoryDetailPage() {
     { header: 'Teléfono', render: (c) => c.phone },
     { header: 'Email', render: (c) => c.email },
     {
-      header: 'Estado',
-      align: 'center',
-      render: (c) =>
-        c.isActive ? (
-          <Badge variant="si">Activo</Badge>
-        ) : (
-          <Badge variant="pendiente">Inactivo</Badge>
-        ),
-    },
-    {
       header: 'Acciones',
       align: 'center',
       render: (c) => (
@@ -124,18 +114,14 @@ export function FactoryDetailPage() {
           >
             Editar
           </button>
-          {c.isActive && (
-            <>
-              <span className="table__action-sep">·</span>
-              <button
-                type="button"
-                className="table__action table__td--danger"
-                onClick={() => setToDeactivate(c)}
-              >
-                Desactivar
-              </button>
-            </>
-          )}
+          <span className="table__action-sep">·</span>
+          <button
+            type="button"
+            className="table__action table__td--danger"
+            onClick={() => setToDeactivate(c)}
+          >
+            Desactivar
+          </button>
         </>
       ),
     },
@@ -147,11 +133,6 @@ export function FactoryDetailPage() {
         <div>
           <div className="detail-header__title-row">
             <h1 className="content__title">{factory.name}</h1>
-            {factory.isActive ? (
-              <Badge variant="si">Activa</Badge>
-            ) : (
-              <Badge variant="pendiente">Inactiva</Badge>
-            )}
           </div>
           <p className="content__subtitle">
             {editing ? 'Modificá los datos de la fábrica.' : 'Datos de la fábrica.'}
