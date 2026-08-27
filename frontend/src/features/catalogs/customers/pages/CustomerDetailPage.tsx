@@ -18,7 +18,7 @@ import { CustomerForm } from '../components/CustomerForm'
 
 /**
  * CU-03 Consultar Cliente (read-only) with an "Editar" toggle for CU-02
- * Modificar Cliente, plus the desactivar action (CU-04).
+ * Modificar Cliente, plus the eliminar action (baja lógica, CU-04).
  */
 export function CustomerDetailPage() {
   const { id = '' } = useParams<{ id: string }>()
@@ -79,13 +79,13 @@ export function CustomerDetailPage() {
   const handleDeactivate = () => {
     deactivate.mutate(customer.id, {
       onSuccess: () => {
-        showToast('success', `Encargado "${fullName}" desactivado.`)
+        showToast('success', `Encargado "${fullName}" eliminado.`)
         navigate('/catalogs/customers')
       },
       onError: (error) =>
         showToast(
           'error',
-          isApiError(error) ? error.message : 'No se pudo desactivar el encargado.',
+          isApiError(error) ? error.message : 'No se pudo eliminar el encargado.',
         ),
     })
   }
@@ -116,7 +116,7 @@ export function CustomerDetailPage() {
                   onClick={handleDeactivate}
                   disabled={deactivate.isPending}
                 >
-                  {deactivate.isPending ? 'Desactivando…' : 'Desactivar'}
+                  {deactivate.isPending ? 'Eliminando…' : 'Eliminar'}
                 </Button>
               )}
             </>

@@ -85,13 +85,13 @@ export function FactoryDetailPage() {
     if (!toDeactivate) return
     deactivate.mutate(toDeactivate.id, {
       onSuccess: () => {
-        showToast('success', `Encargado "${fullName(toDeactivate)}" desactivado.`)
+        showToast('success', `Encargado "${fullName(toDeactivate)}" eliminado.`)
         setToDeactivate(null)
       },
       onError: (error) => {
         showToast(
           'error',
-          isApiError(error) ? error.message : 'No se pudo desactivar el encargado.',
+          isApiError(error) ? error.message : 'No se pudo eliminar el encargado.',
         )
         setToDeactivate(null)
       },
@@ -120,7 +120,7 @@ export function FactoryDetailPage() {
             className="table__action table__td--danger"
             onClick={() => setToDeactivate(c)}
           >
-            Desactivar
+            Eliminar
           </button>
         </>
       ),
@@ -188,7 +188,7 @@ export function FactoryDetailPage() {
       <Modal
         open={toDeactivate !== null}
         onClose={() => setToDeactivate(null)}
-        title="Desactivar encargado"
+        title="Eliminar encargado"
         size="sm"
         footer={
           <>
@@ -200,13 +200,13 @@ export function FactoryDetailPage() {
               Cancelar
             </Button>
             <Button onClick={confirmDeactivate} disabled={deactivate.isPending}>
-              {deactivate.isPending ? 'Desactivando…' : 'Desactivar'}
+              {deactivate.isPending ? 'Eliminando…' : 'Eliminar'}
             </Button>
           </>
         }
       >
         <p>
-          ¿Seguro que querés desactivar a{' '}
+          ¿Seguro que querés eliminar a{' '}
           <strong>{toDeactivate ? fullName(toDeactivate) : ''}</strong>? Se
           conserva su historial.
         </p>

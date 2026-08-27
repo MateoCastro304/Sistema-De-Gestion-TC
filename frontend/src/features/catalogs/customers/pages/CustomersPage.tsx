@@ -29,13 +29,13 @@ export function CustomersPage() {
     if (!toDeactivate) return
     deactivate.mutate(toDeactivate.id, {
       onSuccess: () => {
-        showToast('success', `Encargado "${fullName(toDeactivate)}" desactivado.`)
+        showToast('success', `Encargado "${fullName(toDeactivate)}" eliminado.`)
         setToDeactivate(null)
       },
       onError: (error) => {
         showToast(
           'error',
-          isApiError(error) ? error.message : 'No se pudo desactivar el encargado.',
+          isApiError(error) ? error.message : 'No se pudo eliminar el encargado.',
         )
       },
     })
@@ -77,7 +77,7 @@ export function CustomersPage() {
       <Modal
         open={toDeactivate !== null}
         onClose={() => setToDeactivate(null)}
-        title="Desactivar encargado"
+        title="Eliminar encargado"
         size="sm"
         footer={
           <>
@@ -89,15 +89,15 @@ export function CustomersPage() {
               Cancelar
             </Button>
             <Button onClick={confirmDeactivate} disabled={deactivate.isPending}>
-              {deactivate.isPending ? 'Desactivando…' : 'Desactivar'}
+              {deactivate.isPending ? 'Eliminando…' : 'Eliminar'}
             </Button>
           </>
         }
       >
         <p>
-          ¿Seguro que querés desactivar a{' '}
+          ¿Seguro que querés eliminar a{' '}
           <strong>{toDeactivate ? fullName(toDeactivate) : ''}</strong>? El
-          encargado se desactivará, pero se conserva su historial.
+          encargado se eliminará, pero se conserva su historial.
         </p>
       </Modal>
     </>

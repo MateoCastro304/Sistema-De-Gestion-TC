@@ -60,7 +60,7 @@ export function CustomersTable({
             className="table__action table__td--danger"
             onClick={() => onDeactivate(c)}
           >
-            Desactivar
+            Eliminar
           </button>
         </>
       ),
