@@ -5,8 +5,17 @@ description: |
 minProperties: 1
 properties:
   legalName:
-    $ref: './Factory.yaml#/properties/legalName'
+    type: string
+    minLength: 1
+    maxLength: 120
+    example: OxyCAM S.A.
   categoryId:
-    $ref: './Factory.yaml#/properties/categoryId'
+    type: integer
+    format: int64
+    minimum: 1
+    description: ID of the category this factory belongs to (references /categories/{id}).
+    example: 1
   address:
-    $ref: './Factory.yaml#/properties/address'
+    type: string
+    maxLength: 200
+    example: Ruta 9 Km 12, Cordoba

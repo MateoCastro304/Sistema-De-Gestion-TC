@@ -6,10 +6,22 @@ required:
   - categoryId
 properties:
   legalName:
-    $ref: './Factory.yaml#/properties/legalName'
+    type: string
+    minLength: 1
+    maxLength: 120
+    example: OxyCAM S.A.
   taxId:
-    $ref: './Factory.yaml#/properties/taxId'
+    type: string
+    pattern: '^[0-9]{2}-[0-9]{8}-[0-9]{1}$'
+    description: Argentine CUIT. Format XX-XXXXXXXX-X. Immutable.
+    example: '30-71234567-8'
   categoryId:
-    $ref: './Factory.yaml#/properties/categoryId'
+    type: integer
+    format: int64
+    minimum: 1
+    description: ID of the category this factory belongs to (references /categories/{id}).
+    example: 1
   address:
-    $ref: './Factory.yaml#/properties/address'
+    type: string
+    maxLength: 200
+    example: Ruta 9 Km 12, Cordoba

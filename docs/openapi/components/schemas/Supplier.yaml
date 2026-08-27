@@ -4,6 +4,7 @@ required:
   - id
   - legalName
   - taxId
+  - active
   - createdAt
   - updatedAt
 properties:
@@ -42,6 +43,14 @@ properties:
     type: string
     maxLength: 200
     example: Av. Circunvalacion 4500, Cordoba
+  active:
+    type: boolean
+    description: |
+      Whether the supplier is active. Deletion is logical: the record is never
+      removed, this flag is set to false instead, so historical records that
+      reference the supplier stay valid.
+    default: true
+    example: true
   createdAt:
     type: string
     format: date-time

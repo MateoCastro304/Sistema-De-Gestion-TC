@@ -48,19 +48,18 @@ patch:
       $ref: '../components/responses/NotFound.yaml'
 
 delete:
-  summary: Delete a supplier
+  summary: Deactivate a supplier
   description: |
-    Deletes a supplier by id. Fails with 409 if the supplier is
-    still referenced by materials or other records.
-  operationId: deleteSupplier
+    Logical deletion. The record is kept and its active flag is set to
+    false, so materials and other records that reference the supplier
+    remain valid. Reactivation is done with PATCH { "active": true }.
+  operationId: deactivateSupplier
   tags:
     - Suppliers
   responses:
     '204':
-      description: Supplier deleted successfully.
+      description: Supplier deactivated successfully.
     '401':
       $ref: '../components/responses/Unauthorized.yaml'
     '404':
       $ref: '../components/responses/NotFound.yaml'
-    '409':
-      $ref: '../components/responses/Conflict.yaml'
