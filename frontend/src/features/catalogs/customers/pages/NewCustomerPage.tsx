@@ -14,13 +14,16 @@ export function NewCustomerPage() {
   const handleSubmit = (input: CustomerInput) => {
     create.mutate(input, {
       onSuccess: (customer) => {
-        showToast('success', `Cliente "${customer.name}" registrado.`)
+        showToast(
+          'success',
+          `Encargado "${customer.firstName} ${customer.lastName}" registrado.`,
+        )
         navigate('/catalogs/customers')
       },
       onError: (error) => {
         showToast(
           'error',
-          isApiError(error) ? error.message : 'No se pudo registrar el cliente.',
+          isApiError(error) ? error.message : 'No se pudo registrar el encargado.',
         )
       },
     })
@@ -30,9 +33,9 @@ export function NewCustomerPage() {
     <>
       <div className="content__heading">
         <div>
-          <h1 className="content__title">Nuevo cliente</h1>
+          <h1 className="content__title">Nuevo encargado</h1>
           <p className="content__subtitle">
-            Registrá los datos del cliente y su descripción de pago.
+            Registrá los datos del encargado y la fábrica a la que pertenece.
           </p>
         </div>
         <Link to="/catalogs/customers">
@@ -44,7 +47,7 @@ export function NewCustomerPage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate('/catalogs/customers')}
         submitting={create.isPending}
-        submitLabel="Registrar cliente"
+        submitLabel="Registrar encargado"
       />
     </>
   )

@@ -7,6 +7,7 @@ import type { Customer } from '../types/customer'
 import {
   useCustomers,
   useDeactivateCustomer,
+  useFactories,
   useIndustries,
 } from '../api/customers.queries'
 import { CustomersTable } from '../components/CustomersTable'
@@ -15,23 +16,26 @@ import { CustomersTable } from '../components/CustomersTable'
 export function CustomersPage() {
   const showToast = useToast()
   const customersQuery = useCustomers()
+  const { data: factories = [] } = useFactories()
   const { data: industries = [] } = useIndustries()
   const deactivate = useDeactivateCustomer()
 
   // Customer pending confirmation for baja lógica; null when the modal is closed.
   const [toDeactivate, setToDeactivate] = useState<Customer | null>(null)
 
+  const fullName = (c: Customer) => `${c.firstName} ${c.lastName}`
+
   const confirmDeactivate = () => {
     if (!toDeactivate) return
     deactivate.mutate(toDeactivate.id, {
       onSuccess: () => {
-        showToast('success', `Cliente "${toDeactivate.name}" desactivado.`)
+        showToast('success', `Encargado "${fullName(toDeactivate)}" desactivado.`)
         setToDeactivate(null)
       },
       onError: (error) => {
         showToast(
           'error',
-          isApiError(error) ? error.message : 'No se pudo desactivar el cliente.',
+          isApiError(error) ? error.message : 'No se pudo desactivar el encargado.',
         )
       },
     })
@@ -41,29 +45,30 @@ export function CustomersPage() {
     <>
       <div className="content__heading">
         <div>
-          <h1 className="content__title">Clientes</h1>
+          <h1 className="content__title">Encargados</h1>
           <p className="content__subtitle">
-            Alta, baja, modificación y consulta de clientes.
+            Alta, baja, modificación y consulta de encargados de fábricas.
           </p>
         </div>
         <Link to="/catalogs/customers/new">
-          <Button>+ Nuevo cliente</Button>
+          <Button>+ Nuevo encargado</Button>
         </Link>
       </div>
 
-      {customersQuery.isLoading && <p>Cargando clientes…</p>}
+      {customersQuery.isLoading && <p>Cargando encargados…</p>}
 
       {customersQuery.isError && (
         <p className="form-field__hint--error">
           {isApiError(customersQuery.error)
             ? customersQuery.error.message
-            : 'No se pudieron cargar los clientes.'}
+            : 'No se pudieron cargar los encargados.'}
         </p>
       )}
 
       {customersQuery.isSuccess && (
         <CustomersTable
           customers={customersQuery.data}
+          factories={factories}
           industries={industries}
           onDeactivate={setToDeactivate}
         />
@@ -72,7 +77,7 @@ export function CustomersPage() {
       <Modal
         open={toDeactivate !== null}
         onClose={() => setToDeactivate(null)}
-        title="Desactivar cliente"
+        title="Desactivar encargado"
         size="sm"
         footer={
           <>
@@ -91,8 +96,8 @@ export function CustomersPage() {
       >
         <p>
           ¿Seguro que querés desactivar a{' '}
-          <strong>{toDeactivate?.name}</strong>? El cliente se desactivará, pero
-          se conserva su historial.
+          <strong>{toDeactivate ? fullName(toDeactivate) : ''}</strong>? El
+          encargado se desactivará, pero se conserva su historial.
         </p>
       </Modal>
     </>

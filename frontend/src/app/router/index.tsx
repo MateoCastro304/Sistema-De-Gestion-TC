@@ -7,6 +7,9 @@ import {
   CustomersPage,
   NewCustomerPage,
   CustomerDetailPage,
+  FactoriesPage,
+  NewFactoryPage,
+  FactoryDetailPage,
 } from '@/features/catalogs/customers'
 
 export const router = createBrowserRouter([
@@ -28,6 +31,15 @@ export const router = createBrowserRouter([
       { index: true, element: <CustomersPage /> },
       { path: 'new', element: <NewCustomerPage /> },
       { path: ':id', element: <CustomerDetailPage /> },
+    ],
+  },
+  {
+    path: '/catalogs/factories',
+    element: <AppLayout />,
+    children: [
+      { index: true, element: <FactoriesPage /> },
+      { path: 'new', element: <NewFactoryPage /> },
+      { path: ':id', element: <FactoryDetailPage /> },
     ],
   },
 ])

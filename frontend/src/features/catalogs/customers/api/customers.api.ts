@@ -1,26 +1,32 @@
 import { http } from '@/shared/api/http'
-import type { Customer, CustomerInput, Industry } from '../types/customer'
+import type { Customer, CustomerInput } from '../types/customer'
+import type { Factory, FactoryInput } from '../types/factory'
+import type { Industry, IndustryInput } from '../types/industry'
 
 /**
- * HTTP calls for the Customer catalog. Paths are relative to the axios
- * `baseURL` (`/api`), so `/customers` hits `/api/customers`. The contract these
- * follow is proposed in `docs/openapi/customers.yaml` (pending DTC-54).
+ * HTTP calls for the Customer catalog and its related Factory and Industry
+ * catalogs. Paths are relative to the axios `baseURL` (`/api`). The contract is
+ * proposed in `docs/openapi/customers.yaml` (pending DTC-54).
  */
 
-const BASE = '/customers'
+const CUSTOMERS = '/customers'
+const FACTORIES = '/factories'
+const INDUSTRIES = '/industries'
+
+// Customers (EncargadoCliente) --------------------------------------------
 
 export async function listCustomers(): Promise<Customer[]> {
-  const { data } = await http.get<Customer[]>(BASE)
+  const { data } = await http.get<Customer[]>(CUSTOMERS)
   return data
 }
 
 export async function getCustomer(id: string): Promise<Customer> {
-  const { data } = await http.get<Customer>(`${BASE}/${id}`)
+  const { data } = await http.get<Customer>(`${CUSTOMERS}/${id}`)
   return data
 }
 
 export async function createCustomer(input: CustomerInput): Promise<Customer> {
-  const { data } = await http.post<Customer>(BASE, input)
+  const { data } = await http.post<Customer>(CUSTOMERS, input)
   return data
 }
 
@@ -28,21 +34,44 @@ export async function updateCustomer(
   id: string,
   input: CustomerInput,
 ): Promise<Customer> {
-  const { data } = await http.patch<Customer>(`${BASE}/${id}`, input)
+  const { data } = await http.patch<Customer>(`${CUSTOMERS}/${id}`, input)
   return data
 }
 
 /** Baja lógica (CU-04): does not delete, only flips `isActive`. */
 export async function deactivateCustomer(id: string): Promise<Customer> {
-  const { data } = await http.patch<Customer>(`${BASE}/${id}/deactivate`)
+  const { data } = await http.patch<Customer>(`${CUSTOMERS}/${id}/deactivate`)
   return data
 }
 
-/**
- * Rubros catalog, needed to populate the customer form's selector. Temporary
- * home until the Rubros feature exists.
- */
+// Factories (FabricaCliente) ----------------------------------------------
+
+export async function listFactories(): Promise<Factory[]> {
+  const { data } = await http.get<Factory[]>(FACTORIES)
+  return data
+}
+
+export async function createFactory(input: FactoryInput): Promise<Factory> {
+  const { data } = await http.post<Factory>(FACTORIES, input)
+  return data
+}
+
+export async function updateFactory(
+  id: string,
+  input: FactoryInput,
+): Promise<Factory> {
+  const { data } = await http.patch<Factory>(`${FACTORIES}/${id}`, input)
+  return data
+}
+
+// Industries (Rubro) -------------------------------------------------------
+
 export async function listIndustries(): Promise<Industry[]> {
-  const { data } = await http.get<Industry[]>('/industries')
+  const { data } = await http.get<Industry[]>(INDUSTRIES)
+  return data
+}
+
+export async function createIndustry(input: IndustryInput): Promise<Industry> {
+  const { data } = await http.post<Industry>(INDUSTRIES, input)
   return data
 }

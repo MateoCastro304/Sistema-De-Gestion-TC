@@ -1,22 +1,26 @@
 import { Link } from 'react-router'
 import { Badge, Table } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
-import { PERSON_TYPE_LABEL } from '../types/customer'
-import type { Customer, Industry } from '../types/customer'
+import type { Customer } from '../types/customer'
+import type { Factory } from '../types/factory'
+import type { Industry } from '../types/industry'
 
 interface CustomersTableProps {
   customers: Customer[]
+  factories: Factory[]
   industries: Industry[]
   /** Called when the user confirms the baja lógica of a customer. */
   onDeactivate: (customer: Customer) => void
 }
 
-/** Read-only listing of customers (CU-03), with links to detail and baja. */
+/** Read-only listing of customers/contacts (CU-03), with links to detail and baja. */
 export function CustomersTable({
   customers,
+  factories,
   industries,
   onDeactivate,
 }: CustomersTableProps) {
+  const factoryById = (id: string) => factories.find((f) => f.id === id)
   const industryName = (id: string) =>
     industries.find((i) => i.id === id)?.name ?? '—'
 
@@ -25,20 +29,22 @@ export function CustomersTable({
       header: 'Nombre',
       render: (c) => (
         <Link className="table__action" to={`/catalogs/customers/${c.id}`}>
-          {c.name}
+          {c.firstName} {c.lastName}
         </Link>
       ),
     },
-    { header: 'Tipo', render: (c) => PERSON_TYPE_LABEL[c.personType] },
-    { header: 'Rubro', render: (c) => industryName(c.industryId) },
-    { header: 'Emails', render: (c) => c.emails.join(', ') },
+    { header: 'Teléfono', render: (c) => c.phone },
+    { header: 'Email', render: (c) => c.email },
     {
-      header: 'Descripción de pago',
-      render: (c) => (
-        <span className="cell-truncate" title={c.paymentDescription}>
-          {c.paymentDescription}
-        </span>
-      ),
+      header: 'Fábrica',
+      render: (c) => factoryById(c.factoryId)?.name ?? '—',
+    },
+    {
+      header: 'Rubro',
+      render: (c) => {
+        const factory = factoryById(c.factoryId)
+        return factory ? industryName(factory.industryId) : '—'
+      },
     },
     {
       header: 'Estado',
@@ -80,7 +86,7 @@ export function CustomersTable({
       columns={columns}
       data={customers}
       rowKey={(c) => c.id}
-      emptyMessage="No hay clientes registrados."
+      emptyMessage="No hay encargados registrados."
     />
   )
 }

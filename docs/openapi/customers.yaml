@@ -5,13 +5,14 @@ info:
     Contrato PROPUESTO por el frontend (DTC-53) para el catalogo de clientes.
     Pendiente de confirmacion/ajuste por el backend (DTC-54).
 
-    Campos tomados de la ERS: CU-01..CU-04 y la regla de negocio "Gestion de
-    clientes" (nombre, tipo de persona, direccion, mails, descripcion de pago y
-    rubro). "paymentDescription" es texto libre (descripcionPago del modelo de
-    dominio), no una lista de formas de pago. El telefono aparece en el modelo
-    de dominio y se deja opcional. La baja es logica (CU-04): no se borra, se
-    marca isActive=false.
-  version: 0.1.0
+    La ERS modela "Cliente" como EncargadoCliente + FabricaCliente:
+      - Customer (EncargadoCliente, CU-01..04): nombre, apellido, telefono, mail
+        y la fabrica a la que pertenece. La baja es logica (isActive=false).
+      - Factory (FabricaCliente, CU-58..61): nombre, CUIT, direccion, descripcion
+        de pago (texto libre) y rubro. Una fabrica tiene varios encargados.
+      - Industry (Rubro, CU-41..44): catalogo referenciado por la fabrica; se
+        puede crear inline desde el alta de fabrica. Incluye "Particular".
+  version: 0.2.0
 paths:
   /customers:
     get:
@@ -44,7 +45,7 @@ paths:
           description: Conflicto (p. ej. cliente ya registrado)
   /customers/{id}:
     parameters:
-      - $ref: '#/components/parameters/CustomerId'
+      - $ref: '#/components/parameters/EntityId'
     get:
       summary: Get customer by id
       responses:
@@ -75,7 +76,7 @@ paths:
           description: Not found
   /customers/{id}/deactivate:
     parameters:
-      - $ref: '#/components/parameters/CustomerId'
+      - $ref: '#/components/parameters/EntityId'
     patch:
       summary: Baja logica de un cliente (CU-04)
       responses:
@@ -87,9 +88,56 @@ paths:
                 $ref: '#/components/schemas/Customer'
         '404':
           description: Not found
+  /factories:
+    get:
+      summary: List factories (CU-60)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Factory'
+    post:
+      summary: Create factory (CU-58)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FactoryInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Factory'
+  /factories/{id}:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    patch:
+      summary: Update factory (CU-59)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FactoryInput'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Factory'
+        '404':
+          description: Not found
   /industries:
     get:
-      summary: List rubros (catalogo referenciado por el cliente)
+      summary: List rubros (CU-43)
       responses:
         '200':
           description: OK
@@ -99,19 +147,30 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Industry'
+    post:
+      summary: Create rubro (CU-41)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IndustryInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Industry'
 components:
   parameters:
-    CustomerId:
+    EntityId:
       name: id
       in: path
       required: true
       schema:
         type: string
   schemas:
-    PersonType:
-      type: string
-      enum: [individual, business]
-      description: Persona fisica (individual) o juridica (business).
     Industry:
       type: object
       properties:
@@ -119,29 +178,31 @@ components:
           type: string
         name:
           type: string
-      required: [id, name]
-    Customer:
+        isActive:
+          type: boolean
+      required: [id, name, isActive]
+    IndustryInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+      required: [name]
+    Factory:
       type: object
       properties:
         id:
           type: string
         name:
           type: string
-        personType:
-          $ref: '#/components/schemas/PersonType'
+        cuit:
+          type: string
+          description: CUIT en 11 digitos (sin guiones).
         address:
           type: string
-        phone:
-          type: string
-          nullable: true
-        emails:
-          type: array
-          items:
-            type: string
-            format: email
         paymentDescription:
           type: string
-          description: Texto libre con aclaraciones sobre el pago del cliente.
+          description: Texto libre con aclaraciones sobre el pago de la fabrica.
         industryId:
           type: string
         isActive:
@@ -149,30 +210,22 @@ components:
       required:
         - id
         - name
-        - personType
+        - cuit
         - address
-        - emails
         - paymentDescription
         - industryId
         - isActive
-    CustomerInput:
+    FactoryInput:
       type: object
       properties:
         name:
           type: string
-        personType:
-          $ref: '#/components/schemas/PersonType'
+          minLength: 1
+        cuit:
+          type: string
         address:
           type: string
-        phone:
-          type: string
-          nullable: true
-        emails:
-          type: array
-          minItems: 1
-          items:
-            type: string
-            format: email
+          minLength: 1
         paymentDescription:
           type: string
           minLength: 1
@@ -180,8 +233,57 @@ components:
           type: string
       required:
         - name
-        - personType
+        - cuit
         - address
-        - emails
         - paymentDescription
         - industryId
+    Customer:
+      type: object
+      description: EncargadoCliente, la persona de contacto de una fabrica.
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        factoryId:
+          type: string
+        isActive:
+          type: boolean
+      required:
+        - id
+        - firstName
+        - lastName
+        - phone
+        - email
+        - factoryId
+        - isActive
+    CustomerInput:
+      type: object
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+        lastName:
+          type: string
+          minLength: 1
+        phone:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        factoryId:
+          type: string
+      required:
+        - firstName
+        - lastName
+        - phone
+        - email
+        - factoryId

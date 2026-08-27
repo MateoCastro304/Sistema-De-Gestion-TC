@@ -10,6 +10,7 @@
 
     /* Bundler mode */
     "moduleResolution": "bundler",
+    /* Path aliases — deben coincidir con resolve.alias en vite.config.ts */
     "paths": {
       "@/*": ["./src/*"]
     },
@@ -18,11 +19,6 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
-
-    /* Path aliases — deben coincidir con resolve.alias en vite.config.ts */
-    "paths": {
-      "@/*": ["./src/*"]
-    },
 
     /* Linting */
     "noUnusedLocals": true,

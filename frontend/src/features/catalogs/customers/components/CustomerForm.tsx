@@ -1,8 +1,7 @@
-import { useForm, useFieldArray } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input } from '@/shared/components/ui'
 import { cn } from '@/shared/lib/cn'
-import { PERSON_TYPE_OPTIONS } from '../types/customer'
 import type { CustomerInput } from '../types/customer'
 import {
   customerFormSchema,
@@ -10,7 +9,7 @@ import {
   toCustomerInput,
 } from '../schemas/customer.schema'
 import type { CustomerFormValues } from '../schemas/customer.schema'
-import { useIndustries } from '../api/customers.queries'
+import { useFactories } from '../api/customers.queries'
 
 interface CustomerFormProps {
   /** Pre-filled values when editing; omit to create a new customer. */
@@ -19,12 +18,18 @@ interface CustomerFormProps {
   onCancel?: () => void
   submitting?: boolean
   submitLabel?: string
+  /**
+   * When set, the contact belongs to this factory and the factory selector is
+   * hidden. Used when adding an encargado from inside a factory
+   * ("desde la fábrica se agregan los encargados").
+   */
+  lockedFactoryId?: string
 }
 
 /**
- * Form for creating and editing a customer. Emails and payment methods are
- * dynamic lists (useFieldArray), matching the ERS: a customer can have several
- * of each and they change over time.
+ * Form for creating and editing a customer (EncargadoCliente). The factory is
+ * chosen from a selector (read-only catalog here); creating/editing factories
+ * happens in the Factories catalog, not from this form.
  */
 export function CustomerForm({
   defaultValues,
@@ -32,6 +37,7 @@ export function CustomerForm({
   onCancel,
   submitting = false,
   submitLabel = 'Guardar',
+  lockedFactoryId,
 }: CustomerFormProps) {
   const {
     register,
@@ -40,150 +46,95 @@ export function CustomerForm({
     formState: { errors },
   } = useForm<CustomerFormValues>({
     resolver: zodResolver(customerFormSchema),
-    defaultValues: defaultValues ?? emptyCustomerForm,
+    defaultValues: defaultValues ??
+      (lockedFactoryId
+        ? { ...emptyCustomerForm, factoryId: lockedFactoryId }
+        : emptyCustomerForm),
   })
 
-  const emails = useFieldArray({ control, name: 'emails' })
-
-  const { data: industries = [], isLoading: loadingIndustries } = useIndustries()
+  const { data: factories = [], isLoading: loadingFactories } = useFactories()
 
   const submit = handleSubmit((values) => onSubmit(toCustomerInput(values)))
-
-  const emailsError = errors.emails?.root?.message ?? errors.emails?.message
 
   return (
     <form className="form-card" onSubmit={submit} noValidate>
       <div className="form-grid">
-        <div className="form-field--full">
+        <div className="form-field">
           <Input
             label="Nombre"
-            placeholder="Ej: EDASA"
-            error={errors.name?.message}
-            {...register('name')}
-          />
-        </div>
-
-        <div className="form-field">
-          <label className="form-field__label" htmlFor="personType">
-            Tipo de persona
-          </label>
-          <select
-            id="personType"
-            className="form-field__select"
-            {...register('personType')}
-          >
-            {PERSON_TYPE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="form-field">
-          <label className="form-field__label" htmlFor="industryId">
-            Rubro
-          </label>
-          <select
-            id="industryId"
-            className={cn(
-              'form-field__select',
-              errors.industryId && 'form-field__input--error',
-            )}
-            disabled={loadingIndustries}
-            {...register('industryId')}
-          >
-            <option value="">
-              {loadingIndustries ? 'Cargando rubros…' : 'Seleccioná un rubro'}
-            </option>
-            {industries.map((industry) => (
-              <option key={industry.id} value={industry.id}>
-                {industry.name}
-              </option>
-            ))}
-          </select>
-          {errors.industryId && (
-            <span className="form-field__hint form-field__hint--error">
-              {errors.industryId.message}
-            </span>
-          )}
-        </div>
-
-        <div className="form-field--full">
-          <Input
-            label="Dirección"
-            placeholder="Calle, número, ciudad"
-            error={errors.address?.message}
-            {...register('address')}
+            placeholder="Ej: Laura"
+            error={errors.firstName?.message}
+            {...register('firstName')}
           />
         </div>
 
         <div className="form-field">
           <Input
-            label="Teléfono (opcional)"
+            label="Apellido"
+            placeholder="Ej: Gómez"
+            error={errors.lastName?.message}
+            {...register('lastName')}
+          />
+        </div>
+
+        <div className="form-field">
+          <Input
+            label="Teléfono"
             placeholder="+54 351 555-0000"
             error={errors.phone?.message}
             {...register('phone')}
           />
         </div>
-      </div>
 
-      {/* Emails ------------------------------------------------------------ */}
-      <fieldset className="form-fieldset">
-        <legend className="form-field__label">Emails</legend>
-        {emails.fields.map((field, index) => (
-          <div className="form-field__row" key={field.id}>
-            <div className="form-field__row-grow">
-              <Input
-                placeholder="compras@empresa.com"
-                error={errors.emails?.[index]?.value?.message}
-                {...register(`emails.${index}.value`)}
-              />
-            </div>
-            <button
-              type="button"
-              className="form-field__icon-btn"
-              onClick={() => emails.remove(index)}
-              disabled={emails.fields.length === 1}
-              aria-label="Quitar email"
-            >
-              &times;
-            </button>
+        <div className="form-field">
+          <Input
+            label="Email"
+            placeholder="contacto@empresa.com"
+            error={errors.email?.message}
+            {...register('email')}
+          />
+        </div>
+
+        {/* Factory selector, unless the factory is fixed by the context. */}
+        {!lockedFactoryId && (
+          <div className="form-field--full">
+            <label className="form-field__label" htmlFor="factoryId">
+              Fábrica
+            </label>
+            <Controller
+              control={control}
+              name="factoryId"
+              render={({ field }) => (
+                <select
+                  id="factoryId"
+                  className={cn(
+                    'form-field__select',
+                    errors.factoryId && 'form-field__select--error',
+                  )}
+                  disabled={loadingFactories}
+                  {...field}
+                >
+                  <option value="">
+                    {loadingFactories
+                      ? 'Cargando fábricas…'
+                      : 'Seleccioná una fábrica'}
+                  </option>
+                  {factories.map((factory) => (
+                    <option key={factory.id} value={factory.id}>
+                      {factory.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            />
+            {errors.factoryId && (
+              <span className="form-field__hint form-field__hint--error">
+                {errors.factoryId.message}
+              </span>
+            )}
           </div>
-        ))}
-        {emailsError && (
-          <span className="form-field__hint form-field__hint--error">
-            {emailsError}
-          </span>
         )}
-        <button
-          type="button"
-          className="table__add-link"
-          onClick={() => emails.append({ value: '' })}
-        >
-          + Agregar email
-        </button>
-      </fieldset>
-
-      {/* Payment description ---------------------------------------------- */}
-      <fieldset className="form-fieldset">
-        <legend className="form-field__label" id="paymentDescription-label">
-          Descripción de pago
-        </legend>
-        <textarea
-          className="form-field__textarea"
-          rows={4}
-          aria-labelledby="paymentDescription-label"
-          aria-invalid={errors.paymentDescription ? true : undefined}
-          placeholder="Cliente puntual con los pagos, suele pagar adelantado, casi siempre abona en transferencia, etc."
-          {...register('paymentDescription')}
-        />
-        {errors.paymentDescription && (
-          <span className="form-field__hint form-field__hint--error">
-            {errors.paymentDescription.message}
-          </span>
-        )}
-      </fieldset>
+      </div>
 
       <div className="form-actions">
         {onCancel && (

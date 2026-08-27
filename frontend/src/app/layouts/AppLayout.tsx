@@ -2,7 +2,8 @@ import { Outlet, NavLink, useLocation } from 'react-router'
 
 /** Label shown in the topbar breadcrumb, keyed by the catalog path segment. */
 const SECTION_LABELS: Record<string, string> = {
-  customers: 'Clientes',
+  customers: 'Encargados',
+  factories: 'Fábricas',
   suppliers: 'Proveedores',
 }
 
@@ -36,7 +37,14 @@ export function AppLayout() {
                 <NavLink to="/catalogs/customers" className={({ isActive }) => isActive ? 'sidebar__link sidebar__link--active' : 'sidebar__link'
                     }
                     >
-                    Clientes
+                    Encargados
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/catalogs/factories" className={({ isActive }) => isActive ? 'sidebar__link sidebar__link--active' : 'sidebar__link'
+                    }
+                    >
+                    Fábricas
                 </NavLink>
               </li>
               <li>

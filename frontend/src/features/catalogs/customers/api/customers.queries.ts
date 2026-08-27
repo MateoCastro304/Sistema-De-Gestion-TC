@@ -1,14 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { CustomerInput } from '../types/customer'
-import { customerKeys, industryKeys } from './customers.keys'
+import type { FactoryInput } from '../types/factory'
+import { customerKeys, factoryKeys, industryKeys } from './customers.keys'
 import {
   createCustomer,
+  createFactory,
+  createIndustry,
   deactivateCustomer,
   getCustomer,
   listCustomers,
+  listFactories,
   listIndustries,
   updateCustomer,
+  updateFactory,
 } from './customers.api'
+
+// Customers (EncargadoCliente) --------------------------------------------
 
 /** List all customers (CU-03 Consultar Cliente). */
 export function useCustomers() {
@@ -24,14 +31,6 @@ export function useCustomer(id: string) {
     queryKey: customerKeys.detail(id),
     queryFn: () => getCustomer(id),
     enabled: Boolean(id),
-  })
-}
-
-/** Rubros for the form selector. */
-export function useIndustries() {
-  return useQuery({
-    queryKey: industryKeys.all,
-    queryFn: listIndustries,
   })
 }
 
@@ -65,6 +64,59 @@ export function useDeactivateCustomer() {
     mutationFn: deactivateCustomer,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: customerKeys.all })
+    },
+  })
+}
+
+// Factories (FabricaCliente) ----------------------------------------------
+
+/** Factories, used by the customer form's selector and the factory modal. */
+export function useFactories() {
+  return useQuery({
+    queryKey: factoryKeys.lists(),
+    queryFn: listFactories,
+  })
+}
+
+/** Create a factory (CU-58) from the customer window. */
+export function useCreateFactory() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: createFactory,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: factoryKeys.all })
+    },
+  })
+}
+
+/** Update a factory (CU-59) from the customer window. */
+export function useUpdateFactory(id: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: FactoryInput) => updateFactory(id, input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: factoryKeys.all })
+    },
+  })
+}
+
+// Industries (Rubro) -------------------------------------------------------
+
+/** Rubros for the factory form's selector. */
+export function useIndustries() {
+  return useQuery({
+    queryKey: industryKeys.all,
+    queryFn: listIndustries,
+  })
+}
+
+/** Create a rubro (CU-41) inline from the factory form. */
+export function useCreateIndustry() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: createIndustry,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: industryKeys.all })
     },
   })
 }
