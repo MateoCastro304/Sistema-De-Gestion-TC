@@ -65,6 +65,17 @@ export function FactoryForm({
 
           <div className="form-field">
             <Input
+              label="Código de fábrica"
+              placeholder="Ej: EDA"
+              maxLength={4}
+              style={{ textTransform: 'uppercase' }}
+              error={errors.code?.message}
+              {...register('code')}
+            />
+          </div>
+
+          <div className="form-field">
+            <Input
               label="CUIT"
               placeholder="30-71234567-8"
               error={errors.cuit?.message}

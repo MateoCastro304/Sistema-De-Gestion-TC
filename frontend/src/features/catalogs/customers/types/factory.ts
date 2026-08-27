@@ -9,6 +9,12 @@
 export interface Factory {
   id: string
   name: string
+  /**
+   * Unique factory code (3–4 chars), used as the prefix of the internal
+   * sequential id of pieces that arrive without a plan number (ERS §2.3).
+   * Stored uppercased.
+   */
+  code: string
   /** Argentine CUIT, stored as 11 digits (may be shown formatted). */
   cuit: string
   address: string
@@ -21,6 +27,7 @@ export interface Factory {
 /** Payload sent to the API on create/update. */
 export interface FactoryInput {
   name: string
+  code: string
   cuit: string
   address: string
   paymentDescription: string

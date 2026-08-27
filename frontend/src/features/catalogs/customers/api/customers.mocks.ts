@@ -23,7 +23,8 @@ let factories: Factory[] = [
   {
     id: 'fac-edasa',
     name: 'EDASA',
-    cuit: '30712345678',
+    code: 'EDA',
+    cuit: '30712345671',
     address: 'Av. Siempre Viva 123, Córdoba',
     paymentDescription:
       'Cliente puntual con los pagos, suele abonar por transferencia a 30 días.',
@@ -33,13 +34,41 @@ let factories: Factory[] = [
   {
     id: 'fac-oxycam',
     name: 'OxyCAM',
-    cuit: '30798765432',
+    code: 'OXY',
+    cuit: '30798765430',
     address: 'Ruta 9 Km 7, Córdoba',
     paymentDescription: 'Casi siempre paga adelantado. Pedir seña en trabajos grandes.',
     industryId: 'ind-oil',
     isActive: true,
   },
 ]
+
+/**
+ * Enforces the "CUIT y código de fábrica son únicos" rule (CU-58, escenario 2).
+ * Returns a 409 response when the payload collides with an existing factory,
+ * skipping the factory being edited (`ignoreId`); otherwise `null`.
+ */
+function factoryConflict(
+  input: FactoryInput,
+  ignoreId?: string,
+): Response | null {
+  const code = input.code.trim().toUpperCase()
+  const cuit = input.cuit.replace(/\D/g, '')
+  const clash = factories.find(
+    (f) =>
+      f.id !== ignoreId &&
+      (f.cuit === cuit || f.code.toUpperCase() === code),
+  )
+  if (!clash) return null
+  const field = clash.cuit === cuit ? `CUIT ${input.cuit}` : `código "${code}"`
+  return HttpResponse.json(
+    {
+      statusCode: 409,
+      message: `Ya existe una fábrica registrada con ese ${field}.`,
+    },
+    { status: 409 },
+  )
+}
 
 let customers: Customer[] = [
   {
@@ -113,6 +142,8 @@ export const customerHandlers = [
 
   http.post('/api/factories', async ({ request }) => {
     const body = (await request.json()) as FactoryInput
+    const conflict = factoryConflict(body)
+    if (conflict) return conflict
     const newFactory: Factory = {
       id: crypto.randomUUID(),
       isActive: true,
@@ -126,6 +157,8 @@ export const customerHandlers = [
     const factory = findFactory(String(params.id))
     if (!factory) return new HttpResponse(null, { status: 404 })
     const body = (await request.json()) as FactoryInput
+    const conflict = factoryConflict(body, factory.id)
+    if (conflict) return conflict
     Object.assign(factory, body)
     return HttpResponse.json(factory)
   }),

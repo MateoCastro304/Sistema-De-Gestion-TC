@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useParams, Link } from 'react-router'
+import { useEffect, useState } from 'react'
+import { useParams, useLocation, Link } from 'react-router'
 import { Button, Modal, Table } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
 import { useToast } from '@/app/providers/ToastContext'
@@ -24,6 +24,7 @@ import { CustomerFormModal } from '../components/CustomerFormModal'
  */
 export function FactoryDetailPage() {
   const { id = '' } = useParams<{ id: string }>()
+  const location = useLocation()
   const showToast = useToast()
 
   const factoriesQuery = useFactories()
@@ -39,6 +40,16 @@ export function FactoryDetailPage() {
   } | null>(null)
   // Encargado pending confirmation for baja lógica.
   const [toDeactivate, setToDeactivate] = useState<Customer | null>(null)
+
+  // Escenario 1 (HU-E1): al llegar recién creada la fábrica, ofrecer cargar su
+  // primer encargado abriendo el modal automáticamente. Se limpia el state para
+  // no reabrirlo al refrescar o volver.
+  useEffect(() => {
+    if ((location.state as { addContact?: boolean } | null)?.addContact) {
+      setContactModal({ customer: undefined })
+      window.history.replaceState({}, '')
+    }
+  }, [location.state])
 
   if (factoriesQuery.isLoading) return <p>Cargando fábrica…</p>
 
@@ -227,6 +238,10 @@ function FactoryDetails({
     <div className="info-card">
       <h2 className="info-card__title">Datos de la fábrica</h2>
       <div className="info-grid">
+        <div className="info-grid__item">
+          <span className="info-grid__label">Código de fábrica</span>
+          <span className="info-grid__value">{factory.code}</span>
+        </div>
         <div className="info-grid__item">
           <span className="info-grid__label">Rubro</span>
           <span className="info-grid__value">{industryName}</span>

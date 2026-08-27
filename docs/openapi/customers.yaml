@@ -115,6 +115,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Factory'
+        '409':
+          description: CUIT o codigo de fabrica ya registrados (escenario 2)
   /factories/{id}:
     parameters:
       - $ref: '#/components/parameters/EntityId'
@@ -135,6 +137,8 @@ paths:
                 $ref: '#/components/schemas/Factory'
         '404':
           description: Not found
+        '409':
+          description: CUIT o codigo de fabrica ya registrados (escenario 2)
   /industries:
     get:
       summary: List rubros (CU-43)
@@ -195,6 +199,13 @@ components:
           type: string
         name:
           type: string
+        code:
+          type: string
+          minLength: 3
+          maxLength: 4
+          description: >-
+            Codigo unico de fabrica (3-4 caracteres, en mayusculas). Prefijo del
+            id interno secuencial de piezas sin plano (ERS §2.3).
         cuit:
           type: string
           description: CUIT en 11 digitos (sin guiones).
@@ -210,6 +221,7 @@ components:
       required:
         - id
         - name
+        - code
         - cuit
         - address
         - paymentDescription
@@ -221,6 +233,11 @@ components:
         name:
           type: string
           minLength: 1
+        code:
+          type: string
+          minLength: 3
+          maxLength: 4
+          description: Codigo unico de fabrica (3-4 caracteres alfanumericos).
         cuit:
           type: string
         address:
@@ -233,6 +250,7 @@ components:
           type: string
       required:
         - name
+        - code
         - cuit
         - address
         - paymentDescription
