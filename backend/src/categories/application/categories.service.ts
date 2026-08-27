@@ -4,17 +4,18 @@ import { CategoriesRepository } from '../infrastructure/categories.repository';
 import { CreateCategoryDto } from '../http/dto/create-category.dto';
 import { UpdateCategoryDto } from '../http/dto/update-category.dto';
 
+//esta clase se puede inyectar como dependencia en otro lado. Nest sabe como crear una instancia de CategoriesService para dársela al controller.
 @Injectable()
 export class CategoriesService {
   constructor(private readonly categoriesRepository: CategoriesRepository) {}
 
-  create(dto: CreateCategoryDto): Promise<Category> {
+  create(dto: CreateCategoryDto): Promise<Category> {  // esto representa "voy a tardar en conseguir el dato"
     const category = Category.create(dto.name);
     return this.categoriesRepository.save(category);
   }
 
-  findAll(): Promise<Category[]> {
-    return this.categoriesRepository.findAll();
+  findAll(page: number, limit: number): Promise<Category[]> {
+    return this.categoriesRepository.findAll(page, limit);
   }
 
   findOne(id: number): Promise<Category | null> {

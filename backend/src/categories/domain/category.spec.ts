@@ -20,4 +20,44 @@ describe('Category (domain)', () => {
     const category = Category.create('Metalurgica');
     expect(() => category.rename('')).toThrow('Category name cannot be empty');
   });
+
+  describe('timestamps', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('sets createdAt equal to updatedAt when created', () => {
+      jest.setSystemTime(new Date('2026-01-01T10:00:00Z'));
+
+      const category = Category.create('Metalurgica');
+
+      expect(category.createdAt).toEqual(category.updatedAt);
+    });
+
+    it('updates updatedAt on rename, but keeps createdAt unchanged', () => {
+      jest.setSystemTime(new Date('2026-01-01T10:00:00Z'));
+      const category = Category.create('Metalurgica');
+      const originalCreatedAt = category.createdAt;
+
+      jest.setSystemTime(new Date('2026-06-01T10:00:00Z'));
+      category.rename('Insumos');
+
+      expect(category.createdAt).toEqual(originalCreatedAt);
+      expect(category.updatedAt).toEqual(new Date('2026-06-01T10:00:00Z'));
+    });
+
+    it('updates updatedAt on deactivate', () => {
+      jest.setSystemTime(new Date('2026-01-01T10:00:00Z'));
+      const category = Category.create('Metalurgica');
+
+      jest.setSystemTime(new Date('2026-06-01T10:00:00Z'));
+      category.deactivate();
+
+      expect(category.updatedAt).toEqual(new Date('2026-06-01T10:00:00Z'));
+    });
+  });
 });

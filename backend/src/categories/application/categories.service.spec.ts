@@ -30,7 +30,7 @@ describe('CategoriesService', () => {
 
   describe('findOne', () => {
     it('returns the category found by the repository', async () => {
-      const existing = Category.reconstitute(1, 'Metalurgica', true);
+      const existing = Category.reconstitute(1, 'Metalurgica', true, new Date(), new Date());
       repository.findById.mockResolvedValue(existing);
 
       const result = await service.findOne(1);
@@ -59,7 +59,7 @@ describe('CategoriesService', () => {
     });
 
     it('renames the category and saves it', async () => {
-      const existing = Category.reconstitute(1, 'Metalurgica', true);
+      const existing = Category.reconstitute(1, 'Metalurgica', true, new Date(), new Date());
       repository.findById.mockResolvedValue(existing);
       repository.save.mockImplementation(async (category) => category);
 
@@ -81,7 +81,7 @@ describe('CategoriesService', () => {
     });
 
     it('deactivates the category instead of deleting it', async () => {
-      const existing = Category.reconstitute(1, 'Metalurgica', true);
+      const existing = Category.reconstitute(1, 'Metalurgica', true, new Date(), new Date());
       repository.findById.mockResolvedValue(existing);
       repository.save.mockImplementation(async (category) => category);
 

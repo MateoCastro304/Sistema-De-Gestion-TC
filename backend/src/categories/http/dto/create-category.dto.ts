@@ -1,10 +1,10 @@
-import { Transform } from 'class-transformer';
+import { Transform } from 'class-transformer'; //@Transform recibe una función que agarra el valor crudo y devuelve el valor ya modificado.
 import { IsString, MinLength, MaxLength } from 'class-validator';
-
+//cuando alguien te dé un objeto de este tipo, revisá que este campo cumpla esta regla
 export class CreateCategoryDto {
-  @IsString()
+  @IsString() 
   @Transform(({ value }) => value?.trim())
   @MinLength(1)
-  @MaxLength(100)
+  @MaxLength(80)
   name: string; 
 }
