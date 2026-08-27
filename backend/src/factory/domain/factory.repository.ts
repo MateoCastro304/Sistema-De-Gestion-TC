@@ -1,9 +1,8 @@
-import { Factory } from "./factory";
+import { Factory } from './factory';
 
-export interface FactoryRepository {
-  create(factory: Factory): Promise<Factory>;
-  findById(id: string): Promise<Factory | null>;
-  findAll(): Promise<Factory[]>;
-  update(id: string, factory: Factory): Promise<Factory | null>;
-  delete(id: string): Promise<boolean>;
+export abstract class FactoryRepository {
+  abstract save(factory: Factory): Promise<void>;
+  abstract findById(id: string): Promise<Factory | null>;
+  abstract findAll(): Promise<Factory[]>;
+  abstract update(factory: Factory): Promise<void>;
 }
