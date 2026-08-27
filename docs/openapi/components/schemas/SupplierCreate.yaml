@@ -1,0 +1,18 @@
+type: object
+description: Payload required to create a new supplier.
+required:
+  - legalName
+  - taxId
+properties:
+  legalName:
+    $ref: './Supplier.yaml#/properties/legalName'
+  taxId:
+    $ref: './Supplier.yaml#/properties/taxId'
+  contactName:
+    $ref: './Supplier.yaml#/properties/contactName'
+  contactEmail:
+    $ref: './Supplier.yaml#/properties/contactEmail'
+  contactPhone:
+    $ref: './Supplier.yaml#/properties/contactPhone'
+  address:
+    $ref: './Supplier.yaml#/properties/address'

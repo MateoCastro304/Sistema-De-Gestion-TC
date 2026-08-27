@@ -1,0 +1,44 @@
+get:
+  summary: List categories
+  description: Returns a paginated list of categories.
+  operationId: listCategories
+  tags:
+    - Categories
+  parameters:
+    - $ref: '../components/parameters/PageParam.yaml'
+    - $ref: '../components/parameters/LimitParam.yaml'
+  responses:
+    '200':
+      description: List of categories for the requested page.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '../components/schemas/Category.yaml'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+
+post:
+  summary: Create a category
+  description: Registers a new category in the system.
+  operationId: createCategory
+  tags:
+    - Categories
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/CategoryCreate.yaml'
+  responses:
+    '201':
+      description: Category created successfully.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Category.yaml'
+    '400':
+      $ref: '../components/responses/BadRequest.yaml'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'

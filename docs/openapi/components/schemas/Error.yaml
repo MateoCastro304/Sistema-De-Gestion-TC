@@ -1,0 +1,49 @@
+type: object
+description: Standard shape of an API error response.
+required:
+  - statusCode
+  - error
+  - message
+  - path
+  - timestamp
+properties:
+  statusCode:
+    type: integer
+    description: HTTP status code, replicated in the body for convenience.
+    example: 404
+  error:
+    type: string
+    description: Short, stable name of the error type (do not translate).
+    example: Not Found
+  message:
+    type: string
+    description: Human-readable message for the end user.
+    example: Category with id 123 was not found.
+  path:
+    type: string
+    description: Path of the failing request.
+    example: /api/categories/123
+  timestamp:
+    type: string
+    format: date-time
+    description: Moment the error was generated (ISO 8601).
+    example: '2026-08-22T15:30:00Z'
+  details:
+    type: array
+    description: |
+      Finer-grained errors, typically per-field. Only appears on
+      validation errors (400). May be omitted or empty on other errors.
+    items:
+      type: object
+      required:
+        - field
+        - message
+      properties:
+        field:
+          type: string
+          description: Name of the request body field that failed validation.
+          example: name
+        message:
+          type: string
+          description: Reason for the failure, ready to display to the user.
+          example: Name cannot be empty.

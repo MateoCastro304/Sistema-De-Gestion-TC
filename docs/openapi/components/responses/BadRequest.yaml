@@ -1,0 +1,18 @@
+description: |
+  Invalid request data. The `details` field breaks down the errors
+  field by field.
+content:
+  application/json:
+    schema:
+      $ref: '../schemas/Error.yaml'
+    example:
+      statusCode: 400
+      error: Bad Request
+      message: Invalid request data.
+      path: /api/categories
+      timestamp: '2026-08-22T15:30:00Z'
+      details:
+        - field: name
+          message: Name cannot be empty.
+        - field: description
+          message: Description cannot exceed 500 characters.

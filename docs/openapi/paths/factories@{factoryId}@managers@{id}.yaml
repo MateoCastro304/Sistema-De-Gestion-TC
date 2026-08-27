@@ -1,0 +1,61 @@
+parameters:
+  - $ref: '../components/parameters/FactoryIdParam.yaml'
+  - $ref: '../components/parameters/IdParam.yaml'
+
+get:
+  summary: Get a manager by id
+  description: Returns the data of a specific manager of a factory.
+  operationId: getFactoryManagerById
+  tags:
+    - Managers
+  responses:
+    '200':
+      description: Requested manager.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Manager.yaml'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '404':
+      $ref: '../components/responses/NotFound.yaml'
+
+patch:
+  summary: Update a manager
+  description: Partial update. Only the fields sent are modified.
+  operationId: updateFactoryManager
+  tags:
+    - Managers
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/ManagerUpdate.yaml'
+  responses:
+    '200':
+      description: Updated manager.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Manager.yaml'
+    '400':
+      $ref: '../components/responses/BadRequest.yaml'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '404':
+      $ref: '../components/responses/NotFound.yaml'
+
+delete:
+  summary: Delete a manager
+  description: Removes a manager from the factory.
+  operationId: deleteFactoryManager
+  tags:
+    - Managers
+  responses:
+    '204':
+      description: Manager deleted successfully.
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '404':
+      $ref: '../components/responses/NotFound.yaml'
