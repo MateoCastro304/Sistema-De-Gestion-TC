@@ -18,17 +18,27 @@ services:
     build:
       target: production
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       NODE_ENV: production
-      PORT: ${PORT}
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      PORT: 3000
     deploy:
       resources:
         limits:
           cpus: '1'
           memory: 512M
         reservations:
+          memory: 256M
+
+  frontend:
+    build:
+      target: production
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 128M
+        reservations:
+          cpus: '0.5'
           memory: 256M
 
 volumes:

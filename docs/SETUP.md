@@ -6,15 +6,19 @@ Onboarding guide: how to get the project running locally from scratch.
 
 ## 1. Prerequisites
 
-| Tool                            | Notes                                                                                                     |
-| ------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| **Docker** + **Docker Compose** | `docker --version` / `docker compose version`                                                             |
-| **make**                        | Preinstalled on Linux/Mac. On Windows: use WSL, or Git Bash with `make` installed (`choco install make`). |
-| **Node.js**                     | Only needed if you plan to run the backend _outside_ Docker (not required for the normal workflow).       |
+| Tool                            | Notes                                                                                                            |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Docker** + **Docker Compose** | `docker --version` / `docker compose version`                                                                    |
+| **make**                        | Preinstalled on Linux/Mac. On Windows: use WSL, or Git Bash with `make` installed (`choco install make`).        |
+| **Node.js**                     | Only needed if you plan to run backend or frontend tooling outside Docker. Not required for the normal workflow. |
+
+> The normal development workflow runs the **backend, frontend and PostgreSQL** inside Docker. Node.js does not need to be installed locally unless you want to run project tooling directly on your host machine.
 
 ---
 
 ## 2. Clone the repo and configure environment variables
+
+Clone the repository:
 
 ```bash
 git clone <repo-url>
@@ -27,7 +31,7 @@ Fill in the Docker environment files (these are not versioned; each developer cr
 cp infrastructure/docker/.env.example infrastructure/docker/.env.dev
 ```
 
-Edit `infrastructure/docker/.env.dev` with real values:
+Edit `infrastructure/docker/.env.dev` with the required development values:
 
 ```env
 POSTGRES_USER=torneria_dev
@@ -45,23 +49,43 @@ JWT secrets must be at least 32 characters long (enforced by `env.validation.ts`
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-Run this command twice (once for `JWT_SECRET`, once for `JWT_REFRESH_SECRET` — **do not reuse the same value for both**).
+Run this command twice: once for `JWT_SECRET` and once for `JWT_REFRESH_SECRET`.
+
+**Do not reuse the same value for both secrets.**
 
 > Project rule: if you add a new environment variable, update `.env.example` in the same commit (see `docs/CONTRIBUTING.md`).
 
 ---
 
-## 3. Start the environment with Docker
+## 3. Start the development environment with Docker
 
-With the `Makefile` at the repo root, the whole workflow is handled through short commands:
+The development environment is composed of three main services:
+
+- **Backend** — NestJS API.
+- **Frontend** — React/Vite application.
+- **PostgreSQL** — Development database.
+
+With the `Makefile` at the repository root, the whole development workflow is handled through short commands.
+
+Start all services in the background:
 
 ```bash
-make dev-up          # starts backend + postgres in the background
-make ps           # confirms both containers are "healthy" / "running"
-make dev-logs     # follows logs live (Ctrl+C to exit, doesn't stop the containers)
+make dev-up
 ```
 
-See all available commands at any time:
+Check the status of the containers:
+
+```bash
+make ps
+```
+
+Follow the logs from all services:
+
+```bash
+make dev-logs
+```
+
+To see all available commands:
 
 ```bash
 make help
@@ -73,81 +97,297 @@ make help
 
 ### Run Prisma migrations
 
+Once the containers are running, apply the database migrations:
+
 ```bash
 make migrate
 ```
 
-### Load test data (seed)
+### Load test data
+
+Run the Prisma seed:
 
 ```bash
 make seed
 ```
 
-### Verify the backend is responding
+### Verify the backend
 
-- API: `http://localhost:3000`
-- Swagger docs: `http://localhost:3000/docs`
+The backend API is available at:
+
+```text
+http://localhost:3000
+```
+
+Swagger documentation is available at:
+
+```text
+http://localhost:3000/docs
+```
+
+### Verify the frontend
+
+The frontend is available at:
+
+```text
+http://localhost:5173
+```
+
+> The frontend runs inside its own Docker container. Its source code is mounted into the container during development, allowing changes to be reflected without rebuilding the image in the normal development workflow.
 
 ### Access the containers for debugging
 
+Backend:
+
 ```bash
-make shell-backend   # shell inside the backend container
-make shell-db        # psql inside the postgres container
+make backend-shell
+```
+
+Frontend:
+
+```bash
+make frontend-shell
+```
+
+PostgreSQL:
+
+```bash
+make db-shell
 ```
 
 ---
 
 ## 5. Available commands (summary)
 
-| Command              | What it does                                                                 |
-| -------------------- | ---------------------------------------------------------------------------- |
-| `make dev-up`        | Start backend + postgres (dev)                                               |
-| `make dev-build`     | Rebuild images and start (use after changing the Dockerfile or dependencies) |
-| `make dev-down`      | Stop the containers                                                          |
-| `make dev-down-v`    | Stop containers **and delete Postgres data** (full reset)                    |
-| `make dev-logs`      | Live logs for all services                                                   |
-| `make dev-restart`   | Restart the backend only                                                     |
-| `make ps`            | Container status                                                             |
-| `make migrate`       | Run Prisma migrations                                                        |
-| `make seed`          | Load test data                                                               |
-| `make shell-backend` | Shell inside the backend                                                     |
-| `make shell-db`      | psql inside Postgres                                                         |
-| `make clean`         | Stop everything, remove volumes and orphaned images                          |
-| `make prod`          | Start the production environment                                             |
-| `make prod-logs`     | Live production logs                                                         |
+### Environment-wide
+
+| Command           | What it does                                                                     |
+| ----------------- | -------------------------------------------------------------------------------- |
+| `make dev-up`     | Start backend + frontend + postgres (dev)                                        |
+| `make dev-build`  | Rebuild all images and start (use after changing any Dockerfile or dependencies) |
+| `make dev-down`   | Stop the containers                                                              |
+| `make dev-down-v` | Stop containers **and delete Postgres data** (full reset)                        |
+| `make dev-logs`   | Live logs for all services                                                       |
+| `make ps`         | Container status                                                                 |
+| `make clean`      | Stop everything, remove volumes and orphaned images/containers                   |
+| `make prod-up`    | Start the production environment                                                 |
+| `make prod-build` | Rebuild all production images and start the production environment               |
+| `make prod-logs`  | Live production logs                                                             |
+| `make prod-down`  | Stop the production environment                                                  |
+
+### Backend-scoped
+
+| Command                | What it does                       |
+| ---------------------- | ---------------------------------- |
+| `make backend-restart` | Restart the backend container only |
+| `make backend-logs`    | Live logs for the backend only     |
+| `make backend-shell`   | Shell inside the backend container |
+| `make backend-build`   | Rebuild the backend image only     |
+| `make migrate`         | Run Prisma migrations              |
+| `make seed`            | Load test data                     |
+
+### Frontend-scoped
+
+| Command                 | What it does                        |
+| ----------------------- | ----------------------------------- |
+| `make frontend-restart` | Restart the frontend container only |
+| `make frontend-logs`    | Live logs for the frontend only     |
+| `make frontend-shell`   | Shell inside the frontend container |
+| `make frontend-build`   | Rebuild the frontend image only     |
+
+### Database-scoped
+
+| Command         | What it does         |
+| --------------- | -------------------- |
+| `make db-shell` | psql inside Postgres |
 
 ---
 
-## 6. Production
+## 6. Development workflow
+
+The development Docker Compose configuration is designed to provide a fast feedback loop.
+
+The backend and frontend source directories are mounted into their respective containers using **bind mounts**. This means that the files edited on the host machine are directly available inside the corresponding container.
+
+As a result:
+
+- Backend code changes can be detected without rebuilding the Docker image.
+- Frontend code changes can be detected by the Vite development server.
+- Dependencies and the container environment remain isolated inside Docker.
+- PostgreSQL data is stored in a Docker volume and persists across normal container restarts.
+
+### When to rebuild
+
+A normal code change does **not** require rebuilding the image.
+
+For example:
 
 ```bash
-make prod
+make backend-restart
 ```
 
-Uses `docker-compose.prod.yml`, which unlike dev:
+or:
 
-- Builds the backend using the `production` stage of the Dockerfile (pre-compiled code, no bind mounts).
-- Does not expose the Postgres port to the host.
-- Uses a real persistent volume for data.
+```bash
+make frontend-restart
+```
 
-Real values go in `infrastructure/docker/.env.prod` (same process as step 2, with production values — never commit this file).
+can be used when a specific service needs to be restarted.
+
+Rebuild the affected image when changing its Dockerfile or dependencies:
+
+```bash
+make backend-build
+make frontend-build
+```
+
+Or rebuild everything:
+
+```bash
+make dev-build
+```
 
 ---
 
-## 7. Common issues
+## 7. Production
 
-| Symptom                                      | Likely cause / fix                                                                                                                                                                       |
-| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `port is already allocated`                  | Another process is using port 5432 or 3000 on your machine. Change `POSTGRES_PORT` in `.env.dev` or free up the port.                                                                    |
-| Backend can't connect to the database        | `DATABASE_URL` must use `postgres` as the host (the service name on the Docker network), not `localhost`.                                                                                |
-| Env validation fails on startup              | Check that **all** variables required by `env.validation.ts` are set (`NODE_ENV`, `PORT`, `DATABASE_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`), and that secrets are 32+ characters long. |
-| Prisma error about `schema.prisma` not found | Rebuild the image with `make dev-build` — there may be a stale cached image.                                                                                                             |
-| Code changes aren't reflected                | Confirm the bind mount (`../../backend:/app`) is active — this only applies in `dev`, not in `prod`.                                                                                     |
+Start the production environment:
+
+```bash
+make prod-up
+```
+
+If the Dockerfiles or dependencies have changed, rebuild the production images:
+
+```bash
+make prod-build
+```
+
+Follow production logs:
+
+```bash
+make prod-logs
+```
+
+Stop the production environment:
+
+```bash
+make prod-down
+```
+
+The production environment uses:
+
+```text
+infrastructure/docker/docker-compose.prod.yaml
+```
+
+and:
+
+```text
+infrastructure/docker/.env.prod
+```
+
+The production environment differs from development in several important ways:
+
+- The backend uses the **production stage** of its Dockerfile.
+- Application code is built before being executed.
+- Development bind mounts are not used.
+- PostgreSQL is not exposed directly to the host.
+- PostgreSQL uses a persistent Docker volume for its data.
+- Services are configured for production rather than development workflows.
+
+Real production values go in:
+
+```text
+infrastructure/docker/.env.prod
+```
+
+Never commit this file to the repository.
 
 ---
 
-## 8. Related conventions
+## 8. Resetting the development database
+
+If the local PostgreSQL database needs to be completely reset, use:
+
+```bash
+make dev-down-v
+```
+
+This stops the development containers and removes their Docker volumes.
+
+**Warning:** this deletes the local PostgreSQL data.
+
+After resetting, start the environment again:
+
+```bash
+make dev-up
+```
+
+Then run:
+
+```bash
+make migrate
+make seed
+```
+
+to recreate the database schema and load the development data.
+
+---
+
+## 9. Common issues
+
+| Symptom                                       | Likely cause / fix                                                                                                                                                                      |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `port is already allocated`                   | Another process is using one of the ports required by the services. Check the Docker Compose configuration and the corresponding `.env.dev` values.                                     |
+| Backend can't connect to the database         | `DATABASE_URL` must use `postgres` as the host (the service name on the Docker network), not `localhost`.                                                                               |
+| Env validation fails on startup               | Check that **all** variables required by `env.validation.ts` are set (`NODE_ENV`, `PORT`, `DATABASE_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`) and that secrets are 32+ characters long. |
+| Prisma error about `schema.prisma` not found  | Rebuild the backend image with `make backend-build` or `make dev-build` if the Docker image contains a stale or incomplete build.                                                       |
+| Code changes aren't reflected in the backend  | Confirm that the backend bind mount is active in the development Compose configuration.                                                                                                 |
+| Code changes aren't reflected in the frontend | Confirm that the frontend bind mount and Vite development server are running correctly inside the frontend container.                                                                   |
+| Dependency changes aren't reflected           | Rebuild the affected image with `make backend-build` or `make frontend-build`.                                                                                                          |
+| Database data disappeared                     | `make dev-down-v` or `make clean` may have removed the Docker volume containing the development database.                                                                               |
+
+---
+
+## 10. Related conventions
 
 - Branching, commits (Conventional Commits) and PRs: see `docs/CONTRIBUTING.md`.
 - Architecture decisions: see the ADRs in `docs/architecture/`.
 - Docker infrastructure layout: see `infrastructure/docker/README.md`.
+- Docker Compose configurations are located in `infrastructure/docker/`.
+- Development environment variables are stored in `infrastructure/docker/.env.dev`.
+- Production environment variables are stored in `infrastructure/docker/.env.prod`.
+
+---
+
+## 11. Quick start
+
+For a developer who already has Docker and `make` installed, the shortest path to a working development environment is:
+
+```bash
+cp infrastructure/docker/.env.example infrastructure/docker/.env.dev
+```
+
+Configure the required values in `.env.dev`, then:
+
+```bash
+make dev-build
+make migrate
+make seed
+```
+
+After that, the development environment is ready.
+Use:
+
+```bash
+make ps
+```
+
+to check the containers and:
+
+```bash
+make dev-logs
+```
+
+to inspect the logs.

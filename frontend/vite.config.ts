@@ -1,6 +1,6 @@
-import { fileURLToPath, URL } from 'node:url'
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { fileURLToPath, URL } from 'node:url';
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -19,6 +19,7 @@ export default defineConfig({
   },
 
   server: {
+    host: '0.0.0.0',
     proxy: {
       // En produccion nginx recibe todo y reparte (ADR-009), asi que el frontend
       // puede pedir '/api/...' sin saber donde vive el backend. En desarrollo no hay
@@ -37,4 +38,4 @@ export default defineConfig({
       },
     },
   },
-})
+});
