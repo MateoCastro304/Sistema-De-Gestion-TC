@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { FactoryService } from '';
-import { FactoryController } from '';
+import { FactoriesService } from './application/factory.service';
+import { FactoryController } from './http/factory.controller';
 import { FactoryInMemoryRepository } from './infrastructure/factory.repository';
 
 @Module({
     controllers: [FactoryController],
-    providers: [FactoryService, FactoryInMemoryRepository],
+    providers: [FactoriesService, FactoryInMemoryRepository],
 })
-export class CustomersModule{}
+export class FactoryModule{}
