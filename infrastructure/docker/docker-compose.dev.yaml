@@ -13,13 +13,10 @@ services:
     build:
       target: development
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       NODE_ENV: development
-      PORT: ${PORT}
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     ports:
-      - '${PORT}:${PORT}'
+      - '3000:3000'
     volumes:
       - ../../backend:/app
       - /app/node_modules
