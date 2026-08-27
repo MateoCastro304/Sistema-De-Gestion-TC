@@ -6,14 +6,27 @@ import { CustomerRepository } from "../domain/customer.repository";
 
 export class CustomerInMemoryRepository implements CustomerRepository {
     // Creo un mapeo de los Clientes
-    private readonly customers: Map<string, Customer> = new Map();
+    private readonly customers: Map<number, Customer> = new Map();
 
-    async save(customer: Customer): Promise<void> {
-        this.customers.set(customer.getId(), customer);
+    private autoIncrementId = 1;
 
+    async save(customer: Customer): Promise<Customer> {
+        const generatedId = this.autoIncrementId++;
+        const savedCustomer = Customer.reconstruct(
+        generatedId,
+        customer.getName(),
+        customer.getLastName(),
+        customer.getPhone(),
+        customer.getMail(),
+        customer.getFactoryId(),
+        customer.isActive(),
+      );
+
+      this.customers.set(generatedId, savedCustomer);
+      return savedCustomer;
     }
 
-    async findById(id: string): Promise<Customer | null> {
+    async findById(id: number): Promise<Customer | null> {
         const customer = this.customers.get(id);
         return customer || null;
     }
@@ -23,10 +36,13 @@ export class CustomerInMemoryRepository implements CustomerRepository {
   }
 
   async update(customer: Customer): Promise<void> {
-    if (!this.customers.has(customer.getId())) {
-      throw new NotFoundException(`Customer with ID ${customer.getId()} not found`);
-    }
-    this.customers.set(customer.getId(), customer);
+  const id = customer.getId();
+
+  if (!id || !this.customers.has(id)) {
+    throw new NotFoundException(`Customer with ID ${id} not found`);
   }
+
+  this.customers.set(id, customer);
+}
 
 }

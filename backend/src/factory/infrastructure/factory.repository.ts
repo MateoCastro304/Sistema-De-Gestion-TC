@@ -5,15 +5,27 @@ import { Factory } from "../domain/factory";
 @Injectable()
 
 export class FactoryInMemoryRepository implements FactoryRepository {
-    private readonly factories: Map<string, Factory> = new Map();
+    private readonly factories: Map<number, Factory> = new Map();
+    private autoIncrementId = 1;
 
-    async save(factory: Factory): Promise<void> {
-        this.factories.set(factory.getId(), factory);
+    async save(factory: Factory): Promise<Factory> {
+        const generatedId = this.autoIncrementId ++;
+
+        const savedFactory = Factory.reconstruct(
+            generatedId,
+            factory.getCuit(),
+            factory.getName(),
+            factory.getAddress(),
+            factory.getPaymentDescription(),
+            factory.getCategoryId(),
+            factory.isActive(),
+        );
+        this.factories.set(generatedId, savedFactory);
+        return savedFactory;
     }
 
-    async findById(id: string): Promise<Factory | null> {
-        const factory = this.factories.get(id);
-        return factory || null;
+    async findById(id: number): Promise<Factory | null> {
+        return this.factories.get(id) || null;
     }
 
     async findAll(): Promise<Factory[]> {
@@ -21,11 +33,13 @@ export class FactoryInMemoryRepository implements FactoryRepository {
     }
 
     async update(factory: Factory): Promise<void> {
-        if (!this.factories.has(factory.getId())){
-            throw new NotFoundException(`Factory with ID ${factory.getId()} not found`);
+        const id = factory.getId();
+        if (!id || !this.factories.has(id)){
+            throw new NotFoundException(`Factory with ID ${id} not found`);
+        
         }
 
-        this.factories.set(factory.getId(), factory)
+        this.factories.set(id, factory);
     }
 
 }

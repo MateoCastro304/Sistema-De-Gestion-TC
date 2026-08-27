@@ -4,8 +4,7 @@ import { Customer } from "./customer";
 
 export abstract class CustomerRepository{
     abstract findAll(): Promise<Customer[]>
-    abstract findById(id: string): Promise<Customer | null>
-    abstract save(customer: Customer): Promise<void>
-    abstract delete(id: string): Promise<void>
+    abstract findById(id: number): Promise<Customer | null>
+    abstract save(customer: Customer): Promise<Customer>
     abstract update(customer: Customer): Promise<void>
 }

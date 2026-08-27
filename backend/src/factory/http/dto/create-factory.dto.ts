@@ -19,5 +19,5 @@ export class CreateFactoryDto {
 
   @IsString()
   @IsNotEmpty()
-  categoryId!: string;
+  categoryId!: number;
 }

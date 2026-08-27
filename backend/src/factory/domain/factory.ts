@@ -1,9 +1,10 @@
 import { FactoryId } from "./factory-id";
+import { CategoryId } from '../../categories/domain/category-id';
 
 
 export class Factory {
   private constructor(
-    private readonly id: FactoryId,
+    private readonly id: FactoryId | null,
     private cuit: string,
     private name: string,
     private address: string,
@@ -16,12 +17,11 @@ export class Factory {
 
   // CREATE
     static create(
-    id: string,
     cuit: string,
     name: string,
     address: string,
     paymentDescription: string | null,
-    categoryId: string,
+    categoryId: number,
   ): Factory {
     if (!cuit.trim()){
       throw new Error('Factory cuit cannot be empty');
@@ -36,7 +36,7 @@ export class Factory {
     }
 
     return new Factory(
-      FactoryId.create(id),
+      null,
       cuit.trim(),
       name.trim(),
       address.trim(),
@@ -46,12 +46,12 @@ export class Factory {
     );
     }
   static reconstruct(
-      id: string,
+      id: number,
       cuit: string,
       name: string,
       address: string,
       paymentDescription: string | null,
-      categoryId: string,
+      categoryId: number,
       active: boolean,
     ): Factory {
       return new Factory(
@@ -71,7 +71,7 @@ export class Factory {
     name: string,
     address: string,
     paymentDescription: string | null,
-    categoryId: string,
+    categoryId: number,
     ): void {
     this.changeCuit(cuit);
     this.changeName(name);
@@ -126,17 +126,19 @@ export class Factory {
             paymentDescription?.trim() || null;
     }
 
-    changeCategoryId(categoryId: string): void{
+    changeCategoryId(categoryId: number): void{
         this.categoryId = CategoryId.create(categoryId);
     }
 
     // GETTERS
-  getId(): string { return this.id.getValue(); }
+  getId(): number | null {
+    return this.id ? this.id.getValue() : null;
+  }
   getCuit(): string { return this.cuit; }
   getName(): string { return this.name; }
   getAddress(): string { return this.address; }
   getPaymentDescription(): string | null { return this.paymentDescription; }
-  getCategoryId(): string { return this.categoryId.getValue(); }
+  getCategoryId(): number { return this.categoryId.getValue(); }
   isActive(): boolean { return this.active; }
 
 }

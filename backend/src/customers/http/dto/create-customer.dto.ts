@@ -19,6 +19,6 @@ export class CreateCustomerDto {
 
   @IsString()
   @IsNotEmpty()
-  factoryId!: string;
+  factoryId!: number;
 
 }

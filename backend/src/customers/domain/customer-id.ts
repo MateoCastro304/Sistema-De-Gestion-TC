@@ -1,14 +1,14 @@
 export class CustomerId{
-    private constructor(private readonly value: string){}
+    private constructor(private readonly value: number){}
 
-    static create(value: string): CustomerId{
-        if (!value.trim()){
-            throw new Error('CustomerId cannot be empty');
+    static create(value: number): CustomerId{
+        if (value === undefined || value === null || !Number.isInteger(value) || value <= 0) {
+        throw new Error('Encargado id must be a positive integer');
         }
         return new CustomerId(value);
     }
 
-    getValue(): string {
+    getValue(): number {
         return this.value;
     }
 

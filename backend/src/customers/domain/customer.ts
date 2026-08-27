@@ -4,7 +4,7 @@ import { Mail } from './mail';
 
 export class Customer {
   private constructor(
-    private readonly id: CustomerId,
+    private readonly id: CustomerId | null,
     private name: string,
     private lastName: string,
     private phone: string,
@@ -17,19 +17,18 @@ export class Customer {
 
   // CREATE
   static create(
-    id: string,
     name: string,
     lastName: string,
     phone: string,
     mail: string,
-    factoryId: string,
+    factoryId: number,
   ): Customer {
     if (!name.trim()){
       throw new Error('Customer name cannot be empty');
     }
 
     if (!lastName.trim()){
-      throw new Error('Customer address cannot be empty');
+      throw new Error('Customer lastName cannot be empty');
     }
 
     if (!phone.trim()){
@@ -37,7 +36,7 @@ export class Customer {
     }
 
     return new Customer(
-      CustomerId.create(id),
+      null,
       name.trim(),
       lastName.trim(),
       phone.trim(),
@@ -48,12 +47,12 @@ export class Customer {
   }
 
   static reconstruct(
-    id: string,
+    id: number,
     name: string,
     lastName: string,
     phone: string,
     mail: string,
-    factoryId: string,
+    factoryId: number,
     active: boolean,
   ): Customer {
     return new Customer(
@@ -73,13 +72,13 @@ export class Customer {
     lastName: string,
     phone: string,
     mail: string,
-    factory: string,
+    factoryId: number,
   ): void {
     this.changeName(name);
     this.changeLastName(lastName);
     this.changePhone(phone);
     this.changeMail(mail);
-    this.changeFactory(factory);
+    this.changeFactoryId(factoryId);
   }
 
   // DELETE (baja logica)
@@ -132,19 +131,18 @@ export class Customer {
     this.phone = normalizedPhone;
   }
 
-  changeFactory(factory:string): void {
-    if(!factory.trim()){
-      throw new Error('Customer factory cannot be empty');
-    }
-    this.factoryId = FactoryId.create(factory);
+  changeFactoryId(factoryId: number): void {
+    this.factoryId = FactoryId.create(factoryId);
   }
 
-  getId(): string {return this.id.getValue();}
+  getId(): number | null {
+    return this.id ? this.id.getValue() : null;
+  }
   getName(): string { return this.name; }
   getLastName(): string { return this.lastName; }
   getPhone(): string { return this.phone; }
   getMail(): string { return this.mail.getValue(); }
-  getFactoryId(): string { return this.factoryId.getValue(); }
+  getFactoryId(): number { return this.factoryId.getValue(); }
   isActive(): boolean { return this.active; }
 
 
