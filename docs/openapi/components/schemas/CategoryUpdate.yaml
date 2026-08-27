@@ -5,6 +5,4 @@ description: |
 minProperties: 1
 properties:
   name:
-    $ref: './Category.yaml#/properties/name'
-  description:
-    $ref: './Category.yaml#/properties/description'
+    $ref: "./Category.yaml#/properties/name"

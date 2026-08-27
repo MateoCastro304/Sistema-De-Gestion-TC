@@ -4,6 +4,4 @@ required:
   - name
 properties:
   name:
-    $ref: './Category.yaml#/properties/name'
-  description:
-    $ref: './Category.yaml#/properties/description'
+    $ref: "./Category.yaml#/properties/name"
