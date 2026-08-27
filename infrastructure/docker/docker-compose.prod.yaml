@@ -29,5 +29,17 @@ services:
         reservations:
           memory: 256M
 
+  frontend:
+    build:
+      target: production
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 128M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
 volumes:
   postgres_prod_data:
