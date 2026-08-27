@@ -1,35 +1,48 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Customer } from '../domain/customer';
-import { CustomersRepository } from '../infrastructure/customers.repository';
-import { CreateCustomerDto } from '../http/dto/create-customer.dto';
+import { CustomerRepository } from '../domain/customer.repository';
 import { UpdateCustomerDto } from '../http/dto/update-customer.dto';
+import { randomUUID } from 'crypto';
+import { CreateCustomerDto } from '../http/dto/create-customer.dto';
+import { FactoryRepository } from '../../factory/domain/factory.repository';
+
 
 @Injectable()
-export class CustomersService {
-  constructor(private readonly customersRepository: CustomersRepository) {}
+export class CustomersService{
+    
+    constructor( private readonly customersRepostitory: CustomerRepository){}
 
-  create(dto: CreateCustomerDto): Promise<Customer> {
-    // TODO: generar un id real (uuid o el que asigne la DB) cuando conectemos Prisma
-    const customer = new Customer('temp-id', dto.name);
-    return this.customersRepository.save(customer);
-  }
+    // --- CREAR ---
+    async create(dto: CreateCustomerDto): Promise<Customer> {
+        const factoryExists = await this.factoryRepository.findById(dto.factoryId);
+        
+        const customer = Customer.create(
+            id,
+            dto.name,
+            dto.lastName,
+            dto.phone,
+            dto.mail,
+            dto.factoryID,
+        );
+        await this.customersRepostitory.save(customer);
+        return customer
+    }
 
-  findAll(): Promise<Customer[]> {
-    return this.customersRepository.findAll();
-  }
+    async finAll(): Promise<Customer[]>{
+        return this.customersRepostitory.findAll();
+    }
 
-  findOne(id: string): Promise<Customer | null> {
-    return this.customersRepository.findById(id);
-  }
+    async findById(id: string): Promise<Customer | null>{
+        const customer = await this.customersRepostitory.findById(id)
+        if (!Customer){
+            throw new NotFoundException(`Factory with ID ${id} not found`);
+        }
+        return customer
+    }
 
-  async update(id: string, dto: UpdateCustomerDto): Promise<Customer | null> {
-    const customer = await this.customersRepository.findById(id);
-    if (!customer) return null;
-    if (dto.name) customer.rename(dto.name);
-    return this.customersRepository.save(customer);
-  }
+    async update(id: string, dto: Customer): Promise<Customer>{
+        
+    }
 
-  remove(id: string): Promise<void> {
-    return this.customersRepository.delete(id);
-  }
+    
 }
