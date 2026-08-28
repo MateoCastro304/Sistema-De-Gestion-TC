@@ -2,6 +2,18 @@
 /** Lo que devuelve el backend en GET /suppliers y GET /suppliers/:id. */
 export type SupplierType = 'Tercerizado' | 'Material' | 'Repuesto' | 'Pintura'
 
+/**
+ * Los cuatro tipos como valor, para poblar los <select> de los formularios.
+ * Está tipado como SupplierType[], así que si el union cambia y esta lista
+ * no, deja de compilar.
+ */
+export const SUPPLIER_TYPES: SupplierType[] = [
+    'Tercerizado',
+    'Material',
+    'Repuesto',
+    'Pintura',
+]
+
 export interface Supplier {
     id: number
     legalName: string

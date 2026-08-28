@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
-import { Badge, Button, Modal, Table, Input } from '@/shared/components/ui'
+import { Badge, Table } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
 import { isApiError } from '@/shared/api/ApiError'
 import { useSuppliers } from '../api/useSuppliers'
@@ -10,8 +10,13 @@ import type { Supplier } from '../types/supplier'
 function orDash(value?: string) {
   return value ?? <span className="table__td--muted">—</span>
 }
-function buildColumns(onEdit: (supplier: Supplier) => void): Column<Supplier>[] {
-  return [
+
+/**
+ * Vuelven a estar fuera del componente: ninguna columna depende de nada de
+ * adentro. Editar ya no se dispara desde acá, se hace en la pantalla de
+ * detalle, así que la columna de acciones solo navega.
+ */
+const columns: Column<Supplier>[] = [
   { header: 'Razón social', render: (s) => s.legalName },
   { header: 'CUIT', render: (s) => s.taxId },
   { header: 'Tipo', render: (s) => s.supplierType },
@@ -27,43 +32,37 @@ function buildColumns(onEdit: (supplier: Supplier) => void): Column<Supplier>[] 
         <Badge variant="pendiente">Inactivo</Badge>
       ),
   },
-    {
+  {
     header: '',
     align: 'center',
     render: (s) => (
-      <>
-        <Link className="table__action" to={`/catalogs/suppliers/${s.id}`}>
-          Ver
-        </Link>
-        <span className="table__action-sep">|</span>
-        <button type="button" className="table__action" onClick={() => onEdit(s)}>
-          Editar
-        </button>
-      </>
+      <Link className="table__action" to={`/catalogs/suppliers/${s.id}`}>
+        Ver
+      </Link>
     ),
   },
 ]
-}
+
 export function SuppliersPage() {
-  const {data, isPending, error} = useSuppliers()
-  const [search, setSearch] = useState("")
-  const [editing, setEditing] = useState<Supplier | null>(null)
-  const columns = useMemo(() => buildColumns(setEditing), [])
+  const { data, isPending, error } = useSuppliers()
+  const [search, setSearch] = useState('')
 
   const filtered = useMemo(() => {
     const list = data ?? []
     const term = search.trim().toLowerCase()
     if (!term) return list
-    return list.filter((s) => [
-      s.legalName,
-      s.taxId,
-      s.taxId.replace(/-/g, ''),//Para buscar sin los guiones 
-      s.supplierType,
-      s.contactName ?? "",
-    ].some((field) => field.toLowerCase().includes(term)),
+    return list.filter((s) =>
+      [
+        s.legalName,
+        s.taxId,
+        s.taxId.replace(/-/g, ''), // Para buscar sin los guiones
+        s.supplierType,
+        s.contactName ?? '',
+      ].some((field) => field.toLowerCase().includes(term)),
     )
   }, [data, search])
-   // El mensaje del cuerpo vacío cambia según por qué está vacío.
+
+  // El mensaje del cuerpo vacío cambia según por qué está vacío.
   let emptyMessage = 'Todavía no hay proveedores registrados.'
   if (isPending) emptyMessage = 'Cargando proveedores…'
   else if (search.trim()) emptyMessage = `No encontramos proveedores para "${search.trim()}".`
@@ -74,9 +73,7 @@ export function SuppliersPage() {
         <div>
           <h1 className="content__title">Proveedores</h1>
           <p className="content__subtitle">
-            {isPending
-              ? 'Cargando…'
-              : `${data?.length ?? 0} Proveedores registrados`}
+            {isPending ? 'Cargando…' : `${data?.length ?? 0} Proveedores registrados`}
           </p>
         </div>
 
@@ -111,9 +108,7 @@ export function SuppliersPage() {
 
       {error ? (
         <div className="callout callout--warning">
-          <span>
-            {isApiError(error) ? error.message : 'Ocurrió un error inesperado.'}
-          </span>
+          <span>{isApiError(error) ? error.message : 'Ocurrió un error inesperado.'}</span>
         </div>
       ) : (
         <Table
@@ -123,94 +118,6 @@ export function SuppliersPage() {
           emptyMessage={emptyMessage}
         />
       )}
-            <Modal
-        open={editing !== null}
-        onClose={() => setEditing(null)}
-        title="Editar proveedor"
-        footer={
-          <>
-            <button
-              type="button"
-              className="modal__cancel"
-              onClick={() => setEditing(null)}
-            >
-              Cancelar
-            </button>
-            <Button variant="primary" disabled>
-              Guardar cambios
-            </Button>
-          </>
-        }
-      >
-          {editing && (
-          <form key={editing.id} className="form-grid">
-            <Input
-              id="legalName"
-              label="Razón social"
-              defaultValue={editing.legalName}
-            />
-
-            <div className="form-field">
-              <label className="form-field__label" htmlFor="taxId">
-                CUIT
-              </label>
-              <input
-                id="taxId"
-                className="form-field__input form-field__input--disabled"
-                defaultValue={editing.taxId}
-                disabled
-              />
-              <span className="form-field__hint">
-                El CUIT no se puede modificar.
-              </span>
-            </div>
-
-            <div className="form-field">
-              <label className="form-field__label" htmlFor="supplierType">
-                Tipo
-              </label>
-              <select
-                id="supplierType"
-                className="form-field__select"
-                defaultValue={editing.supplierType}
-              >
-                <option value="Tercerizado">Tercerizado</option>
-                <option value="Material">Material</option>
-                <option value="Repuesto">Repuesto</option>
-                <option value="Pintura">Pintura</option>
-              </select>
-            </div>
-
-            <Input
-              id="contactName"
-              label="Contacto"
-              defaultValue={editing.contactName ?? ''}
-            />
-            <Input
-              id="contactEmail"
-              label="Email"
-              type="email"
-              defaultValue={editing.contactEmail ?? ''}
-            />
-            <Input
-              id="contactPhone"
-              label="Teléfono"
-              defaultValue={editing.contactPhone ?? ''}
-            />
-
-            <div className="form-field form-field--full">
-              <label className="form-field__label" htmlFor="address">
-                Dirección
-              </label>
-              <input
-                id="address"
-                className="form-field__input"
-                defaultValue={editing.address ?? ''}
-              />
-            </div>
-          </form>
-        )}
-      </Modal>
     </>
   )
 }
