@@ -602,6 +602,12 @@ table {
   color: var(--color-text-muted);
 }
 
+/* Para buscadores con placeholder largo (ej: proveedores, que busca por
+   razon social, CUIT, tipo y contacto). No toca el ancho por defecto. */
+.filters__search--wide {
+  max-width: 420px;
+}
+
 .filters__search-icon {
   width: 16px;
   height: 16px;

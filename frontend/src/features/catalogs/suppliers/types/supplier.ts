@@ -1,10 +1,14 @@
 /**Interfaz de los datos del proveedor que me llegan del back */
 /** Lo que devuelve el backend en GET /suppliers y GET /suppliers/:id. */
+export type SupplierType = 'Tercerizado' | 'Material' | 'Repuesto' | 'Pintura'
+
 export interface Supplier {
     id: number
     legalName: string
     /** CUIT argentino, formato XX-XXXXXXXX-X. Inmutable: identidad fiscal. */
     taxId: string
+      /** Rubro del proveedor. */
+    supplierType: SupplierType
     contactName?: string
     contactEmail?: string
     contactPhone?: string
@@ -21,6 +25,7 @@ export interface Supplier {
 export interface SupplierCreate {
     legalName: string
     taxId: string
+    supplierType: SupplierType
     contactName?: string
     contactEmail?: string
     contactPhone?: string
@@ -33,6 +38,7 @@ export interface SupplierCreate {
  */
 export interface SupplierUpdate {
     legalName?: string
+    supplierType?: SupplierType
     contactName?: string
     contactEmail?: string
     contactPhone?: string
