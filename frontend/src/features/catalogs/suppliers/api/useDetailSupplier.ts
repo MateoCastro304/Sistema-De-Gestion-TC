@@ -3,11 +3,8 @@ import { getSupplier } from './suppliers.api'
 import { supplierKeys } from './suppliers.keys'
 
 /**
- * Un proveedor por id, para la pantalla de detalle.
- *
- * `enabled` frena la consulta cuando el parametro de la URL no es un numero
- * (ej: /catalogs/suppliers/abc). Sin eso saldria un request a /suppliers/NaN
- * que solo puede terminar en error.
+ * Un proveedor por id. El `enabled` frena la consulta si la URL no trae un
+ * numero (/suppliers/abc), que si no saldria como un GET a /suppliers/NaN.
  */
 export function useSupplier(id: number) {
   return useQuery({

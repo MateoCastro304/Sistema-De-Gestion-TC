@@ -16,16 +16,19 @@ function apiError(status: number, error: string, message: string, path: string) 
 }
 
 export const handlers = [
+  // La baja es logica, pero el eliminado no se lista ni se puede pedir por id:
+  // el registro sobrevive en la base solo para no romper el historial.
   http.get(BASE, async () => {
     await delay(400) // para ver el estado de carga de verdad
-    return HttpResponse.json(db.suppliers)
+    return HttpResponse.json(db.suppliers.filter((s) => s.active))
   }),
 
   http.get(`${BASE}/:id`, async ({ params }) => {
     await delay(300)
     const id = Number(params.id)
     const supplier = db.suppliers.find((s) => s.id === id)
-    if (!supplier) {
+    // Un proveedor inactivo se responde igual que uno inexistente: 404.
+    if (!supplier || !supplier.active) {
       return apiError(404, 'Not Found', `Supplier with id ${id} was not found.`, `${BASE}/${id}`)
     }
     return HttpResponse.json(supplier)
@@ -49,7 +52,8 @@ export const handlers = [
     await delay(500)
     const id = Number(params.id)
     const index = db.suppliers.findIndex((s) => s.id === id)
-    if (index === -1) {
+    // Igual que el GET y el DELETE: un proveedor dado de baja no se edita.
+    if (index === -1 || !db.suppliers[index].active) {
       return apiError(404, 'Not Found', `Supplier with id ${id} was not found.`, `${BASE}/${id}`)
     }
     const body = (await request.json()) as SupplierUpdate
@@ -63,7 +67,7 @@ export const handlers = [
     await delay(400)
     const id = Number(params.id)
     const supplier = db.suppliers.find((s) => s.id === id)
-    if (!supplier) {
+    if (!supplier || !supplier.active) {
       return apiError(404, 'Not Found', `Supplier with id ${id} was not found.`, `${BASE}/${id}`)
     }
     supplier.active = false

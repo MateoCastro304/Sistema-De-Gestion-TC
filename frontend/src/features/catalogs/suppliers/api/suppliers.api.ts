@@ -1,5 +1,5 @@
 import { http } from '@/shared/api/http'
-import type { Supplier, SupplierCreate, SupplierUpdate } from '../types/supplier.ts';
+import type { Supplier, SupplierCreate, SupplierUpdate } from '../types/supplier'
 
 /**
  * Una función por endpoint del contrato. Devuelven el dato pelado: ni los
@@ -27,15 +27,9 @@ export async function updateSupplier(id: number, payload: SupplierUpdate): Promi
 }
 
 /**
- * Baja lógica. El backend pone active=false; el registro nunca se borra.
- * Responde 204 sin cuerpo, por eso no hay nada que devolver.
+ * Elimina un proveedor. Abajo el back hace baja logica, pero para el frontend
+ * deja de existir. Devuelve void (204 sin cuerpo); da 409 si esta en uso.
  */
-export async function deactivateSupplier(id: number): Promise<void> {
+export async function deleteSupplier(id: number): Promise<void> {
     await http.delete(`/suppliers/${id}`)
-}
-
-/** Reactiva un proveedor dado de baja. */
-export async function activateSupplier(id: number): Promise<Supplier> {
-    const { data } = await http.patch<Supplier>(`/suppliers/${id}`, { active: true })
-    return data
 }

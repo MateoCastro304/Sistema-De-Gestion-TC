@@ -8,6 +8,8 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string
   /** Helper text shown below the field when there is no error. */
   hint?: string
+  /** Makes the field span every column of its `.form-grid`. */
+  full?: boolean
 }
 
 /**
@@ -15,11 +17,11 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
  * react-hook-form can register the underlying `<input>`.
  */
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { label, error, hint, className, id, ...rest },
+  { label, error, hint, className, id, full = false, ...rest },
   ref,
 ) {
   return (
-    <div className="form-field">
+    <div className={cn('form-field', full && 'form-field--full')}>
       {label && (
         <label className="form-field__label" htmlFor={id}>
           {label}
