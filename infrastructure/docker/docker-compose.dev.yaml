@@ -1,14 +1,4 @@
 services:
-  postgres:
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - '${POSTGRES_PORT}:5432'
-    volumes:
-      - postgres_dev_data:/var/lib/postgresql/data
-
   backend:
     build:
       target: development
@@ -22,6 +12,16 @@ services:
       - /app/node_modules
     command: npm run start:dev
 
+  postgres:
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - '${POSTGRES_PORT}:5432'
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+
   frontend:
     build:
       target: development
@@ -30,6 +30,30 @@ services:
     volumes:
       - ../../frontend:/app
       - /app/node_modules
+
+  openapi-build:
+    build:
+      context: ../../tooling/openapi
+      dockerfile: Dockerfile
+    container_name: torneria_openapi_build
+    networks:
+      - torneria-network
+    volumes:
+      - ../../docs/openapi:/docs/openapi:ro
+      - ../../build:/build
+
+  openapi-docs:
+    image: nginx:alpine
+    container_name: torneria_openapi_docs
+    ports:
+      - '8081:80'
+    networks:
+      - torneria-network
+    depends_on:
+      openapi-build:
+        condition: service_completed_successfully
+    volumes:
+      - ../../build:/usr/share/nginx/html:ro
 
 volumes:
   postgres_dev_data:

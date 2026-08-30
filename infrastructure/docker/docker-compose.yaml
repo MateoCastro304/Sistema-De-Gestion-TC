@@ -40,17 +40,6 @@ services:
       timeout: 5s
       retries: 5
 
-  openapi-build:
-    build:
-      context: ../../tooling/openapi
-      dockerfile: Dockerfile
-    container_name: torneria_openapi_build
-    networks:
-      - torneria-network
-    volumes:
-      - ../../docs/openapi:/docs/openapi:ro
-      - ../../build:/build
-
 networks:
   torneria-network:
     driver: bridge
