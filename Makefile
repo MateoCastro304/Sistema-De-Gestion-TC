@@ -1,4 +1,3 @@
-\
 # ============================================================================
 # Makefile — Tornería Castro
 # Shortcuts to run docker-compose commands for development and production.
@@ -28,14 +27,16 @@ export
         migrate seed \
         frontend-restart frontend-logs frontend-shell frontend-build \
         shell-db \
+				openapi-docs-build openapi-docs-logs \
         prod-up prod-build prod-down prod-logs
 
 help: ## Shows this list of commands
 	@echo ""
 	@echo "Usage: make <command>"
 	@echo ""
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z0-9_-]+:[[:space:]]*##' Makefile | \
+		sed 's/:.*##[[:space:]]*/ /' | \
+		awk '{printf "  \033[36m%-20s\033[0m %s\n", $$1, substr($$0, index($$0,$$2))}'
 	@echo ""
 
 # ---- Environment Wide   ---------------------------------------------------
@@ -85,22 +86,30 @@ seed: ## Runs Prisma seed inside the backend container (dev)
 
 # ---- Frontend Scoped ------------------------------------------------------
 
-fronted-restart: # Restarts only frontend (dev)
+frontend-restart: ## Restarts only frontend (dev)
 	$(DC_DEV) restart frontend
 
-frontend-logs: # Shows only the frontend logs
+frontend-logs: ## Shows only the frontend logs
 	$(DC_DEV) logs -f frontend
 
-frontend-shell: # Opens a shell inside the frontend container
+frontend-shell: ## Opens a shell inside the frontend container
 	$(DC_DEV) exec frontend sh
 
-frontend-build: # Rebuild the frontend image only
+frontend-build: ## Rebuild the frontend image only
 	$(DC_DEV) build frontend
 
 # ---- Database Scoped ------------------------------------------------------
 
 shell-db: ## Opens psql inside the postgres container (dev)
 	$(DC_DEV) exec postgres psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
+
+# ---- Docs Scoped ----------------------------------------------------------
+
+openapi-docs-build: ## Rebuild the openapi image only and serve on port 8081
+	$(DC_DEV) build openapi-build openapi-docs
+
+openapi-docs-logs: ## Shows only the openapi-docs logs
+	$(DC_DEV) logs -f openapi-docs
 
 # ---- Production -----------------------------------------------------------
 
