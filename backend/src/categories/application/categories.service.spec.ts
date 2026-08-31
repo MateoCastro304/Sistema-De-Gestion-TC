@@ -1,5 +1,5 @@
 import { CategoriesService } from './categories.service';
-import { CategoriesRepository } from '../infrastructure/categories.repository';
+import { CategoriesRepository } from '../domain/categories.repository';
 import { Category } from '../domain/category';
 
 describe('CategoriesService', () => {
