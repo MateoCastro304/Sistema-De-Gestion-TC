@@ -26,21 +26,15 @@ CREATE TYPE document_type_enum AS ENUM (
 
 CREATE TABLE file (
 	id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	-- S3 storage
 	s3_bucket           VARCHAR(255) NOT NULL,
 	s3_key              VARCHAR(1024) NOT NULL UNIQUE,
-	-- File metadata
 	original_name       VARCHAR(255) NOT NULL,
 	extension           VARCHAR(10)  NOT NULL,
 	mime_type           VARCHAR(100) NOT NULL,
 	size_bytes          BIGINT       NOT NULL CHECK (size_bytes > 0),
-	-- Classification
 	document_type       document_type_enum NOT NULL,
-	-- Polymorphic association (current owner)
 	entity_type         entity_type_enum NOT NULL,
 	entity_id           INTEGER NOT NULL,
-	-- Audit
-	-- uploaded_by         UUID NOT NULL REFERENCES "user"(id),
 	uploaded_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
 	is_active           BOOLEAN NOT NULL DEFAULT true
 );
@@ -58,13 +52,13 @@ CREATE TABLE categorie  (
 );
 
 CREATE TABLE factory_customer  (
-	id  		SERIAL,
-	name  		VARCHAR(100) NOT NULL,
-	address  	VARCHAR(255),
-	cuit 		VARCHAR(50),
-	pay_method 	VARCHAR(255),
-	industry_id	INTEGER,
-	is_active	BOOLEAN NOT NULL DEFAULT true,
+	id  			SERIAL,
+	name  			VARCHAR(100) NOT NULL,
+	address  		VARCHAR(255),
+	cuit 			VARCHAR(50),
+	pay_method 		VARCHAR(255),
+	categorie_id	INTEGER,
+	is_active		BOOLEAN NOT NULL DEFAULT true,
 
 	CONSTRAINT pk_factory_customer PRIMARY KEY (id),
 
