@@ -8,12 +8,15 @@ import {
   HttpCode,
   HttpStatus,
   ParseIntPipe,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { FactoriesService } from '../application/factory.service';
 import { CreateFactoryDto } from './dto/create-factory.dto';
 import { UpdateFactoryDto } from './dto/update-factory.dto';
 
 @Controller('fabricas')
+@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 export class FactoryController {
   constructor(private readonly factoriesService: FactoriesService) {}
 

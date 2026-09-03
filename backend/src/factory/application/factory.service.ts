@@ -3,7 +3,7 @@ import { FactoryRepository } from '../domain/factory.repository';
 import { CreateFactoryDto } from '../http/dto/create-factory.dto';
 import { UpdateFactoryDto } from '../http/dto/update-factory.dto';
 import { Factory } from '../domain/factory';
-import { CategoriesRepository } from '../../categories/infrastructure/categories.repository';
+import { CategoriesRepository } from '../../categories/domain/categories.repository';
 
 @Injectable()
 export class FactoriesService {
@@ -15,7 +15,7 @@ export class FactoriesService {
   async create(dto: CreateFactoryDto): Promise<Factory> {
 
     const category = await this.categoriesRepository.findById(dto.categoryId);
-    if (!category || !category.activate) {
+    if (!category || !category.getActivate()) {
       throw new BadRequestException(`Category with ID ${dto.categoryId} not found or inactive`);
     }
 
@@ -51,7 +51,7 @@ export class FactoriesService {
 
     if (dto.categoryId !== undefined) {
       const category = await this.categoriesRepository.findById(dto.categoryId);
-      if (!category || !category.activate) {
+      if (!category || !category.getActivate()) {
         throw new BadRequestException(`Category with ID ${dto.categoryId} not found or inactive`);
       }
     }
