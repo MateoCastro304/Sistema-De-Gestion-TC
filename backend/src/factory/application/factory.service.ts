@@ -15,7 +15,7 @@ export class FactoriesService {
   async create(dto: CreateFactoryDto): Promise<Factory> {
 
     const category = await this.categoriesRepository.findById(dto.categoryId);
-    if (!category || !category.getActivate()) {
+    if (!category || !category.getActive()) {
       throw new BadRequestException(`Category with ID ${dto.categoryId} not found or inactive`);
     }
 
@@ -51,7 +51,7 @@ export class FactoriesService {
 
     if (dto.categoryId !== undefined) {
       const category = await this.categoriesRepository.findById(dto.categoryId);
-      if (!category || !category.getActivate()) {
+      if (!category || !category.getActive()) {
         throw new BadRequestException(`Category with ID ${dto.categoryId} not found or inactive`);
       }
     }
