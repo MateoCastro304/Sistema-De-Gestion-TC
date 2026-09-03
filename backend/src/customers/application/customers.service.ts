@@ -9,7 +9,7 @@ import { FactoryRepository } from '../../factory/domain/factory.repository';
 export class CustomersService {
   constructor(
     private readonly customersRepository: CustomerRepository,
-    private readonly factoryRepository: FactoryRepository, // ✅ Inyectado correctamente
+    private readonly factoryRepository: FactoryRepository,
   ) {}
 
   // --- CREAR ---
@@ -20,7 +20,7 @@ export class CustomersService {
       throw new NotFoundException(`Factory with ID ${dto.factoryId} not found`);
     }
 
-    // 2. Instanciar el Customer (ya no recibe `id` como parámetro)
+    // 2. Instanciar el Customer
     const customer = Customer.create(
       dto.name,
       dto.lastName,
@@ -29,7 +29,7 @@ export class CustomersService {
       dto.factoryId,
     );
 
-    // 3. Persistir (el repositorio asigna el ID autogenerado)
+    // 3. Persistir
     return await this.customersRepository.save(customer);
   }
 
@@ -39,10 +39,10 @@ export class CustomersService {
   }
 
   // --- BUSCAR POR ID ---
-  async findById(id: number): Promise<Customer> { // ✅ Recibe number
+  async findById(id: number): Promise<Customer> {
     const customer = await this.customersRepository.findById(id);
     if (!customer) {
-      throw new NotFoundException(`Customer with ID ${id} not found`); // ✅ Corregida la variable y mensaje
+      throw new NotFoundException(`Customer with ID ${id} not found`);
     }
     return customer;
   }
@@ -65,5 +65,19 @@ export class CustomersService {
     await this.customersRepository.update(customer);
 
     return customer;
+  }
+
+  // --- DESACTIVAR (BAJA LÓGICA) ---
+  async deactivate(id: number): Promise<void> {
+    const customer = await this.findById(id);
+    customer.deactivate();
+    await this.customersRepository.update(customer);
+  }
+
+  // --- ACTIVAR ---
+  async activate(id: number): Promise<void> {
+    const customer = await this.findById(id);
+    customer.activate();
+    await this.customersRepository.update(customer);
   }
 }
