@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes } from 'react'
 import { cn } from '@/shared/lib/cn'
 
 /** Button styles available in the stylesheet (`.btn--*`). */
-export type ButtonVariant = 'primary' | 'outline' | 'success'
+export type ButtonVariant = 'primary' | 'outline' | 'success' | 'danger'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant
