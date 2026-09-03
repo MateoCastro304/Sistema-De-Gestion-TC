@@ -3,7 +3,8 @@ description: Raw material or supplies vendor.
 required:
   - id
   - legalName
-  - taxId
+  - cuit
+  - contactName
   - active
   - createdAt
   - updatedAt
@@ -20,11 +21,11 @@ properties:
     maxLength: 120
     description: Legal name of the supplier as registered with the tax authority.
     example: Aceros del Sur S.A.
-  taxId:
+  cuit:
     type: string
-    pattern: '^[0-9]{2}-[0-9]{8}-[0-9]{1}$'
+    pattern: "^[0-9]{2}-[0-9]{8}-[0-9]{1}$"
     description: Argentine CUIT. Format XX-XXXXXXXX-X. Immutable.
-    example: '30-70987654-3'
+    example: "30-70987654-3"
   contactName:
     type: string
     maxLength: 120
@@ -38,7 +39,7 @@ properties:
   contactPhone:
     type: string
     maxLength: 40
-    example: '+54 9 351 444-5678'
+    example: "+54 9 351 444-5678"
   address:
     type: string
     maxLength: 200
@@ -55,9 +56,9 @@ properties:
     type: string
     format: date-time
     readOnly: true
-    example: '2026-08-22T15:30:00Z'
+    example: "2026-08-22T15:30:00Z"
   updatedAt:
     type: string
     format: date-time
     readOnly: true
-    example: '2026-08-22T15:30:00Z'
+    example: "2026-08-22T15:30:00Z"

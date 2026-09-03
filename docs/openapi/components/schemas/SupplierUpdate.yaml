@@ -1,18 +1,18 @@
 type: object
 description: |
   Modifiable fields of a supplier. All optional.
-  The taxId cannot be modified (tax identity).
+  The cuit cannot be modified (tax identity).
 minProperties: 1
 properties:
   legalName:
-    $ref: './Supplier.yaml#/properties/legalName'
+    $ref: "./Supplier.yaml#/properties/legalName"
   contactName:
-    $ref: './Supplier.yaml#/properties/contactName'
+    $ref: "./Supplier.yaml#/properties/contactName"
   contactEmail:
-    $ref: './Supplier.yaml#/properties/contactEmail'
+    $ref: "./Supplier.yaml#/properties/contactEmail"
   contactPhone:
-    $ref: './Supplier.yaml#/properties/contactPhone'
+    $ref: "./Supplier.yaml#/properties/contactPhone"
   address:
-    $ref: './Supplier.yaml#/properties/address'
+    $ref: "./Supplier.yaml#/properties/address"
   active:
-    $ref: './Supplier.yaml#/properties/active'
+    $ref: "./Supplier.yaml#/properties/active"

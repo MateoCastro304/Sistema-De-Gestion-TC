@@ -2,12 +2,13 @@ type: object
 description: Payload required to create a new supplier.
 required:
   - legalName
-  - taxId
+  - cuit
+  - contactName
 properties:
   legalName:
     $ref: './Supplier.yaml#/properties/legalName'
-  taxId:
-    $ref: './Supplier.yaml#/properties/taxId'
+  cuit:
+    $ref: './Supplier.yaml#/properties/cuit'
   contactName:
     $ref: './Supplier.yaml#/properties/contactName'
   contactEmail:
