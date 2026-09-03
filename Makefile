@@ -78,8 +78,14 @@ backend-shell: ## Opens a shell inside the backend container (dev)
 backend-build: ## Rebuild the backend image only
 	$(DC_DEV) build backend
 
-migrate: ## Runs Prisma migrations inside the backend container (dev)
-	$(DC_DEV) exec backend npx prisma migrate deploy
+migrate-deploy: ## Runs Prisma migrations inside the backend container (deploy/prod)
+	$(DC_DEV) exec backend npm run prisma:migrate-deploy
+
+migrate-dev: ## Runs Prisma migrations inside the backend container (dev)
+	$(DC_DEV) exec backend npm run prisma:migrate-dev
+
+migrate-create: ## Create Prisma migration inside the backend container (dev)
+	$(DC_DEV) exec backend npx prisma migrate dev --create-only --name $(name)
 
 seed: ## Runs Prisma seed inside the backend container (dev)
 	$(DC_DEV) exec backend npx prisma db seed
