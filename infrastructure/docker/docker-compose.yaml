@@ -40,6 +40,15 @@ services:
       timeout: 5s
       retries: 5
 
+  nginx:
+    image: nginx:alpine
+    container_name: torneria-nginx
+    networks:
+      - torneria-network
+    depends_on:
+      - backend
+      - frontend
+
 networks:
   torneria-network:
     driver: bridge
