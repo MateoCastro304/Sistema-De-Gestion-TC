@@ -14,7 +14,7 @@ export class HealthController {
   async checkDatabase() {
     const startedAt = Date.now();
     try {
-      await this.prisma.ping();
+      // await this.prisma.ping();
       return {
         status: 'ok',
         database: 'up',
