@@ -35,8 +35,8 @@ export function SuppliersPage() {
     return list.filter((s) =>
       [
         s.legalName,
-        s.taxId,
-        s.taxId.replace(/-/g, ''), // Para buscar sin los guiones
+        s.cuit ?? '',
+        s.cuit?.replace(/-/g, '') ?? '', // Para buscar sin los guiones
         s.supplierType,
         s.contactName ?? '',
       ].some((field) => field.toLowerCase().includes(term)),
@@ -152,7 +152,7 @@ export function SuppliersPage() {
     // condicionalmente sin romper el array literal.
     ...(isSelecting ? [selectionColumn] : []),
     { header: 'Razón social', render: (s) => s.legalName },
-    { header: 'CUIT', render: (s) => s.taxId },
+    { header: 'CUIT', render: (s) => orDash(s.cuit) },
     { header: 'Tipo', render: (s) => s.supplierType },
     { header: 'Contacto', render: (s) => orDash(s.contactName) },
     { header: 'Teléfono', render: (s) => orDash(s.contactPhone) },

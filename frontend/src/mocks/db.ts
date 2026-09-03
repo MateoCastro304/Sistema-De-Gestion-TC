@@ -9,7 +9,7 @@ export const db = {
     {
       id: 1,
       legalName: 'Aceros del Sur S.A.',
-      taxId: '30-70987654-3',
+      cuit: '30-70987654-3',
       supplierType:"Material",
       contactName: 'Diego Fernández',
       contactEmail: 'ventas@acerosdelsur.com',
@@ -22,7 +22,7 @@ export const db = {
     {
       id: 2,
       legalName: 'Metalúrgica Rivadavia S.R.L.',
-      taxId: '30-71234567-9',
+      cuit: '30-71234567-9',
       supplierType:"Pintura",
       contactName: 'Laura Giménez',
       contactEmail: 'compras@metrivadavia.com.ar',
@@ -35,7 +35,7 @@ export const db = {
     {
       id: 3,
       legalName: 'Bronces Industriales Castro',
-      taxId: '33-69874521-4',
+      cuit: '33-69874521-4',
       supplierType:"Repuesto",
       contactName: 'Martín Sosa',
       contactEmail: 'info@broncescastro.com',
@@ -50,7 +50,7 @@ export const db = {
       // cuando faltan los campos opcionales.
       id: 4,
       legalName: 'Insumos Técnicos del Litoral S.A.',
-      taxId: '30-71987456-1',
+      cuit: '30-71987456-1',
       supplierType:"Pintura",
       contactEmail: 'pedidos@itlitoral.com.ar',
       address: 'Ruta 11 km 8, Santa Fe',
@@ -63,7 +63,7 @@ export const db = {
       // dar de baja nada a mano.
       id: 5,
       legalName: 'Aluminios Pampa S.R.L.',
-      taxId: '30-70112233-6',
+      cuit: '30-70112233-6',
       supplierType:"Tercerizado",
       contactName: 'Carla Ibáñez',
       contactPhone: '+54 9 2954 33-8877',
@@ -71,6 +71,21 @@ export const db = {
       createdAt: '2026-07-14T13:15:00Z',
       updatedAt: '2026-08-02T10:10:00Z',
     },
+    {
+      // Sin CUIT: el cuit es opcional. Está acá para ver el guion en la
+      // columna del listado y el encabezado sin CUIT en el detalle, sin
+      // tener que dar de alta uno a mano en cada recarga.
+      id: 6,
+      legalName: 'Tornillos y Bulones del Centro',
+      supplierType: 'Repuesto',
+      contactName: 'Nadia Ruiz',
+      contactEmail: 'ventas@tybcentro.com.ar',
+      contactPhone: '+54 9 353 415-2200',
+      address: 'Belgrano 145, Villa María',
+      active: true,
+      createdAt: '2026-08-19T10:45:00Z',
+      updatedAt: '2026-08-19T10:45:00Z',
+    },
   ] as Supplier[],
-  nextId: 6,
+  nextId: 7,
 }

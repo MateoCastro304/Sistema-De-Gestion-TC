@@ -1,9 +1,9 @@
-import type { SupplierFormEditValues, SupplierUpdate, Supplier } from "../types/supplier";
+import type { SupplierFormValues, SupplierUpdate, Supplier } from "../types/supplier";
 /**
  * Devuelve solo los campos que cambiaron. Recorta antes de comparar: un
  * espacio de mas no es un cambio real y no merece un PATCH.
  */
-export function buildSupplierPatch(original: Supplier, values: SupplierFormEditValues):SupplierUpdate {
+export function buildSupplierPatch(original: Supplier, values: SupplierFormValues):SupplierUpdate {
     const patch: SupplierUpdate = {}
 
     const legalName = values.legalName.trim()
@@ -14,7 +14,10 @@ export function buildSupplierPatch(original: Supplier, values: SupplierFormEditV
     if (values.supplierType !== original.supplierType) {
     patch.supplierType = values.supplierType
     }
-
+    const cuit = values.cuit?.trim()
+    if(cuit !== (original.cuit ?? '')) {
+        patch.cuit = cuit
+    }
     // El `?? ''` normaliza el original: sin eso, undefined !== '' daria un
     // cambio fantasma en cada guardado de los campos opcionales vacios.
     const contactName = values.contactName.trim()

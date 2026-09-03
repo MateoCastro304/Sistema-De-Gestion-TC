@@ -15,6 +15,27 @@ function apiError(status: number, error: string, message: string, path: string) 
   )
 }
 
+/**
+ * El CUIT es opcional: "no vino" y "vino vacio" significan lo mismo y se
+ * guardan como undefined. Sin esta normalizacion quedarian las dos formas
+ * conviviendo en la base y las comparaciones de unicidad fallarian.
+ */
+function normalizeCuit(value: string | undefined): string | undefined {
+  const cuit = value?.trim()
+  return cuit ? cuit : undefined
+}
+
+/**
+ * Unicidad del CUIT. `exceptId` deja afuera al propio proveedor: sin eso,
+ * guardar una edicion sin tocar el CUIT chocaria consigo mismo.
+ *
+ * Mira todas las filas, incluidas las dadas de baja: un indice UNIQUE de la
+ * base tampoco distingue, y el registro dado de baja sigue ocupando su CUIT.
+ */
+function isCuitTaken(cuit: string, exceptId?: number) {
+  return db.suppliers.some((s) => s.cuit === cuit && s.id !== exceptId)
+}
+
 export const handlers = [
   // La baja es logica, pero el eliminado no se lista ni se puede pedir por id:
   // el registro sobrevive en la base solo para no romper el historial.
@@ -38,12 +59,35 @@ export const handlers = [
     await delay(500)
     const body = (await request.json()) as SupplierCreate
 
-    if (db.suppliers.some((s) => s.taxId === body.taxId)) {
-      return apiError(409, 'Conflict', `Ya existe un proveedor con el CUIT ${body.taxId}.`, BASE)
+    // El `?.` aunque el tipo diga que vienen siempre: el body llega de la red
+    // y el tipo es una promesa, no una garantia de runtime.
+    if (!body.legalName?.trim() || !body.supplierType) {
+      return apiError(
+        400,
+        'Bad Request',
+        'legalName y supplierType son obligatorios.',
+        BASE,
+      )
+    }
+
+    const cuit = normalizeCuit(body.cuit)
+
+    // Solo si vino un CUIT: sin CUIT no hay unicidad que verificar, y sin este
+    // `if` dos proveedores sin CUIT chocarian entre si (undefined === undefined).
+    if (cuit && isCuitTaken(cuit)) {
+      return apiError(409, 'Conflict', `Ya existe un proveedor con el CUIT ${cuit}.`, BASE)
     }
 
     const now = new Date().toISOString()
-    const created = { ...body, id: db.nextId++, active: true, createdAt: now, updatedAt: now }
+    // `cuit` va despues del spread para pisar el del body con el normalizado.
+    const created = {
+      ...body,
+      cuit,
+      id: db.nextId++,
+      active: true,
+      createdAt: now,
+      updatedAt: now,
+    }
     db.suppliers.push(created)
     return HttpResponse.json(created, { status: 201 })
   }),
@@ -56,13 +100,42 @@ export const handlers = [
     if (index === -1 || !db.suppliers[index].active) {
       return apiError(404, 'Not Found', `Supplier with id ${id} was not found.`, `${BASE}/${id}`)
     }
+
     const body = (await request.json()) as SupplierUpdate
-    const updated = { ...db.suppliers[index], ...body, updatedAt: new Date().toISOString() }
+    const patch: SupplierUpdate = { ...body }
+
+    // `'x' in body` y no `body.x`: distingue "no lo mandaron" de "lo mandaron
+    // vacio", que en un PATCH parcial son dos intenciones distintas.
+    if ('legalName' in body && !body.legalName?.trim()) {
+      return apiError(
+        400,
+        'Bad Request',
+        'La razon social no puede quedar vacia.',
+        `${BASE}/${id}`,
+      )
+    }
+
+    // El CUIT ahora es editable, asi que el PATCH necesita el mismo control de
+    // unicidad que el POST. Un cuit vacio significa "borrar el CUIT".
+    if ('cuit' in body) {
+      const cuit = normalizeCuit(body.cuit)
+      if (cuit && isCuitTaken(cuit, id)) {
+        return apiError(
+          409,
+          'Conflict',
+          `Ya existe un proveedor con el CUIT ${cuit}.`,
+          `${BASE}/${id}`,
+        )
+      }
+      patch.cuit = cuit
+    }
+
+    const updated = { ...db.suppliers[index], ...patch, updatedAt: new Date().toISOString() }
     db.suppliers[index] = updated
     return HttpResponse.json(updated)
   }),
 
-  /** Baja lógica: marca active=false, no saca la fila del array. */
+  /** Baja logica: marca active=false, no saca la fila del array. */
   http.delete(`${BASE}/:id`, async ({ params }) => {
     await delay(400)
     const id = Number(params.id)

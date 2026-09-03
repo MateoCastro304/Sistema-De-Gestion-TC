@@ -5,12 +5,12 @@ import { isApiError } from '@/shared/api/ApiError'
 import { cn } from '@/shared/lib/cn'
 import { useSupplier } from '../api/useDetailSupplier'
 import { SUPPLIER_TYPES } from '../types/supplier'
-import type {SupplierFormEditValues} from '../types/supplier'
+import type {SupplierFormValues} from '../types/supplier'
 import type { ChangeEvent } from 'react'
 import { useUpdateSupplier } from '../api/useUpdateSupplier'
 import { buildSupplierPatch } from '../utils/buildSupplierPatch'
 import { useToast } from '@/app/providers/ToastContext'
-import { validateSupplierEditForm } from '../utils/validateSupplierForm'
+import { validateSupplierForm } from '../utils/validateSupplierForm'
 import type { SupplierFormErrors } from '../utils/validateSupplierForm'
 /** ISO 8601 -> "22 ago 2026". Las fechas viajan como string, no como Date. */
 function formatDate(iso: string) {
@@ -26,7 +26,6 @@ interface FieldProps {
   name: string
   editing: boolean
   onChange?: FieldChangeHandler
-  /** El CUIT se muestra siempre pero nunca se edita: es identidad fiscal. */
   readOnly?: boolean
   hint?: string
   error?:string
@@ -76,7 +75,7 @@ export function SupplierDetailPage() {
 
   const { data: supplier, isPending, error } = useSupplier(supplierId)
   /** `null` = modo lectura. Un objeto = editando, con los valores en curso. */
-  const [form, setForm] = useState<SupplierFormEditValues | null >(null)
+  const [form, setForm] = useState<SupplierFormValues | null >(null)
   const { mutate, isPending:isSaving } = useUpdateSupplier(supplierId)
   const [errors, setErrors] = useState<SupplierFormErrors>({})
   const showToast = useToast()
@@ -125,7 +124,7 @@ export function SupplierDetailPage() {
     // Ademas de guarda, esto le prueba a TS que patch y form no son null.
     if (!patch || !form) return
 
-    const validationErrors = validateSupplierEditForm(form)
+    const validationErrors = validateSupplierForm(form)
     setErrors(validationErrors)
 
     if (Object.keys(validationErrors).length > 0) return
@@ -143,6 +142,10 @@ export function SupplierDetailPage() {
         showToast('success', 'Proveedor Actualizado')
       },
       onError: (mutationError) => {
+        if (isApiError(mutationError) && mutationError.isConflict) {
+          setErrors({ cuit: mutationError.message })
+          return
+        }
         showToast('error', isApiError(mutationError) ? mutationError.message : 'Ocurrio un error inesperado')
       }
     })
@@ -169,7 +172,8 @@ export function SupplierDetailPage() {
               <h1 className="detail-header__title">{supplier.legalName}</h1>
             </div>
             <span className="detail-header__meta">
-              CUIT {supplier.taxId} · {supplier.supplierType}
+              { (supplier.cuit) ? `CUIT: ${supplier.cuit} · ${supplier.supplierType}` 
+              : supplier.supplierType }
             </span>
           </div>
         </div>
@@ -186,6 +190,7 @@ export function SupplierDetailPage() {
             </>
           ) : (
             <Button variant="primary" onClick={() => setForm({
+              cuit: supplier.cuit ?? '',
               legalName: supplier.legalName,
               supplierType: supplier.supplierType,
               contactName: supplier.contactName ?? '',
@@ -215,11 +220,13 @@ export function SupplierDetailPage() {
               />
               <Field
                 label="CUIT"
-                name="taxId"
-                value={supplier.taxId}
+                name="cuit"
+                value={form?.cuit ?? supplier.cuit ?? ''}
                 editing={isEditing}
-                readOnly
-                hint="El CUIT no se puede modificar."
+                hint="Formato XX-XXXXXXXX-X"
+                maxLength={13}
+                onChange={handleChange}
+                error= {errors.cuit}
               />
 
               <div className="info-grid__item">

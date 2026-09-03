@@ -16,8 +16,7 @@ export const SUPPLIER_TYPES: SupplierType[] = [
 export interface Supplier {
     id: number
     legalName: string
-    /** CUIT argentino, formato XX-XXXXXXXX-X. Inmutable: identidad fiscal. */
-    taxId: string
+    cuit?: string
       /** Rubro del proveedor. */
     supplierType: SupplierType
     contactName?: string
@@ -35,18 +34,15 @@ export interface Supplier {
  */
 export interface SupplierCreate {
     legalName: string
-    taxId: string
+    cuit?: string
     supplierType: SupplierType
     contactName?: string
     contactEmail?: string
     contactPhone?: string
     address?: string
 }
-/**
- * PATCH /suppliers/:id. Todo opcional (van solo los campos que cambiaron) y
- * sin taxId, que el contrato define como no modificable.
- */
 export interface SupplierUpdate {
+    cuit?: string
     legalName?: string
     supplierType?: SupplierType
     contactName?: string
@@ -59,16 +55,12 @@ export interface SupplierUpdate {
  * Valores del formulario. Strings obligatorios y nunca undefined: un input
  * controlado que arranca en undefined y despues recibe texto rompe en React.
  */
-export interface SupplierFormEditValues {
+export interface SupplierFormValues {
+    cuit: string
     legalName: string
     supplierType: SupplierType
     contactName: string
     contactEmail: string
     contactPhone: string
     address: string
-}
-
-/** El alta es la edicion mas el CUIT, que solo se define al crear. */
-export interface SupplierFormCreateValues extends SupplierFormEditValues {
-    taxId: string
 }

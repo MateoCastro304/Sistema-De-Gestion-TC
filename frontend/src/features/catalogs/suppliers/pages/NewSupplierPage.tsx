@@ -1,19 +1,19 @@
 import { useState } from 'react'
-import type { ChangeEvent, FormEvent } from 'react'
+import type { ChangeEvent, SubmitEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { Button, Input } from '@/shared/components/ui'
 import { isApiError } from '@/shared/api/ApiError'
 import { useToast } from '@/app/providers/ToastContext'
 import { useCreateSupplier } from '../api/useCreateSupplier'
 import { SUPPLIER_TYPES } from '../types/supplier'
-import type { SupplierFormCreateValues } from '../types/supplier'
+import type { SupplierFormValues } from '../types/supplier'
 import { toSupplierCreate, validateSupplierForm } from '../utils/validateSupplierForm'
 import type { SupplierFormErrors } from '../utils/validateSupplierForm'
 
 /** Fuera del componente: es constante y no tiene por que recrearse por render. */
-const EMPTY_FORM: SupplierFormCreateValues = {
+const EMPTY_FORM: SupplierFormValues = {
   legalName: '',
-  taxId: '',
+  cuit: '',
   supplierType: 'Material',
   contactName: '',
   contactEmail: '',
@@ -22,7 +22,7 @@ const EMPTY_FORM: SupplierFormCreateValues = {
 }
 
 export function NewSupplierPage() {
-  const [form, setForm] = useState<SupplierFormCreateValues>(EMPTY_FORM)
+  const [form, setForm] = useState<SupplierFormValues>(EMPTY_FORM)
   const [errors, setErrors] = useState<SupplierFormErrors>({})
   const { mutate, isPending: isSaving } = useCreateSupplier()
   const showToast = useToast()
@@ -33,7 +33,7 @@ export function NewSupplierPage() {
     setForm((current) => ({ ...current, [name]: value }))
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
 
     const validationErrors = validateSupplierForm(form)
@@ -48,7 +48,7 @@ export function NewSupplierPage() {
       onError: (error) => {
         // CUIT repetido: el mensaje pertenece al campo, no a un toast suelto.
         if (isApiError(error) && error.isConflict) {
-          setErrors({ taxId: error.message })
+          setErrors({ cuit: error.message })
           return
         }
         showToast(
@@ -86,13 +86,13 @@ export function NewSupplierPage() {
           />
 
           <Input
-            id="taxId"
-            name="taxId"
+            id="cuit"
+            name="cuit"
             label="CUIT"
             maxLength={13}
-            value={form.taxId}
+            value={form.cuit}
             onChange={handleChange}
-            error={errors.taxId}
+            error={errors.cuit}
             hint="Formato XX-XXXXXXXX-X"
           />
 
