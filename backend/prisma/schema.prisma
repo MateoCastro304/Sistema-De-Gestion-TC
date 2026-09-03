@@ -1,3 +1,15 @@
+// Schema basado en docs/database/setup_support_sprint1.sql
+//
+// Notas / correcciones respecto del .sql (que tiene algunos typos):
+//  - La tabla de rubros es `categorie` (el PK se llama `pk_industry` y el FK
+//    apunta a `industry(id)`, pero esas son inconsistencias del script). Se
+//    modela como Category -> tabla `categorie`, y factory_customer.categorie_id
+//    referencia a categorie.id.
+//  - `manager_customer` usa PK compuesta (factory_id, id); el `id` correlativo
+//    por fabrica lo genera el trigger fn_gen_id_manager, no un SERIAL.
+//  - Los CHECK (ej. size_bytes > 0) no se expresan en Prisma; van en la migracion.
+// NOTA: la URL de conexion se configura via DATABASE_URL (driver adapter), no aca.
+
 datasource db {
   provider = "postgresql"
 }
@@ -6,8 +18,140 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// Los modelos (Customer, Supplier, Category, etc.) se agregan a medida
-// que cada ABMC los necesita. Coordinen los cambios a este archivo en el
-// mismo PR de su modulo para evitar conflictos de merge.
-// NOTA: la URL de conexion se configura en prisma.config.ts (Prisma 7),
-// no aca. Se agrega cuando conectemos una base real.
+// =============================================
+// Enums
+// =============================================
+
+/// Identifica a que tabla apunta file.entity_id (FK polimorfica)
+enum EntityType {
+  QUOTE_REQUEST
+  PART
+  QUOTE
+  WORK_ORDER
+
+  @@map("entity_type_enum")
+}
+
+/// Tipo de documento almacenado
+enum DocumentType {
+  REQUEST_PDF
+  BLUEPRINT
+  REFERENCE_PART_PHOTO
+  DESIGN_3D
+  OTHER
+
+  @@map("document_type_enum")
+}
+
+enum SupplierType {
+  PROCESS
+  REPLACEMENT
+  MATERIAL
+  PAINT
+
+  @@map("supplier_type_enum")
+}
+
+// =============================================
+// Files Management
+// =============================================
+
+model File {
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  s3Bucket     String       @map("s3_bucket") @db.VarChar(255)
+  s3Key        String       @unique @map("s3_key") @db.VarChar(1024)
+  originalName String       @map("original_name") @db.VarChar(255)
+  extension    String       @db.VarChar(10)
+  mimeType     String       @map("mime_type") @db.VarChar(100)
+  sizeBytes    BigInt       @map("size_bytes") // CHECK (size_bytes > 0) en la migracion
+  documentType DocumentType @map("document_type")
+  entityType   EntityType   @map("entity_type")
+  entityId     Int          @map("entity_id") // FK polimorfica: sin relacion declarada
+  uploadedAt   DateTime     @default(now()) @map("uploaded_at") @db.Timestamptz(6)
+  isActive     Boolean      @default(true) @map("is_active")
+
+  @@map("file")
+}
+
+// =============================================
+// Customer Management
+// =============================================
+
+/// Rubro (tabla `categorie`)
+model Category {
+  id       Int     @id @default(autoincrement())
+  name     String? @db.VarChar(120)
+  isActive Boolean @default(true) @map("is_active")
+
+  factories Factory[]
+
+  @@map("categorie")
+}
+
+/// Fabrica / empresa cliente (tabla `factory_customer`)
+model Factory {
+  id         Int     @id @default(autoincrement())
+  name       String  @db.VarChar(100)
+  address    String? @db.VarChar(255)
+  cuit       String? @db.VarChar(50)
+  payMethod  String? @map("pay_method") @db.VarChar(255)
+  categoryId Int?    @map("categorie_id")
+  isActive   Boolean @default(true) @map("is_active")
+
+  category Category?  @relation(fields: [categoryId], references: [id])
+  managers Customer[]
+
+  @@map("factory_customer")
+}
+
+/// Encargado / contacto de una fabrica (tabla `manager_customer`)
+model Customer {
+  id        Int     // correlativo por fabrica, generado por trigger fn_gen_id_manager
+  factoryId Int     @map("factory_id")
+  name      String  @db.VarChar(50)
+  lastName  String? @map("last_name") @db.VarChar(50)
+  phone     String? @db.VarChar(50)
+  mail      String? @db.VarChar(255)
+  isActive  Boolean @default(true) @map("is_active")
+
+  factory       Factory        @relation(fields: [factoryId], references: [id])
+  quoteRequests QuoteRequest[]
+
+  @@id([factoryId, id])
+  @@map("manager_customer")
+}
+
+// =============================================
+// Supplier Management
+// =============================================
+
+model Supplier {
+  id          Int          @id @default(autoincrement())
+  type        SupplierType
+  name        String?      @db.VarChar(150)
+  address     String?      @db.VarChar(255)
+  phone       String?      @db.VarChar(50)
+  descp       String?      @db.VarChar(255)
+  observation String?      @db.VarChar(255)
+  isActive    Boolean      @default(true) @map("is_active")
+
+  @@map("supplier")
+}
+
+// =============================================
+// Quote Management
+// =============================================
+
+model QuoteRequest {
+  id                Int      @id @default(autoincrement())
+  managerCustomerId Int      @map("manager_customer_id")
+  managerFactoryId  Int      @map("manager_factory_id")
+  descp             String?  @db.VarChar(200)
+  reqDate           DateTime @map("req_date") @db.Date
+  orderNumber       String?  @map("order_number") @db.VarChar(50)
+  isActive          Boolean  @default(true) @map("is_active")
+
+  customer Customer @relation(fields: [managerFactoryId, managerCustomerId], references: [factoryId, id])
+
+  @@map("quote_request")
+}

@@ -1,7 +1,5 @@
 export class CategoryId {
-    private constructor(private readonly _value: number) {
-        this.validate();
-    }
+    private constructor(private readonly _value: number) {}
       static create(value: number): CategoryId {
     if (value === undefined || value === null || !Number.isInteger(value) || value <= 0) {
       throw new Error('Category id must be a positive integer');
@@ -9,6 +7,6 @@ export class CategoryId {
     return new CategoryId(value);
   }
     getValue(): number {
-    return this.value;
+    return this._value;
   }
 }
