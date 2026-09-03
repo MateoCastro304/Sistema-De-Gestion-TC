@@ -27,9 +27,9 @@ describe('Factory <-> Category business rule (integration)', () => {
     it('creates a factory when the category exists and is active', async () => {
         const category = await categoriesService.create({ name: 'Metalurgica' });
 
-        const factory = await factoriesService.create(validFactoryDto(category.id as number));
+        const factory = await factoriesService.create(validFactoryDto(category.getId() as number));
 
-        expect(factory.getCategoryId()).toBe(category.id);
+        expect(factory.getCategoryId()).toBe(category.getId());
     });
 
     it('rejects creating a factory when the category does not exist', async () => {
@@ -38,9 +38,9 @@ describe('Factory <-> Category business rule (integration)', () => {
 
     it('rejects creating a factory when the category is inactive', async () => {
         const category = await categoriesService.create({ name: 'Metalurgica' });
-        await categoriesService.remove(category.id as number);
+        await categoriesService.remove(category.getId() as number);
 
-        await expect(factoriesService.create(validFactoryDto(category.id as number))).rejects.toThrow(
+        await expect(factoriesService.create(validFactoryDto(category.getId() as number))).rejects.toThrow(
             BadRequestException,
     );
     });

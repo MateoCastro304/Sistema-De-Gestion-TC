@@ -14,6 +14,6 @@ export class CategoryResponseDto {
     } 
 
     static fromDomain(category: Category): CategoryResponseDto {
-        return new CategoryResponseDto(category.id as number, category.name, category.createdAt, category.updatedAt);
+        return new CategoryResponseDto(category.getId() as number, category.getName(), category.getCreatedAt(), category.getUpdatedAt());
     }
 }

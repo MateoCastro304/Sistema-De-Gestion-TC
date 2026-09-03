@@ -9,7 +9,7 @@ export class CategoriesInMemoryRepository implements CategoriesRepository {
 
 
     async findAll(page: number, limit: number): Promise<Category[]> {
-    const active = Array.from(this.categories.values()).filter((c) => c.active);
+    const active = Array.from(this.categories.values()).filter((c) => c.getActive());
     const start = (page - 1) * limit;
     return active.slice(start, start + limit);
   }
@@ -19,19 +19,20 @@ export class CategoriesInMemoryRepository implements CategoriesRepository {
   }
 
   async save(category: Category): Promise<Category> {
-        if (category.id === null) {
+    const id = category.getId();
+    if (id === null) {
       const generatedId = this.autoIncrementId++;
       const saved = Category.reconstitute(
         generatedId,
-        category.name,
-        category.active,
-        category.createdAt,
-        category.updatedAt,
+        category.getName(),
+        category.getActive(),
+        category.getCreatedAt(),
+        category.getUpdatedAt(),
       );
       this.categories.set(generatedId, saved);
       return saved;
     }
-    this.categories.set(category.id, category);
+    this.categories.set(id, category);
     return category;
   }
 }

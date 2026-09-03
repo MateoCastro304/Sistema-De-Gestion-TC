@@ -23,8 +23,8 @@ describe('CategoriesService', () => {
       const result = await service.create({ name: 'Metalurgica' });
 
       expect(repository.save).toHaveBeenCalledTimes(1);
-      expect(result.name).toBe('Metalurgica');
-      expect(result.active).toBe(true);
+      expect(result.getName()).toBe('Metalurgica');
+      expect(result.getActive()).toBe(true);
     });
   });
 
@@ -65,7 +65,7 @@ describe('CategoriesService', () => {
 
       const result = await service.update(1, { name: 'Insumos' });
 
-      expect(result?.name).toBe('Insumos');
+      expect(result?.getName()).toBe('Insumos');
       expect(repository.save).toHaveBeenCalledWith(existing);
     });
   });
@@ -87,7 +87,7 @@ describe('CategoriesService', () => {
 
       const result = await service.remove(1);
 
-      expect(result?.active).toBe(false);
+      expect(result?.getActive()).toBe(false);
       expect(repository.save).toHaveBeenCalledWith(existing);
     });
   });

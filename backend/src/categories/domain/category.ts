@@ -29,23 +29,23 @@ export class Category {
 
 
 // Getters: formas de LEER los datos desde afuera de la clase
-  get id(): number | null {
+  getId(): number | null {
     return this._id;
   }
 
-  get name(): string {
+  getName(): string {
     return this._name;
   }
 
-  get active(): boolean {
+  getActive(): boolean {
     return this._active;
   }
 
-    get createdAt(): Date {
+    getCreatedAt(): Date {
     return this._createdAt;
   }
 
-  get updatedAt(): Date {
+  getUpdatedAt(): Date {
     return this._updatedAt;
   }
 
