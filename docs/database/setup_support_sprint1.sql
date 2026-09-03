@@ -41,16 +41,18 @@ CREATE TABLE file (
 	entity_id           INTEGER NOT NULL,
 	-- Audit
 	-- uploaded_by         UUID NOT NULL REFERENCES "user"(id),
-	uploaded_at         TIMESTAMPTZ NOT NULL DEFAULT now()
+	uploaded_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+	is_active           BOOLEAN NOT NULL DEFAULT true
 );
 
 -- =============================================
 -- CUSTOMER Management
 -- =============================================
 
-CREATE TABLE industry  (
+CREATE TABLE categorie  (
 	id  	SERIAL,
 	name  	VARCHAR(120),
+	is_active	BOOLEAN NOT NULL DEFAULT true,
 
 	CONSTRAINT pk_industry PRIMARY KEY (id)
 );
@@ -62,6 +64,7 @@ CREATE TABLE factory_customer  (
 	cuit 		VARCHAR(50),
 	pay_method 	VARCHAR(255),
 	industry_id	INTEGER,
+	is_active	BOOLEAN NOT NULL DEFAULT true,
 
 	CONSTRAINT pk_factory_customer PRIMARY KEY (id),
 
@@ -70,11 +73,13 @@ CREATE TABLE factory_customer  (
 );
 
 CREATE TABLE manager_customer  (
-	id  		INTEGER,
+	id  			INTEGER,
 	factory_id  	INTEGER NOT NULL,
-	name  		VARCHAR(150) NOT NULL,
-	phone  		VARCHAR(50),
-	mail  		VARCHAR(255),
+	name  			VARCHAR(50) NOT NULL,
+	last_name		VARCHAR(50)
+	phone  			VARCHAR(50),
+	mail  			VARCHAR(255),
+	is_active		BOOLEAN NOT NULL DEFAULT true,
 
 	CONSTRAINT pk_manager_customer PRIMARY KEY (factory_id, id),
 
@@ -98,6 +103,7 @@ CREATE TABLE supplier (
 	phone  		VARCHAR(50),
 	descp  		VARCHAR(255),
 	observation	VARCHAR(255),
+	is_active	BOOLEAN NOT NULL DEFAULT true,
 
 	CONSTRAINT pk_supplier PRIMARY KEY (id)
 );
@@ -112,6 +118,7 @@ CREATE TABLE quote_request  (
   	descp 				VARCHAR(200),
   	req_date			DATE NOT NULL,
   	order_number 		VARCHAR(50),
+  	is_active			BOOLEAN NOT NULL DEFAULT true,
 
 	CONSTRAINT pk_quote_request PRIMARY KEY (id),
 

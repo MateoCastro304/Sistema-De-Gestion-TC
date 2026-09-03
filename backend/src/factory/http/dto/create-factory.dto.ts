@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsInt } from 'class-validator';
 
 export class CreateFactoryDto {
   @IsString()
@@ -17,6 +17,7 @@ export class CreateFactoryDto {
   @IsOptional()
   paymentDescription?: string;
 
+  @IsInt()
   @IsString()
   @IsNotEmpty()
   categoryId!: number;
