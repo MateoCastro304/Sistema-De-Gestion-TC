@@ -1,25 +1,14 @@
 import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
-import { PrismaService } from '../shared/infrastructure/prisma/prisma.service';
+import { HealthService } from './health.service';
 
 @Controller('health')
 export class HealthController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly health: HealthService) {}
 
-  /**
-   * GET /health/db
-   * Verifica la conexion a la base ejecutando un `SELECT 1`.
-   * Responde 200 si la base responde, 503 si no.
-   */
   @Get('db')
   async checkDatabase() {
-    const startedAt = Date.now();
     try {
-      // await this.prisma.ping();
-      return {
-        status: 'ok',
-        database: 'up',
-        latencyMs: Date.now() - startedAt,
-      };
+      return await this.health.ping();
     } catch (error) {
       throw new ServiceUnavailableException({
         status: 'error',
