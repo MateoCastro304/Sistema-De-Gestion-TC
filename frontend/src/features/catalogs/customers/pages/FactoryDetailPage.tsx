@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useLocation, Link } from 'react-router'
-import { Button, Modal, Table } from '@/shared/components/ui'
+import { Badge, Button, Modal, Table } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
 import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
@@ -29,11 +29,14 @@ export function FactoryDetailPage() {
 
   const factoriesQuery = useFactories()
   const { data: industries = [] } = useIndustries()
-  const customersQuery = useCustomers()
+  // Traemos también los inactivos; el filtro decide si se muestran.
+  const customersQuery = useCustomers({ includeInactive: true })
   const update = useUpdateFactory(id)
   const deactivate = useDeactivateCustomer()
 
   const [editing, setEditing] = useState(false)
+  // Regla de negocio: los encargados inactivos se muestran solo con este filtro.
+  const [showInactive, setShowInactive] = useState(false)
   // Encargado modal: null closed; { customer } edits; { customer: undefined } adds.
   const [contactModal, setContactModal] = useState<{
     customer?: Customer
@@ -73,9 +76,15 @@ export function FactoryDetailPage() {
 
   const industryName =
     industries.find((i) => i.id === factory.industryId)?.name ?? '—'
-  const contacts = (customersQuery.data ?? []).filter(
+  const factoryContacts = (customersQuery.data ?? []).filter(
     (c) => c.factoryId === factory.id,
   )
+  // Escenario 3 mira si la fábrica tiene encargados registrados (activos o no);
+  // el filtro solo cambia cuáles se listan.
+  const hasContacts = factoryContacts.length > 0
+  const contacts = showInactive
+    ? factoryContacts
+    : factoryContacts.filter((c) => c.isActive)
   const fullName = (c: Customer) => `${c.firstName} ${c.lastName}`
 
   const handleUpdate = (input: FactoryInput) => {
@@ -94,47 +103,66 @@ export function FactoryDetailPage() {
 
   const confirmDeactivate = () => {
     if (!toDeactivate) return
-    deactivate.mutate(toDeactivate.id, {
-      onSuccess: () => {
-        showToast('success', `Encargado "${fullName(toDeactivate)}" eliminado.`)
-        setToDeactivate(null)
+    deactivate.mutate(
+      { factoryId: toDeactivate.factoryId, id: toDeactivate.id },
+      {
+        onSuccess: () => {
+          showToast(
+            'success',
+            `Encargado "${fullName(toDeactivate)}" eliminado.`,
+          )
+          setToDeactivate(null)
+        },
+        onError: (error) => {
+          showToast(
+            'error',
+            isApiError(error)
+              ? error.message
+              : 'No se pudo eliminar el encargado.',
+          )
+          setToDeactivate(null)
+        },
       },
-      onError: (error) => {
-        showToast(
-          'error',
-          isApiError(error) ? error.message : 'No se pudo eliminar el encargado.',
-        )
-        setToDeactivate(null)
-      },
-    })
+    )
   }
 
   const contactColumns: Column<Customer>[] = [
-    { header: 'Nombre', render: (c) => fullName(c) },
+    {
+      header: 'Nombre',
+      render: (c) => (
+        <span className="table__name-cell">
+          {fullName(c)}
+          {!c.isActive && <Badge variant="pendiente">Inactivo</Badge>}
+        </span>
+      ),
+    },
     { header: 'Teléfono', render: (c) => c.phone },
-    { header: 'Email', render: (c) => c.email },
+    { header: 'Email', render: (c) => c.mail },
     {
       header: 'Acciones',
       align: 'center',
-      render: (c) => (
-        <>
-          <button
-            type="button"
-            className="table__action"
-            onClick={() => setContactModal({ customer: c })}
-          >
-            Editar
-          </button>
-          <span className="table__action-sep">·</span>
-          <button
-            type="button"
-            className="table__action table__td--danger"
-            onClick={() => setToDeactivate(c)}
-          >
-            Eliminar
-          </button>
-        </>
-      ),
+      render: (c) =>
+        c.isActive ? (
+          <>
+            <button
+              type="button"
+              className="table__action"
+              onClick={() => setContactModal({ customer: c })}
+            >
+              Editar
+            </button>
+            <span className="table__action-sep">·</span>
+            <button
+              type="button"
+              className="table__action table__td--danger"
+              onClick={() => setToDeactivate(c)}
+            >
+              Eliminar
+            </button>
+          </>
+        ) : (
+          '—'
+        ),
     },
   ]
 
@@ -177,16 +205,32 @@ export function FactoryDetailPage() {
             Personas de contacto de esta fábrica.
           </p>
         </div>
-        <Button onClick={() => setContactModal({ customer: undefined })}>
-          + Agregar encargado
-        </Button>
+        <div className="detail-header__actions">
+          {hasContacts && (
+            <label className="filters__checkbox">
+              <input
+                type="checkbox"
+                checked={showInactive}
+                onChange={(event) => setShowInactive(event.target.checked)}
+              />
+              Mostrar inactivos
+            </label>
+          )}
+          <Button onClick={() => setContactModal({ customer: undefined })}>
+            + Agregar encargado
+          </Button>
+        </div>
       </div>
 
       <Table
         columns={contactColumns}
         data={contacts}
-        rowKey={(c) => c.id}
-        emptyMessage="Esta fábrica todavía no tiene encargados."
+        rowKey={(c) => `${c.factoryId}-${c.id}`}
+        emptyMessage={
+          hasContacts
+            ? 'No hay encargados que coincidan con el filtro.'
+            : 'Esta fábrica no tiene encargados registrados; no será posible enviar informes de cotización.'
+        }
       />
 
       <CustomerFormModal
@@ -256,7 +300,7 @@ function FactoryDetails({
         </div>
         <div className="info-grid__item info-grid__item--full">
           <span className="info-grid__label">Formas de pago</span>
-          <p className="info-grid__text">{factory.paymentDescription}</p>
+          <p className="info-grid__text">{factory.payMethod}</p>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { Table } from '@/shared/components/ui'
+import { Badge, Table } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
 import type { Customer } from '../types/customer'
 import type { Factory } from '../types/factory'
@@ -11,6 +11,8 @@ interface CustomersTableProps {
   industries: Industry[]
   /** Called when the user confirms the baja lógica of a customer. */
   onDeactivate: (customer: Customer) => void
+  /** Message shown when there are no rows (e.g. no matches for the search). */
+  emptyMessage?: string
 }
 
 /** Read-only listing of customers/contacts (CU-03), with links to detail and baja. */
@@ -19,6 +21,7 @@ export function CustomersTable({
   factories,
   industries,
   onDeactivate,
+  emptyMessage = 'No hay encargados registrados.',
 }: CustomersTableProps) {
   const factoryById = (id: string) => factories.find((f) => f.id === id)
   const industryName = (id: string) =>
@@ -28,13 +31,16 @@ export function CustomersTable({
     {
       header: 'Nombre',
       render: (c) => (
-        <Link className="table__action" to={`/catalogs/customers/${c.id}`}>
-          {c.firstName} {c.lastName}
-        </Link>
+        <span className="table__name-cell">
+          <Link className="table__action" to={`/catalogs/customers/${c.factoryId}/${c.id}`}>
+            {c.firstName} {c.lastName}
+          </Link>
+          {!c.isActive && <Badge variant="pendiente">Inactivo</Badge>}
+        </span>
       ),
     },
     { header: 'Teléfono', render: (c) => c.phone },
-    { header: 'Email', render: (c) => c.email },
+    { header: 'Email', render: (c) => c.mail },
     {
       header: 'Fábrica',
       render: (c) => factoryById(c.factoryId)?.name ?? '—',
@@ -51,17 +57,21 @@ export function CustomersTable({
       align: 'center',
       render: (c) => (
         <>
-          <Link className="table__action" to={`/catalogs/customers/${c.id}`}>
+          <Link className="table__action" to={`/catalogs/customers/${c.factoryId}/${c.id}`}>
             Ver
           </Link>
-          <span className="table__action-sep">·</span>
-          <button
-            type="button"
-            className="table__action table__td--danger"
-            onClick={() => onDeactivate(c)}
-          >
-            Eliminar
-          </button>
+          {c.isActive && (
+            <>
+              <span className="table__action-sep">·</span>
+              <button
+                type="button"
+                className="table__action table__td--danger"
+                onClick={() => onDeactivate(c)}
+              >
+                Eliminar
+              </button>
+            </>
+          )}
         </>
       ),
     },
@@ -71,8 +81,8 @@ export function CustomersTable({
     <Table
       columns={columns}
       data={customers}
-      rowKey={(c) => c.id}
-      emptyMessage="No hay encargados registrados."
+      rowKey={(c) => `${c.factoryId}-${c.id}`}
+      emptyMessage={emptyMessage}
     />
   )
 }

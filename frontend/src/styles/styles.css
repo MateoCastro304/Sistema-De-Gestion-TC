@@ -621,6 +621,16 @@ table {
   color: var(--color-text-muted);
 }
 
+.filters__checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
 .filters__dropdown {
   display: inline-flex;
   align-items: center;
@@ -791,6 +801,13 @@ table {
 .table__action-sep {
   color: var(--color-border-strong);
   margin: 0 var(--space-1);
+}
+
+/* Name cell that pairs a link with a status badge (e.g. "Inactivo"). */
+.table__name-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 /* --- Badges --- */
