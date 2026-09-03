@@ -5,7 +5,7 @@ import { CategoryId } from '../../categories/domain/category-id';
 export class Factory {
   private constructor(
     private readonly id: FactoryId | null,
-    private cuit: string,
+    private cuit: string, 
     private name: string,
     private address: string,
     private paymentDescription: string | null,
@@ -40,7 +40,7 @@ export class Factory {
       cuit.trim(),
       name.trim(),
       address.trim(),
-      paymentDescription || null,
+      paymentDescription?.trim() || null,
       CategoryId.create(categoryId),
       true,
     );

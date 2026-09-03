@@ -3,7 +3,7 @@ export class CustomerId{
 
     static create(value: number): CustomerId{
         if (value === undefined || value === null || !Number.isInteger(value) || value <= 0) {
-        throw new Error('Encargado id must be a positive integer');
+        throw new Error('Customer id must be a positive integer');
         }
         return new CustomerId(value);
     }
