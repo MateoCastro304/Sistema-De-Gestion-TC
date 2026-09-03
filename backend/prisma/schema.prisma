@@ -85,7 +85,7 @@ model Category {
 
   factories Factory[]
 
-  @@map("categorie")
+  @@map("category")
 }
 
 /// Fabrica / empresa cliente (tabla `factory_customer`)
