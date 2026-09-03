@@ -76,7 +76,7 @@ export function FactoryForm({
 
           <div className="form-field">
             <Input
-              label="CUIT"
+              label="CUIT (opcional)"
               placeholder="30-71234567-8"
               error={errors.cuit?.message}
               {...register('cuit')}

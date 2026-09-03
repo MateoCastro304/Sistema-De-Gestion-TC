@@ -28,9 +28,9 @@ export function isValidCuit(digits: string): boolean {
 }
 
 /**
- * Validation for the factory form (FabricaCliente, CU-58/59). CUIT is checked
- * for the expected 11-digit length; dashes/spaces are allowed and normalised
- * away by {@link toFactoryInput}.
+ * Validation for the factory form (FabricaCliente, CU-58/59). CUIT is optional;
+ * when provided it must have the expected 11-digit length and a valid check
+ * digit. Dashes/spaces are allowed and normalised away by {@link toFactoryInput}.
  */
 export const factoryFormSchema = z.object({
   name: z.string().trim().min(1, 'El nombre de la fábrica es obligatorio'),
@@ -45,13 +45,12 @@ export const factoryFormSchema = z.object({
   cuit: z
     .string()
     .trim()
-    .min(1, 'El CUIT es obligatorio')
     .refine(
-      (value) => cuitDigits(value).length === CUIT_DIGITS,
+      (value) => value === '' || cuitDigits(value).length === CUIT_DIGITS,
       'El CUIT debe tener 11 dígitos',
     )
     .refine(
-      (value) => isValidCuit(cuitDigits(value)),
+      (value) => value === '' || isValidCuit(cuitDigits(value)),
       'El dígito verificador del CUIT no es válido',
     ),
   address: z.string().trim().min(1, 'La dirección es obligatoria'),
