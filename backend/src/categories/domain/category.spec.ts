@@ -3,7 +3,7 @@ import { Category } from './category';
 describe('Category (domain)', () => {
   it('creates a category with a valid name', () => {
     const category = Category.create('Metalurgica');
-    expect(category.name).toBe('Metalurgica');
+    expect(category.getName()).toBe('Metalurgica');
   });
 
   it('throws when the name is empty', () => {
@@ -13,7 +13,7 @@ describe('Category (domain)', () => {
   it('allows renaming to a valid name', () => {
     const category = Category.create('Metalurgica');
     category.rename('Insumos');
-    expect(category.name).toBe('Insumos');
+    expect(category.getName()).toBe('Insumos');
   });
 
   it('throws when renaming to an empty name', () => {

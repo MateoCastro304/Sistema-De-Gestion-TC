@@ -19,7 +19,8 @@ export class CategoryExceptionFilter implements ExceptionFilter {
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Unexpected error.';
     let details: { field: string; message: string }[] | undefined;
-
+    let categoryId: number | undefined;
+    
     if (exception instanceof HttpException) { //es un operador de JavaScript que responde "¿este objeto fue creado a partir de esta clase (o una que hereda de ella)?". HttpException es la clase base de la que heredan NotFoundException, BadRequestException, y prácticamente todos los errores "oficiales" de Nest.
       statusCode = exception.getStatus();
       const body = exception.getResponse();
@@ -29,6 +30,7 @@ export class CategoryExceptionFilter implements ExceptionFilter {
         const bodyObj = body as Record<string, unknown>;
         message = (bodyObj.message as string) ?? exception.message;
         details = bodyObj.details as { field: string; message: string }[] | undefined;
+        categoryId = bodyObj.categoryId as number | undefined;
       } 
     } else if (exception instanceof Error) {
       // Errores de validación del dominio (ej: Category.validate()) llegan como Error simple.
@@ -44,7 +46,9 @@ export class CategoryExceptionFilter implements ExceptionFilter {
       message,
       path: request.url,
       timestamp: new Date().toISOString(),
-      ...(details ? { details } : {}), //Si details tiene algo (details ? ...), se "expande" { details } adentro del objeto — o sea, agrega la propiedad details al JSON final.
+      ...(details ? { details } : {}),
+      ...(categoryId !== undefined ? { categoryId } : {}),
+       //Si details tiene algo (details ? ...), se "expande" { details } adentro del objeto — o sea, agrega la propiedad details al JSON final.
 //Si details es undefined, se expande {} (un objeto vacío) — o sea, no agrega nada.
 //Esto es lo que logra que un 404 no tenga details en el JSON (porque nunca se le asignó), pero un 400 de validación sí lo tenga — tal como pide el contrato ("details solo aparece en errores 400").
 

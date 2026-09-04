@@ -10,6 +10,7 @@ describe('CategoriesService', () => {
     repository = {
       findAll: jest.fn(),
       findById: jest.fn(),
+      findByName: jest.fn(),
       save: jest.fn(),
     } as unknown as jest.Mocked<CategoriesRepository>;
 
@@ -18,6 +19,7 @@ describe('CategoriesService', () => {
 
   describe('create', () => {
     it('creates a category and saves it through the repository', async () => {
+      repository.findByName.mockResolvedValue(null);
       repository.save.mockImplementation(async (category) => category);
 
       const result = await service.create({ name: 'Metalurgica' });
@@ -26,11 +28,29 @@ describe('CategoriesService', () => {
       expect(result.getName()).toBe('Metalurgica');
       expect(result.getActive()).toBe(true);
     });
+        it('throws Conflict when the name already exists and is active', async () => {
+      const existing = Category.reconstruct(1, 'Autopartes', true, new Date(), new Date());
+      repository.findByName.mockResolvedValue(existing);
+
+      await expect(service.create({ name: 'autopartes' })).rejects.toThrow('Ya existe un rubro con ese nombre');
+      expect(repository.save).not.toHaveBeenCalled();
+    });
+
+    it('throws Conflict with categoryId when the name exists but is inactive', async () => {
+      const existing = Category.reconstruct(1, 'Petrolera', false, new Date(), new Date());
+      repository.findByName.mockResolvedValue(existing);
+
+      await expect(service.create({ name: 'Petrolera' })).rejects.toMatchObject({
+        response: { categoryId: 1 },
+      });
+    });
+
   });
+
 
   describe('findOne', () => {
     it('returns the category found by the repository', async () => {
-      const existing = Category.reconstitute(1, 'Metalurgica', true, new Date(), new Date());
+      const existing = Category.reconstruct(1, 'Metalurgica', true, new Date(), new Date());
       repository.findById.mockResolvedValue(existing);
 
       const result = await service.findOne(1);
@@ -59,7 +79,7 @@ describe('CategoriesService', () => {
     });
 
     it('renames the category and saves it', async () => {
-      const existing = Category.reconstitute(1, 'Metalurgica', true, new Date(), new Date());
+      const existing = Category.reconstruct(1, 'Metalurgica', true, new Date(), new Date());
       repository.findById.mockResolvedValue(existing);
       repository.save.mockImplementation(async (category) => category);
 
@@ -81,7 +101,7 @@ describe('CategoriesService', () => {
     });
 
     it('deactivates the category instead of deleting it', async () => {
-      const existing = Category.reconstitute(1, 'Metalurgica', true, new Date(), new Date());
+      const existing = Category.reconstruct(1, 'Metalurgica', true, new Date(), new Date());
       repository.findById.mockResolvedValue(existing);
       repository.save.mockImplementation(async (category) => category);
 

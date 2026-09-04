@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { Category } from '../domain/category';
 import { CategoriesRepository } from '../domain/categories.repository';
 import { CreateCategoryDto } from '../http/dto/create-category.dto';
@@ -9,7 +9,19 @@ import { UpdateCategoryDto } from '../http/dto/update-category.dto';
 export class CategoriesService {
   constructor(private readonly categoriesRepository: CategoriesRepository) {}
 
-  create(dto: CreateCategoryDto): Promise<Category> {  // esto representa "voy a tardar en conseguir el dato"
+  async create(dto: CreateCategoryDto): Promise<Category> {
+    const existing = await this.categoriesRepository.findByName(dto.name);
+
+    if (existing) {
+      if (existing.getActive()) {
+        throw new ConflictException('Ya existe un rubro con ese nombre');
+      }
+      throw new ConflictException({
+        message: 'El rubro existe pero está dado de baja',
+        categoryId: existing.getId(),
+      });
+    }
+
     const category = Category.create(dto.name);
     return this.categoriesRepository.save(category);
   }
@@ -35,4 +47,12 @@ export class CategoriesService {
     category.deactivate();
     return this.categoriesRepository.save(category);
   }
+
+  async restore(id: number): Promise<Category | null> {
+    const category = await this.categoriesRepository.findById(id);
+    if (!category) return null;
+    category.activate();  
+    return this.categoriesRepository.save(category);
+}
+
 }
