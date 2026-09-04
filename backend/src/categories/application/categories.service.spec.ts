@@ -88,6 +88,40 @@ describe('CategoriesService', () => {
       expect(result?.getName()).toBe('Insumos');
       expect(repository.save).toHaveBeenCalledWith(existing);
     });
+
+        it('throws Conflict when trying to rename to an existing active category name', async () => {
+      const category = Category.reconstruct(1, 'Metalmecanica', true, new Date(), new Date());
+      const other = Category.reconstruct(2, 'Metalurgica', true, new Date(), new Date());
+      repository.findById.mockResolvedValue(category);
+      repository.findByName.mockResolvedValue(other);
+
+      await expect(service.update(1, { name: 'Metalurgica' })).rejects.toThrow('Ya existe un rubro con ese nombre');
+      expect(repository.save).not.toHaveBeenCalled();
+    });
+
+    it('allows saving with the same name without triggering a collision', async () => {
+      const category = Category.reconstruct(1, 'Metalurgica', true, new Date(), new Date());
+      repository.findById.mockResolvedValue(category);
+      repository.findByName.mockResolvedValue(category); // se encuentra a si misma
+      repository.save.mockImplementation(async (c) => c);
+
+      const result = await service.update(1, { name: 'Metalurgica' });
+
+      expect(result?.getName()).toBe('Metalurgica');
+      expect(repository.save).toHaveBeenCalled();
+    });
+
+    it('throws Conflict when the category is inactive', async () => {
+      const category = Category.reconstruct(1, 'Metalurgica', false, new Date(), new Date());
+      repository.findById.mockResolvedValue(category);
+
+      await expect(service.update(1, { name: 'Nuevo nombre' })).rejects.toThrow(
+        'Debe reactivar el rubro antes de modificarlo',
+      );
+      expect(repository.save).not.toHaveBeenCalled();
+      expect(repository.findByName).not.toHaveBeenCalled();
+    });
+
   });
 
   describe('remove', () => {

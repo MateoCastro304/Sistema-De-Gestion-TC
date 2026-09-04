@@ -37,9 +37,23 @@ export class CategoriesService {
   async update(id: number, dto: UpdateCategoryDto): Promise<Category | null> {
     const category = await this.categoriesRepository.findById(id);
     if (!category) return null;
-    if (dto.name) category.rename(dto.name);
+
+    if (dto.name) {
+      if (!category.getActive()) {
+        throw new ConflictException('Debe reactivar el rubro antes de modificarlo');
+      }
+
+      const existing = await this.categoriesRepository.findByName(dto.name);
+      if (existing && existing.getId() !== id) {
+        throw new ConflictException('Ya existe un rubro con ese nombre');
+      }
+
+      category.rename(dto.name);
+    }
+
     return this.categoriesRepository.save(category);
   }
+
 
   async remove(id: number): Promise<Category | null> {
     const category = await this.categoriesRepository.findById(id);
