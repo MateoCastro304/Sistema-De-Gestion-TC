@@ -62,8 +62,6 @@ ps: ## Shows the status of containers (dev)
 clean: ## Stops everything, removes volumes and orphaned images/containers (dev)
 	$(DC_DEV) down -v --remove-orphans
 
-
-
 # --- Backend Scoped --------------------------------------------------------
 
 backend-restart: ## Restarts only backend (dev)
@@ -108,6 +106,11 @@ frontend-build: ## Rebuild the frontend image only
 
 shell-db: ## Opens psql inside the postgres container (dev)
 	$(DC_DEV) exec postgres psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
+
+# ---- Web Scoped (Nginx) ---------------------------------------------------
+
+web-logs: ## Shows only the web logs (nginx)
+	$(DC_DEV) logs -f web
 
 # ---- Docs Scoped ----------------------------------------------------------
 

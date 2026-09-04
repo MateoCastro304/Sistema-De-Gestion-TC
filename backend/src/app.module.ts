@@ -9,11 +9,15 @@ import { CustomersModule } from './customers/customers.module';
 import { SuppliersModule } from './suppliers/suppliers.module';
 import { CategoriesModule } from './categories/categories.module';
 import { FactoryModule } from './factory/factory.module';
+
+import { validate } from './config/env.validation';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       load: [databaseConfig],
+      validate,
     }),
     PrismaModule,
     HealthModule,

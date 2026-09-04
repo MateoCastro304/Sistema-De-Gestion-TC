@@ -147,6 +147,44 @@ http://localhost:8081
 
 This service reads the already-bundled OpenAPI spec and stays up even if the backend container is stopped or crashes — useful for consulting endpoint contracts while debugging or restarting the backend.
 
+### Accessing the stack through Nginx
+
+In addition to reaching each service directly on its own port, the
+development stack includes an **Nginx reverse proxy**, exposed at:
+
+    http://localhost
+
+Nginx routes incoming requests based on the URL path:
+
+| Path     | Routed to                        |
+| -------- | -------------------------------- |
+| `/`      | `frontend-dev` (Vite dev server) |
+| `/api/*` | `backend` (API)                  |
+| `/docs`  | `backend` (Swagger)              |
+
+**Why this exists:** it lets the frontend and backend be reached through a
+single origin, exactly as they will be in production. This avoids CORS
+configuration in development and catches routing issues early, before they
+show up for the first time in a production deploy.
+
+**Direct ports vs. Nginx — when to use each:**
+
+- Use `localhost:3000` / `localhost:5173` directly when debugging a single
+  service in isolation (e.g. checking raw backend responses, or using
+  Vite's dev tools without the proxy in the way).
+- Use `localhost` (port 80, through Nginx) to verify that routing between
+  frontend and backend behaves as it will in production.
+
+Both work at the same time — Nginx does not replace the direct ports, it
+is an additional way to reach the same services.
+
+> If `http://localhost` returns `502 Bad Gateway`, Nginx is running but the
+> service it's routing to (backend or frontend-dev) is not responding yet —
+> check with `make ps` and the corresponding `*-logs` command.
+> A `404` from `/api/*`, on the other hand, means the request reached the
+> backend successfully — the proxy is working, the route/endpoint itself
+> just doesn't exist yet.
+
 ### Access the containers for debugging
 
 Backend:
