@@ -65,7 +65,18 @@ export function FactoryForm({
 
           <div className="form-field">
             <Input
-              label="CUIT"
+              label="Código de fábrica"
+              placeholder="Ej: EDA"
+              maxLength={4}
+              style={{ textTransform: 'uppercase' }}
+              error={errors.code?.message}
+              {...register('code')}
+            />
+          </div>
+
+          <div className="form-field">
+            <Input
+              label="CUIT (opcional)"
               placeholder="30-71234567-8"
               error={errors.cuit?.message}
               {...register('cuit')}
@@ -136,13 +147,13 @@ export function FactoryForm({
               className="form-field__textarea"
               rows={3}
               aria-labelledby="factory-payment-label"
-              aria-invalid={errors.paymentDescription ? true : undefined}
+              aria-invalid={errors.payMethod ? true : undefined}
               placeholder="Formas de pago habituales, plazos, señas, etc."
-              {...register('paymentDescription')}
+              {...register('payMethod')}
             />
-            {errors.paymentDescription && (
+            {errors.payMethod && (
               <span className="form-field__hint form-field__hint--error">
-                {errors.paymentDescription.message}
+                {errors.payMethod.message}
               </span>
             )}
           </div>
