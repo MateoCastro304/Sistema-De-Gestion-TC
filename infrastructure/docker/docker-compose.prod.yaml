@@ -29,9 +29,14 @@ services:
         reservations:
           memory: 256M
 
-  frontend:
+  web:
     build:
+      context: ../..
+      dockerfile: frontend/Dockerfile
       target: production
+    depends_on: [backend]
+    ports:
+      - '80:80'
     deploy:
       resources:
         limits:

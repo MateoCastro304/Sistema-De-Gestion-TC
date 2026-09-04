@@ -22,7 +22,7 @@ services:
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
 
-  frontend:
+  frontend-dev:
     build:
       target: development
     ports:
@@ -31,7 +31,9 @@ services:
       - ../../frontend:/app
       - /app/node_modules
 
-  nginx:
+  web:
+    image: nginx:alpine
+    depends_on: [backend, frontend-dev]
     ports:
       - '80:80'
     volumes:
