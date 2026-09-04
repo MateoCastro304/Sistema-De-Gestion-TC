@@ -2,7 +2,7 @@
 # 0. Base
 # ─────────────────────────────
 
-FROM node:20-alpine AS base
+FROM node:22-alpine AS base
 WORKDIR /app
 COPY package*.json ./
 
@@ -49,7 +49,7 @@ RUN npm run build
 # 3. Production
 # ─────────────────────────────
 
-FROM node:20-alpine AS production
+FROM node:22-alpine AS production
 WORKDIR /app
 ENV NODE_ENV=production
 
