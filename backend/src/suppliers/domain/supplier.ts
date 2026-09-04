@@ -3,6 +3,8 @@ import { Email } from './email';
 import { Phone } from './phone';
 
 type SupplierOptions = {
+  cuit?: string;
+  contactName?: string;
   contactEmail?: string;
   contactPhone?: string;
   address?: string;
@@ -10,18 +12,21 @@ type SupplierOptions = {
 
 type SupplierChanges = {
   legalName?: string;
+  cuit?: string;
   contactName?: string;
   contactEmail?: string;
   contactPhone?: string;
   address?: string;
 };
 
+// Atributos required: legalName, active, createdAt, updatedAt
+
 export class Supplier {
   private constructor(
     private readonly _id: number | null,
     private _legalName: string,
-    private _cuit: Cuit,
-    private _contactName: string,
+    private _cuit: Cuit | null,
+    private _contactName: string | null,
     private _contactEmail: Email | null,
     private _contactPhone: Phone | null,
     private _address: string | null,
@@ -32,25 +37,22 @@ export class Supplier {
     this.validate();
   }
 
-  static create(
-    legalName: string,
-    cuit: string,
-    contactName: string,
-    options: SupplierOptions = {},
-  ): Supplier {
-    const contactEmail = options.contactEmail
-      ? Email.create(options.contactEmail)
-      : null;
-    const contactPhone = options.contactPhone
-      ? Phone.create(options.contactPhone)
-      : null;
-    const address = options.address ?? null;
+  // CREATE A SUPPLIER
+
+  static create(legalName: string, options: SupplierOptions = {}): Supplier {
+    const cuitInstance = options.cuit ? Cuit.create(options.cuit) : null;
+    const contactEmail = options.contactEmail ? Email.create(options.contactEmail) : null;
+    const contactPhone = options.contactPhone ? Phone.create(options.contactPhone) : null;
+
+    const contactName = options.contactName?.trim() ?? null;
+    const address = options.address?.trim() ?? null;
+    const legalNameTrimmed = legalName.trim();
 
     const now = new Date();
     return new Supplier(
       null,
-      legalName,
-      Cuit.create(cuit),
+      legalNameTrimmed,
+      cuitInstance,
       contactName,
       contactEmail,
       contactPhone,
@@ -61,11 +63,13 @@ export class Supplier {
     );
   }
 
-  static reconstitute(
-    id: number,
-    legalName: string,
-    cuit: string,
-    contactName: string,
+  // RECONSTRUCT A SUPPLIER FROM DATABASE
+
+  static reconstruct(
+    id: number, 
+    legalNameTrimmed: string,
+    cuit: string | null,
+    contactName: string | null,
     contactEmail: string | null,
     contactPhone: string | null,
     address: string | null,
@@ -73,110 +77,123 @@ export class Supplier {
     c: Date,
     u: Date,
   ): Supplier {
+    const cuitInstance = cuit ? Cuit.create(cuit) : null;
     const email = contactEmail ? Email.create(contactEmail) : null;
     const phone = contactPhone ? Phone.create(contactPhone) : null;
 
-    return new Supplier(
-      id,
-      legalName,
-      Cuit.create(cuit),
-      contactName,
-      email,
-      phone,
-      address,
-      active,
-      c,
-      u,
-    );
+    return new Supplier(id, legalNameTrimmed, cuitInstance, contactName, email, phone, address, active, c, u);
   }
 
-  applyChanges(changes: SupplierChanges): void {
-    if (changes.legalName !== undefined)
-      this.changeLegalName(changes.legalName);
-    if (changes.contactName !== undefined)
-      this.changeContactName(changes.contactName);
-    if (changes.contactEmail !== undefined)
-      this.changeEmail(changes.contactEmail);
-    if (changes.contactPhone !== undefined)
-      this.changePhone(changes.contactPhone);
-    if (changes.address !== undefined) this.changeAddress(changes.address);
+  // PATCH A SUPPLIER
+
+  update(changes: SupplierChanges): void {
+    if (changes.legalName !== undefined) this.setLegalName(changes.legalName);
+    if (changes.cuit !== undefined) this.setCuit(changes.cuit);
+    if (changes.contactName !== undefined) this.setContactName(changes.contactName);
+    if (changes.contactEmail !== undefined) this.setEmail(changes.contactEmail);
+    if (changes.contactPhone !== undefined) this.setPhone(changes.contactPhone);
+    if (changes.address !== undefined) this.setAddress(changes.address);
+    this.touch();
   }
 
-  changeLegalName(newLegalName: string): void {
+  // DELETE LOGICALLY A SUPPLIER
+  
+  deactivate() {
+    if (!this._active) {
+      throw new Error('Supplier is already inactive');
+    }
+    this._active = false;
+    this._updatedAt = new Date();
+  }
+
+  // ACTIVATE A SUPPLIER IF IT WAS DELETE LOGICALLY
+
+  activate() {
+    if (this._active) {
+      throw new Error('Supplier is already active');
+    }
+    this._active = true;
+    this._updatedAt = new Date();
+  }
+
+  setLegalName(newLegalName: string): void {
     this._legalName = newLegalName;
     this.touch();
   }
 
-  changeContactName(newName: string): void {
+  
+  setContactName(newName: string): void {
     this._contactName = newName;
     this.touch();
   }
-
-  changeEmail(newEmail: string): void {
+  
+  setCuit(newCuit: string): void {
+    this._cuit = Cuit.create(newCuit);
+    this.touch();
+  }
+  
+  setEmail(newEmail: string): void {
     this._contactEmail = Email.create(newEmail);
     this.touch();
   }
 
-  changePhone(newPhone: string): void {
+  setPhone(newPhone: string): void {
     this._contactPhone = Phone.create(newPhone);
     this.touch();
   }
 
-  changeAddress(newAddress: string): void {
+  setAddress(newAddress: string): void {
     this._address = newAddress;
     this.touch();
   }
 
-  deactivate() {
-    this._active = false;
-    this._updatedAt = new Date();
-  }
 
   private touch(): void {
     this._updatedAt = new Date();
     this.validate();
   }
 
-  get id() {
+  getId() {
     return this._id;
   }
-  get legalName() {
+  getLegalName() {
     return this._legalName;
   }
-  get cuitValue() {
-    return this._cuit.getValue();
+
+  // Returns the Cuit instance or null if not set
+  getCuit(): Cuit | null {
+    return this._cuit;
   }
-  get cuitFormatted() {
-    return this._cuit.getFormatted();
-  }
-  get contactName() {
-    return this._contactName;
-  }
-  get contactEmail() {
+  
+  // Returns the Email instance or null if not set
+  getContactEmail(): Email | null {
     return this._contactEmail;
   }
-  get contactPhone() {
+
+  // Returns the Phone instance or null if not set
+  getContactPhone(): Phone | null {
     return this._contactPhone;
   }
-  get address() {
+
+  getContactName() {
+    return this._contactName;
+  }
+  getAddress() {
     return this._address;
   }
-  get active() {
+  getActive() {
     return this._active;
   }
-  get createdAt() {
+  getCreatedAt() {
     return this._createdAt;
   }
-  get updatedAt() {
+  getUpdatedAt() {
     return this._updatedAt;
   }
 
   private validate() {
     if (!this._legalName?.trim()) {
       throw new Error('Legal name is required');
-    }
-    if (!this._contactName?.trim()) {
-      throw new Error('Contact name is required');
     }
   }
 }
