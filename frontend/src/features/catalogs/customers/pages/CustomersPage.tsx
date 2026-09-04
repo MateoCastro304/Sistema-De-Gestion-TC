@@ -134,7 +134,7 @@ export function CustomersPage() {
                 checked={showInactive}
                 onChange={(event) => setShowInactive(event.target.checked)}
               />
-              Mostrar inactivos
+              Incluir eliminados
             </label>
           </div>
 

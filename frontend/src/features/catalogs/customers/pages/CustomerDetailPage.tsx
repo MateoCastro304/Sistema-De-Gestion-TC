@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router'
-import { Button } from '@/shared/components/ui'
+import { Badge, Button } from '@/shared/components/ui'
 import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
 import type { Customer, CustomerInput } from '../types/customer'
@@ -21,14 +21,17 @@ import { CustomerForm } from '../components/CustomerForm'
  * Modificar Cliente, plus the eliminar action (baja lógica, CU-04).
  */
 export function CustomerDetailPage() {
-  const { id = '' } = useParams<{ id: string }>()
+  const { factoryId = '', id = '' } = useParams<{
+    factoryId: string
+    id: string
+  }>()
   const navigate = useNavigate()
   const showToast = useToast()
 
-  const customerQuery = useCustomer(id)
+  const customerQuery = useCustomer(factoryId, id)
   const { data: factories = [] } = useFactories()
   const { data: industries = [] } = useIndustries()
-  const update = useUpdateCustomer(id)
+  const update = useUpdateCustomer(factoryId, id)
   const deactivate = useDeactivateCustomer()
 
   // The detail view starts read-only; "Editar" switches to the form.
@@ -77,17 +80,22 @@ export function CustomerDetailPage() {
   }
 
   const handleDeactivate = () => {
-    deactivate.mutate(customer.id, {
-      onSuccess: () => {
-        showToast('success', `Encargado "${fullName}" eliminado.`)
-        navigate('/catalogs/customers')
+    deactivate.mutate(
+      { factoryId: customer.factoryId, id: customer.id },
+      {
+        onSuccess: () => {
+          showToast('success', `Encargado "${fullName}" eliminado.`)
+          navigate('/catalogs/customers')
+        },
+        onError: (error) =>
+          showToast(
+            'error',
+            isApiError(error)
+              ? error.message
+              : 'No se pudo eliminar el encargado.',
+          ),
       },
-      onError: (error) =>
-        showToast(
-          'error',
-          isApiError(error) ? error.message : 'No se pudo eliminar el encargado.',
-        ),
-    })
+    )
   }
 
   return (
@@ -126,6 +134,9 @@ export function CustomerDetailPage() {
 
       {editing ? (
         <CustomerForm
+          // La fábrica de un encargado es inmutable (RNF-3): se muestra como
+          // dato de solo lectura y no se puede reasignar al editar.
+          lockedFactoryId={customer.factoryId}
           defaultValues={toCustomerFormValues(customer)}
           onSubmit={handleSubmit}
           onCancel={() => setEditing(false)}
@@ -160,12 +171,21 @@ function CustomerDetails({
         <div className="info-grid">
           <div className="info-grid__item">
             <span className="info-grid__label">Teléfono</span>
-            <span className="info-grid__value">{customer.phone}</span>
+            <span className="info-grid__value">
+              {customer.phone || '—'}
+              {customer.hasWhatsapp && <Badge variant="si">WhatsApp</Badge>}
+            </span>
           </div>
           <div className="info-grid__item">
             <span className="info-grid__label">Email</span>
-            <span className="info-grid__value">{customer.email}</span>
+            <span className="info-grid__value">{customer.mail || '—'}</span>
           </div>
+          {customer.observation && (
+            <div className="info-grid__item info-grid__item--full">
+              <span className="info-grid__label">Observaciones</span>
+              <p className="info-grid__text">{customer.observation}</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -191,7 +211,7 @@ function CustomerDetails({
             </div>
             <div className="info-grid__item info-grid__item--full">
               <span className="info-grid__label">Formas de pago</span>
-              <p className="info-grid__text">{factory.paymentDescription}</p>
+              <p className="info-grid__text">{factory.payMethod}</p>
             </div>
           </div>
         ) : (

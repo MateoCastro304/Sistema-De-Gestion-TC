@@ -53,9 +53,11 @@ export const factoryFormSchema = z.object({
       (value) => value === '' || isValidCuit(cuitDigits(value)),
       'El dígito verificador del CUIT no es válido',
     ),
-  address: z.string().trim().min(1, 'La dirección es obligatoria'),
-  industryId: z.string().min(1, 'Elegí un rubro'),
-  paymentDescription: z
+  // Optional: the DB column `factory_customer.address` is nullable.
+  address: z.string().trim(),
+  // Optional: the DB column `factory_customer.industry_id` is nullable.
+  industryId: z.string(),
+  payMethod: z
     .string()
     .trim()
     .min(1, 'Ingresá las formas de pago'),
@@ -69,7 +71,7 @@ export const emptyFactoryForm: FactoryFormValues = {
   cuit: '',
   address: '',
   industryId: '',
-  paymentDescription: '',
+  payMethod: '',
 }
 
 /**
@@ -83,7 +85,7 @@ export function toFactoryInput(values: FactoryFormValues): FactoryInput {
     cuit: cuitDigits(values.cuit),
     address: values.address.trim(),
     industryId: values.industryId,
-    paymentDescription: values.paymentDescription.trim(),
+    payMethod: values.payMethod.trim(),
   }
 }
 
@@ -95,7 +97,7 @@ export function toFactoryFormValues(factory: Factory): FactoryFormValues {
     cuit: factory.cuit,
     address: factory.address,
     industryId: factory.industryId,
-    paymentDescription: factory.paymentDescription,
+    payMethod: factory.payMethod,
   }
 }
 

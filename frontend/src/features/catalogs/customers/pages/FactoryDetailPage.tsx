@@ -136,8 +136,16 @@ export function FactoryDetailPage() {
         </span>
       ),
     },
-    { header: 'Teléfono', render: (c) => c.phone },
-    { header: 'Email', render: (c) => c.mail },
+    {
+      header: 'Teléfono',
+      render: (c) => (
+        <span className="table__name-cell">
+          {c.phone || '—'}
+          {c.hasWhatsapp && <Badge variant="si">WhatsApp</Badge>}
+        </span>
+      ),
+    },
+    { header: 'Email', render: (c) => c.mail || '—' },
     {
       header: 'Acciones',
       align: 'center',
@@ -213,7 +221,7 @@ export function FactoryDetailPage() {
                 checked={showInactive}
                 onChange={(event) => setShowInactive(event.target.checked)}
               />
-              Mostrar inactivos
+              Incluir eliminados
             </label>
           )}
           <Button onClick={() => setContactModal({ customer: undefined })}>

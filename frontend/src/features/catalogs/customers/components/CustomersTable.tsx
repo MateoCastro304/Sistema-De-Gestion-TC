@@ -39,8 +39,16 @@ export function CustomersTable({
         </span>
       ),
     },
-    { header: 'Teléfono', render: (c) => c.phone },
-    { header: 'Email', render: (c) => c.mail },
+    {
+      header: 'Teléfono',
+      render: (c) => (
+        <span className="table__name-cell">
+          {c.phone || '—'}
+          {c.hasWhatsapp && <Badge variant="si">WhatsApp</Badge>}
+        </span>
+      ),
+    },
+    { header: 'Email', render: (c) => c.mail || '—' },
     {
       header: 'Fábrica',
       render: (c) => factoryById(c.factoryId)?.name ?? '—',

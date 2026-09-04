@@ -26,7 +26,7 @@ let factories: Factory[] = [
     code: 'EDA',
     cuit: '30712345671',
     address: 'Av. Siempre Viva 123, Córdoba',
-    paymentDescription:
+    payMethod:
       'Cliente puntual con los pagos, suele abonar por transferencia a 30 días.',
     industryId: 'ind-auto',
     isActive: true,
@@ -37,7 +37,7 @@ let factories: Factory[] = [
     code: 'OXY',
     cuit: '30798765430',
     address: 'Ruta 9 Km 7, Córdoba',
-    paymentDescription: 'Casi siempre paga adelantado. Pedir seña en trabajos grandes.',
+    payMethod: 'Casi siempre paga adelantado. Pedir seña en trabajos grandes.',
     industryId: 'ind-oil',
     isActive: true,
   },
@@ -70,29 +70,76 @@ function factoryConflict(
   )
 }
 
+// `id` is a per-factory counter (DB `manager_customer(factory_id, id)`): it
+// restarts from 1 for each factory, so two managers in different factories can
+// share id '1'. A manager is identified by the (factoryId, id) pair.
 let customers: Customer[] = [
   {
     id: '1',
     firstName: 'Laura',
     lastName: 'Gómez',
     phone: '+54 351 555-0001',
-    email: 'compras@edasa.com',
+    hasWhatsapp: true,
+    mail: 'compras@edasa.com',
+    observation: '',
     factoryId: 'fac-edasa',
     isActive: true,
   },
   {
-    id: '2',
+    id: '1',
     firstName: 'Martín',
     lastName: 'Pérez',
     phone: '+54 351 555-0002',
-    email: 'pedidos@oxycam.com',
+    hasWhatsapp: false,
+    mail: 'pedidos@oxycam.com',
+    observation: '',
     factoryId: 'fac-oxycam',
     isActive: true,
   },
 ]
 
-function findCustomer(id: string): Customer | undefined {
-  return customers.find((c) => c.id === id)
+/**
+ * Enforces "el mail debe ser único dentro de la fábrica" (HU encargados,
+ * escenario 2). Compares case-insensitively, ignores empty mails (el mail es
+ * condicional) and the manager being edited (`ignoreId`). Returns a 409
+ * response on collision; otherwise `null`.
+ */
+function mailConflict(
+  factoryId: string,
+  mail: string,
+  ignoreId?: string,
+): Response | null {
+  const normalized = mail.trim().toLowerCase()
+  if (normalized === '') return null
+  const clash = customers.find(
+    (c) =>
+      c.factoryId === factoryId &&
+      c.id !== ignoreId &&
+      c.mail.trim().toLowerCase() === normalized,
+  )
+  if (!clash) return null
+  return HttpResponse.json(
+    {
+      statusCode: 409,
+      message: 'Ya existe un encargado con ese correo en esta fábrica',
+    },
+    { status: 409 },
+  )
+}
+
+function findCustomer(factoryId: string, id: string): Customer | undefined {
+  return customers.find((c) => c.factoryId === factoryId && c.id === id)
+}
+
+/**
+ * Next per-factory manager id, mirroring the DB trigger `fn_gen_id_manager`
+ * (`MAX(id) + 1` scoped to the factory).
+ */
+function nextCustomerId(factoryId: string): string {
+  const maxId = customers
+    .filter((c) => c.factoryId === factoryId)
+    .reduce((max, c) => Math.max(max, Number(c.id)), 0)
+  return String(maxId + 1)
 }
 
 function findFactory(id: string): Factory | undefined {
@@ -101,20 +148,38 @@ function findFactory(id: string): Factory | undefined {
 
 export const customerHandlers = [
   // Customers (EncargadoCliente) ------------------------------------------
+  // Item operations are nested under the owning factory because a manager is
+  // identified by the composite key (factoryId, id); `/customers` stays as the
+  // flat global list only.
   http.get('/api/customers', () => HttpResponse.json(customers)),
 
-  http.get('/api/customers/:id', ({ params }) => {
-    const customer = findCustomer(String(params.id))
+  http.get('/api/factories/:factoryId/customers/:id', ({ params }) => {
+    const customer = findCustomer(String(params.factoryId), String(params.id))
     if (!customer) return new HttpResponse(null, { status: 404 })
     return HttpResponse.json(customer)
   }),
 
-  http.post('/api/customers', async ({ request }) => {
+  http.post('/api/factories/:factoryId/customers', async ({ params, request }) => {
+    const factoryId = String(params.factoryId)
     const body = (await request.json()) as CustomerInput
+    // Regla: un encargado se asocia a una fábrica activa (FK a Fábrica activa).
+    const factory = findFactory(factoryId)
+    if (!factory || !factory.isActive) {
+      return HttpResponse.json(
+        {
+          statusCode: 409,
+          message: 'La fábrica no existe o está inactiva.',
+        },
+        { status: 409 },
+      )
+    }
+    const conflict = mailConflict(factoryId, body.mail)
+    if (conflict) return conflict
     const newCustomer: Customer = {
-      id: crypto.randomUUID(),
-      isActive: true,
       ...body,
+      factoryId,
+      id: nextCustomerId(factoryId),
+      isActive: true,
     }
     customers = [...customers, newCustomer]
     return HttpResponse.json(newCustomer, { status: 201 })
@@ -122,20 +187,32 @@ export const customerHandlers = [
 
   // Must precede the generic ":id" PATCH so the extra path segment is not
   // mistaken for an id.
-  http.patch('/api/customers/:id/deactivate', ({ params }) => {
-    const customer = findCustomer(String(params.id))
-    if (!customer) return new HttpResponse(null, { status: 404 })
-    customer.isActive = false
-    return HttpResponse.json(customer)
-  }),
+  http.patch(
+    '/api/factories/:factoryId/customers/:id/deactivate',
+    ({ params }) => {
+      const customer = findCustomer(String(params.factoryId), String(params.id))
+      if (!customer) return new HttpResponse(null, { status: 404 })
+      customer.isActive = false
+      return HttpResponse.json(customer)
+    },
+  ),
 
-  http.patch('/api/customers/:id', async ({ params, request }) => {
-    const customer = findCustomer(String(params.id))
-    if (!customer) return new HttpResponse(null, { status: 404 })
-    const body = (await request.json()) as CustomerInput
-    Object.assign(customer, body)
-    return HttpResponse.json(customer)
-  }),
+  http.patch(
+    '/api/factories/:factoryId/customers/:id',
+    async ({ params, request }) => {
+      const customer = findCustomer(String(params.factoryId), String(params.id))
+      if (!customer) return new HttpResponse(null, { status: 404 })
+      const body = (await request.json()) as CustomerInput
+      const conflict = mailConflict(customer.factoryId, body.mail, customer.id)
+      if (conflict) return conflict
+      // Keep the composite identity fixed; only mutable fields change.
+      Object.assign(customer, body, {
+        id: customer.id,
+        factoryId: customer.factoryId,
+      })
+      return HttpResponse.json(customer)
+    },
+  ),
 
   // Factories (FabricaCliente) --------------------------------------------
   http.get('/api/factories', () => HttpResponse.json(factories)),
