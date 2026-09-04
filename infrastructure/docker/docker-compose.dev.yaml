@@ -2,9 +2,6 @@ services:
   backend:
     build:
       target: development
-    environment:
-      NODE_ENV: development
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     ports:
       - '3000:3000'
     depends_on:
