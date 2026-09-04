@@ -1,11 +1,11 @@
 services:
-  postgres:
+  backend:
+    build:
+      target: production
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - postgres_prod_data:/var/lib/postgresql/data
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      PORT: 3000
     deploy:
       resources:
         limits:
@@ -14,13 +14,13 @@ services:
         reservations:
           memory: 256M
 
-  backend:
-    build:
-      target: production
+  postgres:
     environment:
-      NODE_ENV: production
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      PORT: 3000
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
     deploy:
       resources:
         limits:

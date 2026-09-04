@@ -1,17 +1,24 @@
+name: torneria
+
+x-database-url: &database-url
+  DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+
 services:
   backend:
     build:
       context: ../../backend
       dockerfile: Dockerfile
     container_name: torneria-backend
-    restart: unless-stopped
-    networks:
-      - torneria-network
     env_file:
       - ../../backend/.env
+    restart: 'unless-stopped'
+    networks:
+      - torneria-network
     depends_on:
       postgres:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     volumes:
       - ../../build:/build:ro
 
@@ -20,7 +27,7 @@ services:
       context: ../..
       dockerfile: frontend/Dockerfile
     container_name: torneria-frontend
-    restart: unless-stopped
+    restart: 'unless-stopped'
     networks:
       - torneria-network
 
@@ -29,7 +36,7 @@ services:
       context: ./postgres
       dockerfile: Dockerfile
     container_name: torneria-postgres
-    restart: unless-stopped
+    restart: 'unless-stopped'
     networks:
       - torneria-network
     healthcheck:
@@ -42,6 +49,22 @@ services:
     container_name: torneria-nginx
     networks:
       - torneria-network
+
+  migrate:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: torneria-migrate
+    environment:
+      <<: *database-url
+    restart: 'no'
+    networks:
+      - torneria-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: npx prisma migrate deploy
 
 networks:
   torneria-network:

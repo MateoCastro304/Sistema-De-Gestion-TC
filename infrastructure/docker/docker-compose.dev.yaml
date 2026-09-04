@@ -47,6 +47,7 @@ services:
       context: ../../tooling/openapi
       dockerfile: Dockerfile
     container_name: torneria_openapi_build
+    restart: 'no'
     networks:
       - torneria-network
     volumes:
