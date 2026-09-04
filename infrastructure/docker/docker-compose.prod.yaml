@@ -4,6 +4,8 @@ services:
       target: production
     environment:
       PORT: 3000
+    env_file:
+      - ./.env.prod
     deploy:
       resources:
         limits:

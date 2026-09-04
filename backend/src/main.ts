@@ -11,25 +11,8 @@ async function bootstrap() {
   console.log('HITO 4: Nest creado');
 
   if (process.env.NODE_ENV === 'development') {
-    const { SwaggerModule } = await import('@nestjs/swagger');
-    const fs = await import('fs');
-    const path = await import('path');
-    const yaml = await import('js-yaml');
-
-    const specPath = path.resolve(process.cwd(), '../build/openapi.yaml');
-
-    if (fs.existsSync(specPath)) {
-      const spec = yaml.load(fs.readFileSync(specPath, 'utf8')) as Record<
-        string,
-        unknown
-      >;
-
-      SwaggerModule.setup('docs', app, spec as any);
-
-      console.log(
-        `Swagger UI available at http://localhost:${process.env.PORT ?? 3000}/docs`,
-      );
-    }
+    const { setupSwagger } = await import('./swagger.js');
+    setupSwagger(app);
   }
 
   console.log('HITO 5: por llamar listen');
