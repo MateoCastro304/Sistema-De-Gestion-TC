@@ -30,7 +30,7 @@ export function CustomerFormModal({
   const isEdit = Boolean(customer)
 
   const create = useCreateCustomer()
-  const update = useUpdateCustomer(customer?.id ?? '')
+  const update = useUpdateCustomer(factoryId, customer?.id ?? '')
   const saving = create.isPending || update.isPending
 
   const handleSubmit = (input: CustomerInput) => {

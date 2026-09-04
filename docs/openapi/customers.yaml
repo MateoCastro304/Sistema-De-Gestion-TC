@@ -14,6 +14,11 @@ info:
         puede crear inline desde el alta de fabrica. Incluye "Particular".
   version: 0.2.0
 paths:
+  # Un encargado se identifica por la clave compuesta (factoryId, id): en la BD
+  # (manager_customer) la PK es (factory_id, id) y el id reinicia en 1 por cada
+  # fabrica, asi que solo es unico junto al factoryId. Por eso las operaciones
+  # sobre un encargado van anidadas bajo su fabrica; /customers queda solo como
+  # el listado global.
   /customers:
     get:
       summary: List customers (CU-03)
@@ -26,6 +31,9 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Customer'
+  /factories/{factoryId}/customers:
+    parameters:
+      - $ref: '#/components/parameters/FactoryId'
     post:
       summary: Create customer (CU-01)
       requestBody:
@@ -42,12 +50,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/Customer'
         '409':
-          description: Conflicto (p. ej. cliente ya registrado)
-  /customers/{id}:
+          description: >-
+            Mail duplicado dentro de la fabrica (escenario 2) o fabrica
+            inexistente/inactiva.
+  /factories/{factoryId}/customers/{id}:
     parameters:
+      - $ref: '#/components/parameters/FactoryId'
       - $ref: '#/components/parameters/EntityId'
     get:
-      summary: Get customer by id
+      summary: Get customer by (factoryId, id)
       responses:
         '200':
           description: OK
@@ -74,8 +85,11 @@ paths:
                 $ref: '#/components/schemas/Customer'
         '404':
           description: Not found
-  /customers/{id}/deactivate:
+        '409':
+          description: Mail duplicado dentro de la fabrica (escenario 2)
+  /factories/{factoryId}/customers/{id}/deactivate:
     parameters:
+      - $ref: '#/components/parameters/FactoryId'
       - $ref: '#/components/parameters/EntityId'
     patch:
       summary: Baja logica de un cliente (CU-04)
@@ -115,6 +129,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Factory'
+        '409':
+          description: CUIT o codigo de fabrica ya registrados (escenario 2)
   /factories/{id}:
     parameters:
       - $ref: '#/components/parameters/EntityId'
@@ -135,6 +151,8 @@ paths:
                 $ref: '#/components/schemas/Factory'
         '404':
           description: Not found
+        '409':
+          description: CUIT o codigo de fabrica ya registrados (escenario 2)
   /industries:
     get:
       summary: List rubros (CU-43)
@@ -170,6 +188,13 @@ components:
       required: true
       schema:
         type: string
+    FactoryId:
+      name: factoryId
+      in: path
+      required: true
+      description: Id de la fabrica dueña del encargado (parte de la PK compuesta).
+      schema:
+        type: string
   schemas:
     Industry:
       type: object
@@ -180,14 +205,13 @@ components:
           type: string
         isActive:
           type: boolean
-      required: [id, name, isActive]
+      required: [id, isActive]
     IndustryInput:
       type: object
       properties:
         name:
           type: string
-          minLength: 1
-      required: [name]
+      required: []
     Factory:
       type: object
       properties:
@@ -195,12 +219,19 @@ components:
           type: string
         name:
           type: string
+        code:
+          type: string
+          minLength: 3
+          maxLength: 4
+          description: >-
+            Codigo unico de fabrica (3-4 caracteres, en mayusculas). Prefijo del
+            id interno secuencial de piezas sin plano (ERS §2.3).
         cuit:
           type: string
           description: CUIT en 11 digitos (sin guiones).
         address:
           type: string
-        paymentDescription:
+        payMethod:
           type: string
           description: Texto libre con aclaraciones sobre el pago de la fabrica.
         industryId:
@@ -210,10 +241,9 @@ components:
       required:
         - id
         - name
+        - code
         - cuit
-        - address
-        - paymentDescription
-        - industryId
+        - payMethod
         - isActive
     FactoryInput:
       type: object
@@ -221,22 +251,25 @@ components:
         name:
           type: string
           minLength: 1
+        code:
+          type: string
+          minLength: 3
+          maxLength: 4
+          description: Codigo unico de fabrica (3-4 caracteres alfanumericos).
         cuit:
           type: string
         address:
           type: string
-          minLength: 1
-        paymentDescription:
+        payMethod:
           type: string
           minLength: 1
         industryId:
           type: string
       required:
         - name
+        - code
         - cuit
-        - address
-        - paymentDescription
-        - industryId
+        - payMethod
     Customer:
       type: object
       description: EncargadoCliente, la persona de contacto de una fabrica.
@@ -249,9 +282,21 @@ components:
           type: string
         phone:
           type: string
-        email:
+          description: >-
+            Telefono / WhatsApp. Condicional: al menos uno entre phone y mail
+            (col nullable manager_customer.phone).
+        hasWhatsapp:
+          type: boolean
+          description: Si el telefono admite WhatsApp (canal de envio del informe, CU-21).
+        mail:
           type: string
           format: email
+          description: >-
+            Condicional: al menos uno entre mail y phone. Unico dentro de la
+            fabrica (col nullable manager_customer.mail).
+        observation:
+          type: string
+          description: Notas internas (texto libre).
         factoryId:
           type: string
         isActive:
@@ -260,12 +305,16 @@ components:
         - id
         - firstName
         - lastName
-        - phone
-        - email
+        - hasWhatsapp
+        - observation
         - factoryId
         - isActive
     CustomerInput:
       type: object
+      description: >-
+        Alta/edicion de encargado. Regla: al menos uno entre mail y phone; el
+        mail, si se envia, debe ser unico dentro de la fabrica y con formato
+        valido.
       properties:
         firstName:
           type: string
@@ -275,15 +324,18 @@ components:
           minLength: 1
         phone:
           type: string
-          minLength: 1
-        email:
+        hasWhatsapp:
+          type: boolean
+        mail:
           type: string
           format: email
+        observation:
+          type: string
         factoryId:
           type: string
       required:
         - firstName
         - lastName
-        - phone
-        - email
+        - hasWhatsapp
+        - observation
         - factoryId

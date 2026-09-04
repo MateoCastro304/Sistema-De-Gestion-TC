@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input } from '@/shared/components/ui'
@@ -10,6 +11,7 @@ import {
 } from '../schemas/customer.schema'
 import type { CustomerFormValues } from '../schemas/customer.schema'
 import { useFactories } from '../api/customers.queries'
+import { FactoryFormModal } from './FactoryFormModal'
 
 interface CustomerFormProps {
   /** Pre-filled values when editing; omit to create a new customer. */
@@ -19,9 +21,10 @@ interface CustomerFormProps {
   submitting?: boolean
   submitLabel?: string
   /**
-   * When set, the contact belongs to this factory and the factory selector is
-   * hidden. Used when adding an encargado from inside a factory
-   * ("desde la fábrica se agregan los encargados").
+   * When set, the contact belongs to this factory and the factory cannot be
+   * changed: the selector is replaced by a read-only field. Used when adding an
+   * encargado from inside a factory ("desde la fábrica se agregan los
+   * encargados") and when editing, where the factory is immutable (RNF-3).
    */
   lockedFactoryId?: string
 }
@@ -43,6 +46,7 @@ export function CustomerForm({
     register,
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<CustomerFormValues>({
     resolver: zodResolver(customerFormSchema),
@@ -53,10 +57,14 @@ export function CustomerForm({
   })
 
   const { data: factories = [], isLoading: loadingFactories } = useFactories()
+  // "Nueva fábrica" inline: se abre cuando el usuario no encuentra la fábrica
+  // que buscaba en el selector.
+  const [factoryModalOpen, setFactoryModalOpen] = useState(false)
 
   const submit = handleSubmit((values) => onSubmit(toCustomerInput(values)))
 
   return (
+    <>
     <form className="form-card" onSubmit={submit} noValidate>
       <div className="form-grid">
         <div className="form-field">
@@ -84,19 +92,54 @@ export function CustomerForm({
             error={errors.phone?.message}
             {...register('phone')}
           />
+          <label className="filters__checkbox">
+            <input type="checkbox" {...register('hasWhatsapp')} />
+            Este número tiene WhatsApp
+          </label>
         </div>
 
         <div className="form-field">
           <Input
             label="Email"
             placeholder="contacto@empresa.com"
-            error={errors.email?.message}
-            {...register('email')}
+            error={errors.mail?.message}
+            {...register('mail')}
           />
         </div>
 
-        {/* Factory selector, unless the factory is fixed by the context. */}
-        {!lockedFactoryId && (
+        <div className="form-field--full">
+          <label className="form-field__label" htmlFor="customer-observation">
+            Observaciones
+          </label>
+          <textarea
+            id="customer-observation"
+            className="form-field__textarea"
+            rows={3}
+            placeholder="Notas internas sobre el encargado (opcional)."
+            {...register('observation')}
+          />
+        </div>
+
+        {/* Factory: read-only when fixed by the context (immutable, RNF-3). */}
+        {lockedFactoryId ? (
+          <div className="form-field--full">
+            <label className="form-field__label" htmlFor="factoryId">
+              Fábrica
+            </label>
+            <input
+              id="factoryId"
+              className="form-field__input form-field__input--disabled"
+              value={
+                loadingFactories
+                  ? 'Cargando fábrica…'
+                  : (factories.find((f) => f.id === lockedFactoryId)?.name ??
+                    'Fábrica')
+              }
+              readOnly
+              disabled
+            />
+          </div>
+        ) : (
           <div className="form-field--full">
             <label className="form-field__label" htmlFor="factoryId">
               Fábrica
@@ -132,6 +175,13 @@ export function CustomerForm({
                 {errors.factoryId.message}
               </span>
             )}
+            <button
+              type="button"
+              className="table__add-link"
+              onClick={() => setFactoryModalOpen(true)}
+            >
+              + Registrar nueva fábrica
+            </button>
           </div>
         )}
       </div>
@@ -147,5 +197,14 @@ export function CustomerForm({
         </Button>
       </div>
     </form>
+
+      <FactoryFormModal
+        open={factoryModalOpen}
+        onClose={() => setFactoryModalOpen(false)}
+        onCreated={(factory) =>
+          setValue('factoryId', factory.id, { shouldValidate: true })
+        }
+      />
+    </>
   )
 }

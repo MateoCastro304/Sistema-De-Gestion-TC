@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { Badge, Table } from '@/shared/components/ui'
+import { Table } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
 import type { Factory } from '../types/factory'
 import type { Industry } from '../types/industry'
@@ -10,6 +10,8 @@ interface FactoriesTableProps {
   industries: Industry[]
   /** How many encargados each factory has, keyed by factory id. */
   contactsByFactory: Record<string, number>
+  /** Message shown when there are no rows (e.g. no factories vs. no matches). */
+  emptyMessage?: string
 }
 
 /** Read-only listing of factories (CU-60), with a link to the detail. */
@@ -17,6 +19,7 @@ export function FactoriesTable({
   factories,
   industries,
   contactsByFactory,
+  emptyMessage = 'No hay fábricas registradas.',
 }: FactoriesTableProps) {
   const industryName = (id: string) =>
     industries.find((i) => i.id === id)?.name ?? '—'
@@ -30,22 +33,13 @@ export function FactoriesTable({
         </Link>
       ),
     },
+    { header: 'Código', render: (f) => f.code },
     { header: 'CUIT', render: (f) => formatCuit(f.cuit) },
     { header: 'Rubro', render: (f) => industryName(f.industryId) },
     {
       header: 'Encargados',
       align: 'center',
       render: (f) => contactsByFactory[f.id] ?? 0,
-    },
-    {
-      header: 'Estado',
-      align: 'center',
-      render: (f) =>
-        f.isActive ? (
-          <Badge variant="si">Activa</Badge>
-        ) : (
-          <Badge variant="pendiente">Inactiva</Badge>
-        ),
     },
     {
       header: 'Acciones',
@@ -63,7 +57,7 @@ export function FactoriesTable({
       columns={columns}
       data={factories}
       rowKey={(f) => f.id}
-      emptyMessage="No hay fábricas registradas."
+      emptyMessage={emptyMessage}
     />
   )
 }

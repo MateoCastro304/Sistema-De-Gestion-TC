@@ -14,8 +14,12 @@ export function NewFactoryPage() {
   const handleSubmit = (input: FactoryInput) => {
     create.mutate(input, {
       onSuccess: (factory) => {
-        showToast('success', `Fábrica "${factory.name}" registrada.`)
-        navigate(`/catalogs/factories/${factory.id}`)
+        showToast('success', 'Fábrica registrada correctamente.')
+        // Escenario 1: ofrecer continuar con el alta de sus encargados (HU-E1)
+        // abriendo el modal de "Agregar encargado" al llegar al detalle.
+        navigate(`/catalogs/factories/${factory.id}`, {
+          state: { addContact: true },
+        })
       },
       onError: (error) => {
         showToast(
