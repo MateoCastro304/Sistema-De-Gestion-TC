@@ -4,13 +4,13 @@ import { Mail } from './mail';
 
 export class Customer {
   private constructor(
-    private readonly id: CustomerId | null,
-    private name: string,
-    private lastName: string,
-    private phone: string,
-    private mail: Mail,
-    private factoryId: FactoryId,  // Fabrica asociada
-    private active: boolean, 
+    private readonly _id: CustomerId | null,
+    private _name: string,
+    private _lastName: string,
+    private _phone: string,
+    private _mail: Mail,
+    private _factoryId: FactoryId,  // Fabrica asociada
+    private _active: boolean,
     
   ) {}
 // OPERATIONS 
@@ -74,76 +74,76 @@ export class Customer {
     mail: string,
     factoryId: number,
   ): void {
-    this.changeName(name);
-    this.changeLastName(lastName);
-    this.changePhone(phone);
-    this.changeMail(mail);
-    this.changeFactoryId(factoryId);
+    this.setName(name);
+    this.setLastName(lastName);
+    this.setPhone(phone);
+    this.setMail(mail);
+    this.setFactoryId(factoryId);
   }
 
   // DELETE (baja logica)
   deactivate(): void {
-    if(!this.active){
+    if(!this._active){
       throw new Error('Customer is already inactive');
     };
-    this.active = false
+    this._active = false
   }
 
   // Reactivar (alta logica)
   activate(): void {
-    if(this.active){
+    if(this._active){
       throw new Error('Customer is already active');
     }
-    this.active = true;
+    this._active = true;
   }
 
 // CHANGE METHODS
 
-  changeName(name:string): void {
+  setName(name:string): void {
     const normalizedName = name.trim();
 
     if(!normalizedName){ // el trim es para eliminar los espacios vacios
       throw new Error('Customer name cannot be empty');
     }
-    this.name = normalizedName;
+    this._name = normalizedName;
   }
 
-  changeLastName(lastName: string): void {
+  setLastName(lastName: string): void {
     const normalizedLastName = lastName.trim();
 
     if (!normalizedLastName) {
       throw new Error('Customer lastName cannot be empty');
     }
 
-    this.lastName = normalizedLastName;
+    this._lastName = normalizedLastName;
     }
 
-  changeMail(mail: string): void {
-    this.mail = Mail.create(mail);
+  setMail(mail: string): void {
+    this._mail = Mail.create(mail);
   }
 
-  changePhone(phone:string): void {
+  setPhone(phone:string): void {
     const normalizedPhone = phone.trim();
 
     if(!normalizedPhone){
       throw new Error('Customer phone cannot be empty');
     }
-    this.phone = normalizedPhone;
+    this._phone = normalizedPhone;
   }
 
-  changeFactoryId(factoryId: number): void {
-    this.factoryId = FactoryId.create(factoryId);
+  setFactoryId(factoryId: number): void {
+    this._factoryId = FactoryId.create(factoryId);
   }
 
   getId(): number | null {
-    return this.id ? this.id.getValue() : null;
+    return this._id ? this._id.getValue() : null;
   }
-  getName(): string { return this.name; }
-  getLastName(): string { return this.lastName; }
-  getPhone(): string { return this.phone; }
-  getMail(): string { return this.mail.getValue(); }
-  getFactoryId(): number { return this.factoryId.getValue(); }
-  isActive(): boolean { return this.active; }
+  getName(): string { return this._name; }
+  getLastName(): string { return this._lastName; }
+  getPhone(): string { return this._phone; }
+  getMail(): string { return this._mail.getValue(); }
+  getFactoryId(): number { return this._factoryId.getValue(); }
+  isActive(): boolean { return this._active; }
 
 
 
