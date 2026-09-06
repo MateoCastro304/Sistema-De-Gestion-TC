@@ -1,4 +1,6 @@
 export class Mail{
+    private static readonly MAX_LENGTH = 120;
+
     private constructor(private readonly value: string){}
 
     static create(value: string): Mail{
@@ -6,6 +8,10 @@ export class Mail{
 
         if(!normalizedValue){
             throw new Error('Mail cannot be empty');
+        }
+
+        if(normalizedValue.length > Mail.MAX_LENGTH){
+            throw new Error(`Mail must not exceed ${Mail.MAX_LENGTH} characters`);
         }
 
         // Validar el formato del correo electrónico
