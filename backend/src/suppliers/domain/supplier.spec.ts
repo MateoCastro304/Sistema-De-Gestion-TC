@@ -71,27 +71,23 @@ describe('Supplier (domain)', () => {
       });
 
       it('rejects a legal name over 120 characters', () => {
-        expect(() => Supplier.create('a'.repeat(121), ['MATERIAL'])).toThrow(
-          /Legal name must not exceed/,
-        );
+        expect(() => Supplier.create('a'.repeat(121), ['MATERIAL'])).toThrow(/Legal name must not exceed/);
       });
 
       it('rejects a contact name over 120 characters', () => {
-        expect(() =>
-          Supplier.create('X', ['MATERIAL'], { contactName: 'a'.repeat(121) }),
-        ).toThrow(/Contact name must not exceed/);
+        expect(() => Supplier.create('X', ['MATERIAL'], { contactName: 'a'.repeat(121) })).toThrow(
+          /Contact name must not exceed/,
+        );
       });
 
       it('rejects an address over 200 characters', () => {
-        expect(() =>
-          Supplier.create('X', ['MATERIAL'], { address: 'a'.repeat(201) }),
-        ).toThrow(/Address must not exceed/);
+        expect(() => Supplier.create('X', ['MATERIAL'], { address: 'a'.repeat(201) })).toThrow(
+          /Address must not exceed/,
+        );
       });
 
       it('rejects when no supplier types are provided', () => {
-        expect(() => Supplier.create('X', [])).toThrow(
-          'At least one supplier type is required',
-        );
+        expect(() => Supplier.create('X', [])).toThrow('At least one supplier type is required');
       });
 
       it('rejects duplicate supplier types', () => {
@@ -101,9 +97,7 @@ describe('Supplier (domain)', () => {
       });
 
       it('rejects unknown supplier types', () => {
-        expect(() =>
-          Supplier.create('X', ['UNKNOWN' as SupplierType]),
-        ).toThrow(/Invalid supplier type/);
+        expect(() => Supplier.create('X', ['UNKNOWN' as SupplierType])).toThrow(/Invalid supplier type/);
       });
 
       it('propagates value-object errors (invalid CUIT)', () => {
@@ -111,15 +105,11 @@ describe('Supplier (domain)', () => {
       });
 
       it('propagates value-object errors (invalid email)', () => {
-        expect(() =>
-          Supplier.create('X', ['MATERIAL'], { contactEmail: 'not-an-email' }),
-        ).toThrow(/email/i);
+        expect(() => Supplier.create('X', ['MATERIAL'], { contactEmail: 'not-an-email' })).toThrow(/email/i);
       });
 
       it('propagates value-object errors (invalid phone)', () => {
-        expect(() =>
-          Supplier.create('X', ['MATERIAL'], { contactPhone: 'abc' }),
-        ).toThrow(/Phone/);
+        expect(() => Supplier.create('X', ['MATERIAL'], { contactPhone: 'abc' })).toThrow(/Phone/);
       });
     });
 
@@ -178,19 +168,7 @@ describe('Supplier (domain)', () => {
 
     it('accepts null in all optional fields', () => {
       const now = new Date('2026-01-01T10:00:00Z');
-      const s = Supplier.reconstruct(
-        1,
-        'X',
-        null,
-        ['MATERIAL'],
-        null,
-        null,
-        null,
-        null,
-        true,
-        now,
-        now,
-      );
+      const s = Supplier.reconstruct(1, 'X', null, ['MATERIAL'], null, null, null, null, true, now, now);
 
       expect(s.getCuit()).toBeNull();
       expect(s.getContactName()).toBeNull();
@@ -270,25 +248,19 @@ describe('Supplier (domain)', () => {
 
       it('legal name over 120 characters', () => {
         const s = build();
-        expect(() => s.update({ legalName: 'a'.repeat(121) })).toThrow(
-          /Legal name must not exceed/,
-        );
+        expect(() => s.update({ legalName: 'a'.repeat(121) })).toThrow(/Legal name must not exceed/);
         expect(s.getLegalName()).toBe('Aceros del Sur');
       });
 
       it('contact name over 120 characters', () => {
         const s = build();
-        expect(() => s.update({ contactName: 'a'.repeat(121) })).toThrow(
-          /Contact name must not exceed/,
-        );
+        expect(() => s.update({ contactName: 'a'.repeat(121) })).toThrow(/Contact name must not exceed/);
         expect(s.getContactName()).toBe('Diego');
       });
 
       it('address over 200 characters', () => {
         const s = build();
-        expect(() => s.update({ address: 'a'.repeat(201) })).toThrow(
-          /Address must not exceed/,
-        );
+        expect(() => s.update({ address: 'a'.repeat(201) })).toThrow(/Address must not exceed/);
         expect(s.getAddress()).toBe('Av. Falsa 123');
       });
 
@@ -312,9 +284,7 @@ describe('Supplier (domain)', () => {
 
       it('a mixed valid + invalid payload does not apply the valid part', () => {
         const s = build();
-        expect(() =>
-          s.update({ legalName: 'Nuevo Nombre', cuit: 'invalid' }),
-        ).toThrow(/CUIT/);
+        expect(() => s.update({ legalName: 'Nuevo Nombre', cuit: 'invalid' })).toThrow(/CUIT/);
         expect(s.getLegalName()).toBe('Aceros del Sur');
         expect(s.getCuit()?.getCuitValue()).toBe(VALID_CUIT_NORMALIZED);
       });
