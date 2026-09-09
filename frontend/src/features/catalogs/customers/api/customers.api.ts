@@ -14,33 +14,57 @@ const FACTORIES = '/factories'
 const INDUSTRIES = '/industries'
 
 // Customers (EncargadoCliente) --------------------------------------------
+//
+// A customer is identified by the composite key (factoryId, id), mirroring the
+// DB primary key `manager_customer(factory_id, id)`. Item operations are nested
+// under the owning factory: `/factories/{factoryId}/customers/{id}`. The flat
+// `/customers` collection is kept only for the global list view.
+
+function customerPath(factoryId: string, id: string): string {
+  return `${FACTORIES}/${factoryId}${CUSTOMERS}/${id}`
+}
 
 export async function listCustomers(): Promise<Customer[]> {
   const { data } = await http.get<Customer[]>(CUSTOMERS)
   return data
 }
 
-export async function getCustomer(id: string): Promise<Customer> {
-  const { data } = await http.get<Customer>(`${CUSTOMERS}/${id}`)
+export async function getCustomer(
+  factoryId: string,
+  id: string,
+): Promise<Customer> {
+  const { data } = await http.get<Customer>(customerPath(factoryId, id))
   return data
 }
 
 export async function createCustomer(input: CustomerInput): Promise<Customer> {
-  const { data } = await http.post<Customer>(CUSTOMERS, input)
+  const { data } = await http.post<Customer>(
+    `${FACTORIES}/${input.factoryId}${CUSTOMERS}`,
+    input,
+  )
   return data
 }
 
 export async function updateCustomer(
+  factoryId: string,
   id: string,
   input: CustomerInput,
 ): Promise<Customer> {
-  const { data } = await http.patch<Customer>(`${CUSTOMERS}/${id}`, input)
+  const { data } = await http.patch<Customer>(
+    customerPath(factoryId, id),
+    input,
+  )
   return data
 }
 
 /** Baja lógica (CU-04): does not delete, only flips `isActive`. */
-export async function deactivateCustomer(id: string): Promise<Customer> {
-  const { data } = await http.patch<Customer>(`${CUSTOMERS}/${id}/deactivate`)
+export async function deactivateCustomer(
+  factoryId: string,
+  id: string,
+): Promise<Customer> {
+  const { data } = await http.patch<Customer>(
+    `${customerPath(factoryId, id)}/deactivate`,
+  )
   return data
 }
 

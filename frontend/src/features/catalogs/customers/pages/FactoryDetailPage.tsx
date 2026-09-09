@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useParams, Link } from 'react-router'
+import { useEffect, useState } from 'react'
+import { useParams, useLocation, Link } from 'react-router'
 import { Badge, Button, Modal, Table } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
 import { useToast } from '@/app/providers/ToastContext'
@@ -24,21 +24,35 @@ import { CustomerFormModal } from '../components/CustomerFormModal'
  */
 export function FactoryDetailPage() {
   const { id = '' } = useParams<{ id: string }>()
+  const location = useLocation()
   const showToast = useToast()
 
   const factoriesQuery = useFactories()
   const { data: industries = [] } = useIndustries()
-  const customersQuery = useCustomers()
+  // Traemos también los inactivos; el filtro decide si se muestran.
+  const customersQuery = useCustomers({ includeInactive: true })
   const update = useUpdateFactory(id)
   const deactivate = useDeactivateCustomer()
 
   const [editing, setEditing] = useState(false)
+  // Regla de negocio: los encargados inactivos se muestran solo con este filtro.
+  const [showInactive, setShowInactive] = useState(false)
   // Encargado modal: null closed; { customer } edits; { customer: undefined } adds.
   const [contactModal, setContactModal] = useState<{
     customer?: Customer
   } | null>(null)
   // Encargado pending confirmation for baja lógica.
   const [toDeactivate, setToDeactivate] = useState<Customer | null>(null)
+
+  // Escenario 1 (HU-E1): al llegar recién creada la fábrica, ofrecer cargar su
+  // primer encargado abriendo el modal automáticamente. Se limpia el state para
+  // no reabrirlo al refrescar o volver.
+  useEffect(() => {
+    if ((location.state as { addContact?: boolean } | null)?.addContact) {
+      setContactModal({ customer: undefined })
+      window.history.replaceState({}, '')
+    }
+  }, [location.state])
 
   if (factoriesQuery.isLoading) return <p>Cargando fábrica…</p>
 
@@ -62,9 +76,15 @@ export function FactoryDetailPage() {
 
   const industryName =
     industries.find((i) => i.id === factory.industryId)?.name ?? '—'
-  const contacts = (customersQuery.data ?? []).filter(
+  const factoryContacts = (customersQuery.data ?? []).filter(
     (c) => c.factoryId === factory.id,
   )
+  // Escenario 3 mira si la fábrica tiene encargados registrados (activos o no);
+  // el filtro solo cambia cuáles se listan.
+  const hasContacts = factoryContacts.length > 0
+  const contacts = showInactive
+    ? factoryContacts
+    : factoryContacts.filter((c) => c.isActive)
   const fullName = (c: Customer) => `${c.firstName} ${c.lastName}`
 
   const handleUpdate = (input: FactoryInput) => {
@@ -83,61 +103,74 @@ export function FactoryDetailPage() {
 
   const confirmDeactivate = () => {
     if (!toDeactivate) return
-    deactivate.mutate(toDeactivate.id, {
-      onSuccess: () => {
-        showToast('success', `Encargado "${fullName(toDeactivate)}" desactivado.`)
-        setToDeactivate(null)
+    deactivate.mutate(
+      { factoryId: toDeactivate.factoryId, id: toDeactivate.id },
+      {
+        onSuccess: () => {
+          showToast(
+            'success',
+            `Encargado "${fullName(toDeactivate)}" eliminado.`,
+          )
+          setToDeactivate(null)
+        },
+        onError: (error) => {
+          showToast(
+            'error',
+            isApiError(error)
+              ? error.message
+              : 'No se pudo eliminar el encargado.',
+          )
+          setToDeactivate(null)
+        },
       },
-      onError: (error) => {
-        showToast(
-          'error',
-          isApiError(error) ? error.message : 'No se pudo desactivar el encargado.',
-        )
-        setToDeactivate(null)
-      },
-    })
+    )
   }
 
   const contactColumns: Column<Customer>[] = [
-    { header: 'Nombre', render: (c) => fullName(c) },
-    { header: 'Teléfono', render: (c) => c.phone },
-    { header: 'Email', render: (c) => c.email },
     {
-      header: 'Estado',
-      align: 'center',
-      render: (c) =>
-        c.isActive ? (
-          <Badge variant="si">Activo</Badge>
-        ) : (
-          <Badge variant="pendiente">Inactivo</Badge>
-        ),
+      header: 'Nombre',
+      render: (c) => (
+        <span className="table__name-cell">
+          {fullName(c)}
+          {!c.isActive && <Badge variant="pendiente">Inactivo</Badge>}
+        </span>
+      ),
     },
+    {
+      header: 'Teléfono',
+      render: (c) => (
+        <span className="table__name-cell">
+          {c.phone || '—'}
+          {c.hasWhatsapp && <Badge variant="si">WhatsApp</Badge>}
+        </span>
+      ),
+    },
+    { header: 'Email', render: (c) => c.mail || '—' },
     {
       header: 'Acciones',
       align: 'center',
-      render: (c) => (
-        <>
-          <button
-            type="button"
-            className="table__action"
-            onClick={() => setContactModal({ customer: c })}
-          >
-            Editar
-          </button>
-          {c.isActive && (
-            <>
-              <span className="table__action-sep">·</span>
-              <button
-                type="button"
-                className="table__action table__td--danger"
-                onClick={() => setToDeactivate(c)}
-              >
-                Desactivar
-              </button>
-            </>
-          )}
-        </>
-      ),
+      render: (c) =>
+        c.isActive ? (
+          <>
+            <button
+              type="button"
+              className="table__action"
+              onClick={() => setContactModal({ customer: c })}
+            >
+              Editar
+            </button>
+            <span className="table__action-sep">·</span>
+            <button
+              type="button"
+              className="table__action table__td--danger"
+              onClick={() => setToDeactivate(c)}
+            >
+              Eliminar
+            </button>
+          </>
+        ) : (
+          '—'
+        ),
     },
   ]
 
@@ -147,11 +180,6 @@ export function FactoryDetailPage() {
         <div>
           <div className="detail-header__title-row">
             <h1 className="content__title">{factory.name}</h1>
-            {factory.isActive ? (
-              <Badge variant="si">Activa</Badge>
-            ) : (
-              <Badge variant="pendiente">Inactiva</Badge>
-            )}
           </div>
           <p className="content__subtitle">
             {editing ? 'Modificá los datos de la fábrica.' : 'Datos de la fábrica.'}
@@ -185,16 +213,32 @@ export function FactoryDetailPage() {
             Personas de contacto de esta fábrica.
           </p>
         </div>
-        <Button onClick={() => setContactModal({ customer: undefined })}>
-          + Agregar encargado
-        </Button>
+        <div className="detail-header__actions">
+          {hasContacts && (
+            <label className="filters__checkbox">
+              <input
+                type="checkbox"
+                checked={showInactive}
+                onChange={(event) => setShowInactive(event.target.checked)}
+              />
+              Incluir eliminados
+            </label>
+          )}
+          <Button onClick={() => setContactModal({ customer: undefined })}>
+            + Agregar encargado
+          </Button>
+        </div>
       </div>
 
       <Table
         columns={contactColumns}
         data={contacts}
-        rowKey={(c) => c.id}
-        emptyMessage="Esta fábrica todavía no tiene encargados."
+        rowKey={(c) => `${c.factoryId}-${c.id}`}
+        emptyMessage={
+          hasContacts
+            ? 'No hay encargados que coincidan con el filtro.'
+            : 'Esta fábrica no tiene encargados registrados; no será posible enviar informes de cotización.'
+        }
       />
 
       <CustomerFormModal
@@ -207,7 +251,7 @@ export function FactoryDetailPage() {
       <Modal
         open={toDeactivate !== null}
         onClose={() => setToDeactivate(null)}
-        title="Desactivar encargado"
+        title="Eliminar encargado"
         size="sm"
         footer={
           <>
@@ -219,13 +263,13 @@ export function FactoryDetailPage() {
               Cancelar
             </Button>
             <Button onClick={confirmDeactivate} disabled={deactivate.isPending}>
-              {deactivate.isPending ? 'Desactivando…' : 'Desactivar'}
+              {deactivate.isPending ? 'Eliminando…' : 'Eliminar'}
             </Button>
           </>
         }
       >
         <p>
-          ¿Seguro que querés desactivar a{' '}
+          ¿Seguro que querés eliminar a{' '}
           <strong>{toDeactivate ? fullName(toDeactivate) : ''}</strong>? Se
           conserva su historial.
         </p>
@@ -247,6 +291,10 @@ function FactoryDetails({
       <h2 className="info-card__title">Datos de la fábrica</h2>
       <div className="info-grid">
         <div className="info-grid__item">
+          <span className="info-grid__label">Código de fábrica</span>
+          <span className="info-grid__value">{factory.code}</span>
+        </div>
+        <div className="info-grid__item">
           <span className="info-grid__label">Rubro</span>
           <span className="info-grid__value">{industryName}</span>
         </div>
@@ -260,7 +308,7 @@ function FactoryDetails({
         </div>
         <div className="info-grid__item info-grid__item--full">
           <span className="info-grid__label">Formas de pago</span>
-          <p className="info-grid__text">{factory.paymentDescription}</p>
+          <p className="info-grid__text">{factory.payMethod}</p>
         </div>
       </div>
     </div>

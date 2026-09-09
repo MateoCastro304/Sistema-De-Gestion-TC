@@ -2,7 +2,7 @@
 # 0. Base
 # ─────────────────────────────
 
-FROM node:20-alpine AS base
+FROM node:22-alpine AS base
 WORKDIR /app
 COPY package*.json ./
 
@@ -12,9 +12,18 @@ COPY package*.json ./
 
 FROM base AS development
 ENV NODE_ENV=development
+
 RUN npm ci
+
 COPY . .
+
+# prisma.config needs a DATABASE_URL to load during build,
+#   this variable will be overridden by docker-compose at runtime
+ARG DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+ENV DATABASE_URL=${DATABASE_URL}
+
 RUN npx prisma generate
+
 EXPOSE 3000
 CMD ["npm", "run", "start:dev"]
 
@@ -24,7 +33,15 @@ CMD ["npm", "run", "start:dev"]
 
 FROM base AS build
 RUN npm ci
+
 COPY . .
+
+# prisma.config needs a DATABASE_URL to load during build,
+#   this variable will be overridden by docker-compose at runtime
+ARG DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+ENV DATABASE_URL=${DATABASE_URL}
+
+
 RUN npx prisma generate
 RUN npm run build
 
@@ -32,13 +49,25 @@ RUN npm run build
 # 3. Production
 # ─────────────────────────────
 
-FROM node:20-alpine AS production
+FROM node:22-alpine AS production
 WORKDIR /app
 ENV NODE_ENV=production
+
 COPY package*.json ./
 COPY prisma ./prisma/
-RUN npm ci --omit=dev
-COPY --from=build /app/dist ./dist
+COPY prisma.config.ts ./
+
+RUN npm ci --omit=dev && npm cache clean --force
+
+# Same as in Build image
+ARG DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+ENV DATABASE_URL=${DATABASE_URL}
+
 RUN npx prisma generate
+
+COPY --from=build /app/dist ./dist
+
+USER node
+
 EXPOSE 3000
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/src/main.js"]

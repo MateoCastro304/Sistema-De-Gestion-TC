@@ -62,8 +62,6 @@ ps: ## Shows the status of containers (dev)
 clean: ## Stops everything, removes volumes and orphaned images/containers (dev)
 	$(DC_DEV) down -v --remove-orphans
 
-
-
 # --- Backend Scoped --------------------------------------------------------
 
 backend-restart: ## Restarts only backend (dev)
@@ -78,8 +76,14 @@ backend-shell: ## Opens a shell inside the backend container (dev)
 backend-build: ## Rebuild the backend image only
 	$(DC_DEV) build backend
 
-migrate: ## Runs Prisma migrations inside the backend container (dev)
-	$(DC_DEV) exec backend npx prisma migrate deploy
+migrate-deploy: ## Runs Prisma migrations inside the backend container (deploy/prod)
+	$(DC_DEV) exec backend npm run prisma:migrate-deploy
+
+migrate-dev: ## Runs Prisma migrations inside the backend container (dev)
+	$(DC_DEV) exec backend npm run prisma:migrate-dev
+
+migrate-create: ## Create Prisma migration inside the backend container (dev)
+	$(DC_DEV) exec backend npx prisma migrate dev --create-only --name $(name)
 
 seed: ## Runs Prisma seed inside the backend container (dev)
 	$(DC_DEV) exec backend npx prisma db seed
@@ -102,6 +106,11 @@ frontend-build: ## Rebuild the frontend image only
 
 shell-db: ## Opens psql inside the postgres container (dev)
 	$(DC_DEV) exec postgres psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
+
+# ---- Web Scoped (Nginx) ---------------------------------------------------
+
+web-logs: ## Shows only the web logs (nginx)
+	$(DC_DEV) logs -f web
 
 # ---- Docs Scoped ----------------------------------------------------------
 
