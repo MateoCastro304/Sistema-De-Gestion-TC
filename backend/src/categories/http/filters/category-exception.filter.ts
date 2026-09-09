@@ -37,9 +37,7 @@ export class CategoryExceptionFilter implements ExceptionFilter {
       statusCode = HttpStatus.BAD_REQUEST;
       message = exception.message;
       details = [{ field: 'name', message: exception.message }];
-    } //Puede ser un objeto, como el que arma categoryValidationExceptionFactory más abajo en el controller: { message: 'Invalid request data.', details: [...] }. En ese caso, se saca message y details de ese objeto.
-//(bodyObj.message as string) ?? exception.message — el operador ?? ("nullish coalescing") dice: "usá lo de la izquierda, pero si es null o undefined, usá lo de la derecha en su lugar". Es una red de seguridad por si bodyObj.message no viniera
-
+    } 
     response.status(statusCode).json({
       statusCode,
       error: STATUS_NAMES[statusCode] ?? 'Error',
@@ -48,10 +46,6 @@ export class CategoryExceptionFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
       ...(details ? { details } : {}),
       ...(categoryId !== undefined ? { categoryId } : {}),
-       //Si details tiene algo (details ? ...), se "expande" { details } adentro del objeto — o sea, agrega la propiedad details al JSON final.
-//Si details es undefined, se expande {} (un objeto vacío) — o sea, no agrega nada.
-//Esto es lo que logra que un 404 no tenga details en el JSON (porque nunca se le asignó), pero un 400 de validación sí lo tenga — tal como pide el contrato ("details solo aparece en errores 400").
-
     });
   }
 }
