@@ -15,6 +15,12 @@ export type CreateSupplierInput = {
   address?: string;
 };
 
+/**
+ * Registers a new supplier. Enforces the OpenAPI 409 rule for cuit and
+ * legalName uniqueness across active and inactive rows before delegating
+ * construction to {@link Supplier.create}, whose invariants and value-object
+ * validation propagate as 400 errors on invalid input.
+ */
 @Injectable()
 export class CreateSupplier {
   constructor(private readonly repo: SupplierRepository) {}
