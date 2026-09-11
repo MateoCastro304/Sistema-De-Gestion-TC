@@ -1,15 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
-import { SuppliersService } from '../application/suppliers.service';
+import { Controller } from '@nestjs/common';
 
-
-@Controller()
-export class SuppliersController {
-    constructor(private suppliersService: SuppliersService) {}
-
-    @Get('/')
-    getAllProviders() {
-        return this.suppliersService.getSuppliers();
-    }
-
-}
-
+@Controller('suppliers')
+export class SuppliersController {}
