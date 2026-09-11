@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import databaseConfig from './config/database.config';
+import prismaConfig from '../prisma.config';
 import { PrismaModule } from './shared/infrastructure/prisma/prisma.module';
 import { HealthModule } from './health/health.module';
 import { CustomersModule } from './customers/customers.module';
@@ -16,7 +16,6 @@ import { validate } from './config/env.validation';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig],
       validate,
     }),
     PrismaModule,
