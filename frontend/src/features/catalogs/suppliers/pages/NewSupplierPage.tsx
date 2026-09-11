@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { ChangeEvent, SubmitEvent } from 'react'
 import { useNavigate } from 'react-router'
-import { Button, Input } from '@/shared/components/ui'
+import { Button, Input, Select } from '@/shared/components/ui'
 import { isApiError } from '@/shared/api/ApiError'
 import { useToast } from '@/app/providers/ToastContext'
 import { useCreateSupplier } from '../api/useCreateSupplier'
@@ -63,17 +63,21 @@ export function NewSupplierPage() {
     // card-stack: el <form> es un unico hijo de .content y no hereda su gap.
     // noValidate: apaga los mensajes del navegador para que ganen los nuestros.
     <form onSubmit={handleSubmit} noValidate className="card-stack">
-      <div className="content__heading">
-        <div>
-          <h1 className="content__title">Nuevo proveedor</h1>
-          <p className="content__subtitle">Datos del proveedor a registrar</p>
+      {/* Rediseño: el mismo panel azul del listado y del detalle, para
+          que las tres pantallas de Proveedores se lean como una sola. */}
+      <div className="page-header">
+        <div className="page-header__row">
+          <div>
+            <h1 className="page-header__title">Nuevo proveedor</h1>
+            <p className="page-header__subtitle">Datos del proveedor a registrar</p>
+          </div>
         </div>
       </div>
 
-      <section className="form-card">
-        <h2 className="form-card__title">Datos generales</h2>
+      <section className="card">
+        <h2 className="card__title">Datos generales</h2>
 
-        <div className="form-grid">
+        <div className="card__grid">
           <Input
             id="legalName"
             name="legalName"
@@ -96,24 +100,19 @@ export function NewSupplierPage() {
             hint="Formato XX-XXXXXXXX-X"
           />
 
-          {/* El <select> no lo cubre <Input>, va a mano con las mismas clases. */}
+          {/* <Input> no cubre el desplegable: va a mano con el mismo
+              .form-field. El label apunta al id del botón del Select. */}
           <div className="form-field">
             <label className="form-field__label" htmlFor="supplierType">
               Tipo
             </label>
-            <select
+            <Select
               id="supplierType"
               name="supplierType"
-              className="form-field__select"
               value={form.supplierType}
-              onChange={handleChange}
-            >
-              {SUPPLIER_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
+              onChange={(supplierType) => setForm((current) => ({ ...current, supplierType }))}
+              options={SUPPLIER_TYPES.map((type) => ({ value: type, label: type }))}
+            />
           </div>
 
           <Input
@@ -129,10 +128,10 @@ export function NewSupplierPage() {
         </div>
       </section>
 
-      <section className="form-card">
-        <h2 className="form-card__title">Contacto</h2>
+      <section className="card">
+        <h2 className="card__title">Contacto</h2>
 
-        <div className="form-grid">
+        <div className="card__grid">
           <Input
             id="contactName"
             name="contactName"

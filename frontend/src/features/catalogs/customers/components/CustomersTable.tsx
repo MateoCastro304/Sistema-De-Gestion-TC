@@ -1,6 +1,8 @@
 import { Link } from 'react-router'
-import { Badge, Table } from '@/shared/components/ui'
+import { Avatar, Badge, Table, TrashButton } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
+import { toneByStatus } from '@/shared/lib/rowTone'
+import { cn } from '@/shared/lib/cn'
 import type { Customer } from '../types/customer'
 import type { Factory } from '../types/factory'
 import type { Industry } from '../types/industry'
@@ -31,54 +33,68 @@ export function CustomersTable({
     {
       header: 'Nombre',
       render: (c) => (
-        <span className="table__name-cell">
-          <Link className="table__action" to={`/catalogs/customers/${c.factoryId}/${c.id}`}>
+        <span className="table__cell--nombre">
+          <Avatar name={`${c.firstName} ${c.lastName}`} tone={toneByStatus(c.isActive)} />
+          <b>
             {c.firstName} {c.lastName}
-          </Link>
-          {!c.isActive && <Badge variant="pendiente">Inactivo</Badge>}
+          </b>
+          {/* La etiqueta se queda además de la franja gris: el color solo
+              distingue, la palabra explica. */}
+          {!c.isActive && <Badge variant="neutral">Inactivo</Badge>}
         </span>
       ),
     },
     {
       header: 'Teléfono',
       render: (c) => (
-        <span className="table__name-cell">
-          {c.phone || '—'}
-          {c.hasWhatsapp && <Badge variant="si">WhatsApp</Badge>}
+        <span className="table__cell--nombre">
+          <span className="table__cell--mono">{c.phone || '—'}</span>
+          {c.hasWhatsapp && <Badge variant="verde">WhatsApp</Badge>}
         </span>
       ),
     },
-    { header: 'Email', render: (c) => c.mail || '—' },
+    {
+      header: 'Email',
+      // Un mail no se parte: si no entra se corta con "…" y el title
+      // muestra el completo al pasar el mouse.
+      render: (c) => (
+        <span className="table__cell--email" title={c.mail || undefined}>
+          {c.mail || '—'}
+        </span>
+      ),
+    },
     {
       header: 'Fábrica',
-      render: (c) => factoryById(c.factoryId)?.name ?? '—',
+      render: (c) => (
+        <span className="table__cell--contacto">
+          {factoryById(c.factoryId)?.name ?? '—'}
+        </span>
+      ),
     },
     {
       header: 'Rubro',
       render: (c) => {
         const factory = factoryById(c.factoryId)
-        return factory ? industryName(factory.industryId) : '—'
+        return factory ? <Badge variant="suave">{industryName(factory.industryId)}</Badge> : '—'
       },
     },
     {
-      header: 'Acciones',
+      header: '',
       align: 'center',
+      cellClassName: 'table__cell--acciones',
       render: (c) => (
         <>
-          <Link className="table__action" to={`/catalogs/customers/${c.factoryId}/${c.id}`}>
+          <Link className="link-btn" to={`/catalogs/customers/${c.factoryId}/${c.id}`}>
             Ver
           </Link>
+          {/* Eliminar va como ícono y no como segundo botón: borrar no
+              puede pesar visualmente lo mismo que ver el detalle. Sólo
+              aparece si el encargado está activo, igual que antes. */}
           {c.isActive && (
-            <>
-              <span className="table__action-sep">·</span>
-              <button
-                type="button"
-                className="table__action table__td--danger"
-                onClick={() => onDeactivate(c)}
-              >
-                Eliminar
-              </button>
-            </>
+            <TrashButton
+              label={`Eliminar a ${c.firstName} ${c.lastName}`}
+              onClick={() => onDeactivate(c)}
+            />
           )}
         </>
       ),
@@ -87,6 +103,13 @@ export function CustomersTable({
 
   return (
     <Table
+      /* Rediseño: filas-tarjeta en vez de <table>. Los datos, el filtro y
+         el rowKey son los mismos; lo nuevo son sólo props de presentación. */
+      variant="cards"
+      /* Teléfono, rubro y acciones van fijos: el teléfono no se parte
+         (nowrap) y con 1.4fr se montaba sobre el email. */
+      gridTemplate="minmax(0,1.3fr) 150px minmax(0,1.4fr) minmax(0,0.9fr) 130px 120px"
+      rowClassName={(c) => cn(`table__row--${toneByStatus(c.isActive)}`)}
       columns={columns}
       data={customers}
       rowKey={(c) => `${c.factoryId}-${c.id}`}

@@ -3203,9 +3203,10 @@ table {
     grid-template-columns: 1fr;
   }
 
-  .sidebar {
-    display: none;
-  }
+  /* La barra ya no se esconde en celular: abajo de 900px pasa a ser
+     un cajón que entra desde la izquierda (ver "REDISEÑO PROVEEDORES",
+     sección 10). Si acá volviera el `display: none`, el botón de tres
+     líneas de la topbar abriría un panel invisible. */
 
   .topbar {
     padding: 0 var(--space-4);
@@ -3398,4 +3399,1362 @@ table {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+}
+
+
+/* ============================================================
+   REDISEÑO PROVEEDORES — capa visual compartida
+   ------------------------------------------------------------
+   QUÉ ES: el rediseño visual aprobado, escrito contra las clases
+   que la app YA usa (.sidebar, .topbar, .btn, .form-field...).
+   No agrega comportamiento ni cambia datos: sólo decoración.
+
+   ALCANCE: es COMPARTIDO, no exclusivo de Proveedores. Todos los
+   catálogos usan las mismas clases, así que restilar acá alcanza
+   para que Encargados, Fábricas, Materiales, etc. queden iguales
+   sin tocar sus páginas. Lo único propio de cada catálogo son
+   los tonos de categoría (ver sección 7).
+
+   POR QUÉ ESTÁ AL FINAL DEL ARCHIVO: las reglas de abajo repiten
+   selectores que ya existen más arriba (.btn, .sidebar, .topbar,
+   .form-field, .bulk-bar, .app). Al ir después ganan por cascada
+   —misma especificidad, gana la última— sin borrar nada de lo
+   viejo. La contra: una propiedad vieja que acá no se repita
+   sigue aplicando. Si en algún momento se consolida el archivo,
+   estas reglas deberían fusionarse con las de arriba en vez de
+   quedar duplicadas.
+
+   TOKENS: todo sale del :root de la sección 1, con prefijo --rp-
+   para no pisar las variables que ya usa el resto del archivo.
+   ============================================================ */
+
+/* ============================================================
+   1. TOKENS
+   Van dentro del :root que ya existe en styles.css.
+   Todo el resto del archivo sale de acá: si mañana cambia el
+   azul de la marca, se cambia en un solo lugar.
+   ============================================================ */
+:root {
+  /* Colores base */
+  --rp-azul: #2f6fed;          /* acento principal */
+  --rp-azul-osc: #1d54c9;      /* hover y texto sobre blanco */
+  --rp-navy: #16213a;          /* texto fuerte */
+  --rp-fondo: #f5f7fb;         /* fondo de la zona de contenido */
+  --rp-linea: #e8ebf0;         /* bordes de tarjetas y filas */
+  --rp-texto: #4b5563;
+  --rp-texto-sec: #8b93a3;     /* rótulos, encabezados de tabla */
+
+  /* Degradados. El del panel se anima; los otros son fijos. */
+  --rp-grad-panel: linear-gradient(115deg, #16213a 0%, #1e3a72 42%, #2f6fed 100%);
+  --rp-grad-nav:   linear-gradient(185deg, #2f6fed 0%, #2464e0 55%, #1d54c9 100%);
+  --rp-grad-btn:   linear-gradient(120deg, #2f6fed, #1d54c9);
+
+  /* Tonos de categoría. Cada catálogo mapea sus valores a estos
+     tres; no hace falta inventar colores nuevos por módulo. */
+  --rp-tono-azul:  #2f6fed;
+  --rp-tono-ambar: #b45309;
+  --rp-tono-verde: #15803d;
+
+  /* Geometría y sombras */
+  --rp-r-card: 22px;
+  --rp-r-fila: 18px;
+  --rp-r-nav: 16px;
+  --rp-sombra-card: 0 6px 20px rgba(16, 24, 40, .07);
+  --rp-sombra-lift: 0 22px 40px rgba(47, 111, 237, .26);
+
+  /* Ancho de la barra lateral. Se usa también para la muesca,
+     por eso conviene que sea variable y no un número suelto. */
+  --rp-nav-ancho: 282px;
+  --rp-nav-ancho-min: 92px;
+  --rp-muesca: 22px;           /* radio del recorte cóncavo */
+}
+
+/* Animaciones. Prefijo rp- para no chocar con las que ya existan. */
+@keyframes rpGradient { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+@keyframes rpGlow     { 0%,100% { opacity:.55; transform:translate3d(0,0,0) scale(1); }
+                         50%     { opacity:.9;  transform:translate3d(0,-8px,0) scale(1.06); } }
+@keyframes rpRowIn    { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+@keyframes rpToastIn  { from { opacity:0; transform:translateX(20px) scale(.96); } to { opacity:1; transform:none; } }
+/* Las dos que faltaban respecto del prototipo:
+   slabIn = una barra que baja al aparecer (la de eliminación).
+   dotBlink = el puntito que late, para avisar "esto está vivo". */
+@keyframes rpSlabIn   { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:none; } }
+@keyframes rpDotBlink { 0%,100% { opacity:1; } 50% { opacity:.3; } }
+
+
+/* ============================================================
+   2. ESQUELETO
+   .app es el grid de dos columnas; .main la derecha.
+   El fondo de .content tiene que ser EXACTAMENTE --rp-fondo,
+   porque la muesca del menú se pinta de ese mismo color para
+   fundirse con él.
+   ============================================================ */
+.app { display: grid; grid-template-columns: auto 1fr; min-height: 100vh; }
+.main { display: flex; flex-direction: column; min-width: 0; }
+.content { flex: 1; background: var(--rp-fondo); padding: 26px 32px; }
+
+/* justify-content: flex-start pisa el space-between de la topbar vieja:
+   en celular, con el botón de menú a la izquierda, mandaba el título de
+   la sección contra el borde derecho. */
+.topbar {
+  height: 62px; display: flex; align-items: center; justify-content: flex-start; gap: 16px;
+  padding: 0 32px; background: #fff; border-bottom: 1px solid #eef0f3;
+}
+.topbar__breadcrumb-item--current { font-size: 14px; font-weight: 700; color: var(--rp-navy); }
+
+
+/* ============================================================
+   3. BARRA DE NAVEGACIÓN
+   El detalle importante: el ítem activo NO es una pastilla
+   apoyada encima del azul. Es una muesca recortada: llega hasta
+   el borde derecho, se pinta del color del fondo de la página y
+   arriba y abajo el azul se curva hacia adentro. Se lee como un
+   solo plano continuo.
+   ============================================================ */
+/* Pegada arriba (sticky) y del alto de la ventana: sin esto la barra se
+   estiraba con la página y, al bajar en un listado largo, el menú se iba
+   con el scroll. Si el menú no entra en la ventana, scrollea por dentro.
+   overflow-x: hidden recorta el texto de la marca mientras el ancho se
+   anima al expandir; si no, se montaba sobre el botón de tres líneas. */
+.sidebar {
+  position: sticky; top: 0; align-self: start;
+  height: 100vh; height: 100dvh;
+  overflow-x: hidden; overflow-y: auto; scrollbar-width: none;
+  box-sizing: border-box;
+  width: var(--rp-nav-ancho);
+  background: var(--rp-grad-nav);
+  padding: 26px 0 26px 18px;      /* sin padding derecho: la muesca lo necesita */
+  display: flex; flex-direction: column; gap: 34px;
+  transition: width .22s ease;
+}
+
+/* Resplandor decorativo. Va en un ::before para no ensuciar el JSX. */
+.sidebar::before {
+  content: ""; position: absolute; top: -70px; left: -50px;
+  width: 240px; height: 240px; border-radius: 999px;
+  background: radial-gradient(circle, rgba(168,255,239,.34), transparent 68%);
+  animation: rpGlow 9s ease-in-out infinite; pointer-events: none;
+}
+
+/* padding completo y no sólo el derecho: la regla vieja de .sidebar__brand
+   dejaba 8px a la izquierda que le robaban lugar al nombre (se montaba sobre
+   el botón de tres líneas) y corrían el botón respecto de los íconos cuando
+   la barra está colapsada. */
+.sidebar__brand { position: relative; display: flex; align-items: center; gap: 10px; padding: 0 18px 0 0; }
+.sidebar__logo {
+  width: 44px; height: 44px; flex-shrink: 0; border-radius: 14px;
+  background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.34);
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 15px;
+}
+.sidebar__brand-text { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; overflow: hidden; }
+.sidebar__brand-name { font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar__brand-sub  { font-size: 11px; color: #e3ecff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Botón de tres líneas. Vive DENTRO de la barra azul, no en la
+   topbar: colapsada ocupa el lugar del logo, expandida va a la
+   derecha del nombre. */
+.sidebar__burger {
+  margin-left: auto; width: 40px; height: 40px; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  border-radius: 12px; background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.3); cursor: pointer;
+  transition: background .18s ease;
+}
+.sidebar__burger:hover { background: rgba(255,255,255,.26); }
+.sidebar__burger span { width: 17px; height: 2.5px; border-radius: 2px; background: #fff; display: block; }
+
+.sidebar__nav { position: relative; display: flex; flex-direction: column; gap: 14px; }
+.sidebar__section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: #e3ecff; padding: 0 14px;
+}
+.sidebar__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+
+.sidebar__link {
+  display: flex; align-items: center; gap: 13px;
+  margin-right: 18px; padding: 14px; border-radius: var(--rp-r-nav);
+  font-size: 15px; font-weight: 600; color: #fff; text-decoration: none;
+  transition: background .2s ease, transform .2s ease;
+}
+.sidebar__link:hover { background: rgba(255,255,255,.18); transform: translateX(4px); color: #fff; }
+.sidebar__link svg { width: 19px; height: 19px; flex-shrink: 0; }
+
+/* --- La muesca --- */
+.sidebar__link--active {
+  position: relative;
+  margin-right: 0;                                  /* pega contra el borde */
+  padding: 17px 18px 17px 14px;
+  border-radius: var(--rp-muesca) 0 0 var(--rp-muesca);
+  background: var(--rp-fondo);
+  color: var(--rp-azul-osc);
+  font-weight: 700;
+  /* Sin transición a propósito. El ítem normal difumina su fondo en
+     200ms, pero las dos esquinas cóncavas (::before/::after) aparecen
+     de golpe porque no se pueden animar. Al cambiar de sección se veía
+     la muesca dibujada antes que su relleno, como un parpadeo roto.
+     Sin transición, la muesca entera aparece de una. */
+  transition: none;
+}
+.sidebar__link--active:hover { background: var(--rp-fondo); transform: none; color: var(--rp-azul-osc); }
+
+/* Las dos esquinas cóncavas: un cuadrado del color del fondo al que le
+   falta un cuarto de círculo, y lo que queda es la curva que "muerde"
+   el azul. Se solapan 1px para que no aparezca una rayita azul en la
+   unión con el ítem.
+
+   La curva se dibuja como GEOMETRÍA, con un <path> de SVG embebido
+   como imagen de fondo. Es la tercera forma que se probó acá y la
+   única que sale lisa; las otras dos quedan documentadas porque el
+   error es fácil de repetir:
+
+     1. `mask: radial-gradient(...)` — una máscara se resuelve como
+        recorte de opacidad y varios motores la aplican sin suavizado:
+        el borde queda escalonado, un serrucho.
+     2. `background: radial-gradient(...)` con medio píxel de
+        transición — mejora, pero medio píxel da un solo tono
+        intermedio, y un solo tono no es un degradado suave. Se seguía
+        viendo el serrucho, sobre todo con la pantalla al 125-150%.
+     3. Un <path> de SVG — el borde es una curva de verdad, no un
+        cambio de color, así que lo suaviza el mismo rasterizador que
+        dibuja el resto de las formas. Sale limpio a cualquier zoom y
+        en cualquier escalado de pantalla.
+
+   Va como data URI y no como archivo suelto para que la esquina siga
+   siendo cosa del CSS y no aparezcan dos <svg> decorativos en el JSX
+   del AppLayout.
+
+   OJO: el color va escrito a mano (%23f5f7fb) porque un SVG embebido
+   no puede leer variables CSS. Es el mismo valor que --rp-fondo; si
+   se cambia el fondo de la app, hay que cambiarlo también acá o
+   aparece un escalón de color en las dos esquinas.
+
+   El arco cambia de ancla entre las dos: arriba sale de la esquina
+   superior izquierda y abajo de la inferior, que es donde toca el
+   ítem activo en cada caso. */
+.sidebar__link--active::before,
+.sidebar__link--active::after {
+  content: ""; position: absolute; right: 0;
+  width: calc(var(--rp-muesca) + 1px); height: var(--rp-muesca);
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+.sidebar__link--active::before {
+  top: calc(-1 * var(--rp-muesca) + 1px);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22' preserveAspectRatio='none'%3E%3Cpath d='M22 0A22 22 0 0 1 0 22L22 22Z' fill='%23f5f7fb'/%3E%3C/svg%3E");
+}
+.sidebar__link--active::after {
+  bottom: calc(-1 * var(--rp-muesca) + 1px);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22' preserveAspectRatio='none'%3E%3Cpath d='M0 0A22 22 0 0 1 22 22L22 0Z' fill='%23f5f7fb'/%3E%3C/svg%3E");
+}
+
+/* --- Colapsada: sólo íconos ---
+   Todo el bloque vive adentro de un media query de escritorio. El estado
+   `collapsed` de React sobrevive al achicar la ventana, y antes estas
+   reglas seguían aplicando dentro del cajón de celular: ítems centrados,
+   marca vacía y la pastilla activa pegada al borde. Deshacerlas regla
+   por regla en el bloque de 900px era frágil (varias tenían más
+   especificidad que las del cajón); así directamente no existen ahí. */
+@media (min-width: 901px) {
+  .sidebar--collapsed { width: var(--rp-nav-ancho-min); padding-left: 14px; }
+  /* El logo también se esconde: colapsada, el botón de tres líneas
+     ocupa su lugar. */
+  .sidebar--collapsed .sidebar__logo,
+  .sidebar--collapsed .sidebar__brand-text,
+  .sidebar--collapsed .sidebar__section-label,
+  .sidebar--collapsed .sidebar__link-text { display: none; }
+  /* Botón, íconos e ítem activo centrados sobre el mismo eje. El activo
+     llega hasta el borde (muesca), así que devuelve con padding los 14px
+     que no tiene de margen; si no, su ícono quedaba corrido a la derecha. */
+  .sidebar--collapsed .sidebar__brand { padding-right: 14px; justify-content: center; }
+  .sidebar--collapsed .sidebar__burger { margin-left: 0; width: 48px; height: 48px; border-radius: 15px; }
+  .sidebar--collapsed .sidebar__link { justify-content: center; margin-right: 14px; height: 52px; padding: 0; }
+  .sidebar--collapsed .sidebar__link--active { margin-right: 0; padding-right: 14px; height: 56px; border-radius: 20px 0 0 20px; }
+}
+
+
+/* ============================================================
+   4. PANEL DE CABECERA (.page-header)
+   Reemplaza el encabezado plano. El degradado se mueve muy
+   despacio y lleva un halo turquesa flotando: es lo que da la
+   sensación de "vivo" sin distraer.
+   El buscador va adentro, en vidrio.
+   ============================================================ */
+.page-header {
+  position: relative; overflow: hidden;
+  border-radius: 24px; padding: 28px 30px;
+  background: var(--rp-grad-panel); background-size: 220% 220%;
+  animation: rpGradient 14s ease-in-out infinite alternate;
+  box-shadow: 0 20px 44px rgba(30, 58, 114, .34);
+  color: #fff;
+  display: flex; flex-direction: column; gap: 22px;
+}
+.page-header::after {
+  content: ""; position: absolute; top: -70px; right: -30px;
+  width: 260px; height: 260px; border-radius: 999px;
+  background: radial-gradient(circle, rgba(168,255,239,.30), transparent 70%);
+  animation: rpGlow 11s ease-in-out infinite; pointer-events: none;
+}
+/* Todo lo que va adentro necesita position:relative para quedar
+   por encima del halo. */
+.page-header > * { position: relative; }
+
+/* Chip de sección arriba del título ("CATÁLOGO"). El puntito que late
+   va en un ::before para no ensuciar el JSX. */
+.page-header__eyebrow {
+  display: inline-flex; align-self: flex-start; align-items: center; gap: 8px;
+  padding: 6px 13px; border-radius: 999px; background: rgba(255,255,255,.14);
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  letter-spacing: .12em; text-transform: uppercase; color: #d8e6ff;
+}
+.page-header__eyebrow::before {
+  content: ""; width: 7px; height: 7px; border-radius: 999px;
+  background: #a8ffef; animation: rpDotBlink 2s ease-in-out infinite;
+}
+
+.page-header__row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+/* Columna del lado izquierdo del panel: chip, título y subtítulo. */
+.page-header__heading { display: flex; flex-direction: column; gap: 10px; }
+.page-header__heading .page-header__subtitle { margin: 0; }
+.page-header__title { margin: 0; font-size: 38px; font-weight: 800; letter-spacing: -.03em; color: #fff; }
+.page-header__subtitle { margin: 6px 0 0; font-size: 15px; font-weight: 600; color: #c3d4f2; }
+/* Subtítulo del detalle: el CUIT y la etiqueta de rubro en la misma
+   línea, alineados por el medio. */
+.page-header .detail-header__meta {
+  display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+
+.page-header .search-input {
+  max-width: 540px; width: 100%;
+  background: rgba(255,255,255,.13);
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 999px; padding: 14px 20px;
+  font-size: 15px; color: #fff; backdrop-filter: blur(8px);
+  transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.page-header .search-input::placeholder { color: #d0dcf5; }
+.page-header .search-input:focus {
+  outline: none; background: rgba(255,255,255,.2);
+  border-color: #a8ffef; box-shadow: 0 0 0 5px rgba(168,255,239,.16);
+}
+
+/* --- Buscador con lupa adentro ---
+   Cuando el input va acompañado de un ícono, la pastilla de vidrio pasa
+   a ser el <label> que envuelve a los dos, y el input queda desnudo
+   adentro. Si no, se verían dos pastillas, una dentro de la otra.
+   El buscador suelto (sin ícono) sigue funcionando como antes: estas
+   reglas sólo aplican dentro de .search-field. */
+.page-header .search-field {
+  position: relative; max-width: 540px; width: 100%;
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(255,255,255,.13);
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 999px; padding: 14px 20px;
+  color: #d0dcf5; backdrop-filter: blur(8px);
+  transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+/* El anillo de foco lo dibuja la pastilla, no el input de adentro. */
+.page-header .search-field:focus-within {
+  background: rgba(255,255,255,.2);
+  border-color: #a8ffef; box-shadow: 0 0 0 5px rgba(168,255,239,.16);
+}
+.search-field__icon { width: 18px; height: 18px; flex-shrink: 0; }
+.page-header .search-field .search-input {
+  max-width: none; padding: 0; border: 0; background: none;
+  box-shadow: none; backdrop-filter: none; border-radius: 0;
+}
+.page-header .search-field .search-input:focus { background: none; box-shadow: none; }
+
+/* --- Fila de filtros del panel ---
+   Proveedores tenía sólo el buscador, pero Fábricas suma un desplegable
+   de rubro y Encargados una casilla de "incluir eliminados". Van en la
+   misma línea que el buscador, en el mismo vidrio, para que el panel
+   siga siendo el único lugar donde se filtra.
+   El buscador crece y los demás se quedan con su ancho: un desplegable
+   estirado a 500px se ve roto. */
+.page-header__filters {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.page-header__filters .search-field { flex: 1 1 260px; }
+
+/* Flecha propia en blanco, igual que la de los formularios pero para el
+   vidrio oscuro. background-color (no `background`) en el hover para no
+   borrarla. */
+.page-header .filter-select {
+  flex-shrink: 0;
+  appearance: none; -webkit-appearance: none;
+  background-color: rgba(255,255,255,.13);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23ffffff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 18px center; background-size: 14px 14px;
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 999px; padding: 14px 46px 14px 18px;
+  font: inherit; font-size: 15px; font-weight: 600; color: #fff;
+  backdrop-filter: blur(8px); cursor: pointer;
+  transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.page-header .filter-select:hover { background-color: rgba(255,255,255,.2); }
+.page-header .filter-select:focus {
+  outline: none; border-color: #a8ffef; box-shadow: 0 0 0 5px rgba(168,255,239,.16);
+}
+/* Las opciones las dibuja el sistema operativo, no el CSS del panel: sin
+   esto quedan blancas sobre blanco al desplegarse. */
+.page-header .filter-select option { color: var(--rp-navy); background: #fff; }
+
+/* Casilla de filtro ("Incluir eliminados"). Reusa el cuadro grande de la
+   selección múltiple, pero en versión clara sobre el panel oscuro. */
+.page-header .filter-check {
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 10px;
+  padding: 11px 18px 11px 14px; border-radius: 999px;
+  background: rgba(255,255,255,.13); border: 1px solid rgba(255,255,255,.28);
+  font-size: 14px; font-weight: 600; color: #fff; cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: background .2s ease, border-color .2s ease;
+}
+.page-header .filter-check:hover { background: rgba(255,255,255,.2); }
+.page-header .filter-check .check-box {
+  width: 24px; height: 24px; border-radius: 8px; font-size: 14px;
+  background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.5);
+}
+.page-header .filter-check .check-box--on {
+  background: #fff; border-color: #fff; color: var(--rp-azul-osc); box-shadow: none;
+}
+
+
+/* ============================================================
+   5. BOTONES
+   Pastilla, no rectángulo. Se levantan 2-3px al pasar el mouse:
+   es el gesto que más "moderniza" sin costar nada de código.
+   Dentro del panel oscuro el primario se invierte a blanco.
+   ============================================================ */
+.btn {
+  border: 0; cursor: pointer;
+  border-radius: 999px; font-size: 15px; font-weight: 700;
+  padding: 14px 24px; min-height: 48px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+  position: relative;
+}
+/* Franja invisible de 4px pegada abajo del botón. Como es parte del botón,
+   sube con él cuando se levanta en el hover y tapa los 3px que deja libres.
+   Sin esto, con el cursor en el borde de abajo el botón subía, el cursor
+   quedaba afuera, perdía el hover, bajaba, lo recuperaba... y parpadeaba
+   en bucle. */
+.btn::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 4px; }
+.btn--primary { background: var(--rp-grad-btn); color: #fff; box-shadow: 0 14px 30px rgba(47,111,237,.38); }
+/* El degradado se repite en el hover A PROPÓSITO. Arriba en el archivo
+   sigue viva la regla vieja `.btn--primary:hover { background: <azul
+   liso> }`, y si acá no se pisa, al pasar el mouse el degradado (que es
+   una imagen de fondo) se cambiaba por un color liso: la imagen se va de
+   golpe, pero el color entra con la transición de .2s arrancando desde
+   transparente. Ese instante sin fondo era el "titileo" de los botones
+   azules en Encargados y Fábricas (en Proveedores no se notaba porque sus
+   botones azules están en el panel, donde van en blanco). */
+.btn--primary:hover { background: var(--rp-grad-btn); transform: translateY(-3px); box-shadow: 0 20px 42px rgba(47,111,237,.5); }
+
+.btn--secondary { background: #fff; border: 1px solid var(--rp-linea); color: var(--rp-navy); box-shadow: 0 2px 8px rgba(16,24,40,.06); }
+.btn--secondary:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(16,24,40,.12); }
+
+.btn--danger { background: linear-gradient(120deg, #ef4444, #b91c1c); color: #fff; box-shadow: 0 12px 28px rgba(220,38,38,.38); }
+.btn--danger:hover { transform: translateY(-3px); box-shadow: 0 18px 38px rgba(220,38,38,.5); }
+
+
+/* Variantes que ya usaban otras pantallas (Materiales, Usuarios,
+   wizard de cotizaciones). Se re-declaran acá para que agarren la
+   misma píldora y el mismo hover que las de arriba; si no, quedaban
+   con la forma nueva y el color plano viejo. Los colores salen de
+   los tokens originales, así que el significado no cambia. */
+.btn--outline {
+  background: #fff; border: 1.5px solid var(--rp-linea); color: var(--rp-navy);
+  box-shadow: 0 2px 8px rgba(16,24,40,.06);
+}
+.btn--outline:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(16,24,40,.12); background: #fff; }
+
+.btn--success {
+  background: linear-gradient(120deg, #16a34a, var(--color-btn-success-bg));
+  color: #fff; box-shadow: 0 12px 28px rgba(21,128,61,.34);
+}
+/* Mismo motivo que .btn--primary:hover: la regla vieja cambiaba el
+   degradado por un verde liso y el botón titilaba. */
+.btn--success:hover {
+  background: linear-gradient(120deg, #16a34a, var(--color-btn-success-bg));
+  transform: translateY(-3px); box-shadow: 0 18px 38px rgba(21,128,61,.46);
+}
+
+/* --block sigue siendo el de siempre (ancho completo); no necesita
+   color propio, sólo asegurarse de que el ancho gane. */
+.btn--block { width: 100%; }
+
+.btn:disabled { opacity: .55; transform: none; box-shadow: none; cursor: not-allowed; }
+
+/* Inversión dentro del panel */
+.page-header .btn--primary { background: #fff; color: var(--rp-azul-osc); box-shadow: 0 14px 30px rgba(9,20,48,.34); }
+.page-header .btn--primary:hover { box-shadow: 0 20px 42px rgba(9,20,48,.44); }
+/* outline cae acá también: el "Cancelar" de la edición del detalle es
+   outline, y en blanco sólido quedaba igual que "Guardar cambios" (el
+   primario invertido), sin forma de distinguir cuál es cuál. */
+.page-header .btn--secondary,
+.page-header .btn--outline { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.34); color: #fff; box-shadow: none; }
+.page-header .btn--secondary:hover,
+.page-header .btn--outline:hover { background: rgba(255,255,255,.22); border-color: #fff; }
+
+/* Botón redondo de "volver" */
+.btn--icon {
+  width: 44px; height: 44px; padding: 0; min-height: 0;
+  border-radius: 999px; background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.3); color: #fff;
+}
+.btn--icon:hover { background: rgba(255,255,255,.26); transform: translateX(-3px); }
+
+
+/* ============================================================
+   6. LISTADO EN FILAS
+   La <table> clásica pasa a filas en grid: cada proveedor es una
+   tarjeta que se levanta al pasar el mouse, con franja de color
+   según su categoría.
+
+   El ancho de las columnas lo define cada página con la variable
+   --rp-cols (ver Table.tsx, prop gridTemplate). Usar minmax(0,…)
+   en las columnas flexibles: si no, el grid se desborda en vez
+   de encogerse y el texto se parte feo.
+   ============================================================ */
+/* El contenedor lleva también la clase .table-card, que más arriba en
+   este archivo es la tarjeta blanca de la tabla clásica: fondo, borde,
+   sombra y `overflow: hidden`. En la variante de filas eso sobra y
+   además rompe dos cosas:
+     - el marco encierra a los encabezados de columna, que tendrían que
+       flotar sueltos sobre el fondo;
+     - el `overflow: hidden` recorta el resplandor de la última fila al
+       pasar el mouse (por eso era la única que no brillaba).
+   Acá se apaga todo eso. El padding de abajo es para que la sombra de
+   la última fila tenga aire donde dibujarse. */
+.table-card--cards {
+  display: flex; flex-direction: column; gap: 12px;
+  background: none; border: 0; border-radius: 0; box-shadow: none;
+  overflow: visible; padding-bottom: 26px;
+}
+
+/* El padding copia el de la fila MÁS su borde (5px de franja a la
+   izquierda, 1px a la derecha): con 24px parejos cada encabezado quedaba
+   corrido unos píxeles respecto de su columna. */
+.table-card--cards .table__head {
+  display: grid; grid-template-columns: var(--rp-cols); gap: 12px;
+  padding: 0 23px 0 27px;
+  font-size: 11px; font-weight: 800; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--rp-texto-sec);
+}
+
+.table-card--cards .table__row {
+  display: grid; grid-template-columns: var(--rp-cols); gap: 12px;
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--rp-linea);
+  border-left: 5px solid var(--rp-azul);   /* la franja de categoría */
+  border-radius: var(--rp-r-fila); padding: 15px 22px;
+  box-shadow: 0 3px 12px rgba(16,24,40,.05);
+  transition: transform .2s ease, box-shadow .2s ease;
+  /* `backwards` y no `both`. Con `both` la animación conserva su último
+     fotograma para siempre, y ese fotograma dice `transform: none`.
+     Como las animaciones le ganan a las reglas normales, el
+     `translateY(-4px)` del :hover no se aplicaba nunca: las filas
+     brillaban pero no se levantaban.
+     `backwards` mantiene el fotograma inicial durante el retardo del
+     escalonado (que es para lo que hacía falta) y suelta el control
+     al terminar. */
+  animation: rpRowIn .45s ease backwards;
+}
+.table-card--cards .table__row:hover { transform: translateY(-4px); box-shadow: var(--rp-sombra-lift); }
+
+/* Franja + resplandor por tono. Mismo nombre en todos los catálogos.
+   Los :hover van calificados con .table-card--cards a propósito: la
+   regla genérica de arriba (`.table-card--cards .table__row:hover`) es
+   de tres clases, así que le ganaba a un `.table__row--ambar:hover` de
+   dos y TODAS las filas brillaban azul, sin importar su tono. Igualando
+   la especificidad, gana la de abajo, que es la del tono. */
+.table-card--cards .table__row--ambar { border-left-color: #d97706; }
+.table-card--cards .table__row--ambar:hover { box-shadow: 0 22px 40px rgba(217,119,6,.24); }
+.table-card--cards .table__row--verde { border-left-color: #16a34a; }
+.table-card--cards .table__row--verde:hover { box-shadow: 0 22px 40px rgba(22,163,74,.24); }
+.table-card--cards .table__row--neutral { border-left-color: #9aa2b1; }
+.table-card--cards .table__row--neutral:hover { box-shadow: 0 22px 40px rgba(107,114,128,.22); }
+
+/* min-width:0 deja que la celda se achique; overflow-wrap es la red de
+   seguridad para cuando aun así el contenido es una sola palabra más
+   ancha que su columna (un email largo, un nombre sin espacios): sin
+   esto se sale y se monta sobre la columna vecina.
+   `break-word` y no `anywhere`: los dos evitan el desborde, pero
+   `anywhere` además deja que la columna se achique por debajo del ancho
+   de la palabra más larga, y ahí el grid parte apellidos normales
+   ("Fernánde / z"). Con `break-word` la columna respeta la palabra y
+   sólo se corta lo que de verdad no entra. */
+.table__cell { min-width: 0; overflow-wrap: break-word; }
+/* flex-wrap: cuando la celda lleva un dato más una etiqueta (el teléfono
+   y su "WhatsApp", el nombre y su "Inactivo") y no entran en la misma
+   línea, la etiqueta baja entera en vez de apretar al dato. */
+.table__cell--nombre { display: flex; align-items: center; gap: 13px; flex-wrap: wrap; }
+/* min-width:0 es imprescindible: como el <b> es un hijo flex, su
+   min-width por defecto es `auto`, o sea "nunca más angosto que mi
+   palabra más larga". Sin esto, una razón social larga empuja la celda
+   fuera de su columna del grid y se monta sobre el CUIT. */
+/* max-width: el ancho de la celda menos el avatar (40px) y el gap (13px).
+   Con flex-wrap, un nombre más largo que el espacio al lado del avatar
+   bajaba ENTERO a la línea de abajo y dejaba el avatar solo arriba. Con
+   el tope, el nombre se queda al lado y parte sus palabras ahí. */
+.table__cell--nombre b { font-size: 16px; font-weight: 700; color: var(--rp-navy); letter-spacing: -.01em; min-width: 0; max-width: calc(100% - 53px); }
+/* Un email no tiene dónde cortarse: se recorta con "…" (el title de la
+   celda muestra el completo) en vez de partirse en "compras@edasa.co / m". */
+.table__cell--email { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; color: var(--rp-texto); }
+/* nowrap: un CUIT o un teléfono son un número, y un número partido al
+   medio ("+54 351 / 555-0001") deja de leerse como tal. */
+.table__cell--mono { font-family: 'Roboto Mono', ui-monospace, monospace; font-size: 14px; color: var(--rp-texto); white-space: nowrap; }
+/* Contacto y teléfono: texto normal, no monoespaciado. En el prototipo
+   la monoespaciada es sólo para el CUIT, que es un identificador; los
+   datos de contacto son texto común. */
+.table__cell--contacto { font-size: 15px; font-weight: 600; color: var(--rp-navy); }
+.table__cell--tel { font-size: 15px; color: var(--rp-texto); }
+.table__cell--vacio { color: #a2a9b5; }
+.table__cell--fin { justify-self: end; }
+
+.table__empty {
+  background: #fff; border: 1px dashed #cfd6e2; border-radius: var(--rp-r-fila);
+  padding: 40px; text-align: center; color: var(--rp-texto-sec); font-size: 15px;
+}
+
+/* Enlace "Ver" de cada fila */
+.link-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 40px; padding: 0 20px; border-radius: 999px;
+  font-size: 14px; font-weight: 800; color: #fff; text-decoration: none;
+  background: var(--rp-grad-btn); box-shadow: 0 8px 18px rgba(47,111,237,.34);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.link-btn:hover { color: #fff; transform: translateY(-2px); box-shadow: 0 14px 28px rgba(47,111,237,.5); }
+
+/* Acción secundaria de la fila: hoy es el tacho de eliminar de Encargados.
+   Va como ícono y no como segundo botón a propósito: borrar no puede
+   pesar lo mismo que ver el detalle. Neutro en reposo, rojo al apuntarlo,
+   que es cuando el usuario ya decidió ir hacia ahí. */
+.row-action {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; flex-shrink: 0;
+  border: 1px solid var(--rp-linea); border-radius: 999px;
+  background: #fff; color: var(--rp-texto-sec); cursor: pointer;
+  transition: background .18s ease, color .18s ease, border-color .18s ease;
+}
+.row-action:hover { background: #fdecec; border-color: #f2c9c9; color: #dc2626; }
+/* La de editar no es destructiva: se ilumina en azul, no en rojo. */
+.row-action--edit:hover { background: #eaf1ff; border-color: #cddcf9; color: var(--rp-azul-osc); }
+.row-action svg { width: 17px; height: 17px; }
+
+/* Cuando la fila termina en botón + ícono, los dos van juntos a la
+   derecha en vez de estirarse. */
+.table__cell--acciones { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+
+
+/* ============================================================
+   7. AVATAR Y ETIQUETA DE CATEGORÍA
+   Los usan Avatar.tsx y Badge.tsx. Tres tonos, nombres neutros
+   (azul / ámbar / verde) para que cada catálogo los mapee a lo
+   suyo: Proveedores usa material-pintura-repuesto, Fábricas
+   puede usar otra cosa, y el CSS no se entera.
+   ============================================================ */
+.avatar {
+  width: 40px; height: 40px; flex-shrink: 0; border-radius: 13px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; color: #fff;
+  background: linear-gradient(140deg, #4a83ff, #1d54c9);
+  box-shadow: 0 8px 18px rgba(47,111,237,.36);
+}
+.avatar--ambar { background: linear-gradient(140deg,#f0a92c,#b45309); box-shadow: 0 8px 18px rgba(180,83,9,.32); }
+.avatar--verde { background: linear-gradient(140deg,#34c76a,#15803d); box-shadow: 0 8px 18px rgba(21,128,61,.32); }
+.avatar--lg { width: 58px; height: 58px; border-radius: 18px; font-size: 19px; }
+
+/* Cuarto tono. El bloque venía con tres, pero Proveedores tiene
+   cuatro rubros (Material, Tercerizado, Repuesto, Pintura) y sin
+   esto dos rubros distintos compartían color. Gris como el
+   .badge--neutral que ya existía, para que avatar y etiqueta de
+   una misma fila sigan coincidiendo. */
+.avatar--neutral { background: linear-gradient(140deg,#9aa2b1,#6b7280); box-shadow: 0 8px 18px rgba(107,114,128,.30); }
+
+/* Dentro del panel oscuro el avatar se invierte: blanco con las
+   iniciales en azul. El color de rubro sobre el degradado navy se
+   ensucia y pierde contraste; el rubro igual se lee en la etiqueta de
+   al lado. Pisa a cualquier --ambar/--verde/--neutral por tener más
+   especificidad. */
+.page-header .avatar,
+.page-header .avatar--ambar,
+.page-header .avatar--verde,
+.page-header .avatar--neutral {
+  background: linear-gradient(140deg, #fff, #d8e6ff);
+  color: var(--rp-azul-osc);
+  box-shadow: 0 14px 30px rgba(9,20,48,.30);
+}
+
+/* Color pleno, no pastel: es lo que despega la pantalla del
+   look de planilla. Blanco sobre color saturado pasa contraste. */
+/* OJO: no se redefine .badge a secas. La app ya tiene variantes
+   pastel (--pendiente, --si, --cotizado...) con su propio color de
+   texto, y una regla base más abajo en el archivo se las pisaría.
+   Los tonos Rediseño proveedores traen su tipografía y su color propios. */
+.badge--azul, .badge--ambar, .badge--verde, .badge--neutral {
+  display: inline-flex; align-items: center; justify-self: start;
+  padding: 6px 12px; border-radius: 8px;
+  font-size: 11px; font-weight: 800; letter-spacing: .06em;
+  text-transform: uppercase; color: #fff;
+}
+.badge--azul  { background: var(--rp-tono-azul);  box-shadow: 0 6px 14px rgba(47,111,237,.34); }
+.badge--ambar { background: var(--rp-tono-ambar); box-shadow: 0 6px 14px rgba(180,83,9,.30); }
+.badge--verde { background: var(--rp-tono-verde); box-shadow: 0 6px 14px rgba(21,128,61,.30); }
+.badge--neutral { background: #6b7280; }
+
+/* La suave no entra en la regla de arriba: no lleva texto blanco ni
+   versalitas, porque su contenido es un nombre escrito por el usuario
+   (un rubro) y no una etiqueta de sistema. */
+.badge--suave {
+  display: inline-flex; align-items: center; justify-self: start;
+  padding: 6px 12px; border-radius: 8px;
+  font-size: 13px; font-weight: 600;
+  background: #eef1f6; color: var(--rp-texto); border: 1px solid #e3e7ee;
+}
+
+/* Misma inversión que el avatar: adentro del panel oscuro la etiqueta
+   de rubro va en vidrio, no en color pleno. */
+.page-header .badge--azul,
+.page-header .badge--ambar,
+.page-header .badge--verde,
+.page-header .badge--neutral,
+.page-header .badge--suave {
+  background: rgba(255,255,255,.18); box-shadow: none; color: #fff;
+  border-color: rgba(255,255,255,.28);
+}
+
+
+/* ============================================================
+   8. SELECCIÓN MÚLTIPLE
+   El casillero chico de 16px se reemplaza por un cuadro de 34px,
+   y toda la fila es tocable (la clase --selectable pone el
+   cursor; el onClick lo pone Table.tsx). En el celular eso es la
+   diferencia entre acertarle y no.
+   ============================================================ */
+.table__row--selectable { cursor: pointer; }
+/* Calificadas con .table-card--cards por el mismo motivo que los tonos:
+   la regla base de la fila es de dos clases y le ganaba a un
+   `.table__row--selected` de una sola, así que el resaltado de la fila
+   tildada no llegaba a pintarse. */
+/* Sólo cambia el COLOR del borde, no el grosor: antes era
+   `border: 1.5px`, que se comía la franja de 5px y todo el contenido de
+   la fila saltaba 3px a la izquierda al tildarla. El borde más grueso lo
+   simula el anillo de 1px del box-shadow, que no ocupa lugar. */
+.table-card--cards .table__row--selected {
+  background: linear-gradient(100deg, #eaf1ff, #fff 70%);
+  border-color: var(--rp-azul);
+  box-shadow: 0 0 0 1px var(--rp-azul), 0 14px 30px rgba(47,111,237,.20);
+}
+.table-card--cards .table__row--selected:hover { box-shadow: 0 0 0 1px var(--rp-azul), 0 20px 40px rgba(47,111,237,.30); }
+
+.check-box {
+  width: 34px; height: 34px; flex-shrink: 0; border-radius: 11px;
+  background: #fff; border: 2.5px solid #c6cede;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: transparent; font-size: 18px; font-weight: 800;
+  transition: background .16s ease, border-color .16s ease;
+}
+.check-box--on {
+  background: linear-gradient(140deg, #4a83ff, #1d54c9);
+  border-color: transparent; color: #fff;
+  box-shadow: 0 8px 18px rgba(47,111,237,.44);
+}
+
+/* El casillero REAL sigue existiendo: va adentro del cuadro, ocupa
+   todo su alto y ancho, y es invisible. Así el cuadro de 34px es
+   sólo la piel y el comportamiento no cambia en nada — el click, el
+   foco, la barra espaciadora y el lector de pantalla los sigue
+   manejando el <input> nativo, con su mismo onChange.
+   (No se usa display:none ni visibility:hidden a propósito: eso lo
+   sacaría del orden de tabulación y dejaría la selección sin
+   teclado.) */
+.check-box { position: relative; }
+.check-box__input {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  margin: 0; opacity: 0; cursor: pointer;
+}
+.check-box__input:disabled { cursor: default; }
+.check-box:has(.check-box__input:disabled) { opacity: .45; }
+/* El foco tiene que verse en el cuadro, no en el input invisible. */
+.check-box:has(.check-box__input:focus-visible) {
+  outline: 2px solid var(--rp-azul); outline-offset: 3px;
+}
+
+.bulk-bar {
+  background: #fff; border: 1px solid #f2c9c9; border-left: 5px solid #dc2626;
+  border-radius: 20px; padding: 18px 22px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 18px; flex-wrap: wrap;
+  box-shadow: 0 16px 36px rgba(220,38,38,.16);
+  /* Baja al aparecer. Es una barra que se mete entre el panel y la
+     lista, y sin el movimiento el salto de layout se lee como un
+     parpadeo. */
+  animation: rpSlabIn .35s ease both;
+}
+.bulk-bar__count { font-size: 17px; font-weight: 700; color: var(--rp-navy); }
+.bulk-bar__warn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 12px; border-radius: 999px; background: #fbe1e1;
+  font-size: 13px; font-weight: 700; color: #b91c1c;
+}
+/* Puntito rojo que late. Es una advertencia sobre algo que el usuario
+   NO tiene delante (tildados fuera de la búsqueda), así que se mueve
+   para que no pase desapercibida. */
+.bulk-bar__warn::before {
+  content: ""; width: 7px; height: 7px; border-radius: 999px;
+  background: #dc2626; animation: rpDotBlink 1.6s ease-in-out infinite;
+}
+.bulk-bar__hint { font-size: 13px; font-weight: 600; color: #6b7280; }
+
+
+/* ============================================================
+   9. TARJETAS Y FORMULARIOS
+   ============================================================ */
+.card {
+  background: #fff; border: 1px solid var(--rp-linea);
+  border-radius: var(--rp-r-card); box-shadow: var(--rp-sombra-card);
+  padding: 28px; display: flex; flex-direction: column; gap: 22px;
+}
+.card__title {
+  margin: 0; display: flex; align-items: center; gap: 12px;
+  font-size: 19px; font-weight: 700; color: var(--rp-navy);
+}
+/* La barrita degradada del título sale del CSS, no del JSX. */
+.card__title::before {
+  content: ""; width: 26px; height: 5px; border-radius: 999px;
+  background: linear-gradient(90deg, #2f6fed, #a8ffef);
+}
+/* Hasta 3 columnas (2 en --2), pero ninguna más angosta que 220px: en la
+   tarjeta del detalle, que comparte el ancho con el panel de Registro, tres
+   columnas fijas partían el email por la mitad ("acerosdelsu / r.com").
+   Con poco lugar la grilla baja a 2 columnas sola. Con 200px todavía se
+   partía con la barra colapsada: la tarjeta daba columnas de 209px y un
+   email común a 17px ocupa ~215px. */
+.card__grid {
+  display: grid; row-gap: 22px; column-gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(max(220px, calc((100% - 40px) / 3)), 1fr));
+}
+.card__grid--2 { grid-template-columns: repeat(auto-fit, minmax(max(220px, calc((100% - 20px) / 2)), 1fr)); }
+.card__full { grid-column: 1 / -1; }
+
+/* Panel oscuro de "Registro" en el detalle */
+.card--dark {
+  position: relative; overflow: hidden; border: 0; color: #fff;
+  background: linear-gradient(165deg, #16213a, #1d3363);
+  box-shadow: 0 18px 40px rgba(22,33,58,.28);
+}
+/* El mismo resplandor flotando que tiene el panel de cabecera, pero
+   abajo a la derecha. Va en un ::after para no ensuciar el JSX. */
+.card--dark::after {
+  content: ""; position: absolute; bottom: -70px; right: -50px;
+  width: 200px; height: 200px; border-radius: 999px;
+  background: radial-gradient(circle, rgba(47,111,237,.5), transparent 70%);
+  animation: rpGlow 10s ease-in-out infinite; pointer-events: none;
+}
+/* El contenido tiene que quedar por encima del resplandor. */
+.card--dark > * { position: relative; }
+.card--dark .card__title { color: #fff; }
+.card--dark .field__label { color: #93a1bd; }
+.card--dark .field__value { color: #fff; }
+
+/* Campo en modo lectura */
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field__label { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--rp-texto-sec); }
+/* overflow-wrap: un email largo no tiene espacios donde cortar, y sin
+   esto se sale de su columna y se monta sobre la de al lado. */
+/* margin: 0 porque a veces el valor es un <p> (la dirección) y traía el
+   margen del navegador: quedaba un hueco entre el rótulo y el dato. */
+.field__value { margin: 0; font-size: 17px; font-weight: 600; color: var(--rp-navy); overflow-wrap: anywhere; }
+.field__value--mono { font-family: 'Roboto Mono', ui-monospace, monospace; font-weight: 400; }
+
+/* Campo en modo edición. El foco es un anillo de 5px: se ve de
+   lejos, que es el punto para un usuario mayor. */
+/* .form-field--full también es columna: los formularios de Encargados y
+   Fábricas lo usan solo (sin .form-field) para el textarea y el select, y
+   sin esto el rótulo y el control quedaban pegados. */
+.form-field,
+.form-field--full { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.form-field label,
+.form-field__label { font-size: 13px; font-weight: 700; color: var(--rp-texto); }
+/* Los controles se toman por elemento (dentro de .form-field) Y por clase.
+   Sólo por elemento no alcanzaba: en Encargados y Fábricas el <select> y
+   el <textarea> están dentro de un .form-field--full a secas y quedaban
+   con el estilo viejo (borde fino, letra chica, flecha nativa). */
+.form-field input,
+.form-field select,
+.form-field textarea,
+.form-field__input,
+.form-field__select,
+.form-field__textarea {
+  border: 1.5px solid #e3e7ee; border-radius: 14px;
+  padding: 15px 16px; font: inherit; font-size: 16px; font-weight: 600;
+  color: var(--rp-navy); background: #fbfcfe; width: 100%;
+  transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+
+/* Select: se apaga la flecha del sistema (cada navegador dibuja la suya,
+   chica y gris) y se pone un chevron propio en el azul de la marca.
+   OJO: el color va escrito a mano (%231d54c9 = --rp-azul-osc) porque un
+   SVG embebido no lee variables CSS. Las reglas de hover/foco de abajo
+   cambian background-COLOR y no `background`: el shorthand borraría la
+   flecha. */
+.form-field select,
+.form-field__select {
+  appearance: none; -webkit-appearance: none;
+  padding-right: 48px; cursor: pointer; text-overflow: ellipsis;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%231d54c9' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 18px center; background-size: 14px 14px;
+}
+
+/* Textarea: alto de tres líneas cómodas, sólo crece hacia abajo (estirado
+   a lo ancho rompe la grilla) y con peso normal: es texto corrido, no un
+   dato corto como los inputs. */
+.form-field textarea,
+.form-field__textarea { min-height: 112px; resize: vertical; line-height: 1.5; font-weight: 500; }
+
+.form-field input::placeholder,
+.form-field textarea::placeholder,
+.form-field__input::placeholder,
+.form-field__textarea::placeholder { color: #a2a9b5; font-weight: 500; opacity: 1; }
+
+.form-field select:hover,
+.form-field textarea:hover,
+.form-field__input:hover,
+.form-field__select:hover,
+.form-field__textarea:hover { border-color: #cddcf9; }
+
+/* Deshabilitado: el select de fábrica mientras carga, la fábrica fija. */
+.form-field input:disabled,
+.form-field select:disabled,
+.form-field textarea:disabled,
+.form-field__input--disabled {
+  background-color: #eef1f6; border-color: #e3e7ee;
+  color: var(--rp-texto-sec); cursor: not-allowed;
+}
+
+/* "+ Nuevo rubro" / "+ Registrar nueva fábrica" debajo del select: se
+   pega a la izquierda en vez de quedar centrado en la columna. */
+.form-field .table__add-link,
+.form-field--full .table__add-link {
+  align-self: flex-start; padding: 2px 0;
+  font-size: 13px; font-weight: 700; color: var(--rp-azul-osc);
+}
+/* La regla de arriba está pensada para campos de texto. Un checkbox
+   nativo que caiga dentro de un .form-field también la recibiría, y con
+   `width: 100%` y 15px de padding deja de parecer un checkbox.
+   Se lo excluye y se lo tiñe con accent-color, que es la forma de darle
+   el color de la marca sin reemplazarlo por un control propio — acá hace
+   falta que siga siendo el input nativo porque lo maneja react-hook-form
+   con `register()`. */
+.form-field input[type="checkbox"],
+.filters__checkbox input[type="checkbox"] {
+  width: 20px; height: 20px; min-height: 0; flex-shrink: 0;
+  padding: 0; border: 0; border-radius: 6px; background: none;
+  accent-color: var(--rp-azul); cursor: pointer;
+}
+.form-field input:hover { border-color: #cddcf9; }
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus,
+.form-field__input:focus,
+.form-field__select:focus,
+.form-field__textarea:focus {
+  outline: none; border-color: var(--rp-azul); background-color: #fff;
+  box-shadow: 0 0 0 5px rgba(47,111,237,.16);
+}
+/* Error en cualquiera de los tres controles. Los formularios de Encargados
+   y Fábricas marcan el error en el propio control (--error o aria-invalid)
+   y no en el contenedor, por eso van las dos formas. */
+.form-field--error input,
+.form-field--error select,
+.form-field--error textarea,
+.form-field__input--error,
+.form-field__select--error,
+.form-field textarea[aria-invalid="true"],
+.form-field__textarea[aria-invalid="true"] { border-color: #dc2626; box-shadow: 0 0 0 5px rgba(220,38,38,.14); }
+.form-field__hint  { font-size: 12px; color: var(--rp-texto-sec); }
+.form-field__error { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #b91c1c; }
+.form-field__error::before {
+  content: "!"; width: 19px; height: 19px; border-radius: 999px;
+  background: linear-gradient(140deg,#ef4444,#b91c1c); color: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800;
+}
+
+
+/* ============================================================
+   10. AVISOS
+   ============================================================ */
+.toast {
+  display: flex; align-items: center; gap: 12px; align-self: flex-start;
+  background: #fff; border: 1px solid var(--rp-linea);
+  border-radius: 16px; padding: 14px 20px;
+  font-size: 15px; font-weight: 700; color: var(--rp-navy);
+  animation: rpToastIn .4s ease both;
+}
+.toast--success { border-color: #cdeedb; border-left: 5px solid #15803d; box-shadow: 0 18px 40px rgba(21,128,61,.24); }
+.toast--error   { border-color: #f2c9c9; border-left: 5px solid #dc2626; box-shadow: 0 18px 40px rgba(220,38,38,.20); }
+/* Neutro: la acción salió bien pero no es un logro (una eliminación). */
+.toast--info    { border-color: #dfe3ea; border-left: 5px solid var(--rp-navy); box-shadow: 0 18px 40px rgba(22,33,58,.18); }
+.toast__icon {
+  width: 26px; height: 26px; flex-shrink: 0; border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; color: #fff;
+  background: linear-gradient(140deg,#34c76a,#15803d);
+}
+/* El prototipo sólo mostraba el toast de éxito; el rojo es el mismo
+   círculo con la paleta de error, para que un aviso de fallo no
+   aparezca con el ícono verde. */
+.toast--error .toast__icon { background: linear-gradient(140deg,#ef4444,#b91c1c); }
+.toast--info .toast__icon  { background: linear-gradient(140deg,#4b5563,#16213a); }
+
+
+/* ============================================================
+   10b. MODAL
+   El modal había quedado con el aspecto viejo (esquinas de 10px,
+   título chico, pie gris) y los botones de pastilla nuevos adentro.
+   Acá toma la geometría de las tarjetas del rediseño.
+   ============================================================ */
+/* Sin backdrop-filter a propósito. Con el blur, Chrome hacía titilar a
+   los botones del modal: el padre con backdrop-filter se recompone cada
+   vez que un hijo anima transform o sombra (el hover de .btn), y en los
+   modales con scroll (los formularios de Encargados y Fábricas) se veía
+   como un parpadeo. El fondo va un poco más oscuro para compensar. */
+.modal-scrim { z-index: 80; background: rgba(9,20,48,.58); }
+.modal { border-radius: var(--rp-r-card); box-shadow: 0 30px 60px rgba(9,20,48,.30); }
+/* Adentro del modal los botones no se levantan. Además del parpadeo de
+   arriba, subir 3px bajo el cursor hacía que, con el mouse en el borde de
+   abajo, el botón saliera y entrara del hover en bucle. La sombra sí
+   cambia, así el hover se sigue notando. */
+.modal .btn:hover { transform: none; }
+/* Los formularios de Encargados y Fábricas son un <form className="card">:
+   en su página es la tarjeta blanca, pero adentro del modal quedaba una
+   tarjeta dentro de otra (doble borde, doble sombra, doble margen). El
+   modal ya es la tarjeta: acá el form va plano. */
+.modal .card { padding: 0; border: 0; border-radius: 0; box-shadow: none; background: none; }
+.modal__header { padding: 24px 28px 6px; border-bottom: 0; }
+.modal__title { font-size: 19px; font-weight: 700; color: var(--rp-navy); }
+.modal__close {
+  width: 36px; height: 36px; flex-shrink: 0; border-radius: 999px;
+  background: #f2f5fa; color: var(--rp-texto-sec); font-size: 20px;
+  transition: background .18s ease, color .18s ease;
+}
+.modal__close:hover { background: #e7ecf4; color: var(--rp-navy); }
+.modal__body { padding: 12px 28px 22px; font-size: 15px; line-height: 1.5; color: var(--rp-texto); }
+.modal__body p { margin: 0 0 8px; }
+.modal__footer { padding: 16px 28px 24px; background: #fff; border-top: 1px solid var(--rp-linea); }
+.modal .confirm-list {
+  margin: 10px 0 14px; padding: 12px 16px 12px 34px;
+  background: #f5f7fb; border-radius: 14px;
+  font-weight: 600; color: var(--rp-navy);
+}
+.modal .confirm-warning { font-size: 14px; font-weight: 700; color: #b91c1c; }
+
+
+/* ============================================================
+   10c. SELECT PROPIO (Select.tsx)
+   El botón reusa la piel que ya existe: .form-field__select en los
+   formularios y .filter-select en el panel oscuro. Acá va sólo lo
+   propio: el texto adentro del botón, la flecha que se da vuelta al
+   abrir y la lista desplegable.
+   ============================================================ */
+.select__trigger { display: flex; align-items: center; min-width: 0; text-align: left; }
+.select__value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.select__value--placeholder { color: #a2a9b5; font-weight: 500; }
+.page-header .select__value--placeholder { color: #d0dcf5; }
+
+/* Abierto: la flecha apunta para arriba y el campo queda "enfocado" aunque
+   el mouse esté sobre la lista. Mismo OJO que la flecha de abajo: el color
+   va escrito a mano porque el SVG embebido no lee variables. */
+.form-field__select.select__trigger--open {
+  background-color: #fff; border-color: var(--rp-azul);
+  box-shadow: 0 0 0 5px rgba(47,111,237,.16);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%231d54c9' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 10l4-4 4 4'/%3E%3C/svg%3E");
+}
+.page-header .filter-select.select__trigger--open {
+  background-color: rgba(255,255,255,.2); border-color: #a8ffef;
+  box-shadow: 0 0 0 5px rgba(168,255,239,.16);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23ffffff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 10l4-4 4 4'/%3E%3C/svg%3E");
+}
+.form-field__select.select__trigger:disabled {
+  background-color: #eef1f6; border-color: #e3e7ee;
+  color: var(--rp-texto-sec); cursor: not-allowed;
+}
+
+/* La lista. Va en <body> con position: fixed (ver Select.tsx): el top,
+   el left y el ancho mínimo los pone el componente. z-index 90: por
+   encima del modal (80) y del cajón de celular (60), por debajo de los
+   avisos. */
+.select__list {
+  position: fixed; z-index: 90;
+  margin: 0; padding: 6px; list-style: none;
+  max-height: 280px; overflow-y: auto; overscroll-behavior: contain;
+  max-width: calc(100vw - 24px);
+  background: #fff; border: 1px solid var(--rp-linea); border-radius: 16px;
+  box-shadow: 0 20px 44px rgba(16,24,40,.18), 0 2px 6px rgba(16,24,40,.06);
+  font-family: var(--font-base);
+  animation: rpListIn .14s ease-out both;
+}
+.select__option {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  padding: 11px 12px; border-radius: 10px; cursor: pointer;
+  font-size: 15px; font-weight: 600; color: var(--rp-navy);
+  white-space: nowrap;
+}
+/* --active es la resaltada (mouse o flechas); --selected la que ya está
+   elegida. Pueden coincidir. */
+.select__option--active { background: #eef3ff; }
+.select__option--selected { color: var(--rp-azul-osc); font-weight: 700; }
+.select__check { width: 16px; height: 16px; flex-shrink: 0; }
+
+@keyframes rpListIn { from { opacity: 0; transform: translateY(-4px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .select__list { animation: none; } }
+
+
+/* ============================================================
+   10d. BOTÓN DE ELIMINAR (TrashButton.tsx + IconTrash.tsx)
+   Diseñado en Claude Design. El ícono usa currentColor, así que todo
+   el color vive acá. Gris en reposo y rojo al pasar el mouse: una
+   acción destructiva no debería gritar hasta que la vas a usar.
+   Los colores del diseño original venían como --cob-linea y
+   --cob-texto-sec; son los mismos valores que --rp-linea y
+   --rp-texto-sec, así que se usan esos.
+   ============================================================ */
+.btn-trash {
+  width: 44px; height: 44px; flex-shrink: 0; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  border: 1px solid var(--rp-linea); border-radius: 14px;
+  background: #fff; color: var(--rp-texto-sec); cursor: pointer;
+  font: inherit;
+  transition: color .18s ease, background .18s ease, border-color .18s ease,
+              transform .18s ease, box-shadow .18s ease;
+}
+
+/* Con texto al lado se estira y se vuelve pastilla, como el resto
+   de los botones del sistema. */
+.btn-trash--text {
+  width: auto; min-height: 48px; padding: 0 20px;
+  border-radius: 999px; font-size: 15px; font-weight: 700;
+}
+
+.btn-trash:hover {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: #f2c9c9;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(220, 38, 38, .18);
+}
+
+/* La tapa se abre al pasar por encima.
+   El truco es el punto de giro: `transform-box: view-box` hace que el
+   origen se mida en coordenadas del viewBox (0 0 20 20) y no en píxeles
+   del elemento, así 3.4 5.6 cae siempre en la bisagra izquierda de la
+   tapa, sea el ícono de 18 o de 19px.
+   El cubic-bezier pasa un poco de largo y vuelve: es lo que le da el
+   peso de una tapa real en lugar de un giro plano.
+   También vale para el tacho adentro de un .btn común (el "Eliminar"
+   rojo de los modales de confirmación), por eso el selector incluye
+   `.btn`. */
+.btn-trash svg .lid,
+.btn svg .lid {
+  transform-box: view-box;
+  /* La bisagra del dibujo: borde izquierdo de la tapa. Si se cambia el
+     viewBox hay que recalcular este valor, porque el origen se mide
+     desde la esquina del viewBox. */
+  transform-origin: 3.4px 5.6px;
+  transition: transform .3s cubic-bezier(.34, 1.45, .64, 1);
+}
+.btn-trash:hover svg .lid,
+.btn-trash:focus-visible svg .lid,
+.btn:not(:disabled):hover svg .lid,
+.btn:focus-visible svg .lid { transform: rotate(-22deg) translate(.3px, -1px); }
+
+/* Foco visible, mismo anillo que los campos del formulario. */
+.btn-trash:focus-visible {
+  outline: none; color: #b91c1c; border-color: #dc2626;
+  box-shadow: 0 0 0 5px rgba(220, 38, 38, .16);
+}
+
+.btn-trash:active { transform: translateY(0); box-shadow: 0 4px 12px rgba(220, 38, 38, .18); }
+
+.btn-trash:disabled {
+  opacity: .45; cursor: not-allowed; transform: none; box-shadow: none;
+  color: var(--rp-texto-sec); background: #fff; border-color: var(--rp-linea);
+}
+.btn-trash:disabled svg .lid { transform: none; }
+
+/* Dentro de una fila del listado va sin marco, para no competir con el
+   botón "Ver". Mismo tamaño y forma redonda que su vecino, el botón de
+   editar (.row-action), para que los dos íconos de la fila se lean como
+   un par. */
+.table__row .btn-trash { width: 40px; height: 40px; border-radius: 999px; border-color: transparent; background: transparent; }
+.table__row .btn-trash:hover { border-color: #f2c9c9; background: #fef2f2; }
+
+/* Sobre el panel oscuro de cabecera: en vidrio, como .btn--secondary.
+   El :not(:disabled) evita que un botón deshabilitado se ponga blanco
+   al pasarle el mouse ("Eliminar proveedores" sin proveedores). */
+.page-header .btn-trash,
+.page-header .btn-trash:disabled {
+  background: rgba(255, 255, 255, .12);
+  border-color: rgba(255, 255, 255, .34);
+  color: #fff;
+}
+.page-header .btn-trash:not(:disabled):hover {
+  background: #fff; border-color: #fff; color: #b91c1c;
+}
+
+@media (max-width: 900px) {
+  /* 48px mínimo para el dedo. */
+  .btn-trash, .table__row .btn-trash { width: 48px; height: 48px; }
+  .btn-trash--text { width: 100%; }
+  .btn-trash:hover { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-trash:hover { transform: none; }
+  .btn-trash svg .lid, .btn svg .lid { transition: none; }
+}
+
+
+/* ============================================================
+   11. RESPONSIVE
+   Debajo de 900px: la barra pasa a cajón que entra desde la
+   izquierda con fondo oscurecido, las filas se apilan como
+   tarjetas y los botones ocupan todo el ancho.
+   OJO: en el cajón NO va la muesca. El cajón flota sobre el
+   contenido, así que no hay nada con qué fundirse; ahí el ítem
+   activo es una pastilla blanca con sombra.
+   ============================================================ */
+/* ------------------------------------------------------------
+   Dónde deja de entrar la fila de seis columnas.
+   Con la barra lateral de 282px, abajo de ~1200px de ventana quedan
+   menos de 810px útiles y las seis columnas ya no entran en una
+   línea: el grid empieza a apretar la razón social hasta partir
+   palabras y a empujar el botón "Ver".
+   En vez de inventar un acomodo intermedio (lo probamos y quedaba
+   impredecible: las celdas saltaban de lugar con mover un poco la
+   ventana), acá se adopta directamente la ficha apilada que el
+   diseño ya tenía para celular. Así el comportamiento es de sólo dos
+   estados y ninguno es accidental: fila de tabla, o ficha.
+   El bloque de 900px repite estas reglas y agrega lo del menú.
+   ------------------------------------------------------------ */
+@media (max-width: 1200px) {
+  .table-card--cards .table__head { display: none; }
+  .table-card--cards .table__row {
+    grid-template-columns: 1fr; gap: 10px;
+    border-radius: 20px; padding: 16px 18px;
+  }
+  /* En ficha, la acción va al pie y ocupa el ancho: es el objetivo más
+     grande de la tarjeta y así se lee como el cierre de la ficha, no
+     como una celda más que quedó suelta a la izquierda.
+     El stretch de la celda no alcanza porque el enlace es inline-flex;
+     el ancho hay que dárselo a él. */
+  .table__cell--fin { justify-self: stretch; }
+  .table__cell--fin .link-btn { width: 100%; }
+}
+
+/* El botón de la topbar sólo existe en celular: acá se define apagado y
+   el media query de abajo lo prende. Tiene que ir ANTES del media query;
+   si va después, su `display: none` le gana por orden de cascada. */
+.topbar__burger {
+  display: none; width: 42px; height: 42px; flex-shrink: 0;
+  flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  border-radius: 12px; background: #f2f5fa; border: 1px solid #e3e7ee; cursor: pointer;
+}
+.topbar__burger span { width: 18px; height: 2.5px; border-radius: 2px; background: var(--rp-azul-osc); display: block; }
+
+/* El fondo del cajón también arranca apagado. Si se abría el cajón en
+   una ventana angosta y después se agrandaba, el <button> seguía en el
+   DOM sin estilos, caía en la grilla de .app como una columna más y
+   empujaba todo el contenido abajo del menú. */
+.app__backdrop { display: none; }
+
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; }
+
+  .sidebar {
+    position: fixed; top: 0; bottom: 0; left: 0; z-index: 60;
+    width: 238px; padding-left: 16px;
+    transform: translateX(-100%); transition: transform .26s ease;
+  }
+  .sidebar--open { transform: none; }
+  /* En celular no se colapsa: las reglas de --collapsed están dentro de
+     un media query de escritorio, así que acá no hay nada que deshacer. */
+  .sidebar__burger { display: none; }                         /* el de adentro; el de la topbar abre */
+
+  .sidebar__link--active {
+    margin-right: 16px; padding: 16px 14px; border-radius: var(--rp-r-nav);
+    background: #fff; box-shadow: 0 10px 24px rgba(9,26,74,.24);
+  }
+  .sidebar__link--active::before,
+  .sidebar__link--active::after { display: none; }
+
+  .app__backdrop { display: block; position: fixed; inset: 0; z-index: 55; background: rgba(9,20,48,.55); border: 0; }
+  .topbar__burger { display: flex; }
+
+  .content { padding: 18px 16px; }
+  .page-header { border-radius: 20px; padding: 20px; }
+  .page-header__title { font-size: 29px; }
+  .page-header__row { flex-direction: column; align-items: stretch; }
+  /* Los grupos de botones del panel también se apilan. Sin esto siguen
+     en fila y, como abajo de 900px cada .btn ocupa el 100%, el segundo
+     botón se sale del panel y queda cortado. */
+  .page-header .content__actions,
+  .page-header .detail-header__actions {
+    flex-direction: column; align-items: stretch; width: 100%;
+  }
+  /* El encabezado del detalle: la flecha, el avatar y el título dejan de
+     competir por el ancho. */
+  .page-header .detail-header__left { flex-wrap: wrap; }
+
+  .table-card--cards .table__head { display: none; }          /* sin encabezado de columnas */
+  .table-card--cards .table__row {
+    grid-template-columns: 1fr; gap: 10px;
+    border-radius: 20px; padding: 16px 18px;
+  }
+  .table-card--cards .table__row:hover { transform: none; }
+  .table__cell--fin { justify-self: stretch; }
+  .link-btn { min-height: 48px; }
+
+  .btn { width: 100%; }
+  /* ...menos el redondo de volver. Es un ícono de 44px, no una acción
+     con texto: estirado al 100% deja de ser un botón y se come el
+     encabezado entero. Va después de la regla de arriba para ganarle
+     por orden (las dos son de una clase). */
+  .btn--icon { width: 44px; flex-shrink: 0; }
+  .card { padding: 20px; border-radius: 18px; }
+  .card__grid, .card__grid--2 { grid-template-columns: 1fr; }
+  .bulk-bar { flex-direction: column; align-items: stretch; }
+
+  /* Encabezado de sección sobre fondo claro (los Encargados del detalle
+     de fábrica): título arriba y acciones abajo, a todo el ancho. En fila,
+     el título, la casilla y el botón se apretaban en una línea y el
+     subtítulo se partía en tres. */
+  .content__heading { flex-direction: column; align-items: stretch; gap: 14px; }
+  .content__heading .detail-header__actions { flex-direction: column; align-items: stretch; width: 100%; }
+  .content__heading .filters__checkbox { align-self: flex-start; }
+
+  /* Modal: menos aire alrededor para que el formulario use el ancho. */
+  .modal-scrim { padding: 12px; }
+  .modal__header { padding: 20px 20px 4px; }
+  .modal__body { padding: 12px 20px 20px; }
+  .modal__footer { padding: 14px 20px 20px; }
+}
+
+/* Este bloque quedó vacío a propósito: la definición de .topbar__burger
+   se movió ARRIBA del media query de 900px. Estaba acá abajo, y como su
+   `display: none` venía después del `display: flex` del media query y
+   tiene la misma especificidad, ganaba siempre: el botón de menú no
+   aparecía nunca en celular y el cajón no había forma de abrirlo. */
+
+/* Respeta a quien pidió menos movimiento en su sistema. */
+@media (prefers-reduced-motion: reduce) {
+  .sidebar::before, .page-header, .page-header::after,
+  .table-card--cards .table__row, .toast { animation: none; }
+  .btn:hover, .table-card--cards .table__row:hover { transform: none; }
 }
