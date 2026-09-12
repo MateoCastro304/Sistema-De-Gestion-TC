@@ -1,9 +1,8 @@
 import type { Config } from 'jest';
-import { join } from 'path';
 
 const config: Config = {
   displayName: 'integration',
-  rootDir: join(__dirname, '..'),
+  rootDir: process.cwd(),
   preset: 'ts-jest',
   testEnvironment: 'node',
   testMatch: ['<rootDir>/test/modules/**/int/**/*.int.spec.ts'],
@@ -13,8 +12,9 @@ const config: Config = {
   verbose: true,
   moduleFileExtensions: ['ts', 'js', 'json'],
   transform: {
-    '^.+\\.ts$': ['ts-jest', { tsconfig: '<rootDir>/test/tsconfig.json' }],
+    '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: '<rootDir>/test/tsconfig.json' }],
   },
+  transformIgnorePatterns: ['node_modules/(?!(@faker-js/faker)/)'],
 };
 
 export default config;
