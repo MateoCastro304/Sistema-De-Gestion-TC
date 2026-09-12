@@ -22,8 +22,8 @@ services:
 
   frontend:
     build:
-      context: ../..
-      dockerfile: frontend/Dockerfile
+      context: ../../frontend
+      dockerfile: Dockerfile
       target: development
     container_name: torneria-frontend
     restart: 'unless-stopped'
@@ -47,7 +47,7 @@ services:
     build:
       context: ../../tooling/openapi
       dockerfile: Dockerfile
-    container_name: torneria_openapi_build
+    container_name: torneria-openapi-build
     restart: 'no'
     networks:
       - torneria-network
@@ -57,7 +57,7 @@ services:
 
   openapi-docs:
     image: nginx:alpine
-    container_name: torneria_openapi_docs
+    container_name: torneria-openapi-docs
     ports:
       - '8081:80'
     networks:
