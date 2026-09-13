@@ -1,6 +1,7 @@
 import { Cuit } from './cuit';
 import { Mail } from '../../shared/domain/mail';
 import { Phone } from '../../shared/domain/phone';
+import { DomainValidationError } from '../../shared/domain/errors/domain-validation.error';
 import { SupplierType, isSupplierType } from './supplier-type';
 
 // ---------------------------------------------------------------------------
@@ -193,7 +194,7 @@ export class Supplier {
   /** Logical deletion: the record is kept and only the active flag changes. */
   deactivate(): void {
     if (!this._active) {
-      throw new Error('Supplier is already inactive');
+      throw new DomainValidationError('Supplier is already inactive');
     }
     this._active = false;
     this.markUpdated();
@@ -202,7 +203,7 @@ export class Supplier {
   /** Brings back a supplier that was logically deleted. */
   activate(): void {
     if (this._active) {
-      throw new Error('Supplier is already active');
+      throw new DomainValidationError('Supplier is already active');
     }
     this._active = true;
     this.markUpdated();
@@ -289,29 +290,29 @@ export class Supplier {
    */
   private static assertValid(fields: SupplierState): void {
     if (!fields.legalName?.trim()) {
-      throw new Error('Legal name is required');
+      throw new DomainValidationError('Legal name is required');
     }
     if (fields.legalName.length > Supplier.MAX_LEGAL_NAME_LENGTH) {
-      throw new Error(`Legal name must not exceed ${Supplier.MAX_LEGAL_NAME_LENGTH} characters`);
+      throw new DomainValidationError(`Legal name must not exceed ${Supplier.MAX_LEGAL_NAME_LENGTH} characters`);
     }
     if (fields.contactName !== null && fields.contactName.length > Supplier.MAX_CONTACT_NAME_LENGTH) {
-      throw new Error(`Contact name must not exceed ${Supplier.MAX_CONTACT_NAME_LENGTH} characters`);
+      throw new DomainValidationError(`Contact name must not exceed ${Supplier.MAX_CONTACT_NAME_LENGTH} characters`);
     }
     if (fields.address !== null && fields.address.length > Supplier.MAX_ADDRESS_LENGTH) {
-      throw new Error(`Address must not exceed ${Supplier.MAX_ADDRESS_LENGTH} characters`);
+      throw new DomainValidationError(`Address must not exceed ${Supplier.MAX_ADDRESS_LENGTH} characters`);
     }
 
     if (fields.supplierTypes.length === 0) {
-      throw new Error('At least one supplier type is required');
+      throw new DomainValidationError('At least one supplier type is required');
     }
     if (!fields.supplierTypes.every(isSupplierType)) {
-      throw new Error(`Invalid supplier type: ${fields.supplierTypes}`);
+      throw new DomainValidationError(`Invalid supplier type: ${fields.supplierTypes}`);
     }
 
     const uniqueTypes = new Set(fields.supplierTypes);
 
     if (uniqueTypes.size !== fields.supplierTypes.length) {
-      throw new Error('Duplicate supplier types are not allowed');
+      throw new DomainValidationError('Duplicate supplier types are not allowed');
     }
   }
 
