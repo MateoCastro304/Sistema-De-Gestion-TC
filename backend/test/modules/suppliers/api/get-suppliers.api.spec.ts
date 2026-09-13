@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 
 import { startTestApp, stopTestApp, getPrisma } from '../../../shared/harness/test-app';
-import { createSupplier } from '../../../shared/harness/test-setup';
+import { createSupplier } from '../../../shared/factories/supplier-factory';
 import { SupplierType } from '@prisma/client';
 
 describe('GET /suppliers', () => {
