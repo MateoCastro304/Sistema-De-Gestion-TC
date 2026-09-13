@@ -1,9 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 
 import { startTestApp, stopTestApp, getPrisma } from '../../../shared/harness/test-app';
-import { aSupplier } from '../../../shared/factories/supplier-factory';
+import { createSupplier } from '../../../shared/harness/test-setup';
+import { SupplierType } from '@prisma/client';
 
 describe('GET /suppliers', () => {
   let app: INestApplication;
@@ -15,122 +15,75 @@ describe('GET /suppliers', () => {
   afterAll(async () => {
     await stopTestApp();
   });
-
   beforeEach(async () => {
     await getPrisma().supplier.deleteMany(); // limpieza de datos, no del container
   });
+  it('All Suppliers', async () => {
+    await createSupplier();
+    await createSupplier();
+    await createSupplier();
+    await createSupplier();
 
-  it('201 Supplier created successfully', async () => {
-    const response = await request(app.getHttpServer()).post('/suppliers').send(aSupplier());
-    expect(response.status).toBe(201);
-    expect(response.body).toMatchObject({ id: expect.any(String), legalName: expect.any(String), type: 'MATERIAL' });
+    const response = await request(app.getHttpServer()).get('/suppliers');
+    expect(response.status).toBe(200);
+    expect(response.body.data).toHaveLength(4);
   });
 
-  it('400 Invalid Request: name field empty', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/suppliers')
-      .send(aSupplier({ legalName: undefined }));
+  it('200 Filter By Type', async () => {
+    await createSupplier({ type: SupplierType.PAINT });
+    await createSupplier({ type: SupplierType.PAINT });
+    await createSupplier({ type: SupplierType.MATERIAL });
+    await createSupplier({ type: SupplierType.PROCESS });
 
+    const response = await request(app.getHttpServer()).get('/suppliers?type=PAINT');
+    expect(response.status).toBe(200);
+    expect(response.body.data).toHaveLength(2);
+    expect(response.body.data.every((c: any) => c.type === 'PAINT')).toBe(true);
+  });
+
+  it('400 Filter By Type', async () => {
+    const response = await request(app.getHttpServer()).get('/suppliers?type=PAI');
     expect(response.status).toBe(400);
     expect(response.body).toMatchObject({
       statusCode: 400,
       path: '/suppliers',
-      details: [
-        {
-          field: 'name',
-          message: 'Name cannot be empty.',
-        },
-      ],
+      error: expect.any(String),
     });
   });
 
-  it('400 Invalid Request: type field empty', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/suppliers')
-      .send(aSupplier({ type: undefined }));
+  it('200 Filter By name', async () => {
+    const nameFilter = 'co';
+    await createSupplier({ legalName: 'OxyCam' });
+    await createSupplier({ legalName: 'Edasa' });
+    await createSupplier({ legalName: 'Coca Cola Andina SA' });
+    await createSupplier({ legalName: 'CorBlock' });
 
-    expect(response.status).toBe(400);
+    const response = await request(app.getHttpServer()).get(`/suppliers?name=${nameFilter}`);
+    expect(response.status).toBe(200);
+    expect(response.body.data).toHaveLength(2);
+    expect(response.body.data.every((c: any) => c.name.toLowerCase().includes(nameFilter))).toBe(true);
+  });
+
+  it('GET suppliers/:id 200 supplier found', async () => {
+    const supplier = await createSupplier({ legalName: 'CorBlock' });
+
+    const response = await request(app.getHttpServer()).get(`/suppliers/${supplier.id}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toHaveLength(1);
+    expect(response.body.data[0].name).toEqual('CorBlock');
+  });
+
+  it('GET suppliers/:id 404 supplier not found', async () => {
+    const response = await request(app.getHttpServer()).get(`/suppliers/1235498654`);
+
+    expect(response.status).toBe(404);
     expect(response.body).toMatchObject({
-      statusCode: 400,
+      statusCode: 404,
       path: '/suppliers',
-      details: [
-        {
-          field: 'type',
-          message: 'type cannot be empty.',
-        },
-      ],
+      error: expect.any(String),
     });
   });
-
-  it('400 Invalid Request: invalid type', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/suppliers')
-      .send(aSupplier({ type: 'procc' }));
-
-    expect(response.status).toBe(400);
-    expect(response.body).toMatchObject({
-      statusCode: 400,
-      path: '/suppliers',
-      details: [
-        {
-          field: 'type',
-          message: 'invalid type',
-        },
-      ],
-    });
-  });
-
-  it('400 Invalid Request: invalid taxId format', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/suppliers')
-      .send(aSupplier({ taxId: '3046033121-2' }));
-    expect(response.status).toBe(400);
-    expect(response.body).toMatchObject({
-      statusCode: 400,
-      path: '/suppliers',
-      details: [
-        {
-          field: 'taxId',
-          message: 'Invalid taxId format',
-        },
-      ],
-    });
-  });
-
-  it('400 Invalid Request: not is a taxId', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/suppliers')
-      .send(aSupplier({ taxId: 'e-stonoesuncu-it' }));
-    expect(response.status).toBe(400);
-    expect(response.body).toMatchObject({
-      statusCode: 400,
-      path: '/suppliers',
-      details: [
-        {
-          field: 'taxId',
-          message: 'Not is a taxId',
-        },
-      ],
-    });
-  });
-
-  it('400 Invalid Request: invalid mail', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/suppliers')
-      .send(aSupplier({ contactEmail: 'not.valid@' }));
-    expect(response.status).toBe(400);
-    expect(response.body).toMatchObject({
-      statusCode: 400,
-      path: '/suppliers',
-      details: [
-        {
-          field: 'mail',
-          message: 'Invalid mail',
-        },
-      ],
-    });
-  });
-
   //   it('401 Unauthorized', async () => {
 
   //   });

@@ -1,4 +1,6 @@
 import { faker } from '@faker-js/faker';
+import { SupplierType } from '@prisma/client';
+import { getPrisma } from '../harness/test-app';
 
 /**
  * Uncomment when CreateSupplierDTO has implemented
@@ -26,4 +28,18 @@ export function aSupplier(overrides: Partial<SupplierPayload> = {}) {
     type: 'MATERIAL',
     ...overrides,
   };
+}
+
+type OverridesSupplier = {
+  legalName?: string;
+  type?: SupplierType;
+};
+
+export async function createSupplier(overrides: OverridesSupplier = {}) {
+  return getPrisma().supplier.create({
+    data: {
+      name: overrides.legalName ?? faker.company.name(),
+      type: overrides.type ?? SupplierType.MATERIAL,
+    },
+  });
 }
