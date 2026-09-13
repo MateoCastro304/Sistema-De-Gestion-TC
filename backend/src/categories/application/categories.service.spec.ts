@@ -1,10 +1,13 @@
 import { CategoriesService } from './categories.service';
 import { CategoriesRepository } from '../domain/categories.repository';
 import { Category } from '../domain/category';
+import { FactoryRepository } from '../../factory/domain/factory.repository';
 
 describe('CategoriesService', () => {
   let service: CategoriesService;
   let repository: jest.Mocked<CategoriesRepository>;
+  let factoryRepository: jest.Mocked<FactoryRepository>;
+  let moduleRef: { get: jest.Mock };
 
   beforeEach(() => {
     repository = {
@@ -14,7 +17,13 @@ describe('CategoriesService', () => {
       save: jest.fn(),
     } as unknown as jest.Mocked<CategoriesRepository>;
 
-    service = new CategoriesService(repository);
+    factoryRepository = {
+      findAll: jest.fn().mockResolvedValue([]),
+    } as unknown as jest.Mocked<FactoryRepository>;
+
+    moduleRef = { get: jest.fn().mockReturnValue(factoryRepository) };
+
+    service = new CategoriesService(repository, moduleRef as any);
   });
 
   describe('create', () => {
@@ -28,7 +37,8 @@ describe('CategoriesService', () => {
       expect(result.getName()).toBe('Metalurgica');
       expect(result.getActive()).toBe(true);
     });
-        it('throws Conflict when the name already exists and is active', async () => {
+
+    it('throws Conflict when the name already exists and is active', async () => {
       const existing = Category.reconstruct(1, 'Autopartes', true, new Date(), new Date());
       repository.findByName.mockResolvedValue(existing);
 
@@ -44,9 +54,7 @@ describe('CategoriesService', () => {
         response: { categoryId: 1 },
       });
     });
-
   });
-
 
   describe('findOne', () => {
     it('returns the category found by the repository', async () => {
@@ -89,7 +97,7 @@ describe('CategoriesService', () => {
       expect(repository.save).toHaveBeenCalledWith(existing);
     });
 
-        it('throws Conflict when trying to rename to an existing active category name', async () => {
+    it('throws Conflict when trying to rename to an existing active category name', async () => {
       const category = Category.reconstruct(1, 'Metalmecanica', true, new Date(), new Date());
       const other = Category.reconstruct(2, 'Metalurgica', true, new Date(), new Date());
       repository.findById.mockResolvedValue(category);
@@ -121,7 +129,6 @@ describe('CategoriesService', () => {
       expect(repository.save).not.toHaveBeenCalled();
       expect(repository.findByName).not.toHaveBeenCalled();
     });
-
   });
 
   describe('remove', () => {
@@ -143,6 +150,20 @@ describe('CategoriesService', () => {
 
       expect(result?.getActive()).toBe(false);
       expect(repository.save).toHaveBeenCalledWith(existing);
+    });
+
+    it('throws Conflict when there are active factories associated', async () => {
+      const existing = Category.reconstruct(1, 'Autopartes', true, new Date(), new Date());
+      repository.findById.mockResolvedValue(existing);
+      factoryRepository.findAll.mockResolvedValue([
+        { getId: () => 10, getName: () => 'Fabrica A', getCategoryId: () => 1, isActive: () => true } as any,
+        { getId: () => 11, getName: () => 'Fabrica B', getCategoryId: () => 1, isActive: () => true } as any,
+        { getId: () => 12, getName: () => 'Fabrica C', getCategoryId: () => 1, isActive: () => false } as any,
+        { getId: () => 13, getName: () => 'Fabrica D', getCategoryId: () => 2, isActive: () => true } as any,
+      ]);
+
+      await expect(service.remove(1)).rejects.toThrow(/existen 2 fábricas activas/);
+      expect(repository.save).not.toHaveBeenCalled();
     });
   });
 });

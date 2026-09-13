@@ -20,6 +20,7 @@ export class CategoryExceptionFilter implements ExceptionFilter {
     let message = 'Unexpected error.';
     let details: { field: string; message: string }[] | undefined;
     let categoryId: number | undefined;
+    let factories: { id: number; name: string }[] | undefined;
     
     if (exception instanceof HttpException) { //es un operador de JavaScript que responde "¿este objeto fue creado a partir de esta clase (o una que hereda de ella)?". HttpException es la clase base de la que heredan NotFoundException, BadRequestException, y prácticamente todos los errores "oficiales" de Nest.
       statusCode = exception.getStatus();
@@ -31,6 +32,7 @@ export class CategoryExceptionFilter implements ExceptionFilter {
         message = (bodyObj.message as string) ?? exception.message;
         details = bodyObj.details as { field: string; message: string }[] | undefined;
         categoryId = bodyObj.categoryId as number | undefined;
+        factories = bodyObj.factories as { id: number; name: string }[] | undefined;
       } 
     } else if (exception instanceof Error) {
       // Errores de validación del dominio (ej: Category.validate()) llegan como Error simple.
@@ -46,6 +48,7 @@ export class CategoryExceptionFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
       ...(details ? { details } : {}),
       ...(categoryId !== undefined ? { categoryId } : {}),
+      ...(factories !== undefined ? { factories } : {}),
     });
   }
 }

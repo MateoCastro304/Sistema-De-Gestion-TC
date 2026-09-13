@@ -3,11 +3,15 @@ import { Category } from '../domain/category';
 import { CategoriesRepository } from '../domain/categories.repository';
 import { CreateCategoryDto } from '../http/dto/create-category.dto';
 import { UpdateCategoryDto } from '../http/dto/update-category.dto';
+import { ModuleRef } from '@nestjs/core';
+import { FactoryRepository } from '../../factory/domain/factory.repository';
 
 //esta clase se puede inyectar como dependencia en otro lado. Nest sabe como crear una instancia de CategoriesService para dársela al controller.
 @Injectable()
 export class CategoriesService {
-  constructor(private readonly categoriesRepository: CategoriesRepository) {}
+  constructor(private readonly categoriesRepository: CategoriesRepository,
+    private readonly moduleRef: ModuleRef,
+  ) {}
 
   async create(dto: CreateCategoryDto): Promise<Category> {
     const existing = await this.categoriesRepository.findByName(dto.name);
@@ -54,10 +58,23 @@ export class CategoriesService {
     return this.categoriesRepository.save(category);
   }
 
-
   async remove(id: number): Promise<Category | null> {
     const category = await this.categoriesRepository.findById(id);
     if (!category) return null;
+
+    const factoryRepository = this.moduleRef.get(FactoryRepository, { strict: false });
+    const allFactories = await factoryRepository.findAll();
+    const activeFactories = allFactories.filter(
+      (f) => f.getCategoryId() === id && f.isActive(),
+    );
+
+    if (activeFactories.length > 0) {
+      throw new ConflictException({
+        message: `No es posible dar de baja el rubro: existen ${activeFactories.length} fábricas activas asociadas. Reasignelas antes de continuar`,
+        factories: activeFactories.map((f) => ({ id: f.getId(), name: f.getName() })),
+      });
+    }
+
     category.deactivate();
     return this.categoriesRepository.save(category);
   }
