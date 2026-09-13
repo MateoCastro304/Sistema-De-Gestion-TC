@@ -1,5 +1,5 @@
 import { UpdateSupplier } from './update-supplier.use-case';
-import { InMemorySupplierRepository } from './testing/in-memory-supplier.repository';
+import { InMemorySupplierRepository } from '../infrastructure/in-memory-supplier.repository';
 import { SupplierAlreadyExists } from '../domain/errors/supplier-already-exists.error';
 import { SupplierNotFound } from '../domain/errors/supplier-not-found.error';
 import { Supplier } from '../domain/supplier';

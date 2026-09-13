@@ -1,5 +1,5 @@
 import { ListSuppliers } from './list-suppliers.use-case';
-import { InMemorySupplierRepository } from './testing/in-memory-supplier.repository';
+import { InMemorySupplierRepository } from '../infrastructure/in-memory-supplier.repository';
 import { Supplier } from '../domain/supplier';
 import { SupplierType } from '../domain/supplier-type';
 

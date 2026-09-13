@@ -1,7 +1,17 @@
-import { SupplierListParams, SupplierListResult, SupplierRepository } from '../../domain/ports/supplier.repository';
-import { Supplier } from '../../domain/supplier';
-import { Cuit } from '../../domain/cuit';
+import { Injectable } from '@nestjs/common';
+import { SupplierListParams, SupplierListResult, SupplierRepository } from '../domain/ports/supplier.repository';
+import { Supplier } from '../domain/supplier';
+import { Cuit } from '../domain/cuit';
 
+/**
+ * In-memory implementation of the SupplierRepository port. Mimics the
+ * semantics the real Prisma adapter will have — uniqueness across active and
+ * inactive rows, case-insensitive partial match on legalName, total computed
+ * over the filtered set — so use-case specs and local runs behave the same.
+ * Serves double duty: registered by SuppliersModule as the runtime adapter
+ * until the Prisma one lands, and imported by the specs as their fake.
+ */
+@Injectable()
 export class InMemorySupplierRepository extends SupplierRepository {
   private items: Supplier[] = [];
   private nextId: number = 1;

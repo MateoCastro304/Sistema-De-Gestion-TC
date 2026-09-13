@@ -1,5 +1,5 @@
 import { GetSupplierById } from './get-supplier-by-id.use-case';
-import { InMemorySupplierRepository } from './testing/in-memory-supplier.repository';
+import { InMemorySupplierRepository } from '../infrastructure/in-memory-supplier.repository';
 import { SupplierNotFound } from '../domain/errors/supplier-not-found.error';
 import { Supplier } from '../domain/supplier';
 

@@ -1,5 +1,5 @@
 import { CreateSupplier } from './create-supplier.use-case';
-import { InMemorySupplierRepository } from './testing/in-memory-supplier.repository';
+import { InMemorySupplierRepository } from '../infrastructure/in-memory-supplier.repository';
 import { SupplierAlreadyExists } from '../domain/errors/supplier-already-exists.error';
 
 const VALID_CUIT = '30-71234567-1';
