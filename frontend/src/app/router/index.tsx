@@ -30,7 +30,9 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <CustomersPage /> },
       { path: 'new', element: <NewCustomerPage /> },
-      { path: ':id', element: <CustomerDetailPage /> },
+      // A customer is addressed by its composite key (factoryId, id): `id` is
+      // only unique within a factory (DB `manager_customer(factory_id, id)`).
+      { path: ':factoryId/:id', element: <CustomerDetailPage /> },
     ],
   },
   {

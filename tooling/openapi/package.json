@@ -8,9 +8,8 @@
     "spectral": "spectral lint ../../docs/openapi/openapi.yaml",
     "validate": "npm run lint && npm run spectral",
     "bundle": "redocly bundle ../../docs/openapi/openapi.yaml -o ../../build/openapi.yaml",
-    "build": "npm run validate && npm run bundle",
-    "preview": "redocly build-docs ../../docs/openapi/openapi.yaml -o ../../build/index.html",
-    "swagger": "swagger-ui-watcher ../../build/openapi.yaml --port 8080"
+    "docs": "redocly build-docs ../../build/openapi.yaml -o ../../build/index.html",
+    "build": "npm run validate && npm run bundle && npm run docs"
   },
   "keywords": [],
   "author": "",

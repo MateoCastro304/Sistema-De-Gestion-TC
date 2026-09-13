@@ -511,6 +511,16 @@ table {
   background: var(--color-btn-success-bg-hover);
 }
 
+/* Acciones destructivas: eliminar, descartar. */
+.btn--danger {
+  background: var(--color-accent-red);
+  color: var(--color-surface);
+}
+
+.btn--danger:hover {
+  filter: brightness(0.92);
+}
+
 .btn--block {
   width: 100%;
   justify-content: center;
@@ -602,6 +612,12 @@ table {
   color: var(--color-text-muted);
 }
 
+/* Para buscadores con placeholder largo (ej: proveedores, que busca por
+   razon social, CUIT, tipo y contacto). No toca el ancho por defecto. */
+.filters__search--wide {
+  max-width: 420px;
+}
+
 .filters__search-icon {
   width: 16px;
   height: 16px;
@@ -619,6 +635,16 @@ table {
 
 .filters__search-input::placeholder {
   color: var(--color-text-muted);
+}
+
+.filters__checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .filters__dropdown {
@@ -791,6 +817,13 @@ table {
 .table__action-sep {
   color: var(--color-border-strong);
   margin: 0 var(--space-1);
+}
+
+/* Name cell that pairs a link with a status badge (e.g. "Inactivo"). */
+.table__name-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 /* --- Badges --- */
@@ -3155,6 +3188,13 @@ table {
   line-height: 1;
 }
 
+/* Grupo de botones a la derecha del encabezado. */
+.content__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 /* ==========================================================================
    6. MEDIA QUERIES
    ========================================================================== */
@@ -3269,4 +3309,93 @@ table {
   text-overflow: ellipsis;
   white-space: nowrap;
   vertical-align: bottom;
+}
+
+/* ==========================================================================
+   7. CATALOGS — SUPPLIERS
+   Seleccion multiple en el listado y modal de confirmacion de borrado.
+   ========================================================================== */
+
+/* --- Seleccion multiple en tablas --- */
+.table__checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-accent-blue);
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.table__checkbox:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+/*
+  Barra de acciones en lote. Aparece solo con filas tildadas, entre los filtros
+  y la tabla, para que la accion quede cerca de lo que va a afectar.
+*/
+.bulk-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-highlight-border);
+  border-radius: var(--radius-md);
+  background: var(--color-highlight-bg);
+}
+
+.bulk-bar__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.bulk-bar__select-all {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.bulk-bar__count {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--color-text-primary);
+}
+
+.bulk-bar__hint {
+  font-size: var(--fs-xs);
+  color: var(--color-accent-red);
+}
+
+/* Lista de lo que se va a borrar, dentro del modal de confirmacion. */
+.confirm-list {
+  margin: var(--space-3) 0;
+  padding-left: var(--space-5);
+  max-height: 180px;
+  overflow-y: auto;
+  font-size: var(--fs-sm);
+  color: var(--color-text-primary);
+}
+
+.confirm-list li {
+  margin-bottom: var(--space-1);
+}
+
+.confirm-warning {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-accent-red);
+}
+
+.bulk-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }

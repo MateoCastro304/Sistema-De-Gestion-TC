@@ -1,10 +1,16 @@
-﻿import { plainToInstance } from "class-transformer";
-import { IsEnum, IsNumber, IsString, MinLength, validateSync } from "class-validator";
+﻿import { plainToInstance } from 'class-transformer';
+import {
+  IsEnum,
+  IsNumber,
+  IsString,
+  MinLength,
+  validateSync,
+} from 'class-validator';
 
 enum Entorno {
-  Development = "development",
-  Production = "production",
-  Test = "test",
+  Development = 'development',
+  Production = 'production',
+  Test = 'test',
 }
 
 class EnvironmentVariables {
@@ -30,10 +36,21 @@ export function validate(config: Record<string, unknown>) {
   const validatedConfig = plainToInstance(EnvironmentVariables, config, {
     enableImplicitConversion: true,
   });
-  const errors = validateSync(validatedConfig, { skipMissingProperties: false });
+
+  const errors = validateSync(validatedConfig, {
+    skipMissingProperties: false,
+  });
 
   if (errors.length > 0) {
-    throw new Error(errors.toString());
+    throw new Error(
+      errors
+        .map(
+          (error) =>
+            `${error.property}: ${Object.values(error.constraints ?? {}).join(', ')}`,
+        )
+        .join('\n'),
+    );
   }
+
   return validatedConfig;
 }

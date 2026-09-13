@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { CustomerInput } from '../types/customer'
+import type { Customer, CustomerInput } from '../types/customer'
 import type { FactoryInput } from '../types/factory'
 import { customerKeys, factoryKeys, industryKeys } from './customers.keys'
 import {
@@ -17,20 +17,32 @@ import {
 
 // Customers (EncargadoCliente) --------------------------------------------
 
-/** List all customers (CU-03 Consultar Cliente). */
-export function useCustomers() {
+/**
+ * List customers (CU-03 Consultar Cliente). Por defecto oculta los dados de baja
+ * lógica (`isActive`), como en el resto del sistema. Con `includeInactive` se
+ * devuelven también los inactivos, para las pantallas que ofrecen el filtro
+ * "mostrar inactivos" (regla de negocio: los inactivos se ven solo bajo demanda).
+ */
+export function useCustomers(options?: { includeInactive?: boolean }) {
+  const includeInactive = options?.includeInactive ?? false
   return useQuery({
     queryKey: customerKeys.lists(),
     queryFn: listCustomers,
+    select: includeInactive
+      ? undefined
+      : (data) => data.filter((c) => c.isActive),
   })
 }
 
-/** Single customer by id, for the detail/edit screen. */
-export function useCustomer(id: string) {
+/**
+ * Single customer by its composite key (factoryId, id), for the detail/edit
+ * screen. Both parts are required because `id` is only unique within a factory.
+ */
+export function useCustomer(factoryId: string, id: string) {
   return useQuery({
-    queryKey: customerKeys.detail(id),
-    queryFn: () => getCustomer(id),
-    enabled: Boolean(id),
+    queryKey: customerKeys.detail(factoryId, id),
+    queryFn: () => getCustomer(factoryId, id),
+    enabled: Boolean(factoryId) && Boolean(id),
   })
 }
 
@@ -45,23 +57,27 @@ export function useCreateCustomer() {
   })
 }
 
-/** Update a customer (CU-02 Modificar Cliente). */
-export function useUpdateCustomer(id: string) {
+/** Update a customer (CU-02 Modificar Cliente), addressed by (factoryId, id). */
+export function useUpdateCustomer(factoryId: string, id: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (input: CustomerInput) => updateCustomer(id, input),
+    mutationFn: (input: CustomerInput) => updateCustomer(factoryId, id, input),
     onSuccess: (updated) => {
-      queryClient.setQueryData(customerKeys.detail(id), updated)
+      queryClient.setQueryData(customerKeys.detail(factoryId, id), updated)
       queryClient.invalidateQueries({ queryKey: customerKeys.lists() })
     },
   })
 }
 
-/** Baja lógica of a customer (CU-04). */
+/** Identity of a customer: its composite key (factoryId, id). */
+type CustomerRef = Pick<Customer, 'factoryId' | 'id'>
+
+/** Baja lógica of a customer (CU-04), addressed by (factoryId, id). */
 export function useDeactivateCustomer() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: deactivateCustomer,
+    mutationFn: ({ factoryId, id }: CustomerRef) =>
+      deactivateCustomer(factoryId, id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: customerKeys.all })
     },
@@ -70,11 +86,15 @@ export function useDeactivateCustomer() {
 
 // Factories (FabricaCliente) ----------------------------------------------
 
-/** Factories, used by the customer form's selector and the factory modal. */
+/**
+ * Factories, used by the customer form's selector and the factory modal. Solo
+ * activas: las dadas de baja no se muestran en listados ni selectores.
+ */
 export function useFactories() {
   return useQuery({
     queryKey: factoryKeys.lists(),
     queryFn: listFactories,
+    select: (data) => data.filter((f) => f.isActive),
   })
 }
 

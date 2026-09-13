@@ -1,4 +1,4 @@
-import { Category } from './category';
+import { Category } from "./category";
 
 describe('Category (domain)', () => {
   it('creates a category with a valid name', () => {
@@ -35,19 +35,19 @@ describe('Category (domain)', () => {
 
       const category = Category.create('Metalurgica');
 
-      expect(category.createdAt).toEqual(category.updatedAt);
+      expect(category.getCreatedAt()).toEqual(category.getUpdatedAt());
     });
 
     it('updates updatedAt on rename, but keeps createdAt unchanged', () => {
       jest.setSystemTime(new Date('2026-01-01T10:00:00Z'));
       const category = Category.create('Metalurgica');
-      const originalCreatedAt = category.createdAt;
+      const originalCreatedAt = category.getCreatedAt();
 
       jest.setSystemTime(new Date('2026-06-01T10:00:00Z'));
       category.rename('Insumos');
 
-      expect(category.createdAt).toEqual(originalCreatedAt);
-      expect(category.updatedAt).toEqual(new Date('2026-06-01T10:00:00Z'));
+      expect(category.getCreatedAt()).toEqual(originalCreatedAt);
+      expect(category.getUpdatedAt()).toEqual(new Date('2026-06-01T10:00:00Z'));
     });
 
     it('updates updatedAt on deactivate', () => {
@@ -57,7 +57,7 @@ describe('Category (domain)', () => {
       jest.setSystemTime(new Date('2026-06-01T10:00:00Z'));
       category.deactivate();
 
-      expect(category.updatedAt).toEqual(new Date('2026-06-01T10:00:00Z'));
+      expect(category.getUpdatedAt()).toEqual(new Date('2026-06-01T10:00:00Z'));
     });
   });
 });

@@ -6,7 +6,10 @@
 export const customerKeys = {
   all: ['customers'] as const,
   lists: () => [...customerKeys.all, 'list'] as const,
-  detail: (id: string) => [...customerKeys.all, 'detail', id] as const,
+  // A customer is identified by the composite key (factoryId, id), mirroring the
+  // DB primary key (factory_id, id) where id is only unique within a factory.
+  detail: (factoryId: string, id: string) =>
+    [...customerKeys.all, 'detail', factoryId, id] as const,
 }
 
 export const factoryKeys = {

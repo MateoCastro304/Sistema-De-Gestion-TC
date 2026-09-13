@@ -112,7 +112,7 @@ export class Customer {
     const normalizedLastName = lastName.trim();
 
     if (!normalizedLastName) {
-      throw new Error('Encargado last name cannot be empty');
+      throw new Error('Customer lastName cannot be empty');
     }
 
     this.lastName = normalizedLastName;
