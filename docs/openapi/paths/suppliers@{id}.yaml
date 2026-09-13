@@ -23,7 +23,12 @@ patch:
   summary: Update a supplier
   description: |
     Partial update. Only the fields sent are modified.
-    The taxId cannot be modified.
+    The supplierTypes are set on creation and cannot be modified.
+    The optional fields (cuit, contactName, contactEmail, contactPhone,
+    address) can be cleared by sending null.
+
+    Responds 409 when the new cuit or legalName already belong to another
+    supplier, active or inactive.
   operationId: updateSupplier
   tags:
     - Suppliers
@@ -46,6 +51,8 @@ patch:
       $ref: '../components/responses/Unauthorized.yaml'
     '404':
       $ref: '../components/responses/NotFound.yaml'
+    '409':
+      $ref: '../components/responses/Conflict.yaml'
 
 delete:
   summary: Deactivate a supplier
@@ -53,6 +60,9 @@ delete:
     Logical deletion. The record is kept and its active flag is set to
     false, so materials and other records that reference the supplier
     remain valid. Reactivation is done with PATCH { "active": true }.
+
+    Responds 409 when the supplier is still assigned to work orders that
+    are not in a final state.
   operationId: deactivateSupplier
   tags:
     - Suppliers
@@ -63,3 +73,5 @@ delete:
       $ref: '../components/responses/Unauthorized.yaml'
     '404':
       $ref: '../components/responses/NotFound.yaml'
+    '409':
+      $ref: '../components/responses/Conflict.yaml'

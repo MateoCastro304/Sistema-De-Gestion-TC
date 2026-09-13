@@ -1,6 +1,6 @@
 import { CustomerId } from './customer-id';
 import { FactoryId } from '../../factory/domain/factory-id';
-import { Mail } from './mail';
+import { Mail } from '../../shared/domain/mail';
 
 export class Customer {
   private constructor(
