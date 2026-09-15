@@ -1,5 +1,6 @@
 services:
   backend:
+    container_name: torneria-backend-dev
     build:
       target: development
     ports:
@@ -15,17 +16,18 @@ services:
     command: npm run start:dev
 
   postgres:
+    container_name: torneria-postgres-dev
     ports:
-      - '${POSTGRES_PORT}:5432'
+      - '5432:5432'
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
 
   frontend:
+    container_name: torneria-frontend-dev
     build:
       context: ../../frontend
       dockerfile: Dockerfile
       target: development
-    container_name: torneria-frontend
     restart: 'unless-stopped'
     ports:
       - '5173:5173'
@@ -36,6 +38,7 @@ services:
       - /app/node_modules
 
   web:
+    container_name: torneria-web-server-dev
     image: nginx:alpine
     depends_on: [backend, frontend]
     ports:

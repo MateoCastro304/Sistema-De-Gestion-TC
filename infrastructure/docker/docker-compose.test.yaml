@@ -1,0 +1,44 @@
+x-database-url: &database-url
+  DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+
+services:
+  backend:
+    container_name: torneria-backend-test
+    build:
+      target: production
+    env_file:
+      - ./.env.test
+
+  postgres:
+    container_name: torneria-postgres-test
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+
+  web:
+    container_name: torneria-web-test
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile
+      target: production
+    depends_on: [backend]
+    ports:
+      - '80:80'
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
+
+  seed:
+    container_name: torneria-seed-test
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+      target: production
+    restart: 'no'
+    env_file:
+      - ./.env.test
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    command: npx prisma db seed
+
+volumes:
+  postgres_test_data:
