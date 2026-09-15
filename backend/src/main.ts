@@ -1,23 +1,32 @@
-console.log('HITO 1: script empezó');
-
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
-console.log('HITO 2: imports OK');
-
 async function bootstrap() {
-  console.log('HITO 3: bootstrap arrancó');
   const app = await NestFactory.create(AppModule);
-  console.log('HITO 4: Nest creado');
 
+  // whitelist strips body/query keys that are not declared in the DTO;
+  // forbidNonWhitelisted turns that into an explicit 400 so front-end typos
+  // and stale clients surface early instead of silently dropping fields.
+  // transform enables class-transformer so the payload reaches the controller
+  // as a real DTO instance — required for @Type(() => Number) to coerce query
+  // params from strings into numbers.
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+
+  // Swagger UI is a development-only nicety, wired via the dedicated
+  // swagger.ts module so main.ts stays focused on bootstrap.
   if (process.env.NODE_ENV === 'development') {
     const { setupSwagger } = await import('./swagger.js');
     setupSwagger(app);
   }
 
-  console.log('HITO 5: por llamar listen');
   await app.listen(process.env.PORT ?? 3000);
-  console.log('HITO 6: listen OK');
 }
 
 bootstrap().catch((err) => {
