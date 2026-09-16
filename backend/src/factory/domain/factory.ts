@@ -4,14 +4,18 @@ import { CategoryId } from '../../categories/domain/category-id';
 
 export class Factory {
   private constructor(
-    private readonly id: FactoryId | null,
-    private cuit: string, 
-    private name: string,
-    private address: string,
-    private paymentDescription: string | null,
-    private categoryId: CategoryId, // Rubro
-    private active: boolean, 
-  ) {}
+    private readonly _id: FactoryId | null,
+    private _cuit: string,
+    private _name: string,
+    private _address: string,
+    private _paymentDescription: string | null,
+    private _categoryId: CategoryId, // Rubro
+    private _active: boolean,
+    private readonly _createdAt: Date,
+    private _updatedAt: Date,
+  ) {
+    this.validate();
+  }
 
   // OPERATIONS
 
@@ -23,17 +27,7 @@ export class Factory {
     paymentDescription: string | null,
     categoryId: number,
   ): Factory {
-    if (!cuit.trim()){
-      throw new Error('Factory cuit cannot be empty');
-    }
-
-    if (!name.trim()){
-      throw new Error('Factory name cannot be empty');
-    }
-
-    if (!address.trim()){
-      throw new Error('Factory address cannot be empty');
-    }
+    const now = new Date();
 
     return new Factory(
       null,
@@ -43,8 +37,12 @@ export class Factory {
       paymentDescription?.trim() || null,
       CategoryId.create(categoryId),
       true,
+      now,
+      now
     );
     }
+
+
   static reconstruct(
       id: number,
       cuit: string,
@@ -53,6 +51,8 @@ export class Factory {
       paymentDescription: string | null,
       categoryId: number,
       active: boolean,
+      createdAt: Date, 
+      updatedAt: Date,
     ): Factory {
       return new Factory(
         FactoryId.create(id),
@@ -62,6 +62,8 @@ export class Factory {
         paymentDescription,
         CategoryId.create(categoryId),
         active,
+        createdAt,
+        updatedAt
       );
     }
 
@@ -73,72 +75,84 @@ export class Factory {
     paymentDescription: string | null,
     categoryId: number,
     ): void {
-    this.changeCuit(cuit);
-    this.changeName(name);
-    this.changeAddress(address);
-    this.changePaymentDescription(paymentDescription);
-    this.changeCategoryId(categoryId);
+    this.setCuit(cuit);
+    this.setName(name);
+    this.setAdress(address);
+    this.setPaymentDescription(paymentDescription);
+    this.setCategoryId(categoryId);
   }
 
   // DELETE
-    deactivate(): void {
-    if(!this.active){
+  deactivate(): void {
+    if(!this._active){
       throw new Error('Factory is already inactive');
     };
-    this.active = false
+    this._active = false
+    this._updatedAt = new Date();
   }
 
   // Reactivar (alta logica)
   activate(): void {
-    if(this.active){
+    if(this._active){
       throw new Error('Factory is already active');
     }
-    this.active = true;
+    this._active = true;
+    this._updatedAt = new Date();
+  }
+
+  // VALIDATION
+
+  private validate(): void {
+    if (!this._cuit || this._cuit.trim().length === 0) {
+      throw new Error('Factory cuit cannot be empty');
+    }
+
+    if (!this._name || this._name.trim().length === 0) {
+      throw new Error('Factory name cannot be empty');
+    }
+
+    if (!this._address || this._address.trim().length === 0) {
+      throw new Error('Factory address cannot be empty');
+    }
   }
 
   // CHANGE METHODS
 
-  changeCuit(cuit: string): void{
-    if (!cuit.trim()){
-      throw new Error('Factory cuit cannot be empty');
-    }
-    this.cuit = cuit.trim();
+  setCuit(cuit: string): void{
+    this._cuit = cuit.trim();
+    this.validate();
   }
 
-    changeName(name: string): void{
-        if (!name.trim()){
-            throw new Error('Factory name cannot be empty');
-        }
-        this.name = name.trim();
+    setName(name: string): void{
+        this._name = name.trim();
+        this.validate();
     }
 
-    changeAddress(address: string): void{
-        if (!address.trim()){
-            throw new Error('Factory address cannot be empty');
-        }   
-        this.address = address.trim();
+    setAdress(address: string): void{
+        this._address = address.trim();
+        this.validate();
     }
 
-    changePaymentDescription(
+    setPaymentDescription(
         paymentDescription: string | null,
     ): void {
-        this.paymentDescription =
+        this._paymentDescription =
             paymentDescription?.trim() || null;
     }
 
-    changeCategoryId(categoryId: number): void{
-        this.categoryId = CategoryId.create(categoryId);
+    setCategoryId(categoryId: number): void{
+        this._categoryId = CategoryId.create(categoryId);
     }
 
     // GETTERS
   getId(): number | null {
-    return this.id ? this.id.getValue() : null;
+    return this._id ? this._id.getValue() : null;
   }
-  getCuit(): string { return this.cuit; }
-  getName(): string { return this.name; }
-  getAddress(): string { return this.address; }
-  getPaymentDescription(): string | null { return this.paymentDescription; }
-  getCategoryId(): number { return this.categoryId.getValue(); }
-  isActive(): boolean { return this.active; }
+  getCuit(): string { return this._cuit; }
+  getName(): string { return this._name; }
+  getAddress(): string { return this._address; }
+  getPaymentDescription(): string | null { return this._paymentDescription; }
+  getCategoryId(): number { return this._categoryId.getValue(); }
+  isActive(): boolean { return this._active; }
 
 }

@@ -127,9 +127,9 @@ describe('Customer Entity', () => {
         validFactoryId,
       );
 
-      customer.changeName('   Nombre Nuevo  ');
-      customer.changeLastName('   Apellido Nuevo  ');
-      customer.changePhone('   555   ');
+      customer.setName('   Nombre Nuevo  ');
+      customer.setLastName('   Apellido Nuevo  ');
+      customer.setPhone('   555   ');
 
       expect(customer.getName()).toBe('Nombre Nuevo');
       expect(customer.getLastName()).toBe('Apellido Nuevo');

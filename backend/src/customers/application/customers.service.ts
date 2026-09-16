@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { Customer } from '../domain/customer';
-import { CustomerRepository } from '../domain/customer.repository';
+import { CustomerRepository, CustomerListParams, CustomerListResult } from '../domain/port/customer.repository';
 import { CreateCustomerDto } from '../http/dto/create-customer.dto';
 import { UpdateCustomerDto } from '../http/dto/update-customer.dto';
-import { FactoryRepository } from '../../factory/domain/factory.repository';
+import { FactoryRepository } from '../../factory/domain/port/factory.repository';
+import { CustomerAlreadyExists } from '../domain/errors/customer-already-exists.error';
+import { Mail } from '../domain/mail';
 
 @Injectable()
 export class CustomersService {
@@ -29,13 +31,27 @@ export class CustomersService {
       dto.factoryId,
     );
 
-    // 3. Persistir
+    // 3. Verificar que el mail no esté ya en uso
+    const mailTaken = await this.customersRepository.existsByMail(customer.getMail());
+    if (mailTaken) {
+      throw new ConflictException(new CustomerAlreadyExists(customer.getMail()).message);
+    }
+
+    // 4. Persistir
     return await this.customersRepository.save(customer);
   }
 
   // --- LISTAR TODOS ---
   async findAll(): Promise<Customer[]> {
     return await this.customersRepository.findAll();
+  }
+
+  // --- LISTADO PAGINADO ---
+  async list(params: CustomerListParams): Promise<CustomerListResult> {
+    if (params.page < 1 || params.limit < 1) {
+      throw new BadRequestException('page and limit must be positive integers');
+    }
+    return await this.customersRepository.list(params);
   }
 
   // --- BUSCAR POR ID ---
@@ -52,7 +68,19 @@ export class CustomersService {
     // 1. Buscar si el cliente existe
     const customer = await this.findById(id);
 
-    // 2. Aplicar los cambios sobre la entidad recuperada
+    // 2. Verificar que el nuevo mail (si cambia) no esté ya en uso
+    if (dto.mail !== undefined) {
+      const normalizedMail = Mail.create(dto.mail).getValue();
+      const mailTaken = await this.customersRepository.existsByMail(
+        normalizedMail,
+        customer.getId() ?? undefined,
+      );
+      if (mailTaken) {
+        throw new ConflictException(new CustomerAlreadyExists(normalizedMail).message);
+      }
+    }
+
+    // 3. Aplicar los cambios sobre la entidad recuperada
     customer.update(
       dto.name ?? customer.getName(),
       dto.lastName ?? customer.getLastName(),
@@ -61,7 +89,7 @@ export class CustomersService {
       dto.factoryId ?? customer.getFactoryId(),
     );
 
-    // 3. Re-persistir los cambios en el repositorio
+    // 4. Re-persistir los cambios en el repositorio
     await this.customersRepository.update(customer);
 
     return customer;

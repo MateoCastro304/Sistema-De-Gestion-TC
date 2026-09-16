@@ -1,19 +1,15 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { CustomersController } from './http/customers.controller';
 import { CustomersService } from './application/customers.service';
-
-// 1. Importar la abstracción/contrato del Dominio
-import { CustomerRepository } from './domain/customer.repository';
-
-// 2. Importar la implementación In-Memory de Infraestructura
+import { CustomerRepository } from './domain/port/customer.repository';
 import { CustomerInMemoryRepository } from './infrastructure/customers.repository';
-
-// 3. Importar FactoryModule, que exporta FactoryRepository, para que
-//    CustomersService valide contra el MISMO store de fábricas que /fabricas.
 import { FactoryModule } from '../factory/factory.module';
+import { CustomerQuery } from '../factory/domain/port/customer-query.port';
+import { CustomerQueryAdapter } from './infrastructure/customer-query.adapter';
+
 
 @Module({
-  imports: [FactoryModule],
+  imports: [forwardRef(() => FactoryModule)], // "Esta dependencia existe, pero resolvela más adelante cuando tengas disponible la referencia."
   controllers: [CustomersController],
   providers: [
     CustomersService,
@@ -22,7 +18,12 @@ import { FactoryModule } from '../factory/factory.module';
       provide: CustomerRepository,
       useClass: CustomerInMemoryRepository,
     },
+    // Adaptador del puerto CustomerQuery, consumido por FactoryModule, "Cuando alguien pida CustomerQuery, entregale un CustomerQueryAdapter."
+    {
+      provide: CustomerQuery,
+      useClass: CustomerQueryAdapter,
+    },
   ],
-  exports: [CustomersService],
+  exports: [CustomersService, CustomerQuery],
 })
 export class CustomersModule {}

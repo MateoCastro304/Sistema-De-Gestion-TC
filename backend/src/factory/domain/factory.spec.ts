@@ -111,10 +111,10 @@ describe('Factory Entity', () => {
     it('debería recortar los espacios en blanco (trim) en las modificaciones', () => {
       const factory = Factory.create(validCuit, validName, validAddress, null, validCategoryId);
 
-      factory.changeCuit('  20-99999999-9  ');
-      factory.changeName('   Nombre Nuevo  ');
-      factory.changeAddress('   Dirección Nueva  ');
-      factory.changePaymentDescription('   Pago Efectivo   ');
+      factory.setCuit('  20-99999999-9  ');
+      factory.setName('   Nombre Nuevo  ');
+      factory.setAdress('   Dirección Nueva  ');
+      factory.setPaymentDescription('   Pago Efectivo   ');
 
       expect(factory.getCuit()).toBe('20-99999999-9');
       expect(factory.getName()).toBe('Nombre Nuevo');
