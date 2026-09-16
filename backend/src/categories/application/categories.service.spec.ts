@@ -1,5 +1,5 @@
 import { CategoriesService } from './categories.service';
-import { CategoriesRepository } from '../domain/categories.repository';
+import { CategoriesRepository } from '../domain/ports/categories.repository';
 import { Category } from '../domain/category';
 import { FactoryRepository } from '../../factory/domain/factory.repository';
 

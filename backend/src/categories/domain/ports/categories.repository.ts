@@ -1,4 +1,4 @@
-import { Category } from './category';
+import { Category } from '../category';
 
 export abstract class CategoriesRepository {
     abstract save(category: Category): Promise<Category>;
