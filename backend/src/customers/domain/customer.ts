@@ -11,12 +11,14 @@ export class Customer {
     private _mail: Mail,
     private _factoryId: FactoryId,  // Fabrica asociada
     private _active: boolean,
+    private readonly _createdAt: Date,
+    private _updatedAt: Date,
     
   ) {}
 // OPERATIONS 
 
   // CREATE
-  static create(
+    static create(
     name: string,
     lastName: string,
     phone: string,
@@ -35,6 +37,8 @@ export class Customer {
       throw new Error('Customer phone cannot be empty');
     }
 
+    const now = new Date();
+
     return new Customer(
       null,
       name.trim(),
@@ -43,10 +47,13 @@ export class Customer {
       Mail.create(mail),
       FactoryId.create(factoryId),
       true,
+      now,
+      now,
     );
   }
 
-  static reconstruct(
+
+    static reconstruct(
     id: number,
     name: string,
     lastName: string,
@@ -54,6 +61,8 @@ export class Customer {
     mail: string,
     factoryId: number,
     active: boolean,
+    createdAt: Date = new Date(),
+    updatedAt: Date = new Date(),
   ): Customer {
     return new Customer(
       CustomerId.create(id),
@@ -63,11 +72,14 @@ export class Customer {
       Mail.create(mail),
       FactoryId.create(factoryId),
       active,
+      createdAt,
+      updatedAt,
     );
   }
 
+
   // UPDATE
-  update(
+    update(
     name: string,
     lastName: string,
     phone: string,
@@ -79,14 +91,15 @@ export class Customer {
     this.setPhone(phone);
     this.setMail(mail);
     this.setFactoryId(factoryId);
+    this._updatedAt = new Date();
   }
 
-  // DELETE (baja logica)
   deactivate(): void {
     if(!this._active){
       throw new Error('Customer is already inactive');
     };
     this._active = false
+    this._updatedAt = new Date();
   }
 
   // Reactivar (alta logica)
@@ -95,7 +108,9 @@ export class Customer {
       throw new Error('Customer is already active');
     }
     this._active = true;
+    this._updatedAt = new Date();
   }
+
 
 // CHANGE METHODS
 
@@ -144,6 +159,9 @@ export class Customer {
   getMail(): string { return this._mail.getValue(); }
   getFactoryId(): number { return this._factoryId.getValue(); }
   isActive(): boolean { return this._active; }
+  getCreatedAt(): Date { return this._createdAt; }
+  getUpdatedAt(): Date { return this._updatedAt; }
+
 
 
 

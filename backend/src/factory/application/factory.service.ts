@@ -4,7 +4,7 @@ import { CustomerQuery } from '../domain/port/customer-query.port';
 import { CreateFactoryDto } from '../http/dto/create-factory.dto';
 import { UpdateFactoryDto } from '../http/dto/update-factory.dto';
 import { Factory } from '../domain/factory';
-import { CategoriesRepository } from '../../categories/domain/categories.repository';
+import { CategoriesRepository } from '../../categories/domain/ports/categories.repository';
 import { FactoryAlreadyExists } from '../domain/errors/factory-already-exists.error';
 import { FactoryHasActiveCustomers } from '../domain/errors/factory-has-active-customers.error';
 

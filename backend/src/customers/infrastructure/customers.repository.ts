@@ -10,7 +10,7 @@ export class CustomerInMemoryRepository implements CustomerRepository {
 
     private autoIncrementId = 1;
 
-    async save(customer: Customer): Promise<Customer> {
+        async save(customer: Customer): Promise<Customer> {
         const generatedId = this.autoIncrementId++;
         const savedCustomer = Customer.reconstruct(
         generatedId,
@@ -20,6 +20,8 @@ export class CustomerInMemoryRepository implements CustomerRepository {
         customer.getMail(),
         customer.getFactoryId(),
         customer.isActive(),
+        customer.getCreatedAt(),
+        customer.getUpdatedAt(),
       );
 
       this.customers.set(generatedId, savedCustomer);
