@@ -43,7 +43,7 @@ export class Factory {
     }
 
 
-  static reconstruct(
+    static reconstruct(
       id: number,
       cuit: string,
       name: string,
@@ -51,8 +51,8 @@ export class Factory {
       paymentDescription: string | null,
       categoryId: number,
       active: boolean,
-      createdAt: Date, 
-      updatedAt: Date,
+      createdAt: Date = new Date(),
+      updatedAt: Date = new Date(),
     ): Factory {
       return new Factory(
         FactoryId.create(id),
@@ -66,6 +66,7 @@ export class Factory {
         updatedAt
       );
     }
+
 
 // UPDATE
   update(

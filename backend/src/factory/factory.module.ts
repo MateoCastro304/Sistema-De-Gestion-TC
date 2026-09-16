@@ -8,10 +8,12 @@ import { CategoriesModule } from '../categories/categories.module';
 // importa este) únicamente para poder inyectar el CustomerQuery que expone:
 // FactoriesService lo usa en deactivate() para chequear si la fábrica tiene
 // clientes activos, sin depender del CustomerRepository completo.
+import { FactoryQuery } from '../categories/domain/port/factory-query.port';
+import { FactoryQueryAdapter } from './infrastructure/factory-query.adapter';
 import { CustomersModule } from '../customers/customers.module';
 
 @Module({
-    imports: [CategoriesModule, forwardRef(() => CustomersModule)],
+    imports: [forwardRef(() => CategoriesModule), forwardRef(() => CustomersModule)],
     controllers: [FactoryController],
     providers: [
     FactoriesService,
@@ -19,7 +21,11 @@ import { CustomersModule } from '../customers/customers.module';
       provide: FactoryRepository,
       useClass: FactoryInMemoryRepository,
     },
+    {
+      provide: FactoryQuery,
+      useClass: FactoryQueryAdapter,
+    },
   ],
-  exports: [FactoriesService, FactoryRepository],
+  exports: [FactoriesService, FactoryRepository, FactoryQuery],
 })
 export class FactoryModule{}
