@@ -21,7 +21,8 @@ describe('POST /suppliers', () => {
   });
 
   it('201 Supplier created successfully', async () => {
-    const response = await request(app.getHttpServer()).post('/suppliers').send(aSupplier());
+    const payload = aSupplier();
+    const response = await request(app.getHttpServer()).post('/suppliers').send(payload);
     expect(response.status).toBe(201);
     expect(response.body).toMatchObject({ id: expect.any(String), legalName: expect.any(String), type: 'MATERIAL' });
   });
