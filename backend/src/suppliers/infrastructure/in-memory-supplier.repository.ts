@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { SupplierListParams, SupplierListResult, SupplierRepository } from '../domain/ports/supplier.repository';
 import { Supplier } from '../domain/supplier';
-import { Cuit } from '../domain/cuit';
+import { Cuit } from '../../shared/domain/cuit';
 
 /**
  * In-memory implementation of the SupplierRepository port. Mimics the

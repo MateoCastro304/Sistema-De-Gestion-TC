@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Cuit } from '../domain/cuit';
+import { Cuit } from '../../shared/domain/cuit';
 import { SupplierAlreadyExists } from '../domain/errors/supplier-already-exists.error';
 import { SupplierNotFound } from '../domain/errors/supplier-not-found.error';
 import { SupplierRepository } from '../domain/ports/supplier.repository';

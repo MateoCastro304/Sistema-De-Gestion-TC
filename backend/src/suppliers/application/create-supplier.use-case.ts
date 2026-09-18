@@ -3,7 +3,7 @@ import { SupplierRepository } from '../domain/ports/supplier.repository';
 import { Supplier } from '../domain/supplier';
 import { SupplierType } from '../domain/supplier-type';
 import { SupplierAlreadyExists } from '../domain/errors/supplier-already-exists.error';
-import { Cuit } from '../domain/cuit';
+import { Cuit } from '../../shared/domain/cuit';
 
 export type CreateSupplierInput = {
   legalName: string;

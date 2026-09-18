@@ -1,5 +1,12 @@
-import { DomainValidationError } from '../../shared/domain/errors/domain-validation.error';
+import { DomainValidationError } from './errors/domain-validation.error';
 
+/**
+ * Argentine CUIT value object. Self-validates on construction (format, digit
+ * count, valid prefix, mod-11 check digit) so any Cuit instance is guaranteed
+ * to be structurally valid. Lives in shared/domain because it is a country-
+ * level identifier that every domain touching Argentine legal entities can
+ * reuse (suppliers, customers, factories, etc).
+ */
 export class Cuit {
   private static readonly WEIGHTS = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
   private static readonly VALID_PREFIXES = ['20', '23', '24', '27', '30', '33', '34'];

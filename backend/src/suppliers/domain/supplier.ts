@@ -1,4 +1,4 @@
-import { Cuit } from './cuit';
+import { Cuit } from '../../shared/domain/cuit';
 import { Mail } from '../../shared/domain/mail';
 import { Phone } from '../../shared/domain/phone';
 import { DomainValidationError } from '../../shared/domain/errors/domain-validation.error';

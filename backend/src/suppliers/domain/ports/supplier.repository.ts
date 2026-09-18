@@ -1,4 +1,4 @@
-import { Cuit } from '../cuit';
+import { Cuit } from '../../../shared/domain/cuit';
 import { Supplier } from '../supplier';
 import { SupplierType } from '../supplier-type';
 
