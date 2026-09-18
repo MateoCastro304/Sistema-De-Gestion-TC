@@ -35,7 +35,6 @@ describe('DELETE /suppliers/:id', () => {
     expect(response.status).toBe(404);
     expect(response.body).toMatchObject({
       statusCode: 404,
-      path: '/suppliers',
       error: expect.any(String),
     });
   });

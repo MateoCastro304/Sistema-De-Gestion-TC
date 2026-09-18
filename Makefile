@@ -29,7 +29,7 @@ export
 .PHONY: help \
         dev-up dev-build dev-down dev-down-v dev-logs ps clean \
         backend-restart backend-logs backend-shell backend-build \
-        migrate seed test-int test-api \
+        migrate seed test-int test-api test-module \
         frontend-restart frontend-logs frontend-shell frontend-build \
         shell-db \
 				openapi-docs-build openapi-docs-logs \
@@ -98,6 +98,9 @@ test-int: ## Runs backend integration tests inside the backend container (dev)
 
 test-api: ## Runs backend API tests inside the backend container (dev)
 	$(DC_DEV) exec backend npm run test:api
+
+test-module: ## Runs unit, integration and API tests for a single module (usage: make test-module name=suppliers)
+	$(DC_DEV) exec backend sh -c "npm test -- $(name); npm run test:int -- $(name); npm run test:api -- $(name)"
 
 # ---- Frontend Scoped ------------------------------------------------------
 
