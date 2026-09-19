@@ -26,7 +26,7 @@ describe('FactoryModule wiring (forwardRef)', () => {
     const customersService = moduleRef.get(CustomersService);
 
     const factory = await factoriesService.create({
-      cuit: '20304050607',
+      cuit: '20-12345678-6',
       name: 'Fabrica Test',
       address: 'Calle Falsa 123',
       categoryId: 1, // ajustá si tu CategoriesInMemoryRepository necesita un seed distinto

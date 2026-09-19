@@ -34,11 +34,12 @@ export class FactoryExceptionFilter implements ExceptionFilter {
       // Errores de validación del dominio (Factory.validate()) llegan como Error simple.
       statusCode = HttpStatus.BAD_REQUEST;
       message = exception.message;
-      const field = message.includes('cuit')
+      const field = message.toLowerCase().includes('cuit')
         ? 'cuit'
         : message.includes('address')
           ? 'address'
           : 'name';
+
       details = [{ field, message: exception.message }];
     }
 

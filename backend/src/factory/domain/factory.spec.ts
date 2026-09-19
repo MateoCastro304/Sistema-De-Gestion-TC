@@ -1,7 +1,8 @@
 import { Factory } from './factory';
 
 describe('Factory Entity', () => {
-  const validCuit = '20-12345678-9';
+  const validCuit = '20-12345678-6';
+  const normalizedValidCuit = '20123456786';
   const validName = 'Fábrica Central';
   const validAddress = 'Av. Siempreviva 742';
   const validPaymentDescription = 'Transferencia a 30 días';
@@ -19,7 +20,7 @@ describe('Factory Entity', () => {
 
       expect(factory).toBeDefined();
       expect(factory.getId()).toBeNull(); // Nace sin ID antes de persisitir
-      expect(factory.getCuit()).toBe(validCuit);
+      expect(factory.getCuit()).toBe(normalizedValidCuit);
       expect(factory.getName()).toBe(validName);
       expect(factory.getAddress()).toBe(validAddress);
       expect(factory.getPaymentDescription()).toBe(validPaymentDescription);
@@ -35,7 +36,13 @@ describe('Factory Entity', () => {
     it('debería lanzar un error si el cuit está vacío', () => {
       expect(() =>
         Factory.create('', validName, validAddress, validPaymentDescription, validCategoryId),
-      ).toThrow('Factory cuit cannot be empty');
+      ).toThrow('CUIT must have 11 digits');
+    });
+
+    it('debería lanzar un error si el dígito verificador del cuit es inválido', () => {
+      expect(() =>
+        Factory.create('20-12345678-9', validName, validAddress, validPaymentDescription, validCategoryId),
+      ).toThrow('CUIT check digit is invalid');
     });
 
     it('debería lanzar un error si el nombre está vacío', () => {
@@ -64,7 +71,7 @@ describe('Factory Entity', () => {
       );
 
       expect(factory.getId()).toBe(10);
-      expect(factory.getCuit()).toBe(validCuit);
+      expect(factory.getCuit()).toBe(normalizedValidCuit);
       expect(factory.isActive()).toBe(false);
     });
   });
@@ -75,7 +82,7 @@ describe('Factory Entity', () => {
 
       factory.update('30-98765432-1', 'Nueva Fábrica', 'Calle Falsa 123', 'Contando', 2);
 
-      expect(factory.getCuit()).toBe('30-98765432-1');
+      expect(factory.getCuit()).toBe('30987654321');
       expect(factory.getName()).toBe('Nueva Fábrica');
       expect(factory.getAddress()).toBe('Calle Falsa 123');
       expect(factory.getPaymentDescription()).toBe('Contando');
@@ -111,12 +118,12 @@ describe('Factory Entity', () => {
     it('debería recortar los espacios en blanco (trim) en las modificaciones', () => {
       const factory = Factory.create(validCuit, validName, validAddress, null, validCategoryId);
 
-      factory.setCuit('  20-99999999-9  ');
+      factory.setCuit('  20-11111111-2  ');
       factory.setName('   Nombre Nuevo  ');
       factory.setAdress('   Dirección Nueva  ');
       factory.setPaymentDescription('   Pago Efectivo   ');
 
-      expect(factory.getCuit()).toBe('20-99999999-9');
+      expect(factory.getCuit()).toBe('20111111112');
       expect(factory.getName()).toBe('Nombre Nuevo');
       expect(factory.getAddress()).toBe('Dirección Nueva');
       expect(factory.getPaymentDescription()).toBe('Pago Efectivo');

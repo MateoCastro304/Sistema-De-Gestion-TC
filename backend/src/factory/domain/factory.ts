@@ -1,11 +1,12 @@
 import { FactoryId } from "./factory-id";
 import { CategoryId } from '../../categories/domain/category-id';
+import { Cuit } from '../../shared/domain/cuit';
 
 
 export class Factory {
   private constructor(
     private readonly _id: FactoryId | null,
-    private _cuit: string,
+    private _cuit: Cuit,
     private _name: string,
     private _address: string,
     private _paymentDescription: string | null,
@@ -31,7 +32,7 @@ export class Factory {
 
     return new Factory(
       null,
-      cuit.trim(),
+      Cuit.create(cuit),
       name.trim(),
       address.trim(),
       paymentDescription?.trim() || null,
@@ -56,7 +57,7 @@ export class Factory {
     ): Factory {
       return new Factory(
         FactoryId.create(id),
-        cuit,
+        Cuit.create(cuit),
         name,
         address,
         paymentDescription,
@@ -104,9 +105,6 @@ export class Factory {
   // VALIDATION
 
   private validate(): void {
-    if (!this._cuit || this._cuit.trim().length === 0) {
-      throw new Error('Factory cuit cannot be empty');
-    }
 
     if (!this._name || this._name.trim().length === 0) {
       throw new Error('Factory name cannot be empty');
@@ -145,11 +143,17 @@ export class Factory {
         this._categoryId = CategoryId.create(categoryId);
     }
 
+    setCuit(cuit: string): void{
+      this._cuit = Cuit.create(cuit);
+    }
+
+
     // GETTERS
   getId(): number | null {
     return this._id ? this._id.getValue() : null;
   }
-  getCuit(): string { return this._cuit; }
+  
+  getCuit(): string { return this._cuit.getCuitValue(); }
   getName(): string { return this._name; }
   getAddress(): string { return this._address; }
   getPaymentDescription(): string | null { return this._paymentDescription; }
