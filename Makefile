@@ -7,14 +7,19 @@
 .DEFAULT_GOAL := help
 
 # ---- Env and Compose Paths ------------------------------------------------
-COMPOSE_BASE := infrastructure/docker/docker-compose.yaml
-COMPOSE_DEV  := infrastructure/docker/docker-compose.dev.yaml
-COMPOSE_PROD := infrastructure/docker/docker-compose.prod.yaml
-ENV_DEV      := infrastructure/docker/.env.dev
-ENV_PROD     := infrastructure/docker/.env.prod
+COMPOSE_BASE  := infrastructure/docker/docker-compose.yaml
+
+COMPOSE_DEV   := infrastructure/docker/docker-compose.dev.yaml
+COMPOSE_PROD  := infrastructure/docker/docker-compose.prod.yaml
+COMPOSE_TEST := infrastructure/docker/docker-compose.test.yaml
+
+ENV_DEV       := infrastructure/docker/.env.dev
+ENV_PROD      := infrastructure/docker/.env.prod
+ENV_TEST			:= infrastructure/docker/.env.test
 
 DC_DEV  := docker compose -f $(COMPOSE_BASE) -f $(COMPOSE_DEV)  --env-file $(ENV_DEV)
 DC_PROD := docker compose -f $(COMPOSE_BASE) -f $(COMPOSE_PROD) --env-file $(ENV_PROD)
+DC_TEST := docker compose -f $(COMPOSE_BASE) -f $(COMPOSE_TEST) --env-file $(ENV_TEST)
 
 # Loads variables from .env.dev as Make variables (for targets like shell-db).
 # The "-" before include prevents failure if the file doesn't exist yet.
@@ -24,7 +29,7 @@ export
 .PHONY: help \
         dev-up dev-build dev-down dev-down-v dev-logs ps clean \
         backend-restart backend-logs backend-shell backend-build \
-        migrate seed \
+        migrate seed test-int test-api \
         frontend-restart frontend-logs frontend-shell frontend-build \
         shell-db \
 				openapi-docs-build openapi-docs-logs \
@@ -39,7 +44,7 @@ help: ## Shows this list of commands
 		awk '{printf "  \033[36m%-20s\033[0m %s\n", $$1, substr($$0, index($$0,$$2))}'
 	@echo ""
 
-# ---- Environment Wide   ---------------------------------------------------
+# ---- Dev Environment Wide -------------------------------------------------
 
 dev-up: ## Starts all services in development mode (detached)
 	$(DC_DEV) up -d
@@ -62,7 +67,7 @@ ps: ## Shows the status of containers (dev)
 clean: ## Stops everything, removes volumes and orphaned images/containers (dev)
 	$(DC_DEV) down -v --remove-orphans
 
-# --- Backend Scoped --------------------------------------------------------
+# --- Dev Backend Scoped ----------------------------------------------------
 
 backend-restart: ## Restarts only backend (dev)
 	$(DC_DEV) restart backend
@@ -88,6 +93,12 @@ migrate-create: ## Create Prisma migration inside the backend container (dev)
 seed: ## Runs Prisma seed inside the backend container (dev)
 	$(DC_DEV) exec backend npx prisma db seed
 
+test-int: ## Runs backend integration tests inside the backend container (dev)
+	$(DC_DEV) exec backend npm run test:int
+
+test-api: ## Runs backend API tests inside the backend container (dev)
+	$(DC_DEV) exec backend npm run test:api
+
 # ---- Frontend Scoped ------------------------------------------------------
 
 frontend-restart: ## Restarts only frontend (dev)
@@ -102,17 +113,17 @@ frontend-shell: ## Opens a shell inside the frontend container
 frontend-build: ## Rebuild the frontend image only
 	$(DC_DEV) build frontend
 
-# ---- Database Scoped ------------------------------------------------------
+# ---- Dev Database Scoped --------------------------------------------------
 
 shell-db: ## Opens psql inside the postgres container (dev)
 	$(DC_DEV) exec postgres psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
 
-# ---- Web Scoped (Nginx) ---------------------------------------------------
+# ---- Dev Web Scoped (Nginx) -----------------------------------------------
 
 web-logs: ## Shows only the web logs (nginx)
 	$(DC_DEV) logs -f web
 
-# ---- Docs Scoped ----------------------------------------------------------
+# ---- Dev Docs Scoped ------------------------------------------------------
 
 openapi-docs-build: ## Rebuild the openapi image only and serve on port 8081
 	$(DC_DEV) build openapi-build openapi-docs
@@ -120,7 +131,30 @@ openapi-docs-build: ## Rebuild the openapi image only and serve on port 8081
 openapi-docs-logs: ## Shows only the openapi-docs logs
 	$(DC_DEV) logs -f openapi-docs
 
-# ---- Production -----------------------------------------------------------
+# ---- Testing Environment Wide -----------------------------------------
+
+test-up: ## Starts all services in development mode (detached)
+	$(DC_TEST) up -d
+
+test-build: ## Rebuilds images and starts development
+	$(DC_TEST) up -d --build
+
+test-down: ## Stops development containers
+	$(DC_TEST) down
+
+test-down-v: ## Stops development and removes volumes (complete local DB reset)
+	$(DC_TEST) down -v
+
+test-logs: ## Follows logs from all services
+	$(DC_TEST) logs -f
+
+test-ps: ## Shows the status of containers
+	$(DC_TEST) ps
+
+test-clean: ## Stops everything, removes volumes and orphaned images/containers (dev)
+	$(DC_TEST) down -v --remove-orphans
+
+# ---- Dev Production -------------------------------------------------------
 
 prod-up: ## Starts the production environment (detached)
 	$(DC_PROD) up -d

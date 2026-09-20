@@ -1,9 +1,8 @@
 services:
   backend:
+    container_name: torneria-backend-prod
     build:
       target: production
-    environment:
-      PORT: 3000
     env_file:
       - ./.env.prod
     deploy:
@@ -15,6 +14,7 @@ services:
           memory: 256M
 
   postgres:
+    container_name: torneria-postgres-prod
     volumes:
       - postgres_prod_data:/var/lib/postgresql/data
     deploy:
@@ -26,9 +26,10 @@ services:
           memory: 256M
 
   web:
+    container_name: torneria-web-prod
     build:
-      context: ../..
-      dockerfile: frontend/Dockerfile
+      context: ../../frontend
+      dockerfile: Dockerfile
       target: production
     depends_on: [backend]
     ports:

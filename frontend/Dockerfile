@@ -1,16 +1,15 @@
-FROM node:22-alpine AS development
+FROM node:22-alpine AS base
 WORKDIR /app
-COPY ./frontend/package*.json /app/
+COPY ./package*.json /app/
 RUN npm ci
-COPY ./frontend .
+
+FROM base AS development
+COPY . .
 EXPOSE 5173
 CMD [ "npm", "run", "dev" ]
 
-FROM node:22-alpine AS build
-WORKDIR /app
-COPY ./frontend/package*.json /app/
-RUN npm ci
-COPY ./frontend /app
+FROM base AS build
+COPY . /app
 RUN npm run build
 
 FROM nginx:alpine AS production

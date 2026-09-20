@@ -106,60 +106,74 @@ Worked example:
 > important than the document format, these can be switched to `.md` without
 > changing anything else in this scheme.
 
-### 2.2 The executable suite — `qa/`
+### 2.2 The executable suite — `backend/test/` and `e2e/`
 
-The QA-owned suite (integration + API + E2E) is organised by module. Each module
-folder is a self-contained "chapter":
+The QA-owned suite is split across two physical roots, by level:
+
+- **Integration + API** live in `backend/test/modules/<module>/`, next to the
+  backend that runs them.
+- **E2E** lives in `e2e/<module>/`, at the root of the repository, alongside
+  `backend/` and `frontend/`.
+
+Each module folder is a self-contained "chapter", one per level:
 
 ```
-qa/
-├── README.md                        # how the QA suite works (root document)
+backend/test/
 ├── modules/
 │   └── clientes/
 │       ├── README.md                # module chapter → TRACEABILITY (see §3)
-│       ├── integration/             # deep tests: endpoint → Guard → Prisma → Postgres
+│       ├── int/                     # deep tests: endpoint → Guard → Prisma → Postgres
 │       │   ├── clientes-unicidad.int.spec.ts
 │       │   └── clientes-baja-logica.int.spec.ts
 │       └── api/                     # HTTP-surface tests: CRUD, validation, RBAC
 │           └── clientes.api.spec.ts
-└── shared/
-    ├── harness/                     # Testcontainers + NestJS test app + teardown
-    ├── factories/                   # data builders: unCliente(), unaFabrica()
-    ├── fixtures/                    # real files: plano.pdf, pieza-patron.png
-    └── auth/                        # loginComo(role) + preloaded tokens per role
+├── shared/
+│   ├── harness/                     # Testcontainers global setup/teardown + NestJS test app
+│   ├── factories/                   # data builders: unCliente(), unaFabrica()
+│   ├── fixtures/                    # real files: plano.pdf, pieza-patron.png
+│   └── auth/                        # loginComo(role) + preloaded tokens per role
+└── README.md                        # how the integration + API suite works
+
+e2e/
+├── README.md                        # how the E2E suite works
+├── shared/                          # browser-level fixtures + auth helpers
+└── clientes/                        # only present for modules that need E2E coverage
+    └── ...
 ```
 
 Each test case from the catalog becomes a named test:
 
 ```ts
-// qa/modules/clientes/api/clientes.api.spec.ts
+// backend/test/modules/clientes/api/clientes.api.spec.ts
 it('CP-01 registers a client successfully', ...)
 it('CP-03 rejects creation with missing required fields', ...)
 
-// qa/modules/clientes/integration/clientes-unicidad.int.spec.ts
+// backend/test/modules/clientes/int/clientes-unicidad.int.spec.ts
 it('CP-05 rejects a duplicate document (409)', ...)
 ```
 
 The split between folders follows one rule:
 
-- **`integration/`** — a case that proves a rule living in the **database or in
+- **`int/`** — a case that proves a rule living in the **database or in
   the Guard → Prisma circuit** (uniqueness, logical deletion that preserves
-  history, the client↔factory relationship). These run against a real ephemeral
-  PostgreSQL via Testcontainers.
+  history, the client↔factory relationship). These run against a real Postgres
+  started once per execution via Testcontainers, isolated to that run.
 - **`api/`** — a case that proves **HTTP-surface behaviour** (status codes,
   payload validation, list filters, "only the ERP role may operate on
   clients"). Exhaustive RBAC lives in the cross-cutting `auth-rbac/` module; a
   module only keeps one representative role-check.
-- **`e2e/`** — full user journeys, added only for modules that need them. A
-  simple CRUD module (such as Clients) has **no** `e2e/` folder.
+- **`e2e/<module>/`** — full user journeys, added only for modules that need
+  them. A simple CRUD module (such as Clients) has **no** `e2e/` folder for
+  its module.
 
-### 2.3 What deliberately stays *outside* `qa/`
+### 2.3 What deliberately stays *outside* `backend/test/` and `e2e/`
 
-`qa/` is integration + API + E2E only. Two kinds of test do not belong there:
+Those two roots cover integration + API + E2E only. Two kinds of test do not
+belong there:
 
 - **Unit tests** (pure domain logic and schema validation, e.g. the Zod schema
   for a client, DNI/CUIT format) live next to the code they test, in
-  `backend/src/<module>/*.spec.ts`.
+  `backend/src/<module>/*.spec.ts`, and run against a **mocked database**.
 - **Frontend tests** (component behaviour, and any purely UI-level case such as
   "cancel discards the form") live in `frontend/` with Vitest + React Testing
   Library.
@@ -177,10 +191,16 @@ The catalog says *what* is tested. The specs *prove* it. The **module
 matrix, so anyone can answer "is CP-05 covered, and where?" without reading
 either the `.docx` or the TypeScript.
 
-`qa/modules/clientes/README.md` contains:
+Since integration/API and E2E live in different roots, each gets its own
+module README when applicable:
+
+- `backend/test/modules/clientes/README.md` — integration + API chapter.
+- `e2e/clientes/README.md` — E2E chapter, only if the module has E2E coverage.
+
+`backend/test/modules/clientes/README.md` contains:
 
 1. A one-line purpose and a link to the formal catalog:
-   `../../../docs/testing/casos-de-prueba/Clientes.docx`.
+   `../../../../docs/testing/casos-de-prueba/Clientes.docx`.
 2. The ERS references the module covers (e.g. CU-1…CU-4 and the *Client
    management* business rule).
 3. The traceability table below — one row per test case.
@@ -189,9 +209,9 @@ either the `.docx` or the TypeScript.
 |--------------------------|-------|-------------|-----------|--------|
 | CP-01 Successful creation | API | `api/clientes.api.spec.ts` · `it('CP-01…')` | — | ⬜ |
 | CP-03 Missing required fields | API | `api/clientes.api.spec.ts` · `it('CP-03…')` | — | ⬜ |
-| CP-05 Duplicate document | Integration | `integration/clientes-unicidad.int.spec.ts` · `it('CP-05…')` | Uniqueness | ⬜ |
-| CP-24 Logical deletion keeps history | Integration | `integration/clientes-baja-logica.int.spec.ts` · `it('CP-24…')` | Traceability | ⬜ |
-| CP-06 Cancel discards form | Frontend (outside `qa/`) | `frontend/.../ClienteForm.test.tsx` | — | ⬜ |
+| CP-05 Duplicate document | Integration | `int/clientes-unicidad.int.spec.ts` · `it('CP-05…')` | Uniqueness | ⬜ |
+| CP-24 Logical deletion keeps history | Integration | `int/clientes-baja-logica.int.spec.ts` · `it('CP-24…')` | Traceability | ⬜ |
+| CP-06 Cancel discards form | Frontend (outside `backend/test/` and `e2e/`) | `frontend/.../ClienteForm.test.tsx` | — | ⬜ |
 
 Status legend: ⬜ pending · ✅ automated & green · 🟡 documented, not yet automated.
 
@@ -218,7 +238,7 @@ catalog, the catalog is out of date.
 
 1. Write or update the case in the module's `.docx` (definition first).
 2. Add its row to the module `README.md` traceability table.
-3. Implement it as an `it('CP-NN …')` in the correct `integration/`, `api/`,
+3. Implement it as an `it('CP-NN …')` in the correct `int/`, `api/`,
    `frontend/`, or `backend/src` location.
 4. Flip the README status to ✅ once it is automated and green in CI.
 
