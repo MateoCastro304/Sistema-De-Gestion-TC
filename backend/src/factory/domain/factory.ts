@@ -1,6 +1,6 @@
 import { FactoryId } from "./factory-id";
 import { CategoryId } from '../../categories/domain/category-id';
-import { Cuit } from '../../shared/domain/cuit';
+import { Cuit } from "../../suppliers/domain/cuit";
 
 
 export class Factory {
@@ -117,11 +117,6 @@ export class Factory {
 
   // CHANGE METHODS
 
-  setCuit(cuit: string): void{
-    this._cuit = cuit.trim();
-    this.validate();
-  }
-
     setName(name: string): void{
         this._name = name.trim();
         this.validate();
@@ -159,5 +154,8 @@ export class Factory {
   getPaymentDescription(): string | null { return this._paymentDescription; }
   getCategoryId(): number { return this._categoryId.getValue(); }
   isActive(): boolean { return this._active; }
+  getCreatedAt(): Date { return this._createdAt; }
+  getUpdatedAt(): Date { return this._updatedAt; }
+
 
 }

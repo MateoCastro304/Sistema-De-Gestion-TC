@@ -7,7 +7,7 @@ import { Factory } from '../domain/factory';
 import { CategoriesRepository } from '../../categories/domain/ports/categories.repository';
 import { FactoryAlreadyExists } from '../domain/errors/factory-already-exists.error';
 import { FactoryHasActiveCustomers } from '../domain/errors/factory-has-active-customers.error';
-import { Cuit } from '../../shared/domain/cuit';
+import { Cuit } from '../../suppliers/domain/cuit';
 
 
 @Injectable()
