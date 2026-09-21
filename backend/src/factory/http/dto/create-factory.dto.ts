@@ -1,9 +1,10 @@
-import { IsString, IsNotEmpty, IsOptional, IsInt, IsPositive } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsInt, IsPositive, MaxLength } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateFactoryDto {
   @IsString()
   @IsNotEmpty()
+  @MaxLength(100)
   name!: string;
 
   @IsString()
@@ -12,10 +13,12 @@ export class CreateFactoryDto {
 
   @IsString()
   @IsNotEmpty()
+  @MaxLength(255)
   address!: string;
 
   @IsString()
   @IsOptional()
+  @MaxLength(255)
   paymentDescription?: string;
 
   @Type(() => Number)

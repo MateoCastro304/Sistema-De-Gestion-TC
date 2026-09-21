@@ -3,53 +3,60 @@ import { Customer } from "../domain/customer";
 import { CustomerRepository, CustomerListParams, CustomerListResult } from "../domain/port/customer.repository";
 
 @Injectable()
-
 export class CustomerInMemoryRepository implements CustomerRepository {
-    // Creo un mapeo de los Clientes
-    private readonly customers: Map<number, Customer> = new Map();
+  private readonly customers: Map<string, Customer> = new Map();
+  private readonly lastIdByFactory: Map<number, number> = new Map();
 
-    private autoIncrementId = 1;
+  private key(factoryId: number, id: number): string {
+    return `${factoryId}:${id}`;
+  }
 
-        async save(customer: Customer): Promise<Customer> {
-        const generatedId = this.autoIncrementId++;
-        const savedCustomer = Customer.reconstruct(
-        generatedId,
-        customer.getName(),
-        customer.getLastName(),
-        customer.getPhone(),
-        customer.getMail(),
-        customer.getFactoryId(),
-        customer.isActive(),
-        customer.getCreatedAt(),
-        customer.getUpdatedAt(),
-      );
+  async save(customer: Customer): Promise<Customer> {
+    const factoryId = customer.getFactoryId();
+    const generatedId = (this.lastIdByFactory.get(factoryId) ?? 0) + 1;
+    this.lastIdByFactory.set(factoryId, generatedId);
 
-      this.customers.set(generatedId, savedCustomer);
-      return savedCustomer;
-    }
+    const savedCustomer = Customer.reconstruct(
+      generatedId,
+      customer.getName(),
+      customer.getLastName(),
+      customer.getPhone(),
+      customer.getMail(),
+      factoryId,
+      customer.isActive(),
+      customer.getCreatedAt(),
+      customer.getUpdatedAt(),
+    );
 
-    async findById(id: number): Promise<Customer | null> {
-        const customer = this.customers.get(id);
-        return customer || null;
-    }
+    this.customers.set(this.key(factoryId, generatedId), savedCustomer);
+    return savedCustomer;
+  }
 
-    async findAll(): Promise<Customer[]> {
+  async findById(factoryId: number, id: number): Promise<Customer | null> {
+    return this.customers.get(this.key(factoryId, id)) ?? null;
+  }
+
+  async findAll(): Promise<Customer[]> {
     return Array.from(this.customers.values());
   }
 
   async update(customer: Customer): Promise<void> {
-  const id = customer.getId();
+    const id = customer.getId();
+    const factoryId = customer.getFactoryId();
 
-  if (!id || !this.customers.has(id)) {
-    throw new NotFoundException(`Customer with ID ${id} not found`);
+    if (!id || !this.customers.has(this.key(factoryId, id))) {
+      throw new NotFoundException(`Customer ${id} not found in factory ${factoryId}`);
+    }
+
+    this.customers.set(this.key(factoryId, id), customer);
   }
 
-  this.customers.set(id, customer);
-}
-
-  async existsByMail(mail: string, excludeId?: number): Promise<boolean> {
+  async existsByMail(mail: string, factoryId: number, excludeId?: number): Promise<boolean> {
     return Array.from(this.customers.values()).some(
-      (customer) => customer.getMail() === mail && customer.getId() !== excludeId,
+      (customer) =>
+        customer.getFactoryId() === factoryId &&
+        customer.getMail() === mail &&
+        customer.getId() !== excludeId,
     );
   }
 
@@ -81,5 +88,4 @@ export class CustomerInMemoryRepository implements CustomerRepository {
 
     return { items: paged, total };
   }
-
 }

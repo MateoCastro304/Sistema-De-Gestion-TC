@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CategoriesRepository } from '../domain/categories.repository';
+import { CategoriesRepository } from '../domain/ports/categories.repository';
 import { Category } from '../domain/category';
 
 @Injectable()
@@ -18,11 +18,20 @@ export class CategoriesInMemoryRepository implements CategoriesRepository {
     return this.categories.get(id) ?? null;
   }
 
+    async findByName(name: string): Promise<Category | null> {
+    const normalized = name.trim().toLowerCase();
+    const found = Array.from(this.categories.values()).find(
+      (c) => c.getName().trim().toLowerCase() === normalized,
+    );
+    return found ?? null;
+  }
+
+
   async save(category: Category): Promise<Category> {
     const id = category.getId();
     if (id === null) {
       const generatedId = this.autoIncrementId++;
-      const saved = Category.reconstitute(
+      const saved = Category.reconstruct(
         generatedId,
         category.getName(),
         category.getActive(),

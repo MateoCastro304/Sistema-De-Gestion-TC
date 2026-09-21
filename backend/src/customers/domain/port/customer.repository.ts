@@ -36,20 +36,15 @@ export type CustomerListResult = {
  */
 export abstract class CustomerRepository {
   abstract findAll(): Promise<Customer[]>;
-  abstract findById(id: number): Promise<Customer | null>;
+  abstract findById(factoryId: number, id: number): Promise<Customer | null>;
   abstract save(customer: Customer): Promise<Customer>;
   abstract update(customer: Customer): Promise<void>;
 
   /**
-   * Whether any customer already uses this mail. excludeId lets the update
-   * flow skip the record being modified so it does not clash with itself.
+   * Whether any customer of that factory already uses this mail. excludeId
+   * lets the update flow skip the record being modified.
    */
-  abstract existsByMail(mail: string, excludeId?: number): Promise<boolean>;
+  abstract existsByMail(mail: string, factoryId: number, excludeId?: number): Promise<boolean>;
 
-  /**
-   * Paginated listing driven by {@link CustomerListParams}. The result
-   * carries the total count so the client can render pagination without a
-   * second round-trip.
-   */
   abstract list(params: CustomerListParams): Promise<CustomerListResult>;
 }

@@ -60,6 +60,16 @@ export class CategoriesController {
     return CategoryResponseDto.fromDomain(category);
   }
 
+  @Patch(':id/restore')
+async restore(@Param('id', ParseIntPipe) id: number) {
+    const category = await this.categoriesService.restore(id);
+    if (!category) {
+      throw new NotFoundException(`Category with id ${id} was not found.`);
+    }
+    return CategoryResponseDto.fromDomain(category);
+}
+
+
   @Delete(':id')
   async remove(@Param('id', ParseIntPipe) id: number) {
     const category = await this.categoriesService.remove(id);

@@ -6,6 +6,7 @@ import { CustomerInMemoryRepository } from './infrastructure/customers.repositor
 import { FactoryModule } from '../factory/factory.module';
 import { CustomerQuery } from '../factory/domain/port/customer-query.port';
 import { CustomerQueryAdapter } from './infrastructure/customer-query.adapter';
+import { CustomerPrismaRepository } from './infrastructure/customers-prisma.repository';
 
 
 @Module({
@@ -16,7 +17,7 @@ import { CustomerQueryAdapter } from './infrastructure/customer-query.adapter';
     // Vincular la abstracción (puerto) con la implementación en memoria (adaptador)
     {
       provide: CustomerRepository,
-      useClass: CustomerInMemoryRepository,
+      useClass: CustomerPrismaRepository,
     },
     // Adaptador del puerto CustomerQuery, consumido por FactoryModule, "Cuando alguien pida CustomerQuery, entregale un CustomerQueryAdapter."
     {

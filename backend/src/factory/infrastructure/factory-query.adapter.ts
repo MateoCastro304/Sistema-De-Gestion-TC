@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { FactoryQuery } from '../../categories/domain/port/factory-query.port';
+import { FactoryQuery } from '../../categories/domain/ports/factory-query.port';
 import { FactoryRepository } from '../domain/port/factory.repository';
 
 @Injectable()

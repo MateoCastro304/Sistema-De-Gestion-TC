@@ -12,7 +12,8 @@ describe('Factory <-> Category business rule (integration)', () => {
         const categoriesRepository = new CategoriesInMemoryRepository();
         const factoryRepository = new FactoryInMemoryRepository();
 
-    categoriesService = new CategoriesService(categoriesRepository);
+        const moduleRef = { get: () => factoryRepository } as any;
+    categoriesService = new CategoriesService(categoriesRepository, moduleRef);
     factoriesService = new FactoriesService(factoryRepository, categoriesRepository);
     });
 

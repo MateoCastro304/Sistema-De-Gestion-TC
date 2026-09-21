@@ -5,7 +5,7 @@ import { CreateCustomerDto } from '../http/dto/create-customer.dto';
 import { UpdateCustomerDto } from '../http/dto/update-customer.dto';
 import { FactoryRepository } from '../../factory/domain/port/factory.repository';
 import { CustomerAlreadyExists } from '../domain/errors/customer-already-exists.error';
-import { Mail } from '../domain/mail';
+import { Mail } from '../../shared/domain/mail';
 
 @Injectable()
 export class CustomersService {
@@ -15,29 +15,22 @@ export class CustomersService {
   ) {}
 
   // --- CREAR ---
-  async create(dto: CreateCustomerDto): Promise<Customer> {
-    // 1. Verificar que la fábrica asociada exista en BDD
-    const factoryExists = await this.factoryRepository.findById(dto.factoryId);
-    if (!factoryExists) {
-      throw new NotFoundException(`Factory with ID ${dto.factoryId} not found`);
+  async create(factoryId: number, dto: CreateCustomerDto): Promise<Customer> {
+    const factory = await this.factoryRepository.findById(factoryId);
+    if (!factory) {
+      throw new NotFoundException(`Factory with ID ${factoryId} not found`);
+    }
+    if (!factory.isActive()) {
+      throw new ConflictException(`Factory with ID ${factoryId} is inactive`);
     }
 
-    // 2. Instanciar el Customer
-    const customer = Customer.create(
-      dto.name,
-      dto.lastName,
-      dto.phone,
-      dto.mail,
-      dto.factoryId,
-    );
+    const customer = Customer.create(dto.name, dto.lastName, dto.phone, dto.mail, factoryId);
 
-    // 3. Verificar que el mail no esté ya en uso
-    const mailTaken = await this.customersRepository.existsByMail(customer.getMail());
+    const mailTaken = await this.customersRepository.existsByMail(customer.getMail(), factoryId);
     if (mailTaken) {
       throw new ConflictException(new CustomerAlreadyExists(customer.getMail()).message);
     }
 
-    // 4. Persistir
     return await this.customersRepository.save(customer);
   }
 
@@ -54,25 +47,24 @@ export class CustomersService {
     return await this.customersRepository.list(params);
   }
 
-  // --- BUSCAR POR ID ---
-  async findById(id: number): Promise<Customer> {
-    const customer = await this.customersRepository.findById(id);
+  // --- BUSCAR POR (FÁBRICA, ID) ---
+  async findById(factoryId: number, id: number): Promise<Customer> {
+    const customer = await this.customersRepository.findById(factoryId, id);
     if (!customer) {
-      throw new NotFoundException(`Customer with ID ${id} not found`);
+      throw new NotFoundException(`Customer ${id} not found in factory ${factoryId}`);
     }
     return customer;
   }
 
   // --- ACTUALIZAR ---
-  async update(id: number, dto: UpdateCustomerDto): Promise<Customer> {
-    // 1. Buscar si el cliente existe
-    const customer = await this.findById(id);
+  async update(factoryId: number, id: number, dto: UpdateCustomerDto): Promise<Customer> {
+    const customer = await this.findById(factoryId, id);
 
-    // 2. Verificar que el nuevo mail (si cambia) no esté ya en uso
     if (dto.mail !== undefined) {
       const normalizedMail = Mail.create(dto.mail).getValue();
       const mailTaken = await this.customersRepository.existsByMail(
         normalizedMail,
+        factoryId,
         customer.getId() ?? undefined,
       );
       if (mailTaken) {
@@ -80,31 +72,30 @@ export class CustomersService {
       }
     }
 
-    // 3. Aplicar los cambios sobre la entidad recuperada
+    // La fábrica no se puede cambiar: forma parte de la clave primaria.
     customer.update(
       dto.name ?? customer.getName(),
       dto.lastName ?? customer.getLastName(),
       dto.phone ?? customer.getPhone(),
       dto.mail ?? customer.getMail(),
-      dto.factoryId ?? customer.getFactoryId(),
+      customer.getFactoryId(),
     );
 
-    // 4. Re-persistir los cambios en el repositorio
     await this.customersRepository.update(customer);
 
     return customer;
   }
 
   // --- DESACTIVAR (BAJA LÓGICA) ---
-  async deactivate(id: number): Promise<void> {
-    const customer = await this.findById(id);
+  async deactivate(factoryId: number, id: number): Promise<void> {
+    const customer = await this.findById(factoryId, id);
     customer.deactivate();
     await this.customersRepository.update(customer);
   }
 
   // --- ACTIVAR ---
-  async activate(id: number): Promise<void> {
-    const customer = await this.findById(id);
+  async activate(factoryId: number, id: number): Promise<void> {
+    const customer = await this.findById(factoryId, id);
     customer.activate();
     await this.customersRepository.update(customer);
   }

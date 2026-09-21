@@ -17,7 +17,7 @@ export class Category {
   }
 //RECONSTRUIR un rubro que ya existía en la base de datos
   // (esto lo va a usar el repository más adelante, cuando conectemos Prisma)
-  static reconstitute(
+  static reconstruct(
     id: number, 
     name: string, 
     active: boolean, 
@@ -41,7 +41,7 @@ export class Category {
     return this._active;
   }
 
-    getCreatedAt(): Date {
+  getCreatedAt(): Date {
     return this._createdAt;
   }
 
@@ -51,13 +51,18 @@ export class Category {
 
 
   private validate() {
-    if (!this._name || this._name.trim().length === 0) {
+    const trimmed = this._name?.trim() ?? '';
+    if (trimmed.length === 0) {
       throw new Error('Category name cannot be empty');
+    }
+    if (trimmed.length < 3) {
+      throw new Error('Category name must be at least 3 characters long');
     }
   }
 
+
   // Setters: formas de MODIFICAR los datos desde afuera de la clase
-    rename(newName: string) {
+  rename(newName: string) {
     this._name = newName;
     this._updatedAt = new Date();
     this.validate();
