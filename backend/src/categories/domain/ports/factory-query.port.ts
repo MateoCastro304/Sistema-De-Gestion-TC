@@ -1,3 +1,8 @@
+export type ActiveFactorySummary = {
+  id: number;
+  name: string;
+};
+
 export abstract class FactoryQuery {
-    abstract hasActiveFactoriesForCategory(categoryId: number): Promise<boolean>;
+  abstract getActiveFactoriesForCategory(categoryId: number): Promise<ActiveFactorySummary[]>;
 }
