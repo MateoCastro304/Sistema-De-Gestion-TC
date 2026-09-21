@@ -20,7 +20,7 @@ describe('Factory <-> Category business rule (integration)', () => {
   });
 
   const validFactoryDto = (categoryId: number) => ({
-    cuit: '20-12345678-9',
+    cuit: '20-12345678-6',
     name: 'Fabrica Test',
     address: 'Calle Falsa 123',
     paymentDescription: undefined,

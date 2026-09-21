@@ -7,7 +7,7 @@ import { CustomerQuery } from './domain/port/customer-query.port';
 import { CustomersService } from '../customers/application/customers.service';
 import { CustomerRepository } from '../customers/domain/port/customer.repository';
 import { CustomerInMemoryRepository } from '../customers/infrastructure/customers.repository';
-import { CategoriesService } from '../categories/application/categories.service';
+import { CreateCategory } from '../categories/application/create-category.use-case';
 
 const buildModule = () =>
   Test.createTestingModule({ imports: [FactoryModule] })
@@ -30,9 +30,9 @@ describe('FactoryModule wiring (forwardRef)', () => {
 
     const factoriesService = moduleRef.get(FactoriesService);
     const customersService = moduleRef.get(CustomersService);
-    const categoriesService = moduleRef.get(CategoriesService);
+    const createCategory = moduleRef.get(CreateCategory);
 
-    const category = await categoriesService.create({ name: 'Categoria Test' } as any);
+    const category = await createCategory.execute({ name: 'Categoria Test' });
 
     const factory = await factoriesService.create({
       cuit: '20-12345678-6',
