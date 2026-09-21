@@ -14,33 +14,33 @@ import {
 
 export const router = createBrowserRouter([
   // The app has no landing page yet: send "/" to the customers catalog.
-  { index: true, element: <Navigate to="/catalogs/customers" replace /> },
+  { index: true, element: <Navigate to="/catalogos/encargados" replace /> },
   {
-    path: '/catalogs/suppliers',
+    path: '/catalogos/proveedores',
     element: <AppLayout />,
     children: [
       { index: true, element: <SuppliersPage /> },
-      { path: 'new', element: <NewSupplierPage /> },
+      { path: 'nuevo', element: <NewSupplierPage /> },
       { path: ':id', element: <SupplierDetailPage /> },
     ],
   },
   {
-    path: '/catalogs/customers',
+    path: '/catalogos/encargados',
     element: <AppLayout />,
     children: [
       { index: true, element: <CustomersPage /> },
-      { path: 'new', element: <NewCustomerPage /> },
+      { path: 'nuevo', element: <NewCustomerPage /> },
       // A customer is addressed by its composite key (factoryId, id): `id` is
       // only unique within a factory (DB `manager_customer(factory_id, id)`).
       { path: ':factoryId/:id', element: <CustomerDetailPage /> },
     ],
   },
   {
-    path: '/catalogs/factories',
+    path: '/catalogos/fabricas',
     element: <AppLayout />,
     children: [
       { index: true, element: <FactoriesPage /> },
-      { path: 'new', element: <NewFactoryPage /> },
+      { path: 'nuevo', element: <NewFactoryPage /> },
       { path: ':id', element: <FactoryDetailPage /> },
     ],
   },

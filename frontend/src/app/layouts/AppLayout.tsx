@@ -2,13 +2,13 @@ import { Outlet, NavLink, useLocation } from 'react-router'
 
 /** Label shown in the topbar breadcrumb, keyed by the catalog path segment. */
 const SECTION_LABELS: Record<string, string> = {
-  customers: 'Encargados',
-  factories: 'Fábricas',
-  suppliers: 'Proveedores',
+  encargados: 'Encargados',
+  fabricas: 'Fábricas',
+  proveedores: 'Proveedores',
 }
 
 function sectionLabel(pathname: string): string {
-  const segment = pathname.match(/^\/catalogs\/([^/]+)/)?.[1]
+  const segment = pathname.match(/^\/catalogos\/([^/]+)/)?.[1]
   return (segment && SECTION_LABELS[segment]) || 'Catálogos'
 }
 
@@ -34,21 +34,21 @@ export function AppLayout() {
             <span className="sidebar__section-label">Administración</span>
             <ul className="sidebar__list">
               <li>
-                <NavLink to="/catalogs/customers" className={({ isActive }) => isActive ? 'sidebar__link sidebar__link--active' : 'sidebar__link'
+                <NavLink to="/catalogos/encargados" className={({ isActive }) => isActive ? 'sidebar__link sidebar__link--active' : 'sidebar__link'
                     }
                     >
                     Encargados
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/catalogs/factories" className={({ isActive }) => isActive ? 'sidebar__link sidebar__link--active' : 'sidebar__link'
+                <NavLink to="/catalogos/fabricas" className={({ isActive }) => isActive ? 'sidebar__link sidebar__link--active' : 'sidebar__link'
                     }
                     >
                     Fábricas
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/catalogs/suppliers" className={({ isActive }) => isActive ? 'sidebar__link sidebar__link--active' : 'sidebar__link'
+                <NavLink to="/catalogos/proveedores" className={({ isActive }) => isActive ? 'sidebar__link sidebar__link--active' : 'sidebar__link'
                     }
                     >
                     Proveedores

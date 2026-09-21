@@ -631,6 +631,20 @@ table {
   white-space: nowrap;
 }
 
+/* Paginación server-side del listado (Anterior / Página X de Y / Siguiente). */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.pagination__status {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+}
+
 .filters__dropdown {
   display: inline-flex;
   align-items: center;

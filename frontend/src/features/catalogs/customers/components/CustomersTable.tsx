@@ -11,6 +11,8 @@ interface CustomersTableProps {
   industries: Industry[]
   /** Called when the user confirms the baja lógica of a customer. */
   onDeactivate: (customer: Customer) => void
+  /** Called to reactivar (CU-04 inverso) a customer dado de baja. */
+  onActivate?: (customer: Customer) => void
   /** Message shown when there are no rows (e.g. no matches for the search). */
   emptyMessage?: string
 }
@@ -21,6 +23,7 @@ export function CustomersTable({
   factories,
   industries,
   onDeactivate,
+  onActivate,
   emptyMessage = 'No hay encargados registrados.',
 }: CustomersTableProps) {
   const factoryById = (id: string) => factories.find((f) => f.id === id)
@@ -32,7 +35,7 @@ export function CustomersTable({
       header: 'Nombre',
       render: (c) => (
         <span className="table__name-cell">
-          <Link className="table__action" to={`/catalogs/customers/${c.factoryId}/${c.id}`}>
+          <Link className="table__action" to={`/catalogos/encargados/${c.factoryId}/${c.id}`}>
             {c.firstName} {c.lastName}
           </Link>
           {!c.isActive && <Badge variant="pendiente">Inactivo</Badge>}
@@ -65,10 +68,10 @@ export function CustomersTable({
       align: 'center',
       render: (c) => (
         <>
-          <Link className="table__action" to={`/catalogs/customers/${c.factoryId}/${c.id}`}>
+          <Link className="table__action" to={`/catalogos/encargados/${c.factoryId}/${c.id}`}>
             Ver
           </Link>
-          {c.isActive && (
+          {c.isActive ? (
             <>
               <span className="table__action-sep">·</span>
               <button
@@ -79,6 +82,19 @@ export function CustomersTable({
                 Eliminar
               </button>
             </>
+          ) : (
+            onActivate && (
+              <>
+                <span className="table__action-sep">·</span>
+                <button
+                  type="button"
+                  className="table__action"
+                  onClick={() => onActivate(c)}
+                >
+                  Reactivar
+                </button>
+              </>
+            )
           )}
         </>
       ),

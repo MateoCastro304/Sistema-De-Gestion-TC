@@ -18,7 +18,7 @@ export function NewCustomerPage() {
           'success',
           `Encargado "${customer.firstName} ${customer.lastName}" registrado.`,
         )
-        navigate('/catalogs/customers')
+        navigate('/catalogos/encargados')
       },
       onError: (error) => {
         showToast(
@@ -38,14 +38,14 @@ export function NewCustomerPage() {
             Registrá los datos del encargado y la fábrica a la que pertenece.
           </p>
         </div>
-        <Link to="/catalogs/customers">
+        <Link to="/catalogos/encargados">
           <span className="table__action">← Volver</span>
         </Link>
       </div>
 
       <CustomerForm
         onSubmit={handleSubmit}
-        onCancel={() => navigate('/catalogs/customers')}
+        onCancel={() => navigate('/catalogos/encargados')}
         submitting={create.isPending}
         submitLabel="Registrar encargado"
       />

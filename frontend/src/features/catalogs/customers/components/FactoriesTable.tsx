@@ -28,7 +28,7 @@ export function FactoriesTable({
     {
       header: 'Nombre',
       render: (f) => (
-        <Link className="table__action" to={`/catalogs/factories/${f.id}`}>
+        <Link className="table__action" to={`/catalogos/fabricas/${f.id}`}>
           {f.name}
         </Link>
       ),
@@ -45,7 +45,7 @@ export function FactoriesTable({
       header: 'Acciones',
       align: 'center',
       render: (f) => (
-        <Link className="table__action" to={`/catalogs/factories/${f.id}`}>
+        <Link className="table__action" to={`/catalogos/fabricas/${f.id}`}>
           Ver
         </Link>
       ),

@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input } from '@/shared/components/ui'
@@ -11,7 +10,6 @@ import {
 } from '../schemas/factory.schema'
 import type { FactoryFormValues } from '../schemas/factory.schema'
 import { useIndustries } from '../api/customers.queries'
-import { IndustryFormModal } from './IndustryFormModal'
 
 interface FactoryFormProps {
   /** Pre-filled values when editing; omit to create a new factory. */
@@ -24,8 +22,8 @@ interface FactoryFormProps {
 
 /**
  * Form for creating and editing a factory (FabricaCliente, CU-58/59). The rubro
- * selector can spawn a "nuevo rubro" modal inline ("desde las fábricas los
- * rubros").
+ * selector solo consume el catálogo de rubros (ABMC de otra persona): lista los
+ * existentes; el alta/edición de rubros no vive acá.
  */
 export function FactoryForm({
   defaultValues,
@@ -35,13 +33,11 @@ export function FactoryForm({
   submitLabel = 'Guardar',
 }: FactoryFormProps) {
   const { data: industries = [], isLoading: loadingIndustries } = useIndustries()
-  const [industryModalOpen, setIndustryModalOpen] = useState(false)
 
   const {
     register,
     control,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm<FactoryFormValues>({
     resolver: zodResolver(factoryFormSchema),
@@ -51,8 +47,7 @@ export function FactoryForm({
   const submit = handleSubmit((values) => onSubmit(toFactoryInput(values)))
 
   return (
-    <>
-      <form className="form-card" onSubmit={submit} noValidate>
+    <form className="form-card" onSubmit={submit} noValidate>
         <div className="form-grid">
           <div className="form-field--full">
             <Input
@@ -116,13 +111,11 @@ export function FactoryForm({
                 {errors.industryId.message}
               </span>
             )}
-            <button
-              type="button"
-              className="table__add-link"
-              onClick={() => setIndustryModalOpen(true)}
-            >
-              + Nuevo rubro
-            </button>
+            {!loadingIndustries && industries.length === 0 && (
+              <span className="form-field__hint">
+                No hay rubros disponibles. Se cargan desde la sección Rubros.
+              </span>
+            )}
           </div>
 
           <div className="form-field--full">
@@ -169,15 +162,6 @@ export function FactoryForm({
             {submitting ? 'Guardando…' : submitLabel}
           </Button>
         </div>
-      </form>
-
-      <IndustryFormModal
-        open={industryModalOpen}
-        onClose={() => setIndustryModalOpen(false)}
-        onCreated={(industry) =>
-          setValue('industryId', industry.id, { shouldValidate: true })
-        }
-      />
-    </>
+    </form>
   )
 }
