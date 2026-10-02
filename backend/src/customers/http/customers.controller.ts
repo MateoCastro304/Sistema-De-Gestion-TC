@@ -19,7 +19,12 @@ import {
 
 import { CreateCustomerDto } from "./dto/create-customer.dto";
 import { UpdateCustomerDto } from "./dto/update-customer.dto";
-import { CustomersService } from "../application/customers.service";
+import { CreateCustomer } from "../application/create-customer.use-case";
+import { GetCustomerById } from "../application/get-customer-by-id.use-case";
+import { ListCustomers } from "../application/list-customers.use-case";
+import { UpdateCustomer } from "../application/update-customer.use-case";
+import { DeactivateCustomer } from "../application/deactivate-customer.use-case";
+import { ActivateCustomer } from "../application/activate-customer.use-case";
 import { CustomerResponseDto } from "./dto/customer-response.dto";
 import { CustomerExceptionFilter } from "./filters/customers-exception.filter";
 import { ValidationError } from 'class-validator';
@@ -42,7 +47,14 @@ function customerValidationExceptionFactory(errors: ValidationError[]) {
   }),
 )
 export class CustomersController {
-  constructor(private readonly customersService: CustomersService) {}
+  constructor(
+    private readonly createCustomer: CreateCustomer,
+    private readonly getCustomerById: GetCustomerById,
+    private readonly listCustomers: ListCustomers,
+    private readonly updateCustomer: UpdateCustomer,
+    private readonly deactivateCustomer: DeactivateCustomer,
+    private readonly activateCustomer: ActivateCustomer,
+  ) {}
 
     @Get('customers')
   async findAll(
@@ -52,7 +64,7 @@ export class CustomersController {
     @Query('nameContains') nameContains?: string,
     @Query('active', new ParseBoolPipe({ optional: true })) active?: boolean,
   ) {
-    const { items, total } = await this.customersService.list({
+    const { items, total } = await this.listCustomers.execute({
       page,
       limit,
       factoryId,
@@ -73,7 +85,7 @@ export class CustomersController {
     @Param('factoryId', ParseIntPipe) factoryId: number,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    const customer = await this.customersService.findById(factoryId, id);
+    const customer = await this.getCustomerById.execute(factoryId, id);
     return CustomerResponseDto.fromDomain(customer);
   }
 
@@ -83,7 +95,7 @@ export class CustomersController {
     @Param('factoryId', ParseIntPipe) factoryId: number,
     @Body() createDto: CreateCustomerDto,
   ) {
-    const customer = await this.customersService.create(factoryId, createDto);
+    const customer = await this.createCustomer.execute(factoryId, createDto);
     return CustomerResponseDto.fromDomain(customer);
   }
 
@@ -93,7 +105,7 @@ export class CustomersController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdateCustomerDto,
   ) {
-    const customer = await this.customersService.update(factoryId, id, updateDto);
+    const customer = await this.updateCustomer.execute(factoryId, id, updateDto);
     return CustomerResponseDto.fromDomain(customer);
   }
 
@@ -103,7 +115,7 @@ export class CustomersController {
     @Param('factoryId', ParseIntPipe) factoryId: number,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    await this.customersService.deactivate(factoryId, id);
+    await this.deactivateCustomer.execute(factoryId, id);
   }
 
   @Patch('factories/:factoryId/customers/:id/activate')
@@ -112,7 +124,6 @@ export class CustomersController {
     @Param('factoryId', ParseIntPipe) factoryId: number,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    await this.customersService.activate(factoryId, id);
+    await this.activateCustomer.execute(factoryId, id);
   }
 }
-

@@ -5,7 +5,7 @@ import { DeactivateFactory } from './application/deactivate-factory.use-case';
 import { FactoryRepository } from './domain/port/factory.repository';
 import { FactoryInMemoryRepository } from './infrastructure/factory.repository';
 import { CustomerQuery } from './domain/port/customer-query.port';
-import { CustomersService } from '../customers/application/customers.service';
+import { CreateCustomer } from '../customers/application/create-customer.use-case';
 import { CustomerRepository } from '../customers/domain/port/customer.repository';
 import { CustomerInMemoryRepository } from '../customers/infrastructure/customers.repository';
 import { CreateCategory } from '../categories/application/create-category.use-case';
@@ -31,7 +31,7 @@ describe('FactoryModule wiring (forwardRef)', () => {
 
     const createFactory = moduleRef.get(CreateFactory);
     const deactivateFactory = moduleRef.get(DeactivateFactory);
-    const customersService = moduleRef.get(CustomersService);
+    const createCustomer = moduleRef.get(CreateCustomer);
     const createCategory = moduleRef.get(CreateCategory);
 
     const category = await createCategory.execute({ name: 'Categoria Test' });
@@ -43,7 +43,7 @@ describe('FactoryModule wiring (forwardRef)', () => {
       categoryId: category.getId(),
     } as any);
 
-    await customersService.create(factory.getId()!, {
+    await createCustomer.execute(factory.getId()!, {
       name: 'Cliente',
       lastName: 'Test',
       phone: '1155555555',
