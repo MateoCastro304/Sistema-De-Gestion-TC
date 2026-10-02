@@ -68,7 +68,7 @@ export class CustomersController {
   }
 
 
-  @Get('fabricas/:factoryId/customers/:id')
+  @Get('factories/:factoryId/customers/:id')
   async findById(
     @Param('factoryId', ParseIntPipe) factoryId: number,
     @Param('id', ParseIntPipe) id: number,
@@ -77,7 +77,7 @@ export class CustomersController {
     return CustomerResponseDto.fromDomain(customer);
   }
 
-  @Post('fabricas/:factoryId/customers')
+  @Post('factories/:factoryId/customers')
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Param('factoryId', ParseIntPipe) factoryId: number,
@@ -87,7 +87,7 @@ export class CustomersController {
     return CustomerResponseDto.fromDomain(customer);
   }
 
-  @Patch('fabricas/:factoryId/customers/:id')
+  @Patch('factories/:factoryId/customers/:id')
   async update(
     @Param('factoryId', ParseIntPipe) factoryId: number,
     @Param('id', ParseIntPipe) id: number,
@@ -97,7 +97,7 @@ export class CustomersController {
     return CustomerResponseDto.fromDomain(customer);
   }
 
-  @Patch('fabricas/:factoryId/customers/:id/deactivate')
+  @Patch('factories/:factoryId/customers/:id/deactivate')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deactivate(
     @Param('factoryId', ParseIntPipe) factoryId: number,
@@ -106,7 +106,7 @@ export class CustomersController {
     await this.customersService.deactivate(factoryId, id);
   }
 
-  @Patch('fabricas/:factoryId/customers/:id/activate')
+  @Patch('factories/:factoryId/customers/:id/activate')
   @HttpCode(HttpStatus.NO_CONTENT)
   async activate(
     @Param('factoryId', ParseIntPipe) factoryId: number,

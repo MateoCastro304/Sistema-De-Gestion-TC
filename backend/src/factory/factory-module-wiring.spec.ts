@@ -1,6 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { FactoryModule } from './factory.module';
-import { FactoriesService } from './application/factory.service';
+import { CreateFactory } from './application/create-factory.use-case';
+import { DeactivateFactory } from './application/deactivate-factory.use-case';
 import { FactoryRepository } from './domain/port/factory.repository';
 import { FactoryInMemoryRepository } from './infrastructure/factory.repository';
 import { CustomerQuery } from './domain/port/customer-query.port';
@@ -21,20 +22,21 @@ describe('FactoryModule wiring (forwardRef)', () => {
   it('resuelve CustomerQuery via forwardRef sin errores en runtime', async () => {
     const moduleRef = await buildModule();
 
-    expect(moduleRef.get(FactoriesService)).toBeDefined();
+    expect(moduleRef.get(CreateFactory)).toBeDefined();
     expect(moduleRef.get(CustomerQuery)).toBeDefined();
   });
 
   it('aplica la regla real: no desactiva una fábrica con clientes activos', async () => {
     const moduleRef = await buildModule();
 
-    const factoriesService = moduleRef.get(FactoriesService);
+    const createFactory = moduleRef.get(CreateFactory);
+    const deactivateFactory = moduleRef.get(DeactivateFactory);
     const customersService = moduleRef.get(CustomersService);
     const createCategory = moduleRef.get(CreateCategory);
 
     const category = await createCategory.execute({ name: 'Categoria Test' });
 
-    const factory = await factoriesService.create({
+    const factory = await createFactory.execute({
       cuit: '20-12345678-6',
       name: 'Fabrica Test',
       address: 'Calle Falsa 123',
@@ -48,6 +50,6 @@ describe('FactoryModule wiring (forwardRef)', () => {
       mail: 'cliente@test.com',
     });
 
-    await expect(factoriesService.deactivate(factory.getId()!)).rejects.toThrow();
+    await expect(deactivateFactory.execute(factory.getId()!)).rejects.toThrow();
   });
 });

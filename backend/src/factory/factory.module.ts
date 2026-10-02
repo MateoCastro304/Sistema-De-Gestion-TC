@@ -1,23 +1,32 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { FactoriesService } from './application/factory.service';
 import { FactoryController } from './http/factory.controller';
 import { FactoryRepository } from './domain/port/factory.repository';
 import { CategoriesModule } from '../categories/categories.module';
 // Importa CustomersModule (con forwardRef porque ese módulo, a su vez,
 // importa este) únicamente para poder inyectar el CustomerQuery que expone:
-// FactoriesService lo usa en deactivate() para chequear si la fábrica tiene
-// clientes activos, sin depender del CustomerRepository completo.
+// DeactivateFactory lo usa para chequear si la fábrica tiene clientes
+// activos, sin depender del CustomerRepository completo.
 import { FactoryQuery } from '../categories/domain/ports/factory-query.port';
 import { FactoryQueryAdapter } from './infrastructure/factory-query.adapter';
 import { CustomersModule } from '../customers/customers.module';
 import { FactoryPrismaRepository } from './infrastructure/factory-prisma.repository';
-
+import { CreateFactory } from './application/create-factory.use-case';
+import { GetFactoryById } from './application/get-factory-by-id.use-case';
+import { ListFactories } from './application/list-factories.use-case';
+import { UpdateFactory } from './application/update-factory.use-case';
+import { DeactivateFactory } from './application/deactivate-factory.use-case';
+import { ActivateFactory } from './application/activate-factory.use-case';
 
 @Module({
     imports: [forwardRef(() => CategoriesModule), forwardRef(() => CustomersModule)],
     controllers: [FactoryController],
     providers: [
-    FactoriesService,
+    CreateFactory,
+    GetFactoryById,
+    ListFactories,
+    UpdateFactory,
+    DeactivateFactory,
+    ActivateFactory,
     {
       provide: FactoryRepository,
       useClass: FactoryPrismaRepository,
@@ -27,6 +36,6 @@ import { FactoryPrismaRepository } from './infrastructure/factory-prisma.reposit
       useClass: FactoryQueryAdapter,
     },
   ],
-  exports: [FactoriesService, FactoryRepository, FactoryQuery],
+  exports: [FactoryRepository, FactoryQuery],
 })
 export class FactoryModule{}
