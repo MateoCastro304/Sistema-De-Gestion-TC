@@ -29,12 +29,14 @@ export default defineConfig({
       // El reenvio lo hace Vite (servidor a servidor), no el navegador, asi que
       // tampoco hay problema de CORS.
       //
-      // Sin rewrite: el contrato de endpoints define las rutas con el prefijo
-      // '/api' (GET /api/clientes), asi que el backend va a exponerlas con ese
-      // prefijo via setGlobalPrefix('api') y la ruta pasa tal cual.
+      // Con rewrite: el backend expone las rutas sin prefijo (GET /suppliers)
+      // y es nginx el que recorta el '/api' al reenviar (proxy_pass con barra
+      // final en nginx.*.conf). Aca se hace lo mismo para que dev y prod
+      // lleguen al backend con la misma ruta.
       '/api': {
         target: 'http://localhost:3000',
         changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
   },

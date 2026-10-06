@@ -1,20 +1,23 @@
 import { useState } from 'react'
 import type { ChangeEvent, SubmitEvent } from 'react'
 import { useNavigate } from 'react-router'
-import { Button, Input } from '@/shared/components/ui'
+import { Button, CheckBox, Input } from '@/shared/components/ui'
+import { cn } from '@/shared/lib/cn'
 import { isApiError } from '@/shared/api/ApiError'
 import { useToast } from '@/app/providers/ToastContext'
 import { useCreateSupplier } from '../api/useCreateSupplier'
-import { SUPPLIER_TYPES } from '../types/supplier'
-import type { SupplierFormValues } from '../types/supplier'
-import { toSupplierCreate, validateSupplierForm } from '../utils/validateSupplierForm'
+import { SUPPLIER_TYPES, SUPPLIER_TYPE_LABELS } from '../types/supplier'
+import type { SupplierFormValues, SupplierType } from '../types/supplier'
+import { conflictErrors, toSupplierCreate, validateSupplierForm } from '../utils/validateSupplierForm'
 import type { SupplierFormErrors } from '../utils/validateSupplierForm'
 
 /** Fuera del componente: es constante y no tiene por que recrearse por render. */
 const EMPTY_FORM: SupplierFormValues = {
   legalName: '',
   cuit: '',
-  supplierType: 'Material',
+  // Vacio a proposito: el tipo no se puede cambiar despues, asi que no se
+  // preselecciona ninguno y el usuario lo elige a conciencia.
+  supplierTypes: [],
   contactName: '',
   contactEmail: '',
   contactPhone: '',
@@ -33,6 +36,18 @@ export function NewSupplierPage() {
     setForm((current) => ({ ...current, [name]: value }))
   }
 
+  /** Agrega o saca un tipo, manteniendo el orden de SUPPLIER_TYPES. */
+  function toggleType(type: SupplierType) {
+    setForm((current) => ({
+      ...current,
+      supplierTypes: SUPPLIER_TYPES.filter((option) =>
+        option === type
+          ? !current.supplierTypes.includes(option)
+          : current.supplierTypes.includes(option),
+      ),
+    }))
+  }
+
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
 
@@ -43,12 +58,14 @@ export function NewSupplierPage() {
     mutate(toSupplierCreate(form), {
       onSuccess: (created) => {
         showToast('success', 'Proveedor creado exitosamente.')
-        navigate(`/catalogs/suppliers/${created.id}`)
+        navigate(`/catalogos/proveedores/${created.id}`)
       },
       onError: (error) => {
-        // CUIT repetido: el mensaje pertenece al campo, no a un toast suelto.
-        if (isApiError(error) && error.isConflict) {
-          setErrors({ cuit: error.message })
+        // CUIT o razón social repetidos: el mensaje pertenece al campo,
+        // no a un toast suelto.
+        const fieldErrors = conflictErrors(error)
+        if (fieldErrors) {
+          setErrors(fieldErrors)
           return
         }
         showToast(
@@ -63,17 +80,21 @@ export function NewSupplierPage() {
     // card-stack: el <form> es un unico hijo de .content y no hereda su gap.
     // noValidate: apaga los mensajes del navegador para que ganen los nuestros.
     <form onSubmit={handleSubmit} noValidate className="card-stack">
-      <div className="content__heading">
-        <div>
-          <h1 className="content__title">Nuevo proveedor</h1>
-          <p className="content__subtitle">Datos del proveedor a registrar</p>
+      {/* Rediseño: el mismo panel azul del listado y del detalle, para
+          que las tres pantallas de Proveedores se lean como una sola. */}
+      <div className="page-header">
+        <div className="page-header__row">
+          <div>
+            <h1 className="page-header__title">Nuevo proveedor</h1>
+            <p className="page-header__subtitle">Datos del proveedor a registrar</p>
+          </div>
         </div>
       </div>
 
-      <section className="form-card">
-        <h2 className="form-card__title">Datos generales</h2>
+      <section className="card">
+        <h2 className="card__title">Datos generales</h2>
 
-        <div className="form-grid">
+        <div className="card__grid">
           <Input
             id="legalName"
             name="legalName"
@@ -96,24 +117,41 @@ export function NewSupplierPage() {
             hint="Formato XX-XXXXXXXX-X"
           />
 
-          {/* El <select> no lo cubre <Input>, va a mano con las mismas clases. */}
-          <div className="form-field">
-            <label className="form-field__label" htmlFor="supplierType">
+          {/* Un proveedor puede tener varios tipos, así que son casillas y
+              no un desplegable. El <label> envuelve la casilla: tocar el
+              texto también la alterna. */}
+          <div
+            className={cn('form-field', 'card__full', errors.supplierTypes && 'form-field--error')}
+            role="group"
+            aria-labelledby="supplierTypes-label"
+          >
+            <span className="form-field__label" id="supplierTypes-label">
               Tipo
-            </label>
-            <select
-              id="supplierType"
-              name="supplierType"
-              className="form-field__select"
-              value={form.supplierType}
-              onChange={handleChange}
-            >
+            </span>
+            <div className="check-group">
               {SUPPLIER_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
+                <label
+                  key={type}
+                  className={cn(
+                    'check-option',
+                    form.supplierTypes.includes(type) && 'check-option--on',
+                  )}
+                >
+                  <CheckBox
+                    checked={form.supplierTypes.includes(type)}
+                    onChange={() => toggleType(type)}
+                  />
+                  {SUPPLIER_TYPE_LABELS[type]}
+                </label>
               ))}
-            </select>
+            </div>
+            {errors.supplierTypes ? (
+              <span className="form-field__error">{errors.supplierTypes}</span>
+            ) : (
+              <span className="form-field__hint">
+                Elegí uno o más. Después del alta no se puede cambiar.
+              </span>
+            )}
           </div>
 
           <Input
@@ -129,10 +167,10 @@ export function NewSupplierPage() {
         </div>
       </section>
 
-      <section className="form-card">
-        <h2 className="form-card__title">Contacto</h2>
+      <section className="card">
+        <h2 className="card__title">Contacto</h2>
 
-        <div className="form-grid">
+        <div className="card__grid">
           <Input
             id="contactName"
             name="contactName"
@@ -171,7 +209,7 @@ export function NewSupplierPage() {
       <div className="form-actions">
         <Button
           variant="outline"
-          onClick={() => navigate('/catalogs/suppliers')}
+          onClick={() => navigate('/catalogos/proveedores')}
           disabled={isSaving}
         >
           Cancelar

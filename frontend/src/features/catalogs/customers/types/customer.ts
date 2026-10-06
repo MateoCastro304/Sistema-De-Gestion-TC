@@ -51,6 +51,21 @@ export interface Customer {
  * isActive) are left out.
  */
 
+/**
+ * Filtros del listado (`GET /customers`). Todos opcionales y combinables; el
+ * backend filtra y pagina del lado del servidor (DTC-54). `factoryId` acota a
+ * una fábrica (sección "encargados de la fábrica"); `nameContains` busca por
+ * nombre o apellido; `active` deja solo activos (`true`) o solo inactivos
+ * (`false`) —omitirlo trae ambos—. `page`/`limit` controlan la paginación.
+ */
+export interface CustomerListParams {
+  page?: number
+  limit?: number
+  factoryId?: string
+  nameContains?: string
+  active?: boolean
+}
+
 /** "Lo que envío" - forma de un cliente para crear o actualizar */
 export interface CustomerInput {
   firstName: string

@@ -1,8 +1,6 @@
-import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Button, Input } from '@/shared/components/ui'
-import { cn } from '@/shared/lib/cn'
+import { Button, Input, Select } from '@/shared/components/ui'
 import type { FactoryInput } from '../types/factory'
 import {
   emptyFactoryForm,
@@ -11,7 +9,6 @@ import {
 } from '../schemas/factory.schema'
 import type { FactoryFormValues } from '../schemas/factory.schema'
 import { useIndustries } from '../api/customers.queries'
-import { IndustryFormModal } from './IndustryFormModal'
 
 interface FactoryFormProps {
   /** Pre-filled values when editing; omit to create a new factory. */
@@ -20,12 +17,20 @@ interface FactoryFormProps {
   onCancel?: () => void
   submitting?: boolean
   submitLabel?: string
+  /**
+   * id del <form>. Sirve para que un botón de afuera lo envíe con
+   * `<Button type="submit" form={formId}>` (el detalle pone Guardar en el
+   * panel de arriba, donde estaba Editar, igual que Proveedores).
+   */
+  formId?: string
+  /** Esconde Cancelar/Guardar del pie: el que llama los pone en otro lado. */
+  hideActions?: boolean
 }
 
 /**
  * Form for creating and editing a factory (FabricaCliente, CU-58/59). The rubro
- * selector can spawn a "nuevo rubro" modal inline ("desde las fábricas los
- * rubros").
+ * selector solo consume el catálogo de rubros (ABMC de otra persona): lista los
+ * existentes; el alta/edición de rubros no vive acá.
  */
 export function FactoryForm({
   defaultValues,
@@ -33,15 +38,15 @@ export function FactoryForm({
   onCancel,
   submitting = false,
   submitLabel = 'Guardar',
+  formId,
+  hideActions = false,
 }: FactoryFormProps) {
   const { data: industries = [], isLoading: loadingIndustries } = useIndustries()
-  const [industryModalOpen, setIndustryModalOpen] = useState(false)
 
   const {
     register,
     control,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm<FactoryFormValues>({
     resolver: zodResolver(factoryFormSchema),
@@ -52,8 +57,8 @@ export function FactoryForm({
 
   return (
     <>
-      <form className="form-card" onSubmit={submit} noValidate>
-        <div className="form-grid">
+      <form id={formId} className="card" onSubmit={submit} noValidate>
+        <div className="card__grid">
           <div className="form-field--full">
             <Input
               label="Nombre"
@@ -91,38 +96,33 @@ export function FactoryForm({
               control={control}
               name="industryId"
               render={({ field }) => (
-                <select
+                // Select propio: onChange recibe el valor, y Controller lo
+                // acepta así. field.ref deja que react-hook-form enfoque el
+                // campo cuando la validación falla.
+                <Select
                   id="factory-industry"
-                  className={cn(
-                    'form-field__select',
-                    errors.industryId && 'form-field__select--error',
-                  )}
+                  name={field.name}
+                  ref={field.ref}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  invalid={!!errors.industryId}
                   disabled={loadingIndustries}
-                  {...field}
-                >
-                  <option value="">
-                    {loadingIndustries ? 'Cargando rubros…' : 'Seleccioná un rubro'}
-                  </option>
-                  {industries.map((industry) => (
-                    <option key={industry.id} value={industry.id}>
-                      {industry.name}
-                    </option>
-                  ))}
-                </select>
+                  placeholder={loadingIndustries ? 'Cargando rubros…' : 'Seleccioná un rubro'}
+                  options={industries.map((industry) => ({ value: industry.id, label: industry.name }))}
+                />
               )}
             />
             {errors.industryId && (
-              <span className="form-field__hint form-field__hint--error">
+              <span className="form-field__error">
                 {errors.industryId.message}
               </span>
             )}
-            <button
-              type="button"
-              className="table__add-link"
-              onClick={() => setIndustryModalOpen(true)}
-            >
-              + Nuevo rubro
-            </button>
+            {!loadingIndustries && industries.length === 0 && (
+              <span className="form-field__hint">
+                No hay rubros disponibles. Se cargan desde la sección Rubros.
+              </span>
+            )}
           </div>
 
           <div className="form-field--full">
@@ -152,32 +152,26 @@ export function FactoryForm({
               {...register('payMethod')}
             />
             {errors.payMethod && (
-              <span className="form-field__hint form-field__hint--error">
+              <span className="form-field__error">
                 {errors.payMethod.message}
               </span>
             )}
           </div>
         </div>
 
-        <div className="form-actions">
-          {onCancel && (
-            <Button variant="outline" onClick={onCancel} disabled={submitting}>
-              Cancelar
+        {!hideActions && (
+          <div className="form-actions">
+            {onCancel && (
+              <Button variant="outline" onClick={onCancel} disabled={submitting}>
+                Cancelar
+              </Button>
+            )}
+            <Button type="submit" disabled={submitting}>
+              {submitting ? 'Guardando…' : submitLabel}
             </Button>
-          )}
-          <Button type="submit" disabled={submitting}>
-            {submitting ? 'Guardando…' : submitLabel}
-          </Button>
-        </div>
+          </div>
+        )}
       </form>
-
-      <IndustryFormModal
-        open={industryModalOpen}
-        onClose={() => setIndustryModalOpen(false)}
-        onCreated={(industry) =>
-          setValue('industryId', industry.id, { shouldValidate: true })
-        }
-      />
     </>
   )
 }

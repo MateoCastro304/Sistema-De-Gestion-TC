@@ -1,11 +1,20 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { Customer, CustomerInput } from '../types/customer'
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
+import type {
+  Customer,
+  CustomerInput,
+  CustomerListParams,
+} from '../types/customer'
 import type { FactoryInput } from '../types/factory'
 import { customerKeys, factoryKeys, industryKeys } from './customers.keys'
 import {
+  activateCustomer,
   createCustomer,
   createFactory,
-  createIndustry,
   deactivateCustomer,
   getCustomer,
   listCustomers,
@@ -18,19 +27,17 @@ import {
 // Customers (EncargadoCliente) --------------------------------------------
 
 /**
- * List customers (CU-03 Consultar Cliente). Por defecto oculta los dados de baja
- * lógica (`isActive`), como en el resto del sistema. Con `includeInactive` se
- * devuelven también los inactivos, para las pantallas que ofrecen el filtro
- * "mostrar inactivos" (regla de negocio: los inactivos se ven solo bajo demanda).
+ * List customers (CU-03 Consultar Cliente). El filtrado y la paginación los hace
+ * el backend: se le pasan los `params` (nombre, activo/inactivo, fábrica, página)
+ * y devuelve `{ items, total, page, limit }`. `keepPreviousData` mantiene la
+ * página anterior visible mientras carga la siguiente, para que no parpadee al
+ * paginar o al tipear en el buscador.
  */
-export function useCustomers(options?: { includeInactive?: boolean }) {
-  const includeInactive = options?.includeInactive ?? false
+export function useCustomers(params?: CustomerListParams) {
   return useQuery({
-    queryKey: customerKeys.lists(),
-    queryFn: listCustomers,
-    select: includeInactive
-      ? undefined
-      : (data) => data.filter((c) => c.isActive),
+    queryKey: customerKeys.list(params),
+    queryFn: () => listCustomers(params),
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -84,6 +91,18 @@ export function useDeactivateCustomer() {
   })
 }
 
+/** Reactivación de un encargado dado de baja (CU-04 inverso), por (factoryId, id). */
+export function useActivateCustomer() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ factoryId, id }: CustomerRef) =>
+      activateCustomer(factoryId, id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: customerKeys.all })
+    },
+  })
+}
+
 // Factories (FabricaCliente) ----------------------------------------------
 
 /**
@@ -121,22 +140,14 @@ export function useUpdateFactory(id: string) {
 }
 
 // Industries (Rubro) -------------------------------------------------------
+//
+// Solo consumo: el ABMC de rubro es de otra persona. Acá únicamente se lee la
+// lista para poblar el selector de la fábrica.
 
-/** Rubros for the factory form's selector. */
+/** Rubros for the factory form's selector (read-only). */
 export function useIndustries() {
   return useQuery({
     queryKey: industryKeys.all,
     queryFn: listIndustries,
-  })
-}
-
-/** Create a rubro (CU-41) inline from the factory form. */
-export function useCreateIndustry() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: createIndustry,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: industryKeys.all })
-    },
   })
 }

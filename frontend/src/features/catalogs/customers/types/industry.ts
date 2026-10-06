@@ -1,17 +1,12 @@
 /**
- * Rubro (business sector) a factory belongs to. In the ERS it is its own
- * catalog (CU-41..44); here it is managed inline from the factory form
- * ("desde las fábricas los rubros"). The seed data includes a special
- * "Particular" rubro used for individual (non-company) customers.
+ * Rubro (business sector) a factory belongs to. Es un catálogo con su propio
+ * ABMC (CU-41..44), a cargo de otra persona: este feature SOLO lo consume (lee
+ * la lista) para el selector de la fábrica. Por eso acá no hay tipo de alta ni
+ * de edición. Los rubros semilla incluyen "Particular" (clientes no empresa).
  */
 export interface Industry {
   id: string
   name: string
   /** Logical-delete flag. */
   isActive: boolean
-}
-
-/** Payload sent to the API on create. */
-export interface IndustryInput {
-  name: string
 }
