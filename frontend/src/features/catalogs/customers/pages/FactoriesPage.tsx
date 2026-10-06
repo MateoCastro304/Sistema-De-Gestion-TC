@@ -13,7 +13,10 @@ import { FactoriesTable } from '../components/FactoriesTable'
 export function FactoriesPage() {
   const factoriesQuery = useFactories()
   const { data: industries = [] } = useIndustries()
-  const { data: customers = [] } = useCustomers()
+  // Para contar encargados activos por fábrica necesitamos todos: pedimos una
+  // página grande hasta que el backend ofrezca un conteo dedicado (DTC-54).
+  const { data: customersPage } = useCustomers({ active: true, limit: 1000 })
+  const customers = customersPage?.items ?? []
 
   // Filters: free-text search (razón social / CUIT, case-insensitive) + rubro.
   const [search, setSearch] = useState('')
@@ -63,7 +66,7 @@ export function FactoriesPage() {
             </p>
           </div>
           <div className="content__actions">
-            <Link to="/catalogs/factories/new" className="btn btn--primary content__cta">
+            <Link to="/catalogos/fabricas/nuevo" className="btn btn--primary content__cta">
               <span>+</span> Nueva fábrica
             </Link>
           </div>

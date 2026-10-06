@@ -14,8 +14,7 @@ interface FactoryFormModalProps {
 
 /**
  * Inline "nueva fábrica" (CU-58), opened from the customer form when the
- * factory the user is looking for is not in the selector yet. Mirrors the
- * "nuevo rubro" flow of {@link ./IndustryFormModal.tsx}.
+ * factory the user is looking for is not in the selector yet.
  */
 export function FactoryFormModal({
   open,

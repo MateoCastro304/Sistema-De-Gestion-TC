@@ -647,6 +647,20 @@ table {
   white-space: nowrap;
 }
 
+/* Paginación server-side del listado (Anterior / Página X de Y / Siguiente). */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.pagination__status {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+}
+
 .filters__dropdown {
   display: inline-flex;
   align-items: center;
@@ -4055,6 +4069,12 @@ table {
 /* Cuando la fila termina en botón + ícono, los dos van juntos a la
    derecha en vez de estirarse. */
 .table__cell--acciones { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+/* Acción secundaria en texto dentro de la fila ("Reactivar"): sin esto
+   el <button> sale con la tipografía por defecto y parece texto suelto. */
+.table-card--cards button.table__action {
+  padding: 0 4px; border: 0; background: none; cursor: pointer;
+  font-size: 14px; font-weight: 700; color: var(--rp-azul-osc);
+}
 
 
 /* ============================================================

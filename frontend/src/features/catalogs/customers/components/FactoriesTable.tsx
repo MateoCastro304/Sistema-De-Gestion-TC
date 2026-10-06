@@ -60,7 +60,7 @@ export function FactoriesTable({
       align: 'center',
       cellClassName: 'table__cell--fin',
       render: (f) => (
-        <Link className="link-btn" to={`/catalogs/factories/${f.id}`}>
+        <Link className="link-btn" to={`/catalogos/fabricas/${f.id}`}>
           Ver
         </Link>
       ),

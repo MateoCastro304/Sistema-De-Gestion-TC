@@ -43,7 +43,7 @@ export function NewSupplierPage() {
     mutate(toSupplierCreate(form), {
       onSuccess: (created) => {
         showToast('success', 'Proveedor creado exitosamente.')
-        navigate(`/catalogs/suppliers/${created.id}`)
+        navigate(`/catalogos/proveedores/${created.id}`)
       },
       onError: (error) => {
         // CUIT repetido: el mensaje pertenece al campo, no a un toast suelto.
@@ -170,7 +170,7 @@ export function NewSupplierPage() {
       <div className="form-actions">
         <Button
           variant="outline"
-          onClick={() => navigate('/catalogs/suppliers')}
+          onClick={() => navigate('/catalogos/proveedores')}
           disabled={isSaving}
         >
           Cancelar
