@@ -1,8 +1,11 @@
+ARG DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+
 # ─────────────────────────────
 # 0. Base
 # ─────────────────────────────
 
 FROM node:22-alpine AS base
+RUN apk add --no-cache docker-cli
 WORKDIR /app
 COPY package*.json ./
 
@@ -19,8 +22,8 @@ COPY . .
 
 # prisma.config needs a DATABASE_URL to load during build,
 #   this variable will be overridden by docker-compose at runtime
-ARG DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
-ENV DATABASE_URL=${DATABASE_URL}
+ARG DATABASE_URL
+RUN echo "DATABASE_URL=$DATABASE_URL"
 
 RUN npx prisma generate
 
@@ -38,8 +41,7 @@ COPY . .
 
 # prisma.config needs a DATABASE_URL to load during build,
 #   this variable will be overridden by docker-compose at runtime
-ARG DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
-ENV DATABASE_URL=${DATABASE_URL}
+ARG DATABASE_URL
 
 
 RUN npx prisma generate
@@ -60,12 +62,11 @@ COPY prisma.config.ts ./
 RUN npm ci --omit=dev && npm cache clean --force
 
 # Same as in Build image
-ARG DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
-ENV DATABASE_URL=${DATABASE_URL}
+ARG DATABASE_URL
 
 RUN npx prisma generate
 
-COPY --from=build /app/dist ./dist
+COPY --chown=node:node --from=build /app/dist ./dist
 
 USER node
 
