@@ -20,6 +20,14 @@ export default defineConfig({
 
   server: {
     host: '0.0.0.0',
+    // Dentro de Docker en Windows y Mac, Vite no se entera cuando cambia un
+    // archivo del volumen montado y hay que reiniciar el contenedor para ver
+    // los cambios. Con polling revisa los archivos cada tanto en vez de
+    // esperar el aviso. Lo prende el compose de desarrollo; fuera de Docker
+    // queda apagado porque gasta CPU sin necesidad.
+    watch: {
+      usePolling: process.env.VITE_WATCH_POLLING === 'true',
+    },
     proxy: {
       // En produccion nginx recibe todo y reparte (ADR-009), asi que el frontend
       // puede pedir '/api/...' sin saber donde vive el backend. En desarrollo no hay
@@ -33,8 +41,13 @@ export default defineConfig({
       // y es nginx el que recorta el '/api' al reenviar (proxy_pass con barra
       // final en nginx.*.conf). Aca se hace lo mismo para que dev y prod
       // lleguen al backend con la misma ruta.
+      //
+      // El destino sale de API_PROXY_TARGET. Corriendo el frontend suelto no
+      // esta definida y se usa localhost:3000. Dentro de Docker "localhost" es
+      // el propio contenedor del frontend, asi que el compose de desarrollo la
+      // define como http://backend:3000.
       '/api': {
-        target: 'http://localhost:3000',
+        target: process.env.API_PROXY_TARGET ?? 'http://localhost:3000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },

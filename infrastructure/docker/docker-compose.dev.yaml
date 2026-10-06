@@ -38,6 +38,16 @@ services:
         volumes:
             - ../../frontend:/app
             - /app/node_modules
+        environment:
+            # Dentro del contenedor "localhost" no es el backend: el proxy
+            # de Vite tiene que apuntar al servicio por su nombre.
+            - API_PROXY_TARGET=http://backend:3000
+            # Sin polling, en Windows y Mac los cambios de codigo no se ven
+            # hasta reiniciar el contenedor.
+            - VITE_WATCH_POLLING=true
+            # En Docker el backend siempre esta: nunca responder con mocks,
+            # aunque el .env.local de quien levanta los tenga prendidos.
+            - VITE_USE_MOCKS=false
 
     web:
         container_name: torneria-web-server-dev
