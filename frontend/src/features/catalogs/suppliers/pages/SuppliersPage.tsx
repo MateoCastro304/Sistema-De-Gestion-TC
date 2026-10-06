@@ -16,8 +16,9 @@ import { isApiError } from '@/shared/api/ApiError'
 import { useToast } from '@/app/providers/ToastContext'
 import { useSuppliers } from '../api/useSuppliers'
 import { useDeleteSuppliers } from '../api/useDeleteSuppliers'
+import { SUPPLIER_TYPE_LABELS } from '../types/supplier'
 import type { Supplier } from '../types/supplier'
-import { TYPE_TONES } from '../utils/supplierTone'
+import { TYPE_TONES, supplierTone } from '../utils/supplierTone'
 
 // Chequea trim() y no solo `??`: un campo que el usuario vacio llega como ''
 // (no undefined), y con `??` la celda quedaba en blanco en vez del guion.
@@ -49,7 +50,9 @@ export function SuppliersPage() {
         s.legalName,
         s.cuit ?? '',
         s.cuit?.replace(/-/g, '') ?? '', // Para buscar sin los guiones
-        s.supplierType,
+        // Se busca por el texto que se ve ("Pintura"), no por el valor
+        // del contrato ("PAINT").
+        ...s.supplierTypes.map((type) => SUPPLIER_TYPE_LABELS[type]),
         s.contactName ?? '',
       ].some((field) => field.toLowerCase().includes(term)),
     )
@@ -171,7 +174,7 @@ export function SuppliersPage() {
       header: 'Razón social',
       render: (s) => (
         <span className="table__cell--nombre">
-          <Avatar name={s.legalName} tone={TYPE_TONES[s.supplierType]} />
+          <Avatar name={s.legalName} tone={supplierTone(s.supplierTypes)} />
           <b>{s.legalName}</b>
         </span>
       ),
@@ -181,7 +184,17 @@ export function SuppliersPage() {
     { header: 'CUIT', render: (s) => <span className="table__cell--mono">{orDash(s.cuit)}</span> },
     {
       header: 'Tipo',
-      render: (s) => <Badge variant={TYPE_TONES[s.supplierType]}>{s.supplierType}</Badge>,
+      // Una etiqueta por rubro, cada una con su color. Si no entran en
+      // una línea bajan enteras (flex-wrap en --tipos).
+      render: (s) => (
+        <span className="table__cell--tipos">
+          {s.supplierTypes.map((type) => (
+            <Badge key={type} variant={TYPE_TONES[type]}>
+              {SUPPLIER_TYPE_LABELS[type]}
+            </Badge>
+          ))}
+        </span>
+      ),
     },
     {
       header: 'Contacto',
@@ -231,8 +244,8 @@ export function SuppliersPage() {
     entran de ninguna forma.
   */
   const gridTemplate = isSelecting
-    ? '44px minmax(0,2fr) 124px 104px minmax(0,1.3fr) 150px'
-    : 'minmax(0,2fr) 124px 104px minmax(0,1.3fr) 150px 72px'
+    ? '44px minmax(0,2fr) 124px 120px minmax(0,1.3fr) 150px'
+    : 'minmax(0,2fr) 124px 120px minmax(0,1.3fr) 150px 72px'
 
   // El mensaje del cuerpo vacío cambia según por qué está vacío.
   let emptyMessage = 'Todavía no hay proveedores registrados.'
@@ -377,7 +390,7 @@ export function SuppliersPage() {
           onRowClick={isSelecting ? (s) => toggleOne(s.id) : undefined}
           rowClassName={(s) =>
             cn(
-              `table__row--${TYPE_TONES[s.supplierType]}`,
+              `table__row--${supplierTone(s.supplierTypes)}`,
               // Resalta la fila tildada. Es el mismo `selected` que ya
               // usaba el casillero: no hay estado nuevo.
               selected?.has(s.id) && 'table__row--selected',

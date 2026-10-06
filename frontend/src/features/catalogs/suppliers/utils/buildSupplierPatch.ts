@@ -1,7 +1,14 @@
 import type { SupplierFormValues, SupplierUpdate, Supplier } from "../types/supplier";
+
+/** Los opcionales que el contrato deja borrar mandando null. */
+const CLEARABLE_FIELDS = ['cuit', 'contactName', 'contactEmail', 'contactPhone', 'address'] as const
+
 /**
  * Devuelve solo los campos que cambiaron. Recorta antes de comparar: un
  * espacio de mas no es un cambio real y no merece un PATCH.
+ *
+ * Los rubros no entran: son inmutables y el backend rechaza el PATCH
+ * entero si los recibe.
  */
 export function buildSupplierPatch(original: Supplier, values: SupplierFormValues):SupplierUpdate {
     const patch: SupplierUpdate = {}
@@ -11,33 +18,15 @@ export function buildSupplierPatch(original: Supplier, values: SupplierFormValue
         patch.legalName = legalName
     }
 
-    if (values.supplierType !== original.supplierType) {
-    patch.supplierType = values.supplierType
-    }
-    const cuit = values.cuit?.trim()
-    if(cuit !== (original.cuit ?? '')) {
-        patch.cuit = cuit
-    }
-    // El `?? ''` normaliza el original: sin eso, undefined !== '' daria un
-    // cambio fantasma en cada guardado de los campos opcionales vacios.
-    const contactName = values.contactName.trim()
-    if (contactName !== (original.contactName ?? '')) {
-        patch.contactName = contactName
-    }
-
-    const contactEmail = values.contactEmail.trim()
-    if (contactEmail !== (original.contactEmail ?? '')) {
-        patch.contactEmail = contactEmail
-    }
-
-    const address = values.address.trim()
-    if (address !== (original.address ?? '')) {
-        patch.address = address
-    }
-
-    const contactPhone = values.contactPhone.trim()
-    if (contactPhone !== (original.contactPhone ?? '')) {
-        patch.contactPhone = contactPhone
+    for (const field of CLEARABLE_FIELDS) {
+        const value = values[field].trim()
+        // El `?? ''` normaliza el original: sin eso, undefined !== '' daria un
+        // cambio fantasma en cada guardado de los campos opcionales vacios.
+        if (value !== (original[field] ?? '')) {
+            // Vaciar un campo es null, no '': el backend valida el formato de
+            // lo que llega y un string vacio no pasa como CUIT ni como email.
+            patch[field] = value === '' ? null : value
+        }
     }
     return patch
-} 
+}

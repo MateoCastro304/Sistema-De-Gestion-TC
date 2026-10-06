@@ -6,13 +6,15 @@
 export class ApiError extends Error {
     readonly status: number;
     readonly details: string[];
+    /** Campo que causó el error, si el backend lo informa (ej: un 409). */
+    readonly field?: string;
 
-
-    constructor(status: number, message: string, details: string[] = []) {
+    constructor(status: number, message: string, details: string[] = [], field?: string) {
         super(message);
         this.name = 'ApiError';
         this.status = status;
         this.details = details;
+        this.field = field;
     }
 
     /** Choque con una regla de negocio. Ej: el CUIT ya está registrado. */
