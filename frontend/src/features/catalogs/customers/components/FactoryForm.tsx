@@ -70,18 +70,7 @@ export function FactoryForm({
 
           <div className="form-field">
             <Input
-              label="Código de fábrica"
-              placeholder="Ej: EDA"
-              maxLength={4}
-              style={{ textTransform: 'uppercase' }}
-              error={errors.code?.message}
-              {...register('code')}
-            />
-          </div>
-
-          <div className="form-field">
-            <Input
-              label="CUIT (opcional)"
+              label="CUIT"
               placeholder="30-71234567-8"
               error={errors.cuit?.message}
               {...register('cuit')}
@@ -94,7 +83,7 @@ export function FactoryForm({
             </label>
             <Controller
               control={control}
-              name="industryId"
+              name="categoryId"
               render={({ field }) => (
                 // Select propio: onChange recibe el valor, y Controller lo
                 // acepta así. field.ref deja que react-hook-form enfoque el
@@ -106,16 +95,16 @@ export function FactoryForm({
                   value={field.value}
                   onChange={field.onChange}
                   onBlur={field.onBlur}
-                  invalid={!!errors.industryId}
+                  invalid={!!errors.categoryId}
                   disabled={loadingIndustries}
                   placeholder={loadingIndustries ? 'Cargando rubros…' : 'Seleccioná un rubro'}
                   options={industries.map((industry) => ({ value: industry.id, label: industry.name }))}
                 />
               )}
             />
-            {errors.industryId && (
+            {errors.categoryId && (
               <span className="form-field__error">
-                {errors.industryId.message}
+                {errors.categoryId.message}
               </span>
             )}
             {!loadingIndustries && industries.length === 0 && (
@@ -127,7 +116,7 @@ export function FactoryForm({
 
           <div className="form-field--full">
             <Input
-              label="Dirección"
+              label="Dirección (opcional)"
               placeholder="Calle, número, ciudad"
               error={errors.address?.message}
               {...register('address')}
@@ -140,7 +129,7 @@ export function FactoryForm({
               id="factory-payment-label"
               htmlFor="factory-payment"
             >
-              Formas de pago
+              Formas de pago (opcional)
             </label>
             <textarea
               id="factory-payment"

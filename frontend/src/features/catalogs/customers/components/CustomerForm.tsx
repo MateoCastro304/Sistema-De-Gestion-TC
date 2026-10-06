@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Button, CheckBox, Input, Select } from '@/shared/components/ui'
+import { Button, Input, Select } from '@/shared/components/ui'
 import type { CustomerInput } from '../types/customer'
 import {
   customerFormSchema,
@@ -87,7 +87,7 @@ export function CustomerForm({
 
         <div className="form-field">
           <Input
-            label="Apellido"
+            label="Apellido (opcional)"
             placeholder="Ej: Gómez"
             error={errors.lastName?.message}
             {...register('lastName')}
@@ -101,16 +101,6 @@ export function CustomerForm({
             error={errors.phone?.message}
             {...register('phone')}
           />
-          <label className="filters__checkbox">
-            <Controller
-              control={control}
-              name="hasWhatsapp"
-              render={({ field }) => (
-                <CheckBox checked={field.value} onChange={() => field.onChange(!field.value)} />
-              )}
-            />
-            Este número tiene WhatsApp
-          </label>
         </div>
 
         <div className="form-field">
@@ -119,19 +109,6 @@ export function CustomerForm({
             placeholder="contacto@empresa.com"
             error={errors.mail?.message}
             {...register('mail')}
-          />
-        </div>
-
-        <div className="form-field--full">
-          <label className="form-field__label" htmlFor="customer-observation">
-            Observaciones
-          </label>
-          <textarea
-            id="customer-observation"
-            className="form-field__textarea"
-            rows={3}
-            placeholder="Notas internas sobre el encargado (opcional)."
-            {...register('observation')}
           />
         </div>
 

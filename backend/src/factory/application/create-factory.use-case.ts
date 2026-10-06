@@ -21,8 +21,8 @@ export class CreateFactory {
     const factory = Factory.create(
       dto.cuit,
       dto.name,
-      dto.address,
-      dto.paymentDescription ?? null,
+      dto.address ?? null,
+      dto.payMethod ?? null,
       dto.categoryId,
     );
 

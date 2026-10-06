@@ -74,7 +74,7 @@ export function CustomerDetailPage() {
   const fullName = `${customer.firstName} ${customer.lastName}`
   const factory = factories.find((f) => f.id === customer.factoryId)
   const industryName =
-    industries.find((i) => i.id === factory?.industryId)?.name ?? '—'
+    industries.find((i) => i.id === factory?.categoryId)?.name ?? '—'
 
   const handleSubmit = (input: CustomerInput) => {
     update.mutate(input, {
@@ -274,23 +274,12 @@ function CustomerDetails({
         <div className="card__grid">
           <div className="field">
             <span className="field__label">Teléfono</span>
-            <span className="field__value">
-              {customer.phone || '—'}
-              {/* verde, igual que en el listado: la variante pastel "si"
-                  quedaba de otro color que la misma etiqueta en la tabla. */}
-              {customer.hasWhatsapp && <Badge variant="verde">WhatsApp</Badge>}
-            </span>
+            <span className="field__value">{customer.phone || '—'}</span>
           </div>
           <div className="field">
             <span className="field__label">Email</span>
             <span className="field__value">{customer.mail || '—'}</span>
           </div>
-          {customer.observation && (
-            <div className="field card__full">
-              <span className="field__label">Observaciones</span>
-              <p className="field__value">{customer.observation}</p>
-            </div>
-          )}
         </div>
       </div>
 
@@ -312,11 +301,11 @@ function CustomerDetails({
             </div>
             <div className="field card__full">
               <span className="field__label">Dirección</span>
-              <span className="field__value">{factory.address}</span>
+              <span className="field__value">{factory.address || '—'}</span>
             </div>
             <div className="field card__full">
               <span className="field__label">Formas de pago</span>
-              <p className="field__value">{factory.payMethod}</p>
+              <p className="field__value">{factory.payMethod || '—'}</p>
             </div>
           </div>
         ) : (

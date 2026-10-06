@@ -15,7 +15,7 @@ export class UpdateCustomer {
       throw new NotFoundException(`Customer ${id} not found in factory ${factoryId}`);
     }
 
-    if (dto.mail !== undefined) {
+    if (dto.mail) {
       const normalizedMail = Mail.create(dto.mail).getValue();
       const mailTaken = await this.customersRepository.existsByMail(
         normalizedMail,
@@ -29,10 +29,10 @@ export class UpdateCustomer {
 
     // La fábrica no se puede cambiar: forma parte de la clave primaria.
     customer.update(
-      dto.name ?? customer.getName(),
-      dto.lastName ?? customer.getLastName(),
-      dto.phone ?? customer.getPhone(),
-      dto.mail ?? customer.getMail(),
+      dto.firstName ?? customer.getName(),
+      dto.lastName === undefined ? customer.getLastName() : dto.lastName,
+      dto.phone === undefined ? customer.getPhone() : dto.phone,
+      dto.mail === undefined ? customer.getMail() : dto.mail,
       customer.getFactoryId(),
     );
 

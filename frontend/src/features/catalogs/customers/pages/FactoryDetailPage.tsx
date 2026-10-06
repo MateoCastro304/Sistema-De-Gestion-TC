@@ -102,7 +102,7 @@ export function FactoryDetailPage() {
   }
 
   const industryName =
-    industries.find((i) => i.id === factory.industryId)?.name ?? '—'
+    industries.find((i) => i.id === factory.categoryId)?.name ?? '—'
   // El backend ya acotó a esta fábrica vía `factoryId`.
   const factoryContacts = customersQuery.data?.items ?? []
   // Escenario 3 mira si la fábrica tiene encargados registrados (activos o no);
@@ -182,12 +182,7 @@ export function FactoryDetailPage() {
     },
     {
       header: 'Teléfono',
-      render: (c) => (
-        <span className="table__cell--nombre">
-          <span className="table__cell--mono">{c.phone || '—'}</span>
-          {c.hasWhatsapp && <Badge variant="verde">WhatsApp</Badge>}
-        </span>
-      ),
+      render: (c) => <span className="table__cell--mono">{c.phone || '—'}</span>,
     },
     { header: 'Email', render: (c) => c.mail || '—' },
     {
@@ -392,10 +387,6 @@ function FactoryDetails({
     <div className="card">
       <h2 className="card__title">Datos de la fábrica</h2>
       <div className="card__grid">
-        <div className="field">
-          <span className="field__label">Código de fábrica</span>
-          <span className="field__value">{factory.code}</span>
-        </div>
         <div className="field">
           <span className="field__label">Rubro</span>
           <span className="field__value">{industryName}</span>

@@ -23,7 +23,7 @@ describe('Factory <-> Category business rule (integration)', () => {
     cuit: '20-12345678-6',
     name: 'Fabrica Test',
     address: 'Calle Falsa 123',
-    paymentDescription: undefined,
+    payMethod: undefined,
     categoryId,
   });
 

@@ -44,7 +44,7 @@ describe('FactoryModule wiring (forwardRef)', () => {
     } as any);
 
     await createCustomer.execute(factory.getId()!, {
-      name: 'Cliente',
+      firstName: 'Cliente',
       lastName: 'Test',
       phone: '1155555555',
       mail: 'cliente@test.com',

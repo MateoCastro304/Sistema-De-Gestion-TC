@@ -21,11 +21,20 @@ export class CreateCustomer {
       throw new ConflictException(`Factory with ID ${factoryId} is inactive`);
     }
 
-    const customer = Customer.create(dto.name, dto.lastName, dto.phone, dto.mail, factoryId);
+    const customer = Customer.create(
+      dto.firstName,
+      dto.lastName ?? null,
+      dto.phone ?? null,
+      dto.mail ?? null,
+      factoryId,
+    );
 
-    const mailTaken = await this.customersRepository.existsByMail(customer.getMail(), factoryId);
-    if (mailTaken) {
-      throw new ConflictException(new CustomerAlreadyExists(customer.getMail()).message);
+    const mail = customer.getMail();
+    if (mail) {
+      const mailTaken = await this.customersRepository.existsByMail(mail, factoryId);
+      if (mailTaken) {
+        throw new ConflictException(new CustomerAlreadyExists(mail).message);
+      }
     }
 
     return await this.customersRepository.save(customer);

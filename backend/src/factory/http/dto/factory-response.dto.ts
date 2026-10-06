@@ -1,40 +1,40 @@
 import { Factory } from '../../domain/factory';
 
 export class FactoryResponseDto {
-    id: number;
-    cuit: string;
+    id: string;
     name: string;
+    cuit: string;
     address: string;
-    paymentDescription: string | null;
-    categoryId: number;
-    active: boolean;
+    payMethod: string;
+    categoryId: string;
+    isActive: boolean;
 
     private constructor(
-        id: number,
-        cuit: string,
+        id: string,
         name: string,
+        cuit: string,
         address: string,
-        paymentDescription: string | null,
-        categoryId: number,
-        active: boolean,
+        payMethod: string,
+        categoryId: string,
+        isActive: boolean,
     ) {
         this.id = id;
-        this.cuit = cuit;
         this.name = name;
+        this.cuit = cuit;
         this.address = address;
-        this.paymentDescription = paymentDescription;
+        this.payMethod = payMethod;
         this.categoryId = categoryId;
-        this.active = active;
+        this.isActive = isActive;
     }
 
     static fromDomain(factory: Factory): FactoryResponseDto {
         return new FactoryResponseDto(
-            factory.getId() as number,
-            factory.getCuit(),
+            String(factory.getId()),
             factory.getName(),
-            factory.getAddress(),
-            factory.getPaymentDescription(),
-            factory.getCategoryId(),
+            factory.getCuit(),
+            factory.getAddress() ?? '',
+            factory.getPaymentDescription() ?? '',
+            String(factory.getCategoryId()),
             factory.isActive(),
         );
     }

@@ -49,12 +49,7 @@ export function CustomersTable({
     },
     {
       header: 'Teléfono',
-      render: (c) => (
-        <span className="table__cell--nombre">
-          <span className="table__cell--mono">{c.phone || '—'}</span>
-          {c.hasWhatsapp && <Badge variant="verde">WhatsApp</Badge>}
-        </span>
-      ),
+      render: (c) => <span className="table__cell--mono">{c.phone || '—'}</span>,
     },
     {
       header: 'Email',
@@ -78,7 +73,7 @@ export function CustomersTable({
       header: 'Rubro',
       render: (c) => {
         const factory = factoryById(c.factoryId)
-        return factory ? <Badge variant="suave">{industryName(factory.industryId)}</Badge> : '—'
+        return factory ? <Badge variant="suave">{industryName(factory.categoryId)}</Badge> : '—'
       },
     },
     {

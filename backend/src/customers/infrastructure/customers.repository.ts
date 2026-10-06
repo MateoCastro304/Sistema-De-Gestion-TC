@@ -78,7 +78,7 @@ export class CustomerInMemoryRepository implements CustomerRepository {
       items = items.filter(
         (customer) =>
           customer.getName().toLowerCase().includes(needle) ||
-          customer.getLastName().toLowerCase().includes(needle),
+          (customer.getLastName() ?? '').toLowerCase().includes(needle),
       );
     }
 

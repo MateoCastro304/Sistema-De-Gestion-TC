@@ -26,22 +26,20 @@ export class UpdateFactory {
       }
     }
 
-    if (dto.cuit !== undefined) {
-      const normalizedCuit = Cuit.create(dto.cuit).getCuitValue();
-      const cuitTaken = await this.factoryRepository.existsByCuit(
-        normalizedCuit,
-        factory.getId() ?? undefined,
-      );
+    let cuit = factory.getCuit();
+    if (dto.cuit) {
+      cuit = Cuit.create(dto.cuit).getCuitValue();
+      const cuitTaken = await this.factoryRepository.existsByCuit(cuit, factory.getId() ?? undefined);
       if (cuitTaken) {
-        throw new ConflictException(new FactoryAlreadyExists(normalizedCuit).message);
+        throw new ConflictException(new FactoryAlreadyExists(cuit).message);
       }
     }
 
     factory.update(
-      dto.cuit ?? factory.getCuit(),
+      cuit,
       dto.name ?? factory.getName(),
-      dto.address ?? factory.getAddress(),
-      dto.paymentDescription !== undefined ? dto.paymentDescription : factory.getPaymentDescription(),
+      dto.address === undefined ? factory.getAddress() : dto.address,
+      dto.payMethod === undefined ? factory.getPaymentDescription() : dto.payMethod,
       dto.categoryId ?? factory.getCategoryId(),
     );
 

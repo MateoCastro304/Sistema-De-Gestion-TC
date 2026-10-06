@@ -21,35 +21,17 @@ export interface Customer {
    */
   id: string
   firstName: string
+  /** Optional (DB `last_name` is nullable): the backend answers `''` when absent. */
   lastName: string
-  /**
-   * Phone / WhatsApp number. Optional at the domain level (DB column
-   * `manager_customer.phone` is nullable): at least one of `phone` / `mail`
-   * must be present, enforced by the form and the API, not by this type.
-   */
+  /** Optional: `''` when absent. At least one of `phone` / `mail` is required. */
   phone: string
-  /**
-   * Whether {@link phone} accepts WhatsApp, the channel used to send the quote
-   * report (CU-21). No DB column yet (frontend-ahead field).
-   */
-  hasWhatsapp: boolean
-  /**
-   * Contact email. Named `mail` to match the DB column `manager_customer.mail`
-   * (nullable). Conditional: at least one of `mail` / `phone` is required.
-   */
+  /** Optional: `''` when absent. At least one of `mail` / `phone` is required. */
   mail: string
-  /** Free-text notes. No DB column yet (frontend-ahead field). */
-  observation: string
   /** FabricaCliente this contact belongs to. */
   factoryId: string
   /** Logical-delete flag (baja lógica, CU-04). */
   isActive: boolean
 }
-
-/**
- * Payload sent to the API on create/update. Server-generated fields (id,
- * isActive) are left out.
- */
 
 /**
  * Filtros del listado (`GET /customers`). Todos opcionales y combinables; el
@@ -66,13 +48,14 @@ export interface CustomerListParams {
   active?: boolean
 }
 
-/** "Lo que envío" - forma de un cliente para crear o actualizar */
+/**
+ * "Lo que envío" - forma de un cliente para crear o actualizar. `factoryId`
+ * sirve para armar la URL; no viaja en el cuerpo del pedido.
+ */
 export interface CustomerInput {
   firstName: string
   lastName: string
   phone: string
-  hasWhatsapp: boolean
   mail: string
-  observation: string
   factoryId: string
 }

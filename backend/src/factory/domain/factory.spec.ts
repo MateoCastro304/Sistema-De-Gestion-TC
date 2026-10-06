@@ -28,9 +28,17 @@ describe('Factory Entity', () => {
       expect(factory.isActive()).toBe(true);
     });
 
-    it('debería asignar null en paymentDescription si se pasa null o string vacío', () => {
+    it('debería asignar null en paymentDescription si se pasa null', () => {
       const factory = Factory.create(validCuit, validName, validAddress, null, validCategoryId);
       expect(factory.getPaymentDescription()).toBeNull();
+    });
+
+    it('debería permitir crear una fábrica sin dirección', () => {
+      const withNull = Factory.create(validCuit, validName, null, null, validCategoryId);
+      const withBlank = Factory.create(validCuit, validName, '   ', null, validCategoryId);
+
+      expect(withNull.getAddress()).toBeNull();
+      expect(withBlank.getAddress()).toBeNull();
     });
 
     it('debería lanzar un error si el cuit está vacío', () => {
@@ -39,9 +47,15 @@ describe('Factory Entity', () => {
       ).toThrow('CUIT must have 11 digits');
     });
 
+    it('debería lanzar un error si el cuit no tiene 11 dígitos', () => {
+      expect(() =>
+        Factory.create('123', validName, validAddress, null, validCategoryId),
+      ).toThrow('CUIT must have 11 digits');
+    });
+
     it('debería lanzar un error si el dígito verificador del cuit es inválido', () => {
       expect(() =>
-        Factory.create('20-12345678-9', validName, validAddress, validPaymentDescription, validCategoryId),
+        Factory.create('20-12345678-9', validName, validAddress, null, validCategoryId),
       ).toThrow('CUIT check digit is invalid');
     });
 
@@ -49,12 +63,6 @@ describe('Factory Entity', () => {
       expect(() =>
         Factory.create(validCuit, '   ', validAddress, validPaymentDescription, validCategoryId),
       ).toThrow('Factory name cannot be empty');
-    });
-
-    it('debería lanzar un error si la dirección está vacía', () => {
-      expect(() =>
-        Factory.create(validCuit, validName, '', validPaymentDescription, validCategoryId),
-      ).toThrow('Factory address cannot be empty');
     });
   });
 
@@ -74,6 +82,13 @@ describe('Factory Entity', () => {
       expect(factory.getCuit()).toBe(normalizedValidCuit);
       expect(factory.isActive()).toBe(false);
     });
+
+    it('debería reconstruir una fábrica sin dirección ni forma de pago', () => {
+      const factory = Factory.reconstruct(10, validCuit, validName, null, null, validCategoryId, true);
+
+      expect(factory.getAddress()).toBeNull();
+      expect(factory.getPaymentDescription()).toBeNull();
+    });
   });
 
   describe('update()', () => {
@@ -87,6 +102,15 @@ describe('Factory Entity', () => {
       expect(factory.getAddress()).toBe('Calle Falsa 123');
       expect(factory.getPaymentDescription()).toBe('Contando');
       expect(factory.getCategoryId()).toBe(2);
+    });
+
+    it('debería permitir limpiar la dirección y la forma de pago', () => {
+      const factory = Factory.create(validCuit, validName, validAddress, validPaymentDescription, validCategoryId);
+
+      factory.update(validCuit, validName, null, null, validCategoryId);
+
+      expect(factory.getAddress()).toBeNull();
+      expect(factory.getPaymentDescription()).toBeNull();
     });
   });
 

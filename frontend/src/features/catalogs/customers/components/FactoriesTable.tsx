@@ -36,9 +36,8 @@ export function FactoriesTable({
         </span>
       ),
     },
-    // Código y CUIT en monoespaciada: son identificadores, y así quedan
-    // alineados de una fila a la otra.
-    { header: 'Código', render: (f) => <span className="table__cell--mono">{f.code}</span> },
+    // El CUIT va en monoespaciada: es un identificador, y así queda alineado
+    // de una fila a la otra.
     {
       header: 'CUIT',
       render: (f) => <span className="table__cell--mono">{formatCuit(f.cuit)}</span>,
@@ -48,7 +47,7 @@ export function FactoriesTable({
     // a la que asignarles colores. El color de la fila lo da el estado.
     {
       header: 'Rubro',
-      render: (f) => <Badge variant="suave">{industryName(f.industryId)}</Badge>,
+      render: (f) => <Badge variant="suave">{industryName(f.categoryId)}</Badge>,
     },
     {
       header: 'Encargados',
@@ -72,7 +71,7 @@ export function FactoriesTable({
       /* Rediseño: filas-tarjeta en vez de <table>. Los datos, el filtro y
          el rowKey son los mismos; lo nuevo son sólo props de presentación. */
       variant="cards"
-      gridTemplate="minmax(0,2.4fr) 96px 136px minmax(0,1fr) 110px 72px"
+      gridTemplate="minmax(0,2.4fr) 136px minmax(0,1fr) 110px 72px"
       rowClassName={(f) => cn(`table__row--${toneByStatus(f.isActive)}`)}
       columns={columns}
       data={factories}
