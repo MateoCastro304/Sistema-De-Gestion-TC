@@ -154,14 +154,14 @@ export function SupplierDetailPage() {
       onSuccess: () => {
         setForm(null)
         setErrors({})
-        showToast('success', 'Proveedor Actualizado')
+        showToast('success', 'Proveedor actualizado.')
       },
       onError: (mutationError) => {
         if (isApiError(mutationError) && mutationError.isConflict) {
           setErrors({ cuit: mutationError.message })
           return
         }
-        showToast('error', isApiError(mutationError) ? mutationError.message : 'Ocurrio un error inesperado')
+        showToast('error', isApiError(mutationError) ? mutationError.message : 'Ocurrió un error inesperado.')
       }
     })
   }

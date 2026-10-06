@@ -3682,7 +3682,11 @@ table {
    El buscador va adentro, en vidrio.
    ============================================================ */
 .page-header {
-  position: relative; overflow: hidden;
+  /* clip y no hidden: con hidden el panel sigue siendo desplazable por
+     código, y como el halo (::after) se sale 30px por la derecha, al
+     enfocar un botón o el buscador el navegador lo corría de lugar y
+     dejaba el contenido cortado contra el borde izquierdo. */
+  position: relative; overflow: clip;
   border-radius: 24px; padding: 28px 30px;
   background: var(--rp-grad-panel); background-size: 220% 220%;
   animation: rpGradient 14s ease-in-out infinite alternate;
@@ -3761,6 +3765,8 @@ table {
 }
 .search-field__icon { width: 18px; height: 18px; flex-shrink: 0; }
 .page-header .search-field .search-input {
+  /* ellipsis: en celular el placeholder no entra y se cortaba a media letra. */
+  text-overflow: ellipsis;
   max-width: none; padding: 0; border: 0; background: none;
   box-shadow: none; backdrop-filter: none; border-radius: 0;
 }
@@ -4210,6 +4216,9 @@ table {
   background: #dc2626; animation: rpDotBlink 1.6s ease-in-out infinite;
 }
 .bulk-bar__hint { font-size: 13px; font-weight: 600; color: #6b7280; }
+/* "Seleccionar todos" es una acción, no una aclaración: sin esto heredaba
+   el gris chico del estilo viejo y al lado del contador parecía apagada. */
+.bulk-bar__select-all { font-size: 14px; font-weight: 700; color: var(--rp-navy); }
 
 
 /* ============================================================
@@ -4656,6 +4665,14 @@ table {
      el ancho hay que dárselo a él. */
   .table__cell--fin { justify-self: stretch; }
   .table__cell--fin .link-btn { width: 100%; }
+  /* En ficha no hay encabezado de columnas, así que el guion de un dato
+     vacío queda suelto y no se sabe de qué es. Se saca la celda entera. */
+  .table-card--cards .table__cell:has(.table__cell--vacio) { display: none; }
+  /* El casillero de selección va en la esquina de la ficha: como una fila
+     más dejaba un renglón vacío arriba del nombre. */
+  .table-card--cards .table__row { position: relative; }
+  .table-card--cards .table__cell--check { position: absolute; top: 16px; right: 18px; }
+  .table-card--cards .table__row:has(.table__cell--check) .table__cell--nombre { padding-right: 44px; }
 }
 
 /* El botón de la topbar sólo existe en celular: acá se define apagado y

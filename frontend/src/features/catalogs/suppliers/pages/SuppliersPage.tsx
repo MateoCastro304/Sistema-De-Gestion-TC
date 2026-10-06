@@ -150,6 +150,8 @@ export function SuppliersPage() {
     // no obliga a ensanchar esta columna en todas las filas.
     header: '',
     align: 'center',
+    // En ficha (ventana angosta) el CSS lo manda a la esquina de la tarjeta.
+    cellClassName: 'table__cell--check',
     // Mismo estado y mismo onChange de antes: CheckBox sólo cambia el
     // aspecto, el <input> nativo sigue adentro.
     render: (s) => (
@@ -252,7 +254,11 @@ export function SuppliersPage() {
             <span className="page-header__eyebrow">Catálogo</span>
             <h1 className="page-header__title">Proveedores</h1>
             <p className="page-header__subtitle">
-              {isPending ? 'Cargando…' : `${data?.length ?? 0} Proveedores registrados`}
+              {isPending
+                ? 'Cargando…'
+                : data?.length === 1
+                  ? '1 proveedor registrado'
+                  : `${data?.length ?? 0} proveedores registrados`}
             </p>
           </div>
 
@@ -294,7 +300,7 @@ export function SuppliersPage() {
           <input
             className="search-input"
             type="search"
-            placeholder="Buscar por razón social, CUIT, Contacto o Tipo Proveedor"
+            placeholder="Buscar por razón social, CUIT, contacto o tipo"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             aria-label="Buscar proveedores"
