@@ -1,8 +1,15 @@
 import type { ButtonHTMLAttributes } from 'react'
 import { cn } from '@/shared/lib/cn'
 
-/** Button styles available in the stylesheet (`.btn--*`). */
-export type ButtonVariant = 'primary' | 'outline' | 'success' | 'danger'
+/**
+ * Button styles available in the stylesheet (`.btn--*`).
+ *
+ * `secondary` la agrega el rediseño: es el botón "en vidrio" que va
+ * DENTRO del panel de cabecera oscuro (fondo blanco translúcido y borde
+ * claro). Sobre fondo blanco se ve casi igual que `outline`; la
+ * diferencia se nota adentro del panel, que es donde se usa.
+ */
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'success' | 'danger'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant

@@ -21,6 +21,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <div className="toasts" role="region" aria-live="polite">
             {toasts.map((t) => (
                 <div key={t.id} className={`toast toast--${t.kind}`} role="alert">
+                    {/* Círculo con el símbolo. Es decorativo (aria-hidden):
+                        el estado ya lo dice el texto del mensaje, y el
+                        contenedor es role="alert". */}
+                    <span className="toast__icon" aria-hidden="true">
+                        {t.kind === 'success' ? '✓' : t.kind === 'error' ? '!' : 'i'}
+                    </span>
                     <p className="toast__message">{t.message}</p>
                     <button
                         type="button"

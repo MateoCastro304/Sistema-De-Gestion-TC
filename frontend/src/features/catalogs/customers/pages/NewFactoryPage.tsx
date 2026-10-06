@@ -32,17 +32,29 @@ export function NewFactoryPage() {
 
   return (
     <>
-      <div className="content__heading">
-        <div>
-          <h1 className="content__title">Nueva fábrica</h1>
-          <p className="content__subtitle">
-            Registrá los datos de la fábrica. Después vas a poder agregarle sus
-            encargados.
-          </p>
+      {/* Rediseño: mismo panel azul que el listado y el detalle. El
+          "← Volver" pasa al botón redondo de la izquierda. */}
+      <div className="page-header">
+        <div className="page-header__row">
+          <div className="detail-header__left">
+            <Link
+              to="/catalogs/factories"
+              className="btn btn--icon"
+              aria-label="Volver al listado de fábricas"
+            >
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M10 3 5 8l5 5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </Link>
+            <div>
+              <h1 className="page-header__title">Nueva fábrica</h1>
+              <p className="page-header__subtitle">
+                Registrá los datos de la fábrica. Después vas a poder agregarle
+                sus encargados.
+              </p>
+            </div>
+          </div>
         </div>
-        <Link to="/catalogs/factories">
-          <span className="table__action">← Volver</span>
-        </Link>
       </div>
 
       <FactoryForm

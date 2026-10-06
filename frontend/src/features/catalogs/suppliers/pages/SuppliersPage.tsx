@@ -1,18 +1,30 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
-import { Button, Modal, Table } from '@/shared/components/ui'
+import {
+  Avatar,
+  Badge,
+  Button,
+  CheckBox,
+  IconTrash,
+  Modal,
+  Table,
+  TrashButton,
+} from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
+import { cn } from '@/shared/lib/cn'
 import { isApiError } from '@/shared/api/ApiError'
 import { useToast } from '@/app/providers/ToastContext'
 import { useSuppliers } from '../api/useSuppliers'
 import { useDeleteSuppliers } from '../api/useDeleteSuppliers'
 import type { Supplier } from '../types/supplier'
+import { TYPE_TONES } from '../utils/supplierTone'
 
 // Chequea trim() y no solo `??`: un campo que el usuario vacio llega como ''
 // (no undefined), y con `??` la celda quedaba en blanco en vez del guion.
 function orDash(value?: string) {
-  return value?.trim() ? value : <span className="table__td--muted">—</span>
+  return value?.trim() ? value : <span className="table__cell--vacio">—</span>
 }
+
 
 export function SuppliersPage() {
   const { data, isPending, error } = useSuppliers()
@@ -91,8 +103,10 @@ export function SuppliersPage() {
         if (failed.length === 0) {
           // Salio todo: cerramos el modo eliminacion.
           setSelected(null)
+          // 'info' y no 'success': salió bien, pero el verde de éxito
+          // para un borrado se lee como si hubiéramos ganado algo.
           showToast(
-            'success',
+            'info',
             deleted.length === 1
               ? 'Proveedor eliminado.'
               : `${deleted.length} proveedores eliminados.`,
@@ -136,13 +150,15 @@ export function SuppliersPage() {
     // no obliga a ensanchar esta columna en todas las filas.
     header: '',
     align: 'center',
+    // En ficha (ventana angosta) el CSS lo manda a la esquina de la tarjeta.
+    cellClassName: 'table__cell--check',
+    // Mismo estado y mismo onChange de antes: CheckBox sólo cambia el
+    // aspecto, el <input> nativo sigue adentro.
     render: (s) => (
-      <input
-        type="checkbox"
-        className="table__checkbox"
+      <CheckBox
         checked={selected?.has(s.id) ?? false}
         onChange={() => toggleOne(s.id)}
-        aria-label={`Seleccionar ${s.legalName}`}
+        label={`Seleccionar ${s.legalName}`}
       />
     ),
   }
@@ -151,11 +167,32 @@ export function SuppliersPage() {
     // El spread de un array vacio no agrega nada: asi se mete una columna
     // condicionalmente sin romper el array literal.
     ...(isSelecting ? [selectionColumn] : []),
-    { header: 'Razón social', render: (s) => s.legalName },
-    { header: 'CUIT', render: (s) => orDash(s.cuit) },
-    { header: 'Tipo', render: (s) => s.supplierType },
-    { header: 'Contacto', render: (s) => orDash(s.contactName) },
-    { header: 'Teléfono', render: (s) => orDash(s.contactPhone) },
+    {
+      header: 'Razón social',
+      render: (s) => (
+        <span className="table__cell--nombre">
+          <Avatar name={s.legalName} tone={TYPE_TONES[s.supplierType]} />
+          <b>{s.legalName}</b>
+        </span>
+      ),
+    },
+    // El CUIT en monoespaciada: son columnas de dígitos, y así los
+    // guiones quedan alineados de una fila a la otra.
+    { header: 'CUIT', render: (s) => <span className="table__cell--mono">{orDash(s.cuit)}</span> },
+    {
+      header: 'Tipo',
+      render: (s) => <Badge variant={TYPE_TONES[s.supplierType]}>{s.supplierType}</Badge>,
+    },
+    {
+      header: 'Contacto',
+      render: (s) => <span className="table__cell--contacto">{orDash(s.contactName)}</span>,
+    },
+    // El teléfono va en texto común: la monoespaciada es sólo para el
+    // CUIT, que es un identificador y se lee en columna.
+    {
+      header: 'Teléfono',
+      render: (s) => <span className="table__cell--tel">{orDash(s.contactPhone)}</span>,
+    },
     // En modo eliminación no hay "Ver": navegar desmonta la pantalla y la
     // selección se perdería sin ningún aviso.
     ...(isSelecting
@@ -164,14 +201,38 @@ export function SuppliersPage() {
           {
             header: '',
             align: 'center' as const,
+            // --fin lo pega contra el borde derecho de la fila. Va como
+            // cellClassName y no adentro del render porque justify-self
+            // sólo lo obedece el hijo directo del grid.
+            cellClassName: 'table__cell--fin',
             render: (s: Supplier) => (
-              <Link className="table__action" to={`/catalogs/suppliers/${s.id}`}>
+              <Link className="link-btn" to={`/catalogs/suppliers/${s.id}`}>
                 Ver
               </Link>
             ),
           },
         ]),
   ]
+
+  /*
+    Anchos de las columnas de la fila-tarjeta. Cambia según el modo
+    porque las columnas no son las mismas: en selección entra el
+    casillero adelante y sale el botón "Ver" del final.
+
+    Las columnas de dato fijo van en px (el CUIT y el teléfono tienen
+    largo conocido y no se parten, la etiqueta de rubro tampoco y el
+    botón "Ver" es del ancho de su texto) y las dos de texto libre en
+    fr, con minmax(0,…) para que cedan en vez de desbordar. Los px son
+    algo más anchos que los del prototipo: con aquellos el teléfono
+    quedaba justo y el contacto se partía en dos líneas.
+
+    Abajo de 1200px esto deja de usarse: el CSS pasa la fila a ficha
+    apilada de una sola columna, que es donde seis columnas ya no
+    entran de ninguna forma.
+  */
+  const gridTemplate = isSelecting
+    ? '44px minmax(0,2fr) 124px 104px minmax(0,1.3fr) 150px'
+    : 'minmax(0,2fr) 124px 104px minmax(0,1.3fr) 150px 72px'
 
   // El mensaje del cuerpo vacío cambia según por qué está vacío.
   let emptyMessage = 'Todavía no hay proveedores registrados.'
@@ -180,35 +241,53 @@ export function SuppliersPage() {
 
   return (
     <>
-      <div className="content__heading">
-        <div>
-          <h1 className="content__title">Proveedores</h1>
-          <p className="content__subtitle">
-            {isPending ? 'Cargando…' : `${data?.length ?? 0} Proveedores registrados`}
-          </p>
+      {/*
+        Rediseño: el título, las acciones y el buscador pasan a vivir
+        adentro del mismo panel azul (.page-header) en vez de estar en
+        tres bloques sueltos. Es sólo envoltura: los mismos textos, los
+        mismos botones y el mismo input controlado de antes.
+      */}
+      <div className="page-header">
+        <div className="page-header__row">
+          <div className="page-header__heading">
+            {/* Chip de sección. El puntito que late lo pone el CSS. */}
+            <span className="page-header__eyebrow">Catálogo</span>
+            <h1 className="page-header__title">Proveedores</h1>
+            <p className="page-header__subtitle">
+              {isPending
+                ? 'Cargando…'
+                : data?.length === 1
+                  ? '1 proveedor registrado'
+                  : `${data?.length ?? 0} proveedores registrados`}
+            </p>
+          </div>
+
+          {/* En modo eliminación las acciones las toma la barra de abajo. */}
+          {!isSelecting && (
+            <div className="content__actions">
+              {/* El botón de eliminar con el tacho animado. Adentro del
+                  panel oscuro va en vidrio, igual que el secondary de antes. */}
+              <TrashButton
+                label="Eliminar proveedores"
+                onClick={() => setSelected(new Set())}
+                disabled={(data?.length ?? 0) === 0}
+              >
+                Eliminar proveedores
+              </TrashButton>
+              <Link to="/catalogs/suppliers/new" className="btn btn--primary content__cta">
+                <span>+</span> Nuevo proveedor
+              </Link>
+            </div>
+          )}
         </div>
 
-        {/* En modo eliminación las acciones las toma la barra de abajo. */}
-        {!isSelecting && (
-          <div className="content__actions">
-            <Button
-              variant="outline"
-              onClick={() => setSelected(new Set())}
-              disabled={(data?.length ?? 0) === 0}
-            >
-              Eliminar proveedores
-            </Button>
-            <Link to="/catalogs/suppliers/new" className="btn btn--primary content__cta">
-              <span>+</span> Nuevo proveedor
-            </Link>
-          </div>
-        )}
-      </div>
-
-      <div className="filters">
-        <label className="filters__search filters__search--wide">
+        {/* Adentro del panel el buscador va en vidrio. La pastilla es el
+            <label>, no el input: así la lupa queda adentro y el anillo de
+            foco rodea a los dos (`:focus-within`). El <label> además hace
+            que tocar la lupa enfoque el campo. */}
+        <label className="search-field">
           <svg
-            className="filters__search-icon"
+            className="search-field__icon"
             viewBox="0 0 20 20"
             fill="none"
             stroke="currentColor"
@@ -219,9 +298,9 @@ export function SuppliersPage() {
             <path d="m14 14 4 4" strokeLinecap="round" />
           </svg>
           <input
-            className="filters__search-input"
+            className="search-input"
             type="search"
-            placeholder="Buscar por razón social, CUIT, Contacto o Tipo Proveedor"
+            placeholder="Buscar por razón social, CUIT, contacto o tipo"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             aria-label="Buscar proveedores"
@@ -234,9 +313,7 @@ export function SuppliersPage() {
           <div className="bulk-bar__left">
             {/* <label> envolviendo el input: el texto tambien alterna la casilla. */}
             <label className="bulk-bar__select-all">
-              <input
-                type="checkbox"
-                className="table__checkbox"
+              <CheckBox
                 checked={allVisibleSelected}
                 onChange={toggleAllVisible}
                 disabled={filtered.length === 0}
@@ -244,15 +321,21 @@ export function SuppliersPage() {
               Seleccionar todos
             </label>
 
+            {/* El listado no da ninguna pista de que la fila entera es
+                tocable, así que se dice. */}
+            <span className="bulk-bar__hint">Tocá la fila para seleccionar</span>
+
             <span className="bulk-bar__count">
               {selectedCount === 1
                 ? '1 proveedor seleccionado'
                 : `${selectedCount} proveedores seleccionados`}
             </span>
 
-            {/* Avisa que hay tildados que el filtro actual no muestra. */}
+            {/* Avisa que hay tildados que el filtro actual no muestra.
+                Va con --warn en vez de --hint: es una advertencia, y el
+                rediseño la muestra como pastilla roja. */}
             {hiddenSelectedCount > 0 && (
-              <span className="bulk-bar__hint">
+              <span className="bulk-bar__warn">
                 ({hiddenSelectedCount} fuera de la búsqueda)
               </span>
             )}
@@ -267,6 +350,7 @@ export function SuppliersPage() {
               onClick={() => setConfirmOpen(true)}
               disabled={selectedCount === 0}
             >
+              <IconTrash />
               Confirmar
             </Button>
           </div>
@@ -279,6 +363,26 @@ export function SuppliersPage() {
         </div>
       ) : (
         <Table
+          /* Rediseño: filas-tarjeta en vez de <table>. Los datos, el
+             filtro y el rowKey son los mismos; lo único nuevo son las
+             props de presentación. */
+          variant="cards"
+          gridTemplate={gridTemplate}
+          /* Tocar cualquier parte de la fila tilda, no sólo el casillero
+             (era el pedido del diseño: en celular es la diferencia entre
+             acertarle y no). Sólo en modo eliminación: fuera de él la
+             fila no tiene por qué reaccionar al click.
+             Es el mismo toggleOne de siempre, así que la lógica de
+             selección no cambia. */
+          onRowClick={isSelecting ? (s) => toggleOne(s.id) : undefined}
+          rowClassName={(s) =>
+            cn(
+              `table__row--${TYPE_TONES[s.supplierType]}`,
+              // Resalta la fila tildada. Es el mismo `selected` que ya
+              // usaba el casillero: no hay estado nuevo.
+              selected?.has(s.id) && 'table__row--selected',
+            )
+          }
           columns={columns}
           data={filtered}
           rowKey={(s) => s.id}
@@ -301,6 +405,7 @@ export function SuppliersPage() {
               Cancelar
             </Button>
             <Button variant="danger" onClick={handleDelete} disabled={isDeleting}>
+              <IconTrash />
               {isDeleting ? 'Eliminando…' : 'Eliminar'}
             </Button>
           </>

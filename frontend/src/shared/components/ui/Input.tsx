@@ -21,7 +21,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   ref,
 ) {
   return (
-    <div className={cn('form-field', full && 'form-field--full')}>
+    // form-field--error pinta el borde en rojo (regla del rediseño); sin
+    // error la clase no se agrega y el campo se ve igual que siempre.
+    <div className={cn('form-field', full && 'form-field--full', error && 'form-field--error')}>
       {label && (
         <label className="form-field__label" htmlFor={id}>
           {label}
@@ -34,8 +36,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         aria-invalid={error ? true : undefined}
         {...rest}
       />
+      {/* __error en vez de __hint--error: el rediseño lo muestra con su
+          ícono de advertencia. Es el mismo texto y la misma condición. */}
       {error ? (
-        <span className="form-field__hint form-field__hint--error">{error}</span>
+        <span className="form-field__error">{error}</span>
       ) : hint ? (
         <span className="form-field__hint">{hint}</span>
       ) : null}

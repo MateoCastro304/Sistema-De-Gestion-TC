@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Button, Input } from '@/shared/components/ui'
-import { cn } from '@/shared/lib/cn'
+import { Button, Input, Select } from '@/shared/components/ui'
 import type { CustomerInput } from '../types/customer'
 import {
   customerFormSchema,
@@ -27,6 +26,14 @@ interface CustomerFormProps {
    * encargados") and when editing, where the factory is immutable (RNF-3).
    */
   lockedFactoryId?: string
+  /**
+   * id del <form>. Sirve para que un botón de afuera lo envíe con
+   * `<Button type="submit" form={formId}>` (el detalle pone Guardar en el
+   * panel de arriba, donde estaba Editar, igual que Proveedores).
+   */
+  formId?: string
+  /** Esconde Cancelar/Guardar del pie: el que llama los pone en otro lado. */
+  hideActions?: boolean
 }
 
 /**
@@ -41,6 +48,8 @@ export function CustomerForm({
   submitting = false,
   submitLabel = 'Guardar',
   lockedFactoryId,
+  formId,
+  hideActions = false,
 }: CustomerFormProps) {
   const {
     register,
@@ -65,8 +74,8 @@ export function CustomerForm({
 
   return (
     <>
-    <form className="form-card" onSubmit={submit} noValidate>
-      <div className="form-grid">
+    <form id={formId} className="card" onSubmit={submit} noValidate>
+      <div className="card__grid">
         <div className="form-field">
           <Input
             label="Nombre"
@@ -148,30 +157,25 @@ export function CustomerForm({
               control={control}
               name="factoryId"
               render={({ field }) => (
-                <select
+                // Select propio: onChange recibe el valor, y Controller lo
+                // acepta así. field.ref deja que react-hook-form enfoque el
+                // campo cuando la validación falla.
+                <Select
                   id="factoryId"
-                  className={cn(
-                    'form-field__select',
-                    errors.factoryId && 'form-field__select--error',
-                  )}
+                  name={field.name}
+                  ref={field.ref}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  invalid={!!errors.factoryId}
                   disabled={loadingFactories}
-                  {...field}
-                >
-                  <option value="">
-                    {loadingFactories
-                      ? 'Cargando fábricas…'
-                      : 'Seleccioná una fábrica'}
-                  </option>
-                  {factories.map((factory) => (
-                    <option key={factory.id} value={factory.id}>
-                      {factory.name}
-                    </option>
-                  ))}
-                </select>
+                  placeholder={loadingFactories ? 'Cargando fábricas…' : 'Seleccioná una fábrica'}
+                  options={factories.map((factory) => ({ value: factory.id, label: factory.name }))}
+                />
               )}
             />
             {errors.factoryId && (
-              <span className="form-field__hint form-field__hint--error">
+              <span className="form-field__error">
                 {errors.factoryId.message}
               </span>
             )}
@@ -186,16 +190,18 @@ export function CustomerForm({
         )}
       </div>
 
-      <div className="form-actions">
-        {onCancel && (
-          <Button variant="outline" onClick={onCancel} disabled={submitting}>
-            Cancelar
+      {!hideActions && (
+        <div className="form-actions">
+          {onCancel && (
+            <Button variant="outline" onClick={onCancel} disabled={submitting}>
+              Cancelar
+            </Button>
+          )}
+          <Button type="submit" disabled={submitting}>
+            {submitting ? 'Guardando…' : submitLabel}
           </Button>
-        )}
-        <Button type="submit" disabled={submitting}>
-          {submitting ? 'Guardando…' : submitLabel}
-        </Button>
-      </div>
+        </div>
+      )}
     </form>
 
       <FactoryFormModal

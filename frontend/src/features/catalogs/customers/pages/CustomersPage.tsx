@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
-import { Button, Modal } from '@/shared/components/ui'
+import { Button, CheckBox, IconTrash, Modal } from '@/shared/components/ui'
 import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
 import type { Customer } from '../types/customer'
@@ -61,8 +61,11 @@ export function CustomersPage() {
       { factoryId: toDeactivate.factoryId, id: toDeactivate.id },
       {
         onSuccess: () => {
+          // 'info' y no 'success', igual que en Proveedores: salió bien,
+          // pero el verde de éxito para un borrado se lee como si
+          // hubiéramos ganado algo.
           showToast(
-            'success',
+            'info',
             `Encargado "${fullName(toDeactivate)}" eliminado.`,
           )
           setToDeactivate(null)
@@ -81,22 +84,68 @@ export function CustomersPage() {
 
   return (
     <>
-      <div className="content__heading">
-        <div>
-          <h1 className="content__title">Encargados</h1>
-          <p className="content__subtitle">
-            Alta, baja, modificación y consulta de encargados de fábricas.
-          </p>
+      {/* Rediseño: el encabezado pasa a ser el panel azul, el mismo de
+          Fábricas y Proveedores. Cambia la envoltura y las clases; los
+          textos, el botón y el link son los de antes. Los filtros se
+          mudan acá adentro (ver más abajo). */}
+      <div className="page-header">
+        <div className="page-header__row">
+          <div className="page-header__heading">
+            <span className="page-header__eyebrow">Catálogo</span>
+            <h1 className="page-header__title">Encargados</h1>
+            <p className="page-header__subtitle">
+              Alta, baja, modificación y consulta de encargados de fábricas.
+            </p>
+          </div>
+          <div className="content__actions">
+            <Link to="/catalogs/customers/new" className="btn btn--primary content__cta">
+              <span>+</span> Nuevo encargado
+            </Link>
+          </div>
         </div>
-        <Link to="/catalogs/customers/new">
-          <Button>+ Nuevo encargado</Button>
-        </Link>
+
+        {customersQuery.isSuccess && (
+          <div className="page-header__filters">
+            <label className="search-field">
+              <svg
+                className="search-field__icon"
+                viewBox="0 0 20 20"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <circle cx="9" cy="9" r="6" />
+                <path d="m14 14 4 4" strokeLinecap="round" />
+              </svg>
+              <input
+                type="search"
+                className="search-input"
+                placeholder="Buscar por nombre, apellido, mail o fábrica"
+                aria-label="Buscar por nombre, apellido, mail o fábrica"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+              />
+            </label>
+
+            {/* El <label> envuelve al input, así que el texto también
+                alterna la casilla. CheckBox sólo cambia el aspecto: el
+                input nativo sigue adentro con su mismo onChange. */}
+            <label className="filter-check">
+              <CheckBox
+                checked={showInactive}
+                onChange={() => setShowInactive(!showInactive)}
+              />
+              Incluir eliminados
+            </label>
+          </div>
+        )}
       </div>
 
       {customersQuery.isLoading && <p>Cargando encargados…</p>}
 
       {customersQuery.isError && (
-        <p className="form-field__hint--error">
+        <p className="form-field__error">
           {isApiError(customersQuery.error)
             ? customersQuery.error.message
             : 'No se pudieron cargar los encargados.'}
@@ -105,39 +154,6 @@ export function CustomersPage() {
 
       {customersQuery.isSuccess && (
         <>
-          <div className="filters">
-            <div className="filters__search">
-              <svg
-                className="filters__search-icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                aria-hidden="true"
-              >
-                <circle cx="11" cy="11" r="7" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <input
-                type="search"
-                className="filters__search-input"
-                placeholder="Buscar por nombre, apellido, mail o fábrica"
-                aria-label="Buscar por nombre, apellido, mail o fábrica"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-              />
-            </div>
-
-            <label className="filters__checkbox">
-              <input
-                type="checkbox"
-                checked={showInactive}
-                onChange={(event) => setShowInactive(event.target.checked)}
-              />
-              Incluir eliminados
-            </label>
-          </div>
-
           <CustomersTable
             customers={filteredCustomers}
             factories={factories}
@@ -166,7 +182,10 @@ export function CustomersPage() {
             >
               Cancelar
             </Button>
-            <Button onClick={confirmDeactivate} disabled={deactivate.isPending}>
+            {/* danger y no primario: confirmar un borrado va en rojo, como
+                en Proveedores. El tacho abre la tapa al pasar el mouse. */}
+            <Button variant="danger" onClick={confirmDeactivate} disabled={deactivate.isPending}>
+              <IconTrash />
               {deactivate.isPending ? 'Eliminando…' : 'Eliminar'}
             </Button>
           </>
