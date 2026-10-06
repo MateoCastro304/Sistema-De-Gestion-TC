@@ -15,7 +15,20 @@ export const customerFormSchema = z
   .object({
     firstName: z.string().trim().min(1, 'El nombre es obligatorio'),
     lastName: z.string().trim().min(1, 'El apellido es obligatorio'),
-    phone: z.string().trim(),
+    // Mismas reglas que el backend (shared/domain/phone.ts): dígitos con los
+    // separadores habituales, entre 8 y 15 dígitos. Vacío pasa: el teléfono
+    // es opcional si hay mail (ver el refine de abajo).
+    phone: z
+      .string()
+      .trim()
+      .refine(
+        (value) => value === '' || /^\+?[\d\s().-]+$/.test(value),
+        'El teléfono solo admite números, espacios y los signos + ( ) - .',
+      )
+      .refine((value) => {
+        const digits = value.replace(/\D/g, '').length
+        return value === '' || (digits >= 8 && digits <= 15)
+      }, 'El teléfono debe tener entre 8 y 15 dígitos'),
     hasWhatsapp: z.boolean(),
     // Vacío es válido acá; la obligatoriedad "al menos uno" la cubre el refine.
     mail: z.union([z.literal(''), z.email('Ingresá un email válido')]),

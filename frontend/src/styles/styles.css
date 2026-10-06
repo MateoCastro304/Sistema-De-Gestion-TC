@@ -4078,6 +4078,7 @@ table {
   padding: 0 4px; border: 0; background: none; cursor: pointer;
   font-size: 14px; font-weight: 700; color: var(--rp-azul-osc);
 }
+.table-card--cards button.table__action:disabled { opacity: .5; cursor: default; }
 
 
 /* ============================================================
@@ -4707,6 +4708,9 @@ table {
   /* En ficha no hay encabezado de columnas, así que el guion de un dato
      vacío queda suelto y no se sabe de qué es. Se saca la celda entera. */
   .table-card--cards .table__cell:has(.table__cell--vacio) { display: none; }
+  /* En ficha, "Ver" ocupa el ancho que queda al lado del tacho, como el
+     "Ver" de Proveedores: es la acción principal de la tarjeta. */
+  .table-card--cards .table__cell--acciones .link-btn { flex: 1; }
   /* El casillero de selección va en la esquina de la ficha: como una fila
      más dejaba un renglón vacío arriba del nombre. */
   .table-card--cards .table__row { position: relative; }

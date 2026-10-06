@@ -18,6 +18,7 @@ import type { Customer } from '../types/customer'
 import type { Factory, FactoryInput } from '../types/factory'
 import { formatCuit, toFactoryFormValues } from '../schemas/factory.schema'
 import {
+  useActivateCustomer,
   useCustomers,
   useDeactivateCustomer,
   useFactories,
@@ -47,43 +48,55 @@ export function FactoryDetailPage() {
   const customersQuery = useCustomers({ factoryId: id, limit: 200 })
   const update = useUpdateFactory(id)
   const deactivate = useDeactivateCustomer()
+  const activate = useActivateCustomer()
 
   const [editing, setEditing] = useState(false)
   // Regla de negocio: los encargados inactivos se muestran solo con este filtro.
   const [showInactive, setShowInactive] = useState(false)
   // Encargado modal: null closed; { customer } edits; { customer: undefined } adds.
+  // Escenario 1 (HU-E1): al llegar recién creada la fábrica se ofrece cargar su
+  // primer encargado, así que el modal arranca abierto. Se resuelve en el
+  // valor inicial y no en un efecto: un setState dentro de un efecto dispara
+  // un render en cascada.
   const [contactModal, setContactModal] = useState<{
     customer?: Customer
-  } | null>(null)
+  } | null>(() =>
+    (location.state as { addContact?: boolean } | null)?.addContact
+      ? { customer: undefined }
+      : null,
+  )
   // Encargado pending confirmation for baja lógica.
   const [toDeactivate, setToDeactivate] = useState<Customer | null>(null)
 
-  // Escenario 1 (HU-E1): al llegar recién creada la fábrica, ofrecer cargar su
-  // primer encargado abriendo el modal automáticamente. Se limpia el state para
-  // no reabrirlo al refrescar o volver.
+  // Se limpia el state de la navegación para que el modal no se reabra al
+  // refrescar o al volver.
   useEffect(() => {
     if ((location.state as { addContact?: boolean } | null)?.addContact) {
-      setContactModal({ customer: undefined })
       window.history.replaceState({}, '')
     }
   }, [location.state])
 
-  if (factoriesQuery.isLoading) return <p>Cargando fábrica…</p>
+  if (factoriesQuery.isLoading) {
+    return (
+      <div className="empty-state">
+        <p className="empty-state__text">Cargando fábrica…</p>
+      </div>
+    )
+  }
 
   const factory = factoriesQuery.data?.find((f) => f.id === id)
 
   if (factoriesQuery.isError || !factory) {
     return (
-      <div className="content__heading">
-        <div>
-          <h1 className="content__title">Fábrica no encontrada</h1>
-          <p className="content__subtitle">
-            La fábrica que buscás no existe o no se pudo cargar.
-          </p>
-        </div>
-        <Link to="/catalogos/fabricas">
-          <Button variant="outline">Volver al listado</Button>
-        </Link>
+      <div className="empty-state">
+        <p className="empty-state__text">
+          {factoriesQuery.isError
+            ? 'No se pudo cargar la fábrica.'
+            : 'No encontramos la fábrica que buscabas.'}{' '}
+          <Link className="table__action" to="/catalogos/fabricas">
+            Volver al listado
+          </Link>
+        </p>
       </div>
     )
   }
@@ -112,6 +125,21 @@ export function FactoryDetailPage() {
           isApiError(error) ? error.message : 'No se pudo actualizar la fábrica.',
         ),
     })
+  }
+
+  const handleActivate = (customer: Customer) => {
+    activate.mutate(
+      { factoryId: customer.factoryId, id: customer.id },
+      {
+        onSuccess: () =>
+          showToast('success', `Encargado "${fullName(customer)}" reactivado.`),
+        onError: (error) =>
+          showToast(
+            'error',
+            isApiError(error) ? error.message : 'No se pudo reactivar el encargado.',
+          ),
+      },
+    )
   }
 
   const confirmDeactivate = () => {
@@ -188,7 +216,16 @@ export function FactoryDetailPage() {
             />
           </>
         ) : (
-          '—'
+          // Un eliminado no se edita ni se vuelve a eliminar: sólo se
+          // reactiva, igual que en el listado general de Encargados.
+          <button
+            type="button"
+            className="table__action"
+            onClick={() => handleActivate(c)}
+            disabled={activate.isPending}
+          >
+            Reactivar
+          </button>
         ),
     },
   ]
@@ -369,11 +406,11 @@ function FactoryDetails({
         </div>
         <div className="field card__full">
           <span className="field__label">Dirección</span>
-          <span className="field__value">{factory.address}</span>
+          <span className="field__value">{factory.address || '—'}</span>
         </div>
         <div className="field card__full">
           <span className="field__label">Formas de pago</span>
-          <p className="field__value">{factory.payMethod}</p>
+          <p className="field__value">{factory.payMethod || '—'}</p>
         </div>
       </div>
     </div>
