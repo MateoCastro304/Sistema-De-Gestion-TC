@@ -1,4 +1,6 @@
 import { http, HttpResponse } from 'msw'
+import { normalizeText } from '@/shared/lib/normalizeText'
+import { formatCuit } from '../schemas/factory.schema'
 import type { Customer, CustomerInput } from '../types/customer'
 import type { Factory, FactoryInput } from '../types/factory'
 import type { Industry } from '../types/industry'
@@ -60,7 +62,7 @@ function factoryConflict(
       (f.cuit === cuit || f.code.toUpperCase() === code),
   )
   if (!clash) return null
-  const field = clash.cuit === cuit ? `CUIT ${input.cuit}` : `código "${code}"`
+  const field = clash.cuit === cuit ? `CUIT ${formatCuit(cuit)}` : `código "${code}"`
   return HttpResponse.json(
     {
       statusCode: 409,
@@ -156,7 +158,7 @@ export const customerHandlers = [
     const page = Number(url.searchParams.get('page') ?? '1')
     const limit = Number(url.searchParams.get('limit') ?? '20')
     const factoryId = url.searchParams.get('factoryId')
-    const nameContains = url.searchParams.get('nameContains')?.trim().toLowerCase()
+    const nameContains = normalizeText(url.searchParams.get('nameContains')?.trim() ?? '')
     const activeParam = url.searchParams.get('active')
 
     let result = customers
@@ -168,7 +170,7 @@ export const customerHandlers = [
     // nameContains busca por nombre o apellido (como el backend, DTC-54).
     if (nameContains) {
       result = result.filter((c) =>
-        `${c.firstName} ${c.lastName}`.toLowerCase().includes(nameContains),
+        normalizeText(`${c.firstName} ${c.lastName}`).includes(nameContains),
       )
     }
     const total = result.length

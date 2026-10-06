@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router'
 import { AppLayout } from '@/app/layouts/AppLayout'
+import { NotFoundPage } from '@/app/router/NotFoundPage'
 import { SuppliersPage } from '@/features/catalogs/suppliers/pages/SuppliersPage'
 import { NewSupplierPage } from '@/features/catalogs/suppliers/pages/NewSupplierPage'
 import { SupplierDetailPage } from '@/features/catalogs/suppliers/pages/SupplierDetailPage'
@@ -43,5 +44,11 @@ export const router = createBrowserRouter([
       { path: 'nuevo', element: <NewFactoryPage /> },
       { path: ':id', element: <FactoryDetailPage /> },
     ],
+  },
+  // Cualquier otra URL. Ruta sin path propio para conservar el layout: el
+  // menú sigue a la vista y se puede salir del error sin tocar la URL.
+  {
+    element: <AppLayout />,
+    children: [{ path: '*', element: <NotFoundPage /> }],
   },
 ])

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Button, Input, Select } from '@/shared/components/ui'
+import { Button, CheckBox, Input, Select } from '@/shared/components/ui'
 import type { CustomerInput } from '../types/customer'
 import {
   customerFormSchema,
@@ -102,7 +102,13 @@ export function CustomerForm({
             {...register('phone')}
           />
           <label className="filters__checkbox">
-            <input type="checkbox" {...register('hasWhatsapp')} />
+            <Controller
+              control={control}
+              name="hasWhatsapp"
+              render={({ field }) => (
+                <CheckBox checked={field.value} onChange={() => field.onChange(!field.value)} />
+              )}
+            />
             Este número tiene WhatsApp
           </label>
         </div>

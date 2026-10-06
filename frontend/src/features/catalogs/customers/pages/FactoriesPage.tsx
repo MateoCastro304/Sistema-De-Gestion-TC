@@ -8,6 +8,7 @@ import {
   useIndustries,
 } from '../api/customers.queries'
 import { FactoriesTable } from '../components/FactoriesTable'
+import { normalizeText } from '@/shared/lib/normalizeText'
 
 /** CU-60 Consultar Fábrica: listing of the FabricaCliente catalog. */
 export function FactoriesPage() {
@@ -34,13 +35,13 @@ export function FactoriesPage() {
   const factories = useMemo(() => factoriesQuery.data ?? [], [factoriesQuery.data])
 
   const filteredFactories = useMemo(() => {
-    const query = search.trim().toLowerCase()
+    const query = normalizeText(search.trim())
     // Compare CUIT by digits so "30-71" matches a stored "30712345671".
     const queryDigits = query.replace(/\D/g, '')
     return factories.filter((factory) => {
       if (industryId && factory.industryId !== industryId) return false
       if (!query) return true
-      const matchesName = factory.name.toLowerCase().includes(query)
+      const matchesName = normalizeText(factory.name).includes(query)
       const matchesCuit =
         queryDigits.length > 0 && factory.cuit.includes(queryDigits)
       return matchesName || matchesCuit

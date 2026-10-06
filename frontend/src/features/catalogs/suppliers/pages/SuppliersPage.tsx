@@ -12,6 +12,7 @@ import {
 } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
 import { cn } from '@/shared/lib/cn'
+import { normalizeText } from '@/shared/lib/normalizeText'
 import { isApiError } from '@/shared/api/ApiError'
 import { useToast } from '@/app/providers/ToastContext'
 import { useSuppliers } from '../api/useSuppliers'
@@ -43,7 +44,7 @@ export function SuppliersPage() {
 
   const filtered = useMemo(() => {
     const list = data ?? []
-    const term = search.trim().toLowerCase()
+    const term = normalizeText(search.trim())
     if (!term) return list
     return list.filter((s) =>
       [
@@ -54,7 +55,7 @@ export function SuppliersPage() {
         // del contrato ("PAINT").
         ...s.supplierTypes.map((type) => SUPPLIER_TYPE_LABELS[type]),
         s.contactName ?? '',
-      ].some((field) => field.toLowerCase().includes(term)),
+      ].some((field) => normalizeText(field).includes(term)),
     )
   }, [data, search])
 
