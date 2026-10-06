@@ -11,6 +11,7 @@ import {
   NewFactoryPage,
   FactoryDetailPage,
 } from '@/features/catalogs/customers'
+import { CategoriesPage } from '@/features/catalogs/categories'
 
 export const router = createBrowserRouter([
   // The app has no landing page yet: send "/" to the customers catalog.
@@ -41,5 +42,10 @@ export const router = createBrowserRouter([
       { path: 'new', element: <NewFactoryPage /> },
       { path: ':id', element: <FactoryDetailPage /> },
     ],
+  },
+  {
+    path: '/catalogs/categories',
+    element: <AppLayout />,
+    children: [{ index: true, element: <CategoriesPage /> }],
   },
 ])

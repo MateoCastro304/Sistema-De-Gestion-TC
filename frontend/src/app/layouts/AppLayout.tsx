@@ -4,6 +4,7 @@ import { Outlet, NavLink, useLocation } from 'react-router'
 const SECTION_LABELS: Record<string, string> = {
   customers: 'Encargados',
   factories: 'Fábricas',
+  categories: 'Rubros',
   suppliers: 'Proveedores',
 }
 
@@ -45,6 +46,13 @@ export function AppLayout() {
                     }
                     >
                     Fábricas
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/catalogs/categories" className={({ isActive }) => isActive ? 'sidebar__link sidebar__link--active' : 'sidebar__link'
+                    }
+                    >
+                    Rubros
                 </NavLink>
               </li>
               <li>
