@@ -1,7 +1,9 @@
 import { http, HttpResponse } from 'msw'
+import { normalizeText } from '@/shared/lib/normalizeText'
+import { formatCuit } from '../schemas/factory.schema'
 import type { Customer, CustomerInput } from '../types/customer'
 import type { Factory, FactoryInput } from '../types/factory'
-import type { Industry, IndustryInput } from '../types/industry'
+import type { Industry } from '../types/industry'
 
 /**
  * MSW handlers that stand in for the backend (DTC-54) while it is not ready.
@@ -11,7 +13,7 @@ import type { Industry, IndustryInput } from '../types/industry'
  * and resets on every page reload.
  */
 
-let industries: Industry[] = [
+const industries: Industry[] = [
   { id: 'ind-particular', name: 'Particular', isActive: true },
   { id: 'ind-metal', name: 'Metalúrgica', isActive: true },
   { id: 'ind-auto', name: 'Autopartes', isActive: true },
@@ -60,7 +62,7 @@ function factoryConflict(
       (f.cuit === cuit || f.code.toUpperCase() === code),
   )
   if (!clash) return null
-  const field = clash.cuit === cuit ? `CUIT ${input.cuit}` : `código "${code}"`
+  const field = clash.cuit === cuit ? `CUIT ${formatCuit(cuit)}` : `código "${code}"`
   return HttpResponse.json(
     {
       statusCode: 409,
@@ -151,7 +153,31 @@ export const customerHandlers = [
   // Item operations are nested under the owning factory because a manager is
   // identified by the composite key (factoryId, id); `/customers` stays as the
   // flat global list only.
-  http.get('/api/customers', () => HttpResponse.json(customers)),
+  http.get('/api/customers', ({ request }) => {
+    const url = new URL(request.url)
+    const page = Number(url.searchParams.get('page') ?? '1')
+    const limit = Number(url.searchParams.get('limit') ?? '20')
+    const factoryId = url.searchParams.get('factoryId')
+    const nameContains = normalizeText(url.searchParams.get('nameContains')?.trim() ?? '')
+    const activeParam = url.searchParams.get('active')
+
+    let result = customers
+    if (factoryId) result = result.filter((c) => c.factoryId === factoryId)
+    if (activeParam !== null) {
+      const active = activeParam === 'true'
+      result = result.filter((c) => c.isActive === active)
+    }
+    // nameContains busca por nombre o apellido (como el backend, DTC-54).
+    if (nameContains) {
+      result = result.filter((c) =>
+        normalizeText(`${c.firstName} ${c.lastName}`).includes(nameContains),
+      )
+    }
+    const total = result.length
+    const start = (page - 1) * limit
+    const items = result.slice(start, start + limit)
+    return HttpResponse.json({ items, total, page, limit })
+  }),
 
   http.get('/api/factories/:factoryId/customers/:id', ({ params }) => {
     const customer = findCustomer(String(params.factoryId), String(params.id))
@@ -186,14 +212,24 @@ export const customerHandlers = [
   }),
 
   // Must precede the generic ":id" PATCH so the extra path segment is not
-  // mistaken for an id.
+  // mistaken for an id. Both answer 204 No Content, like the backend.
   http.patch(
     '/api/factories/:factoryId/customers/:id/deactivate',
     ({ params }) => {
       const customer = findCustomer(String(params.factoryId), String(params.id))
       if (!customer) return new HttpResponse(null, { status: 404 })
       customer.isActive = false
-      return HttpResponse.json(customer)
+      return new HttpResponse(null, { status: 204 })
+    },
+  ),
+
+  http.patch(
+    '/api/factories/:factoryId/customers/:id/activate',
+    ({ params }) => {
+      const customer = findCustomer(String(params.factoryId), String(params.id))
+      if (!customer) return new HttpResponse(null, { status: 404 })
+      customer.isActive = true
+      return new HttpResponse(null, { status: 204 })
     },
   ),
 
@@ -241,16 +277,8 @@ export const customerHandlers = [
   }),
 
   // Industries (Rubro) ----------------------------------------------------
+  // Solo lectura: el rubro es un catálogo de otra persona. Este GET es un
+  // stand-in para poblar el selector de la fábrica mientras su endpoint real no
+  // está conectado; el alta/edición de rubros no se mockea acá.
   http.get('/api/industries', () => HttpResponse.json(industries)),
-
-  http.post('/api/industries', async ({ request }) => {
-    const body = (await request.json()) as IndustryInput
-    const newIndustry: Industry = {
-      id: crypto.randomUUID(),
-      isActive: true,
-      ...body,
-    }
-    industries = [...industries, newIndustry]
-    return HttpResponse.json(newIndustry, { status: 201 })
-  }),
 ]

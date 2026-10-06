@@ -1,16 +1,17 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
-import { Button } from '@/shared/components/ui'
+import { Avatar, Badge, Button } from '@/shared/components/ui'
 import { isApiError } from '@/shared/api/ApiError'
 import { cn } from '@/shared/lib/cn'
 import { useSupplier } from '../api/useDetailSupplier'
-import { SUPPLIER_TYPES } from '../types/supplier'
-import type {SupplierFormValues} from '../types/supplier'
+import { SUPPLIER_TYPE_LABELS } from '../types/supplier'
+import type {SupplierFormValues, SupplierType} from '../types/supplier'
 import type { ChangeEvent } from 'react'
 import { useUpdateSupplier } from '../api/useUpdateSupplier'
 import { buildSupplierPatch } from '../utils/buildSupplierPatch'
+import { TYPE_TONES, supplierTone } from '../utils/supplierTone'
 import { useToast } from '@/app/providers/ToastContext'
-import { validateSupplierForm } from '../utils/validateSupplierForm'
+import { conflictErrors, validateSupplierForm } from '../utils/validateSupplierForm'
 import type { SupplierFormErrors } from '../utils/validateSupplierForm'
 /** ISO 8601 -> "22 ago 2026". Las fechas viajan como string, no como Date. */
 function formatDate(iso: string) {
@@ -33,35 +34,62 @@ interface FieldProps {
   maxLength?: number
 }
 
+/** Las etiquetas de rubro, una por tipo y cada una con su color. */
+function TypeBadges({ types }: { types: SupplierType[] }) {
+  return (
+    <>
+      {types.map((type) => (
+        <Badge key={type} variant={TYPE_TONES[type]}>
+          {SUPPLIER_TYPE_LABELS[type]}
+        </Badge>
+      ))}
+    </>
+  )
+}
+
 /**
  * En lectura es texto; en edicion, un input en el mismo lugar. La celda de la
  * grilla no cambia, asi el layout no salta al entrar y salir de la edicion.
  */
 function Field({ label, value, name, editing, onChange, error, maxLength, readOnly = false, hint }: FieldProps) {
+  /*
+    Rediseño: la celda cambia de clase según el modo, porque el CSS
+    tiene dos tratamientos distintos.
+      - lectura: .field + .field__label + .field__value (rótulo chico
+        en versalitas arriba, dato grande abajo).
+      - edición: .form-field, que estiliza al <input> por elemento
+        (`.form-field input`), sin necesidad de clase en el input.
+    La estructura y el estado no cambian: sigue siendo la misma celda
+    de la grilla, así el layout no salta al entrar y salir de edición.
+  */
   return (
-    <div className="info-grid__item">
-      <span className="info-grid__label">{label}</span>
+    <div className={cn(editing ? 'form-field' : 'field', error && 'form-field--error')}>
+      {/* En edición es un <label> real apuntando al input (que ya tenía
+          id={name}); en lectura no hay control al que apuntar, así que
+          queda como texto. */}
+      {editing ? (
+        <label htmlFor={name}>{label}</label>
+      ) : (
+        <span className="field__label">{label}</span>
+      )}
 
       {editing ? (
         <>
           <input
             id={name}
             name={name}
-            className={cn(
-              'form-field__input',
-              readOnly && 'form-field__input--disabled',
-            )}
+            className={cn(readOnly && 'form-field__input--disabled')}
             value={value}
             onChange={onChange}
             disabled={readOnly}
             maxLength={maxLength}
             aria-invalid={error ? true : undefined}
           />
-          {error ? (<span className="form-field__hint form-field__hint--error">{error}</span>
+          {error ? (<span className="form-field__error">{error}</span>
               ) : hint ? (<span className="form-field__hint">{hint}</span>) : null}
         </>
       ) : (
-        <span className="info-grid__value">{value.trim() ? value : '—'}</span>
+        <span className="field__value">{value.trim() ? value : '—'}</span>
       )}
     </div>
   )
@@ -92,7 +120,7 @@ export function SupplierDetailPage() {
       <div className="empty-state">
         <p className="empty-state__text">
           No encontramos el proveedor que buscabas.{' '}
-          <Link className="table__action" to="/catalogs/suppliers">
+          <Link className="table__action" to="/catalogos/proveedores">
             Volver al listado
           </Link>
         </p>
@@ -139,46 +167,62 @@ export function SupplierDetailPage() {
       onSuccess: () => {
         setForm(null)
         setErrors({})
-        showToast('success', 'Proveedor Actualizado')
+        showToast('success', 'Proveedor actualizado.')
       },
       onError: (mutationError) => {
-        if (isApiError(mutationError) && mutationError.isConflict) {
-          setErrors({ cuit: mutationError.message })
+        // CUIT o razón social repetidos: el mensaje va en su campo.
+        const fieldErrors = conflictErrors(mutationError)
+        if (fieldErrors) {
+          setErrors(fieldErrors)
           return
         }
-        showToast('error', isApiError(mutationError) ? mutationError.message : 'Ocurrio un error inesperado')
+        showToast('error', isApiError(mutationError) ? mutationError.message : 'Ocurrió un error inesperado.')
       }
     })
   }
 
   return (
     <>
-      <div className="detail-header">
-        <div className="detail-header__left">
-          <Link
-            to="/catalogs/suppliers"
-            className="detail-header__back"
-            aria-label="Volver al listado de proveedores"
-          >
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M10 3 5 8l5 5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </Link>
+      {/* Rediseño: el encabezado del detalle es el mismo panel azul del
+          listado. Cambia la envoltura y las clases; los datos, el botón
+          de volver y las acciones son los de antes. */}
+      <div className="page-header">
+        <div className="page-header__row">
+          <div className="detail-header__left">
+            <Link
+              to="/catalogos/proveedores"
+              /* --icon es el botón redondo del panel: mismo link, misma
+                 ruta, sólo cambia cómo se ve sobre el fondo oscuro. */
+              className="btn btn--icon"
+              aria-label="Volver al listado de proveedores"
+            >
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M10 3 5 8l5 5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </Link>
 
-          <div>
-            {/* Sin badge de estado: si el proveedor se ve, esta activo. Los
-                eliminados no se listan y responden 404 por id. */}
-            <div className="detail-header__title-row">
-              <h1 className="detail-header__title">{supplier.legalName}</h1>
+            {/* El cuadrado con las iniciales, en su tamaño grande y con
+                el color del rubro: el mismo que se ve en el listado, así
+                se reconoce que es el mismo proveedor. */}
+            <Avatar name={supplier.legalName} tone={supplierTone(supplier.supplierTypes)} size="lg" />
+
+            <div>
+              {/* Sin badge de estado: si el proveedor se ve, esta activo. Los
+                  eliminados no se listan y responden 404 por id. */}
+              <div className="detail-header__title-row">
+                <h1 className="page-header__title">{supplier.legalName}</h1>
+              </div>
+              {/* El rubro va como etiqueta y no como texto separado por
+                  un punto: es el mismo dato, pero se reconoce de un
+                  vistazo igual que en el listado. */}
+              <span className="page-header__subtitle detail-header__meta">
+                {supplier.cuit ? `CUIT: ${supplier.cuit}` : null}
+                <TypeBadges types={supplier.supplierTypes} />
+              </span>
             </div>
-            <span className="detail-header__meta">
-              { (supplier.cuit) ? `CUIT: ${supplier.cuit} · ${supplier.supplierType}` 
-              : supplier.supplierType }
-            </span>
           </div>
-        </div>
 
-        <div className="detail-header__actions">
+          <div className="detail-header__actions">
           {isEditing ? (
             <>
               <Button variant="outline" onClick={() => {setForm(null); setErrors({})}} disabled={isSaving}>
@@ -192,7 +236,7 @@ export function SupplierDetailPage() {
             <Button variant="primary" onClick={() => setForm({
               cuit: supplier.cuit ?? '',
               legalName: supplier.legalName,
-              supplierType: supplier.supplierType,
+              supplierTypes: supplier.supplierTypes,
               contactName: supplier.contactName ?? '',
               contactEmail: supplier.contactEmail ?? '',
               contactPhone: supplier.contactPhone ?? '',
@@ -201,14 +245,15 @@ export function SupplierDetailPage() {
               Editar
             </Button>
           )}
+          </div>
         </div>
       </div>
 
       <div className="detail-layout">
         <div className="detail-main">
-          <section className="info-card">
-            <h2 className="info-card__title">Datos generales</h2>
-            <div className="info-grid">
+          <section className="card">
+            <h2 className="card__title">Datos generales</h2>
+            <div className="card__grid">
               <Field
                 label="Razón social"
                 name="legalName"
@@ -229,40 +274,35 @@ export function SupplierDetailPage() {
                 error= {errors.cuit}
               />
 
-              <div className="info-grid__item">
-                <span className="info-grid__label">Tipo</span>
-                {isEditing ? (
-                  <select
-                    id="supplierType"
-                    name="supplierType"
-                    className="form-field__select"
-                    value={form?.supplierType ?? supplier.supplierType}
-                    onChange={handleChange}
-                  >
-                    {SUPPLIER_TYPES.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <span className="info-grid__value">{supplier.supplierType}</span>
+              {/* El tipo se define en el alta y no se puede cambiar: el
+                  backend rechaza el PATCH si lo recibe. Por eso queda como
+                  dato también en edición, con una aclaración al pie. */}
+              <div className="field">
+                <span className="field__label">Tipo</span>
+                <span className="field__value field__value--badges">
+                  <TypeBadges types={supplier.supplierTypes} />
+                </span>
+                {isEditing && (
+                  <span className="form-field__hint">No se puede modificar.</span>
                 )}
               </div>
 
-              <div className="info-grid__item info-grid__item--full">
-                <span className="info-grid__label">Dirección</span>
+              <div className={cn(isEditing ? 'form-field' : 'field', 'card__full')}>
+                {isEditing ? (
+                  <label htmlFor="address">Dirección</label>
+                ) : (
+                  <span className="field__label">Dirección</span>
+                )}
                 {isEditing ? (
                   <input
                     id="address"
                     name="address"
-                    className="form-field__input"
                     maxLength={200}
                     value={form?.address ?? supplier.address ?? ''}
                     onChange={handleChange}
                   />
                 ) : (
-                  <p className="info-grid__text">
+                  <p className="field__value">
                     {supplier.address?.trim() ? supplier.address : '—'}
                   </p>
                 )}
@@ -270,9 +310,9 @@ export function SupplierDetailPage() {
             </div>
           </section>
 
-          <section className="info-card">
-            <h2 className="info-card__title">Contacto</h2>
-            <div className="info-grid">
+          <section className="card">
+            <h2 className="card__title">Contacto</h2>
+            <div className="card__grid">
               <Field
                 label="Persona de contacto"
                 name="contactName"
@@ -304,18 +344,20 @@ export function SupplierDetailPage() {
           </section>
         </div>
 
-        {/* El registro es información del sistema: nunca se edita a mano. */}
+        {/* El registro es información del sistema: nunca se edita a mano.
+            Va en el panel oscuro justamente por eso: se distingue de un
+            vistazo de las tarjetas blancas, que sí son editables. */}
         <aside className="detail-aside">
-          <section className="info-card">
-            <h2 className="info-card__title">Registro</h2>
-            <div className="info-grid">
-              <div className="info-grid__item info-grid__item--full">
-                <span className="info-grid__label">Alta</span>
-                <span className="info-grid__value">{formatDate(supplier.createdAt)}</span>
+          <section className="card card--dark">
+            <h2 className="card__title">Registro</h2>
+            <div className="card__grid">
+              <div className="field card__full">
+                <span className="field__label">Alta</span>
+                <span className="field__value">{formatDate(supplier.createdAt)}</span>
               </div>
-              <div className="info-grid__item info-grid__item--full">
-                <span className="info-grid__label">Última modificación</span>
-                <span className="info-grid__value">{formatDate(supplier.updatedAt)}</span>
+              <div className="field card__full">
+                <span className="field__label">Última modificación</span>
+                <span className="field__value">{formatDate(supplier.updatedAt)}</span>
               </div>
             </div>
           </section>

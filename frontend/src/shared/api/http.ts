@@ -8,6 +8,8 @@ interface NestErrorBody {
     statusCode?: number
     message?: string | string[]
     error?: string
+    /** Los 409 de unicidad dicen qué campo chocó (ej: 'cuit'). */
+    field?: string
 }
 /** Mensajes para cuando el backend no manda ninguno. */
 const FALLBACK_MESSAGES: Record<number, string> = {
@@ -45,7 +47,7 @@ function toApiError(error: unknown): ApiError {
     }
 
     if (typeof rawMessage === 'string' && rawMessage.trim() !== '') {
-        return new ApiError(status, rawMessage)
+        return new ApiError(status, rawMessage, [], body?.field)
     }
 
     return new ApiError(status, fallbackMessage(status))

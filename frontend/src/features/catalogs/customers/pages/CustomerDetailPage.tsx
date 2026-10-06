@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router'
-import { Badge, Button } from '@/shared/components/ui'
+import { Avatar, Badge, Button, IconTrash, Modal, TrashButton } from '@/shared/components/ui'
+import { toneByStatus } from '@/shared/lib/rowTone'
 import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
 import type { Customer, CustomerInput } from '../types/customer'
 import type { Factory } from '../types/factory'
 import {
+  useActivateCustomer,
   useCustomer,
   useDeactivateCustomer,
   useFactories,
@@ -15,6 +17,9 @@ import {
 import { toCustomerFormValues } from '../schemas/customer.schema'
 import { formatCuit } from '../schemas/factory.schema'
 import { CustomerForm } from '../components/CustomerForm'
+
+/** id del formulario de edición: lo usa el botón Guardar del panel. */
+const EDIT_FORM_ID = 'customer-edit-form'
 
 /**
  * CU-03 Consultar Cliente (read-only) with an "Editar" toggle for CU-02
@@ -33,28 +38,34 @@ export function CustomerDetailPage() {
   const { data: industries = [] } = useIndustries()
   const update = useUpdateCustomer(factoryId, id)
   const deactivate = useDeactivateCustomer()
+  const activate = useActivateCustomer()
 
   // The detail view starts read-only; "Editar" switches to the form.
   const [editing, setEditing] = useState(false)
+  // Eliminar pide confirmación, igual que desde el listado.
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
-  if (customerQuery.isLoading) return <p>Cargando encargado…</p>
+  if (customerQuery.isLoading) {
+    return (
+      <div className="empty-state">
+        <p className="empty-state__text">Cargando encargado…</p>
+      </div>
+    )
+  }
 
   if (customerQuery.isError || !customerQuery.data) {
     const notFound =
       isApiError(customerQuery.error) && customerQuery.error.isNotFound
     return (
-      <div className="content__heading">
-        <div>
-          <h1 className="content__title">Encargado no encontrado</h1>
-          <p className="content__subtitle">
-            {notFound
-              ? 'El encargado que buscás no existe o fue eliminado.'
-              : 'No se pudo cargar el encargado.'}
-          </p>
-        </div>
-        <Link to="/catalogs/customers">
-          <Button variant="outline">Volver al listado</Button>
-        </Link>
+      <div className="empty-state">
+        <p className="empty-state__text">
+          {notFound
+            ? 'No encontramos el encargado que buscabas.'
+            : 'No se pudo cargar el encargado.'}{' '}
+          <Link className="table__action" to="/catalogos/encargados">
+            Volver al listado
+          </Link>
+        </p>
       </div>
     )
   }
@@ -84,15 +95,35 @@ export function CustomerDetailPage() {
       { factoryId: customer.factoryId, id: customer.id },
       {
         onSuccess: () => {
-          showToast('success', `Encargado "${fullName}" eliminado.`)
-          navigate('/catalogs/customers')
+          // 'info' y no 'success': un borrado no es un logro.
+          showToast('info', `Encargado "${fullName}" eliminado.`)
+          navigate('/catalogos/encargados')
         },
-        onError: (error) =>
+        onError: (error) => {
+          setConfirmOpen(false)
           showToast(
             'error',
             isApiError(error)
               ? error.message
               : 'No se pudo eliminar el encargado.',
+          )
+        },
+      },
+    )
+  }
+
+  const handleActivate = () => {
+    activate.mutate(
+      { factoryId: customer.factoryId, id: customer.id },
+      {
+        onSuccess: () =>
+          showToast('success', `Encargado "${fullName}" reactivado.`),
+        onError: (error) =>
+          showToast(
+            'error',
+            isApiError(error)
+              ? error.message
+              : 'No se pudo reactivar el encargado.',
           ),
       },
     )
@@ -100,35 +131,79 @@ export function CustomerDetailPage() {
 
   return (
     <>
-      <div className="content__heading">
-        <div>
-          <div className="detail-header__title-row">
-            <h1 className="content__title">{fullName}</h1>
+      {/* Rediseño: el encabezado es el panel azul de los otros catálogos.
+          El "← Volver" pasa a ser el botón redondo de la izquierda, que es
+          donde el resto de las pantallas lo tiene. Misma ruta, mismo link. */}
+      <div className="page-header">
+        <div className="page-header__row">
+          <div className="detail-header__left">
+            <Link
+              to="/catalogos/encargados"
+              className="btn btn--icon"
+              aria-label="Volver al listado de encargados"
+            >
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M10 3 5 8l5 5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </Link>
+
+            {/* El cuadrado con las iniciales, en su tamaño grande: el mismo
+                que se ve en el listado, para reconocer que es el mismo. */}
+            <Avatar name={fullName} tone={toneByStatus(customer.isActive)} size="lg" />
+
+            <div>
+              <div className="detail-header__title-row">
+                <h1 className="page-header__title">{fullName}</h1>
+                {/* Mismo aviso que en el listado: sin la etiqueta, un
+                    eliminado sólo se distinguía por el botón Reactivar. */}
+                {!customer.isActive && <Badge variant="neutral">Inactivo</Badge>}
+              </div>
+              <p className="page-header__subtitle">
+                {editing
+                  ? 'Modificá los datos del encargado.'
+                  : 'Datos del encargado.'}
+              </p>
+            </div>
           </div>
-          <p className="content__subtitle">
-            {editing
-              ? 'Modificá los datos del encargado.'
-              : 'Datos del encargado.'}
-          </p>
-        </div>
-        <div className="detail-header__actions">
-          <Link to="/catalogs/customers">
-            <Button variant="outline">← Volver</Button>
-          </Link>
-          {!editing && (
-            <>
-              <Button onClick={() => setEditing(true)}>Editar</Button>
-              {customer.isActive && (
+          <div className="detail-header__actions">
+            {/* Editando, Cancelar y Guardar ocupan el lugar de Editar, como
+                en el detalle de Proveedores. Guardar está fuera del <form>:
+                lo envía por el atributo `form`, así la validación de
+                react-hook-form corre igual que con el botón de adentro. */}
+            {editing ? (
+              <>
                 <Button
                   variant="outline"
-                  onClick={handleDeactivate}
-                  disabled={deactivate.isPending}
+                  onClick={() => setEditing(false)}
+                  disabled={update.isPending}
                 >
-                  {deactivate.isPending ? 'Eliminando…' : 'Eliminar'}
+                  Cancelar
                 </Button>
-              )}
-            </>
-          )}
+                <Button type="submit" form={EDIT_FORM_ID} disabled={update.isPending}>
+                  {update.isPending ? 'Guardando…' : 'Guardar cambios'}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button onClick={() => setEditing(true)}>Editar</Button>
+                {customer.isActive ? (
+                  /* El botón de eliminar con el tacho animado. Adentro del
+                     panel oscuro va en vidrio y se pone blanco con texto rojo
+                     al pasar el mouse. */
+                  <TrashButton
+                    label={`Eliminar a ${fullName}`}
+                    onClick={() => setConfirmOpen(true)}
+                  >
+                    Eliminar
+                  </TrashButton>
+                ) : (
+                  <Button variant="outline" onClick={handleActivate} disabled={activate.isPending}>
+                    {activate.isPending ? 'Reactivando…' : 'Reactivar'}
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -139,9 +214,10 @@ export function CustomerDetailPage() {
           lockedFactoryId={customer.factoryId}
           defaultValues={toCustomerFormValues(customer)}
           onSubmit={handleSubmit}
-          onCancel={() => setEditing(false)}
           submitting={update.isPending}
-          submitLabel="Guardar cambios"
+          // Los botones van arriba, en el panel (ver detail-header__actions).
+          formId={EDIT_FORM_ID}
+          hideActions
         />
       ) : (
         <CustomerDetails
@@ -150,6 +226,33 @@ export function CustomerDetailPage() {
           industryName={industryName}
         />
       )}
+
+      <Modal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        title="Eliminar encargado"
+        size="sm"
+        footer={
+          <>
+            <Button
+              variant="outline"
+              onClick={() => setConfirmOpen(false)}
+              disabled={deactivate.isPending}
+            >
+              Cancelar
+            </Button>
+            <Button variant="danger" onClick={handleDeactivate} disabled={deactivate.isPending}>
+              <IconTrash />
+              {deactivate.isPending ? 'Eliminando…' : 'Eliminar'}
+            </Button>
+          </>
+        }
+      >
+        <p>
+          ¿Seguro que querés eliminar a <strong>{fullName}</strong>? El
+          encargado se eliminará, pero se conserva su historial.
+        </p>
+      </Modal>
     </>
   )
 }
@@ -166,56 +269,58 @@ function CustomerDetails({
 }) {
   return (
     <>
-      <div className="info-card">
-        <h2 className="info-card__title">Datos del encargado</h2>
-        <div className="info-grid">
-          <div className="info-grid__item">
-            <span className="info-grid__label">Teléfono</span>
-            <span className="info-grid__value">
+      <div className="card">
+        <h2 className="card__title">Datos del encargado</h2>
+        <div className="card__grid">
+          <div className="field">
+            <span className="field__label">Teléfono</span>
+            <span className="field__value">
               {customer.phone || '—'}
-              {customer.hasWhatsapp && <Badge variant="si">WhatsApp</Badge>}
+              {/* verde, igual que en el listado: la variante pastel "si"
+                  quedaba de otro color que la misma etiqueta en la tabla. */}
+              {customer.hasWhatsapp && <Badge variant="verde">WhatsApp</Badge>}
             </span>
           </div>
-          <div className="info-grid__item">
-            <span className="info-grid__label">Email</span>
-            <span className="info-grid__value">{customer.mail || '—'}</span>
+          <div className="field">
+            <span className="field__label">Email</span>
+            <span className="field__value">{customer.mail || '—'}</span>
           </div>
           {customer.observation && (
-            <div className="info-grid__item info-grid__item--full">
-              <span className="info-grid__label">Observaciones</span>
-              <p className="info-grid__text">{customer.observation}</p>
+            <div className="field card__full">
+              <span className="field__label">Observaciones</span>
+              <p className="field__value">{customer.observation}</p>
             </div>
           )}
         </div>
       </div>
 
-      <div className="info-card">
-        <h2 className="info-card__title">Fábrica</h2>
+      <div className="card">
+        <h2 className="card__title">Fábrica</h2>
         {factory ? (
-          <div className="info-grid">
-            <div className="info-grid__item">
-              <span className="info-grid__label">Nombre</span>
-              <span className="info-grid__value">{factory.name}</span>
+          <div className="card__grid">
+            <div className="field">
+              <span className="field__label">Nombre</span>
+              <span className="field__value">{factory.name}</span>
             </div>
-            <div className="info-grid__item">
-              <span className="info-grid__label">Rubro</span>
-              <span className="info-grid__value">{industryName}</span>
+            <div className="field">
+              <span className="field__label">Rubro</span>
+              <span className="field__value">{industryName}</span>
             </div>
-            <div className="info-grid__item">
-              <span className="info-grid__label">CUIT</span>
-              <span className="info-grid__value">{formatCuit(factory.cuit)}</span>
+            <div className="field">
+              <span className="field__label">CUIT</span>
+              <span className="field__value">{formatCuit(factory.cuit)}</span>
             </div>
-            <div className="info-grid__item info-grid__item--full">
-              <span className="info-grid__label">Dirección</span>
-              <span className="info-grid__value">{factory.address}</span>
+            <div className="field card__full">
+              <span className="field__label">Dirección</span>
+              <span className="field__value">{factory.address}</span>
             </div>
-            <div className="info-grid__item info-grid__item--full">
-              <span className="info-grid__label">Formas de pago</span>
-              <p className="info-grid__text">{factory.payMethod}</p>
+            <div className="field card__full">
+              <span className="field__label">Formas de pago</span>
+              <p className="field__value">{factory.payMethod}</p>
             </div>
           </div>
         ) : (
-          <p className="info-grid__text">Sin fábrica asociada.</p>
+          <p className="field__value">Sin fábrica asociada.</p>
         )}
       </div>
     </>

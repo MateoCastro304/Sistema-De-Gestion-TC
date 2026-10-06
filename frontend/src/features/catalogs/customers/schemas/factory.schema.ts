@@ -56,7 +56,7 @@ export const factoryFormSchema = z.object({
   // Optional: the DB column `factory_customer.address` is nullable.
   address: z.string().trim(),
   // Optional: the DB column `factory_customer.industry_id` is nullable.
-  industryId: z.string(),
+  industryId: z.string().min(1, 'Elegí un rubro'),
   payMethod: z
     .string()
     .trim()
@@ -94,7 +94,8 @@ export function toFactoryFormValues(factory: Factory): FactoryFormValues {
   return {
     name: factory.name,
     code: factory.code,
-    cuit: factory.cuit,
+    // Con guiones, igual que se muestra en lectura.
+    cuit: formatCuit(factory.cuit),
     address: factory.address,
     industryId: factory.industryId,
     payMethod: factory.payMethod,

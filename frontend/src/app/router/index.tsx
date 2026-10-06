@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router'
 import { AppLayout } from '@/app/layouts/AppLayout'
+import { NotFoundPage } from '@/app/router/NotFoundPage'
 import { SuppliersPage } from '@/features/catalogs/suppliers/pages/SuppliersPage'
 import { NewSupplierPage } from '@/features/catalogs/suppliers/pages/NewSupplierPage'
 import { SupplierDetailPage } from '@/features/catalogs/suppliers/pages/SupplierDetailPage'
@@ -11,37 +12,49 @@ import {
   NewFactoryPage,
   FactoryDetailPage,
 } from '@/features/catalogs/customers'
+import { CategoriesPage } from '@/features/catalogs/categories'
 
 export const router = createBrowserRouter([
   // The app has no landing page yet: send "/" to the customers catalog.
-  { index: true, element: <Navigate to="/catalogs/customers" replace /> },
+  { index: true, element: <Navigate to="/catalogos/encargados" replace /> },
   {
-    path: '/catalogs/suppliers',
+    path: '/catalogos/proveedores',
     element: <AppLayout />,
     children: [
       { index: true, element: <SuppliersPage /> },
-      { path: 'new', element: <NewSupplierPage /> },
+      { path: 'nuevo', element: <NewSupplierPage /> },
       { path: ':id', element: <SupplierDetailPage /> },
     ],
   },
   {
-    path: '/catalogs/customers',
+    path: '/catalogos/encargados',
     element: <AppLayout />,
     children: [
       { index: true, element: <CustomersPage /> },
-      { path: 'new', element: <NewCustomerPage /> },
+      { path: 'nuevo', element: <NewCustomerPage /> },
       // A customer is addressed by its composite key (factoryId, id): `id` is
       // only unique within a factory (DB `manager_customer(factory_id, id)`).
       { path: ':factoryId/:id', element: <CustomerDetailPage /> },
     ],
   },
   {
-    path: '/catalogs/factories',
+    path: '/catalogos/fabricas',
     element: <AppLayout />,
     children: [
       { index: true, element: <FactoriesPage /> },
-      { path: 'new', element: <NewFactoryPage /> },
+      { path: 'nuevo', element: <NewFactoryPage /> },
       { path: ':id', element: <FactoryDetailPage /> },
     ],
+  },
+  {
+    path: '/catalogos/rubros',
+    element: <AppLayout />,
+    children: [{ index: true, element: <CategoriesPage /> }],
+  },
+  // Cualquier otra URL. Ruta sin path propio para conservar el layout: el
+  // menú sigue a la vista y se puede salir del error sin tocar la URL.
+  {
+    element: <AppLayout />,
+    children: [{ path: '*', element: <NotFoundPage /> }],
   },
 ])

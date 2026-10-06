@@ -1,7 +1,12 @@
 import { http } from '@/shared/api/http'
-import type { Customer, CustomerInput } from '../types/customer'
+import type { Page } from '@/shared/api/pagination'
+import type {
+  Customer,
+  CustomerInput,
+  CustomerListParams,
+} from '../types/customer'
 import type { Factory, FactoryInput } from '../types/factory'
-import type { Industry, IndustryInput } from '../types/industry'
+import type { Industry } from '../types/industry'
 
 /**
  * HTTP calls for the Customer catalog and its related Factory and Industry
@@ -24,8 +29,16 @@ function customerPath(factoryId: string, id: string): string {
   return `${FACTORIES}/${factoryId}${CUSTOMERS}/${id}`
 }
 
-export async function listCustomers(): Promise<Customer[]> {
-  const { data } = await http.get<Customer[]>(CUSTOMERS)
+/**
+ * Global customer list (CU-03). The backend filters and paginates server-side
+ * and answers with a `{ items, total, page, limit }` envelope. All params are
+ * optional and combinable; axios omits the `undefined` ones from the query
+ * string. Passing `factoryId` scopes it to one factory's contacts.
+ */
+export async function listCustomers(
+  params?: CustomerListParams,
+): Promise<Page<Customer>> {
+  const { data } = await http.get<Page<Customer>>(CUSTOMERS, { params })
   return data
 }
 
@@ -57,15 +70,26 @@ export async function updateCustomer(
   return data
 }
 
-/** Baja lógica (CU-04): does not delete, only flips `isActive`. */
+/**
+ * Baja lógica (CU-04): does not delete, only flips `isActive`. The backend
+ * answers `204 No Content`, so there is no body to return.
+ */
 export async function deactivateCustomer(
   factoryId: string,
   id: string,
-): Promise<Customer> {
-  const { data } = await http.patch<Customer>(
-    `${customerPath(factoryId, id)}/deactivate`,
-  )
-  return data
+): Promise<void> {
+  await http.patch(`${customerPath(factoryId, id)}/deactivate`)
+}
+
+/**
+ * Reactivación (CU-04 inverso): vuelve a poner `isActive` en true. Como la
+ * baja, responde `204 No Content` (sin cuerpo).
+ */
+export async function activateCustomer(
+  factoryId: string,
+  id: string,
+): Promise<void> {
+  await http.patch(`${customerPath(factoryId, id)}/activate`)
 }
 
 // Factories (FabricaCliente) ----------------------------------------------
@@ -89,13 +113,12 @@ export async function updateFactory(
 }
 
 // Industries (Rubro) -------------------------------------------------------
+//
+// Solo lectura: el rubro es un catálogo de otra persona (su propio ABMC). Acá
+// únicamente se consume la lista para el selector de la fábrica. El alta/edición
+// de rubros no vive en este feature.
 
 export async function listIndustries(): Promise<Industry[]> {
   const { data } = await http.get<Industry[]>(INDUSTRIES)
-  return data
-}
-
-export async function createIndustry(input: IndustryInput): Promise<Industry> {
-  const { data } = await http.post<Industry>(INDUSTRIES, input)
   return data
 }
