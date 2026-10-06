@@ -12,6 +12,7 @@ import {
   NewFactoryPage,
   FactoryDetailPage,
 } from '@/features/catalogs/customers'
+import { CategoriesPage } from '@/features/catalogs/categories'
 
 export const router = createBrowserRouter([
   // The app has no landing page yet: send "/" to the customers catalog.
@@ -44,6 +45,11 @@ export const router = createBrowserRouter([
       { path: 'nuevo', element: <NewFactoryPage /> },
       { path: ':id', element: <FactoryDetailPage /> },
     ],
+  },
+  {
+    path: '/catalogos/rubros',
+    element: <AppLayout />,
+    children: [{ index: true, element: <CategoriesPage /> }],
   },
   // Cualquier otra URL. Ruta sin path propio para conservar el layout: el
   // menú sigue a la vista y se puede salir del error sin tocar la URL.
