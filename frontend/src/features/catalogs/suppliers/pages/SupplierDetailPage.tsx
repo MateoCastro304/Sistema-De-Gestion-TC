@@ -1,17 +1,17 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
-import { Avatar, Badge, Button, Select } from '@/shared/components/ui'
+import { Avatar, Badge, Button } from '@/shared/components/ui'
 import { isApiError } from '@/shared/api/ApiError'
 import { cn } from '@/shared/lib/cn'
 import { useSupplier } from '../api/useDetailSupplier'
-import { SUPPLIER_TYPES } from '../types/supplier'
-import type {SupplierFormValues} from '../types/supplier'
+import { SUPPLIER_TYPE_LABELS } from '../types/supplier'
+import type {SupplierFormValues, SupplierType} from '../types/supplier'
 import type { ChangeEvent } from 'react'
 import { useUpdateSupplier } from '../api/useUpdateSupplier'
 import { buildSupplierPatch } from '../utils/buildSupplierPatch'
-import { TYPE_TONES } from '../utils/supplierTone'
+import { TYPE_TONES, supplierTone } from '../utils/supplierTone'
 import { useToast } from '@/app/providers/ToastContext'
-import { validateSupplierForm } from '../utils/validateSupplierForm'
+import { conflictErrors, validateSupplierForm } from '../utils/validateSupplierForm'
 import type { SupplierFormErrors } from '../utils/validateSupplierForm'
 /** ISO 8601 -> "22 ago 2026". Las fechas viajan como string, no como Date. */
 function formatDate(iso: string) {
@@ -32,6 +32,19 @@ interface FieldProps {
   error?:string
   /** Largo maximo del contrato (components/schemas/Supplier.yaml). */
   maxLength?: number
+}
+
+/** Las etiquetas de rubro, una por tipo y cada una con su color. */
+function TypeBadges({ types }: { types: SupplierType[] }) {
+  return (
+    <>
+      {types.map((type) => (
+        <Badge key={type} variant={TYPE_TONES[type]}>
+          {SUPPLIER_TYPE_LABELS[type]}
+        </Badge>
+      ))}
+    </>
+  )
 }
 
 /**
@@ -157,8 +170,10 @@ export function SupplierDetailPage() {
         showToast('success', 'Proveedor actualizado.')
       },
       onError: (mutationError) => {
-        if (isApiError(mutationError) && mutationError.isConflict) {
-          setErrors({ cuit: mutationError.message })
+        // CUIT o razón social repetidos: el mensaje va en su campo.
+        const fieldErrors = conflictErrors(mutationError)
+        if (fieldErrors) {
+          setErrors(fieldErrors)
           return
         }
         showToast('error', isApiError(mutationError) ? mutationError.message : 'Ocurrió un error inesperado.')
@@ -189,7 +204,7 @@ export function SupplierDetailPage() {
             {/* El cuadrado con las iniciales, en su tamaño grande y con
                 el color del rubro: el mismo que se ve en el listado, así
                 se reconoce que es el mismo proveedor. */}
-            <Avatar name={supplier.legalName} tone={TYPE_TONES[supplier.supplierType]} size="lg" />
+            <Avatar name={supplier.legalName} tone={supplierTone(supplier.supplierTypes)} size="lg" />
 
             <div>
               {/* Sin badge de estado: si el proveedor se ve, esta activo. Los
@@ -202,9 +217,7 @@ export function SupplierDetailPage() {
                   vistazo igual que en el listado. */}
               <span className="page-header__subtitle detail-header__meta">
                 {supplier.cuit ? `CUIT: ${supplier.cuit}` : null}
-                <Badge variant={TYPE_TONES[supplier.supplierType]}>
-                  {supplier.supplierType}
-                </Badge>
+                <TypeBadges types={supplier.supplierTypes} />
               </span>
             </div>
           </div>
@@ -223,7 +236,7 @@ export function SupplierDetailPage() {
             <Button variant="primary" onClick={() => setForm({
               cuit: supplier.cuit ?? '',
               legalName: supplier.legalName,
-              supplierType: supplier.supplierType,
+              supplierTypes: supplier.supplierTypes,
               contactName: supplier.contactName ?? '',
               contactEmail: supplier.contactEmail ?? '',
               contactPhone: supplier.contactPhone ?? '',
@@ -261,32 +274,16 @@ export function SupplierDetailPage() {
                 error= {errors.cuit}
               />
 
-              <div className={isEditing ? 'form-field' : 'field'}>
-                {isEditing ? (
-                  <label htmlFor="supplierType">Tipo</label>
-                ) : (
-                  <span className="field__label">Tipo</span>
-                )}
-                {isEditing ? (
-                  /* El Select devuelve el valor, no un evento, así que no
-                     pasa por handleChange: actualiza el campo directo. */
-                  <Select
-                    id="supplierType"
-                    name="supplierType"
-                    value={form?.supplierType ?? supplier.supplierType}
-                    onChange={(supplierType) =>
-                      setForm((current) => (current ? { ...current, supplierType } : current))
-                    }
-                    options={SUPPLIER_TYPES.map((type) => ({ value: type, label: type }))}
-                  />
-                ) : (
-                  /* En lectura el rubro se muestra como etiqueta de color,
-                     con el mismo tono que en el listado. */
-                  <span className="field__value">
-                    <Badge variant={TYPE_TONES[supplier.supplierType]}>
-                      {supplier.supplierType}
-                    </Badge>
-                  </span>
+              {/* El tipo se define en el alta y no se puede cambiar: el
+                  backend rechaza el PATCH si lo recibe. Por eso queda como
+                  dato también en edición, con una aclaración al pie. */}
+              <div className="field">
+                <span className="field__label">Tipo</span>
+                <span className="field__value field__value--badges">
+                  <TypeBadges types={supplier.supplierTypes} />
+                </span>
+                {isEditing && (
+                  <span className="form-field__hint">No se puede modificar.</span>
                 )}
               </div>
 

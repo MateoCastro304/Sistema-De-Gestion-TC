@@ -4033,6 +4033,9 @@ table {
 .table__cell--contacto { font-size: 15px; font-weight: 600; color: var(--rp-navy); }
 .table__cell--tel { font-size: 15px; color: var(--rp-texto); }
 .table__cell--vacio { color: #a2a9b5; }
+/* Varias etiquetas en una celda (los rubros de un proveedor): si no
+   entran en una línea, bajan enteras. */
+.table__cell--tipos, .field__value--badges { display: flex; flex-wrap: wrap; gap: 6px; }
 .table__cell--fin { justify-self: end; }
 
 .table__empty {
@@ -4270,6 +4273,22 @@ table {
 }
 .card__grid--2 { grid-template-columns: repeat(auto-fit, minmax(max(220px, calc((100% - 20px) / 2)), 1fr)); }
 .card__full { grid-column: 1 / -1; }
+
+/* Grupo de casillas dentro de un formulario (los tipos del proveedor).
+   Cada opción es una pastilla entera clickeable, del alto de un input,
+   para que el grupo se lea como un campo más de la grilla. */
+.check-group { display: flex; flex-wrap: wrap; gap: 10px; }
+.check-option {
+  display: inline-flex; align-items: center; gap: 10px;
+  min-height: 50px; padding: 6px 16px 6px 8px;
+  border: 1px solid var(--rp-linea); border-radius: 14px; background: #f8fafc;
+  font-size: 15px; font-weight: 600; color: var(--rp-navy);
+  cursor: pointer; user-select: none;
+  transition: border-color .15s ease, background .15s ease;
+}
+.check-option:hover { border-color: var(--rp-azul); }
+.check-option--on { border-color: var(--rp-azul); background: #eef4ff; }
+.form-field--error .check-option { border-color: #dc2626; }
 
 /* Panel oscuro de "Registro" en el detalle */
 .card--dark {

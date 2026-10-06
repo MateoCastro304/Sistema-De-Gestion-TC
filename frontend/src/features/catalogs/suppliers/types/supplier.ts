@@ -1,24 +1,36 @@
-/**Interfaz de los datos del proveedor que me llegan del back */
-/** Lo que devuelve el backend en GET /suppliers y GET /suppliers/:id. */
-export type SupplierType = 'Tercerizado' | 'Material' | 'Repuesto' | 'Pintura'
+/**
+ * Rubros de un proveedor, con los valores del contrato
+ * (docs/openapi/components/schemas/Supplier.yaml). Viajan así por la red;
+ * en pantalla se muestran con SUPPLIER_TYPE_LABELS.
+ */
+export type SupplierType = 'PROCESS' | 'REPLACEMENT' | 'MATERIAL' | 'PAINT'
 
 /**
- * Los cuatro tipos como valor, para los <select>. Tipado como SupplierType[]:
- * si el union cambia y esta lista no, deja de compilar.
+ * Los cuatro tipos como valor, en el orden en que se ofrecen en el alta.
+ * Tipado como SupplierType[]: si el union cambia y esta lista no, deja de
+ * compilar.
  */
-export const SUPPLIER_TYPES: SupplierType[] = [
-    'Tercerizado',
-    'Material',
-    'Repuesto',
-    'Pintura',
-]
+export const SUPPLIER_TYPES: SupplierType[] = ['MATERIAL', 'PROCESS', 'REPLACEMENT', 'PAINT']
 
+/** Texto en pantalla de cada tipo. El Record obliga a cubrir los cuatro. */
+export const SUPPLIER_TYPE_LABELS: Record<SupplierType, string> = {
+    MATERIAL: 'Material',
+    PROCESS: 'Tercerizado',
+    REPLACEMENT: 'Repuesto',
+    PAINT: 'Pintura',
+}
+
+/** Lo que devuelve el backend en GET /suppliers y GET /suppliers/:id. */
 export interface Supplier {
     id: number
     legalName: string
     cuit?: string
-      /** Rubro del proveedor. */
-    supplierType: SupplierType
+    /**
+     * Rubros del proveedor. Siempre al menos uno, y puede haber varios: es
+     * común que el mismo proveedor venda material y además tercerice.
+     * Se definen en el alta y después no se pueden cambiar.
+     */
+    supplierTypes: SupplierType[]
     contactName?: string
     contactEmail?: string
     contactPhone?: string
@@ -35,20 +47,24 @@ export interface Supplier {
 export interface SupplierCreate {
     legalName: string
     cuit?: string
-    supplierType: SupplierType
+    supplierTypes: SupplierType[]
     contactName?: string
     contactEmail?: string
     contactPhone?: string
     address?: string
 }
+/**
+ * Lo que se manda en PATCH /suppliers/:id. Sólo los campos que cambian.
+ * `null` en un opcional significa "borrar el dato". Sin supplierTypes: el
+ * backend los rechaza porque son inmutables.
+ */
 export interface SupplierUpdate {
-    cuit?: string
     legalName?: string
-    supplierType?: SupplierType
-    contactName?: string
-    contactEmail?: string
-    contactPhone?: string
-    address?: string
+    cuit?: string | null
+    contactName?: string | null
+    contactEmail?: string | null
+    contactPhone?: string | null
+    address?: string | null
 }
 
 /**
@@ -58,7 +74,7 @@ export interface SupplierUpdate {
 export interface SupplierFormValues {
     cuit: string
     legalName: string
-    supplierType: SupplierType
+    supplierTypes: SupplierType[]
     contactName: string
     contactEmail: string
     contactPhone: string

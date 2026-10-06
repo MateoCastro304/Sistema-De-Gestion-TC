@@ -1,5 +1,6 @@
 import { http, HttpResponse, delay } from 'msw'
 import { db } from './suppliers.db'
+import { SUPPLIER_TYPES } from '../types/supplier'
 import type {
     SupplierCreate,
     SupplierUpdate,
@@ -16,11 +17,34 @@ function apiError(status: number, error: string, message: string, path: string) 
 }
 
 /**
+ * 409 de unicidad con la forma del backend real (DomainErrorFilter): manda
+ * `field` y `value` para que el formulario marque el campo que chocó.
+ */
+function conflict(field: 'cuit' | 'legalName', value: string) {
+  return HttpResponse.json(
+    {
+      statusCode: 409,
+      error: 'Conflict',
+      message: `Supplier with ${field} "${value}" already exists`,
+      field,
+      value,
+    },
+    { status: 409 },
+  )
+}
+
+/** Las únicas claves que acepta el PATCH; cualquier otra es un 400. */
+const UPDATABLE_FIELDS = ['legalName', 'cuit', 'contactName', 'contactEmail', 'contactPhone', 'address']
+
+/** Los opcionales que el PATCH deja borrar mandando null. */
+const CLEARABLE_FIELDS = ['cuit', 'contactName', 'contactEmail', 'contactPhone', 'address'] as const
+
+/**
  * El CUIT es opcional: "no vino" y "vino vacio" significan lo mismo y se
  * guardan como undefined. Sin esta normalizacion quedarian las dos formas
  * conviviendo en la base y las comparaciones de unicidad fallarian.
  */
-function normalizeCuit(value: string | undefined): string | undefined {
+function normalizeCuit(value: string | null | undefined): string | undefined {
   const cuit = value?.trim()
   return cuit ? cuit : undefined
 }
@@ -34,6 +58,12 @@ function normalizeCuit(value: string | undefined): string | undefined {
  */
 function isCuitTaken(cuit: string, exceptId?: number) {
   return db.suppliers.some((s) => s.cuit === cuit && s.id !== exceptId)
+}
+
+/** Unicidad de la razón social, con las mismas reglas que la del CUIT. */
+function isLegalNameTaken(legalName: string, exceptId?: number) {
+  const name = legalName.trim().toLowerCase()
+  return db.suppliers.some((s) => s.legalName.toLowerCase() === name && s.id !== exceptId)
 }
 
 export const supplierHandlers = [
@@ -61,22 +91,29 @@ export const supplierHandlers = [
 
     // El `?.` aunque el tipo diga que vienen siempre: el body llega de la red
     // y el tipo es una promesa, no una garantia de runtime.
-    if (!body.legalName?.trim() || !body.supplierType) {
+    const types = body.supplierTypes
+    if (
+      !body.legalName?.trim() ||
+      !Array.isArray(types) ||
+      types.length === 0 ||
+      new Set(types).size !== types.length ||
+      types.some((type) => !SUPPLIER_TYPES.includes(type))
+    ) {
       return apiError(
         400,
         'Bad Request',
-        'legalName y supplierType son obligatorios.',
+        'legalName y supplierTypes son obligatorios.',
         BASE,
       )
     }
+
+    if (isLegalNameTaken(body.legalName)) return conflict('legalName', body.legalName.trim())
 
     const cuit = normalizeCuit(body.cuit)
 
     // Solo si vino un CUIT: sin CUIT no hay unicidad que verificar, y sin este
     // `if` dos proveedores sin CUIT chocarian entre si (undefined === undefined).
-    if (cuit && isCuitTaken(cuit)) {
-      return apiError(409, 'Conflict', `Ya existe un proveedor con el CUIT ${cuit}.`, BASE)
-    }
+    if (cuit && isCuitTaken(cuit)) return conflict('cuit', cuit)
 
     const now = new Date().toISOString()
     // `cuit` va despues del spread para pisar el del body con el normalizado.
@@ -102,7 +139,13 @@ export const supplierHandlers = [
     }
 
     const body = (await request.json()) as SupplierUpdate
-    const patch: SupplierUpdate = { ...body }
+
+    // El backend corre con forbidNonWhitelisted: una clave que no conoce
+    // (supplierTypes, active) rechaza el PATCH entero en vez de ignorarla.
+    const unknown = Object.keys(body).find((key) => !UPDATABLE_FIELDS.includes(key))
+    if (unknown) {
+      return apiError(400, 'Bad Request', `property ${unknown} should not exist`, `${BASE}/${id}`)
+    }
 
     // `'x' in body` y no `body.x`: distingue "no lo mandaron" de "lo mandaron
     // vacio", que en un PATCH parcial son dos intenciones distintas.
@@ -115,22 +158,25 @@ export const supplierHandlers = [
       )
     }
 
-    // El CUIT ahora es editable, asi que el PATCH necesita el mismo control de
-    // unicidad que el POST. Un cuit vacio significa "borrar el CUIT".
-    if ('cuit' in body) {
-      const cuit = normalizeCuit(body.cuit)
-      if (cuit && isCuitTaken(cuit, id)) {
-        return apiError(
-          409,
-          'Conflict',
-          `Ya existe un proveedor con el CUIT ${cuit}.`,
-          `${BASE}/${id}`,
-        )
-      }
-      patch.cuit = cuit
+    if (body.legalName && isLegalNameTaken(body.legalName, id)) {
+      return conflict('legalName', body.legalName.trim())
     }
 
-    const updated = { ...db.suppliers[index], ...patch, updatedAt: new Date().toISOString() }
+    // El CUIT es editable, asi que el PATCH necesita el mismo control de
+    // unicidad que el POST.
+    const cuit = normalizeCuit(body.cuit)
+    if (cuit && isCuitTaken(cuit, id)) return conflict('cuit', cuit)
+
+    const updated = { ...db.suppliers[index], updatedAt: new Date().toISOString() }
+    if (body.legalName) updated.legalName = body.legalName.trim()
+    // null significa "borrar el dato". La respuesta omite los opcionales
+    // vacios en vez de mandarlos en null, igual que el backend.
+    for (const field of CLEARABLE_FIELDS) {
+      if (!(field in body)) continue
+      const value = body[field]?.trim()
+      if (value) updated[field] = value
+      else delete updated[field]
+    }
     db.suppliers[index] = updated
     return HttpResponse.json(updated)
   }),

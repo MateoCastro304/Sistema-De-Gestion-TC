@@ -1,20 +1,23 @@
 import { useState } from 'react'
 import type { ChangeEvent, SubmitEvent } from 'react'
 import { useNavigate } from 'react-router'
-import { Button, Input, Select } from '@/shared/components/ui'
+import { Button, CheckBox, Input } from '@/shared/components/ui'
+import { cn } from '@/shared/lib/cn'
 import { isApiError } from '@/shared/api/ApiError'
 import { useToast } from '@/app/providers/ToastContext'
 import { useCreateSupplier } from '../api/useCreateSupplier'
-import { SUPPLIER_TYPES } from '../types/supplier'
-import type { SupplierFormValues } from '../types/supplier'
-import { toSupplierCreate, validateSupplierForm } from '../utils/validateSupplierForm'
+import { SUPPLIER_TYPES, SUPPLIER_TYPE_LABELS } from '../types/supplier'
+import type { SupplierFormValues, SupplierType } from '../types/supplier'
+import { conflictErrors, toSupplierCreate, validateSupplierForm } from '../utils/validateSupplierForm'
 import type { SupplierFormErrors } from '../utils/validateSupplierForm'
 
 /** Fuera del componente: es constante y no tiene por que recrearse por render. */
 const EMPTY_FORM: SupplierFormValues = {
   legalName: '',
   cuit: '',
-  supplierType: 'Material',
+  // Vacio a proposito: el tipo no se puede cambiar despues, asi que no se
+  // preselecciona ninguno y el usuario lo elige a conciencia.
+  supplierTypes: [],
   contactName: '',
   contactEmail: '',
   contactPhone: '',
@@ -33,6 +36,18 @@ export function NewSupplierPage() {
     setForm((current) => ({ ...current, [name]: value }))
   }
 
+  /** Agrega o saca un tipo, manteniendo el orden de SUPPLIER_TYPES. */
+  function toggleType(type: SupplierType) {
+    setForm((current) => ({
+      ...current,
+      supplierTypes: SUPPLIER_TYPES.filter((option) =>
+        option === type
+          ? !current.supplierTypes.includes(option)
+          : current.supplierTypes.includes(option),
+      ),
+    }))
+  }
+
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
 
@@ -46,9 +61,11 @@ export function NewSupplierPage() {
         navigate(`/catalogos/proveedores/${created.id}`)
       },
       onError: (error) => {
-        // CUIT repetido: el mensaje pertenece al campo, no a un toast suelto.
-        if (isApiError(error) && error.isConflict) {
-          setErrors({ cuit: error.message })
+        // CUIT o razón social repetidos: el mensaje pertenece al campo,
+        // no a un toast suelto.
+        const fieldErrors = conflictErrors(error)
+        if (fieldErrors) {
+          setErrors(fieldErrors)
           return
         }
         showToast(
@@ -100,19 +117,41 @@ export function NewSupplierPage() {
             hint="Formato XX-XXXXXXXX-X"
           />
 
-          {/* <Input> no cubre el desplegable: va a mano con el mismo
-              .form-field. El label apunta al id del botón del Select. */}
-          <div className="form-field">
-            <label className="form-field__label" htmlFor="supplierType">
+          {/* Un proveedor puede tener varios tipos, así que son casillas y
+              no un desplegable. El <label> envuelve la casilla: tocar el
+              texto también la alterna. */}
+          <div
+            className={cn('form-field', 'card__full', errors.supplierTypes && 'form-field--error')}
+            role="group"
+            aria-labelledby="supplierTypes-label"
+          >
+            <span className="form-field__label" id="supplierTypes-label">
               Tipo
-            </label>
-            <Select
-              id="supplierType"
-              name="supplierType"
-              value={form.supplierType}
-              onChange={(supplierType) => setForm((current) => ({ ...current, supplierType }))}
-              options={SUPPLIER_TYPES.map((type) => ({ value: type, label: type }))}
-            />
+            </span>
+            <div className="check-group">
+              {SUPPLIER_TYPES.map((type) => (
+                <label
+                  key={type}
+                  className={cn(
+                    'check-option',
+                    form.supplierTypes.includes(type) && 'check-option--on',
+                  )}
+                >
+                  <CheckBox
+                    checked={form.supplierTypes.includes(type)}
+                    onChange={() => toggleType(type)}
+                  />
+                  {SUPPLIER_TYPE_LABELS[type]}
+                </label>
+              ))}
+            </div>
+            {errors.supplierTypes ? (
+              <span className="form-field__error">{errors.supplierTypes}</span>
+            ) : (
+              <span className="form-field__hint">
+                Elegí uno o más. Después del alta no se puede cambiar.
+              </span>
+            )}
           </div>
 
           <Input

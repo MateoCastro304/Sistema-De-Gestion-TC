@@ -7,7 +7,7 @@ import type { SupplierType } from '../types/supplier'
  * etiqueta (Badge). Con eso el rubro se reconoce sin leer.
  *
  * Es sólo presentación: nada de esto filtra, ordena ni valida. El dato
- * sigue siendo `supplierType` tal cual viene del backend.
+ * sigue siendo `supplierTypes` tal cual viene del backend.
  *
  * Vive acá y no adentro de una página porque lo usan el listado y el
  * detalle, y si se duplicara los dos colores se irían separando.
@@ -24,8 +24,17 @@ import type { SupplierType } from '../types/supplier'
   robarle el color a ninguno de los tres que sí estaban definidos.
 */
 export const TYPE_TONES: Record<SupplierType, AvatarTone> = {
-  Material: 'azul',
-  Pintura: 'ambar',
-  Repuesto: 'verde',
-  Tercerizado: 'neutral',
+  MATERIAL: 'azul',
+  PAINT: 'ambar',
+  REPLACEMENT: 'verde',
+  PROCESS: 'neutral',
+}
+
+/**
+ * Tono de la fila y del avatar. Un proveedor puede tener varios rubros
+ * pero la franja es una sola: manda el primero de la lista. Las etiquetas
+ * sí van una por rubro, cada una con su color.
+ */
+export function supplierTone(supplierTypes: SupplierType[]): AvatarTone {
+  return TYPE_TONES[supplierTypes[0]] ?? 'neutral'
 }
