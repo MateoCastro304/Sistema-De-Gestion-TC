@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { Button, CheckBox, IconTrash, Modal } from '@/shared/components/ui'
 import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
 import type { Customer } from '../types/customer'
 import {
+  useActivateCustomer,
   useCustomers,
   useDeactivateCustomer,
   useFactories,
@@ -12,48 +13,73 @@ import {
 } from '../api/customers.queries'
 import { CustomersTable } from '../components/CustomersTable'
 
-/** CU-03 Consultar Cliente + CU-04 Registrar Baja de Cliente. */
+/** Tamaño de página del listado global (coincide con el default del backend). */
+const PAGE_SIZE = 20
+
+/** CU-03 Consultar Cliente + CU-04 Registrar/Deshacer Baja de Cliente. */
 export function CustomersPage() {
   const showToast = useToast()
-  // Traemos también los inactivos; el filtro de abajo decide si se muestran.
-  const customersQuery = useCustomers({ includeInactive: true })
   const { data: factories = [] } = useFactories()
   const { data: industries = [] } = useIndustries()
   const deactivate = useDeactivateCustomer()
+  const activate = useActivateCustomer()
 
   // Customer pending confirmation for baja lógica; null when the modal is closed.
   const [toDeactivate, setToDeactivate] = useState<Customer | null>(null)
 
-  // Buscador global de encargados (HU escenario 2): texto libre sobre nombre,
-  // apellido, mail y la fábrica a la que pertenece, para identificar rápido con
-  // quién comunicarse ante una solicitud o entrega.
+  // Buscador global de encargados por nombre o apellido (HU escenario 2). El
+  // backend hace la búsqueda; se debouncea para no pegarle en cada tecla.
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   // Regla de negocio: los inactivos se muestran solo si se activa este filtro.
   const [showInactive, setShowInactive] = useState(false)
+  const [page, setPage] = useState(1)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  // Al cambiar la búsqueda o el filtro de inactivos volvemos a la primera página;
+  // se hace en los handlers (no en un effect) para no encadenar renders.
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+    setPage(1)
+  }
+
+  const handleShowInactiveChange = (checked: boolean) => {
+    setShowInactive(checked)
+    setPage(1)
+  }
+
+  // El backend filtra y pagina; sin `active` trae activos + inactivos.
+  const customersQuery = useCustomers({
+    nameContains: debouncedSearch || undefined,
+    active: showInactive ? undefined : true,
+    page,
+    limit: PAGE_SIZE,
+  })
+
+  const customers = customersQuery.data?.items ?? []
+  const total = customersQuery.data?.total ?? 0
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   const fullName = (c: Customer) => `${c.firstName} ${c.lastName}`
 
-  const factoryName = (id: string) =>
-    factories.find((f) => f.id === id)?.name ?? ''
-
-  const filteredCustomers = useMemo(() => {
-    const query = search.trim().toLowerCase()
-    const base = customersQuery.data ?? []
-    return base.filter((c) => {
-      if (!showInactive && !c.isActive) return false
-      if (!query) return true
-      const haystack = [
-        c.firstName,
-        c.lastName,
-        c.mail,
-        factoryName(c.factoryId),
-      ]
-        .join(' ')
-        .toLowerCase()
-      return haystack.includes(query)
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customersQuery.data, factories, search, showInactive])
+  const handleActivate = (customer: Customer) => {
+    activate.mutate(
+      { factoryId: customer.factoryId, id: customer.id },
+      {
+        onSuccess: () =>
+          showToast('success', `Encargado "${fullName(customer)}" reactivado.`),
+        onError: (error) =>
+          showToast(
+            'error',
+            isApiError(error) ? error.message : 'No se pudo reactivar el encargado.',
+          ),
+      },
+    )
+  }
 
   const confirmDeactivate = () => {
     if (!toDeactivate) return
@@ -98,7 +124,7 @@ export function CustomersPage() {
             </p>
           </div>
           <div className="content__actions">
-            <Link to="/catalogs/customers/new" className="btn btn--primary content__cta">
+            <Link to="/catalogos/encargados/nuevo" className="btn btn--primary content__cta">
               <span>+</span> Nuevo encargado
             </Link>
           </div>
@@ -121,10 +147,10 @@ export function CustomersPage() {
               <input
                 type="search"
                 className="search-input"
-                placeholder="Buscar por nombre, apellido, mail o fábrica"
-                aria-label="Buscar por nombre, apellido, mail o fábrica"
+                placeholder="Buscar por nombre o apellido"
+                aria-label="Buscar por nombre o apellido"
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => handleSearchChange(event.target.value)}
               />
             </label>
 
@@ -134,7 +160,7 @@ export function CustomersPage() {
             <label className="filter-check">
               <CheckBox
                 checked={showInactive}
-                onChange={() => setShowInactive(!showInactive)}
+                onChange={() => handleShowInactiveChange(!showInactive)}
               />
               Incluir eliminados
             </label>
@@ -155,16 +181,39 @@ export function CustomersPage() {
       {customersQuery.isSuccess && (
         <>
           <CustomersTable
-            customers={filteredCustomers}
+            customers={customers}
             factories={factories}
             industries={industries}
             onDeactivate={setToDeactivate}
+            onActivate={handleActivate}
             emptyMessage={
-              search.trim() !== ''
+              debouncedSearch !== ''
                 ? 'No hay encargados que coincidan con la búsqueda.'
                 : 'No hay encargados registrados.'
             }
           />
+
+          {totalPages > 1 && (
+            <div className="pagination">
+              <Button
+                variant="outline"
+                disabled={page <= 1 || customersQuery.isFetching}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                Anterior
+              </Button>
+              <span className="pagination__status">
+                Página {page} de {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                disabled={page >= totalPages || customersQuery.isFetching}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                Siguiente
+              </Button>
+            </div>
+          )}
         </>
       )}
 

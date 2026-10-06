@@ -107,7 +107,7 @@ export function SupplierDetailPage() {
       <div className="empty-state">
         <p className="empty-state__text">
           No encontramos el proveedor que buscabas.{' '}
-          <Link className="table__action" to="/catalogs/suppliers">
+          <Link className="table__action" to="/catalogos/proveedores">
             Volver al listado
           </Link>
         </p>
@@ -175,7 +175,7 @@ export function SupplierDetailPage() {
         <div className="page-header__row">
           <div className="detail-header__left">
             <Link
-              to="/catalogs/suppliers"
+              to="/catalogos/proveedores"
               /* --icon es el botón redondo del panel: mismo link, misma
                  ruta, sólo cambia cómo se ve sobre el fondo oscuro. */
               className="btn btn--icon"

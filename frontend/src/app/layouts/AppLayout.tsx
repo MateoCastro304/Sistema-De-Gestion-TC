@@ -23,13 +23,13 @@ import { Outlet, NavLink, useLocation } from 'react-router'
 
 /** Rótulo de la topbar según el segmento de la URL. Sin cambios. */
 const SECTION_LABELS: Record<string, string> = {
-  customers: 'Encargados',
-  factories: 'Fábricas',
-  suppliers: 'Proveedores',
+  encargados: 'Encargados',
+  fabricas: 'Fábricas',
+  proveedores: 'Proveedores',
 }
 
 function sectionLabel(pathname: string): string {
-  const segment = pathname.match(/^\/catalogs\/([^/]+)/)?.[1]
+  const segment = pathname.match(/^\/catalogos\/([^/]+)/)?.[1]
   return (segment && SECTION_LABELS[segment]) || 'Catálogos'
 }
 
@@ -38,9 +38,9 @@ function sectionLabel(pathname: string): string {
  * acá, no tres bloques de JSX repetidos.
  */
 const NAV_ITEMS = [
-  { to: '/catalogs/customers', label: 'Encargados', icon: IconPersona },
-  { to: '/catalogs/factories', label: 'Fábricas', icon: IconFabrica },
-  { to: '/catalogs/suppliers', label: 'Proveedores', icon: IconCaja },
+  { to: '/catalogos/encargados', label: 'Encargados', icon: IconPersona },
+  { to: '/catalogos/fabricas', label: 'Fábricas', icon: IconFabrica },
+  { to: '/catalogos/proveedores', label: 'Proveedores', icon: IconCaja },
 ]
 
 export function AppLayout() {

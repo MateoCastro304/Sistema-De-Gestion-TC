@@ -7,6 +7,7 @@ import { isApiError } from '@/shared/api/ApiError'
 import type { Customer, CustomerInput } from '../types/customer'
 import type { Factory } from '../types/factory'
 import {
+  useActivateCustomer,
   useCustomer,
   useDeactivateCustomer,
   useFactories,
@@ -37,6 +38,7 @@ export function CustomerDetailPage() {
   const { data: industries = [] } = useIndustries()
   const update = useUpdateCustomer(factoryId, id)
   const deactivate = useDeactivateCustomer()
+  const activate = useActivateCustomer()
 
   // The detail view starts read-only; "Editar" switches to the form.
   const [editing, setEditing] = useState(false)
@@ -56,7 +58,7 @@ export function CustomerDetailPage() {
               : 'No se pudo cargar el encargado.'}
           </p>
         </div>
-        <Link to="/catalogs/customers">
+        <Link to="/catalogos/encargados">
           <Button variant="outline">Volver al listado</Button>
         </Link>
       </div>
@@ -90,7 +92,7 @@ export function CustomerDetailPage() {
         onSuccess: () => {
           // 'info' y no 'success': un borrado no es un logro.
           showToast('info', `Encargado "${fullName}" eliminado.`)
-          navigate('/catalogs/customers')
+          navigate('/catalogos/encargados')
         },
         onError: (error) =>
           showToast(
@@ -98,6 +100,23 @@ export function CustomerDetailPage() {
             isApiError(error)
               ? error.message
               : 'No se pudo eliminar el encargado.',
+          ),
+      },
+    )
+  }
+
+  const handleActivate = () => {
+    activate.mutate(
+      { factoryId: customer.factoryId, id: customer.id },
+      {
+        onSuccess: () =>
+          showToast('success', `Encargado "${fullName}" reactivado.`),
+        onError: (error) =>
+          showToast(
+            'error',
+            isApiError(error)
+              ? error.message
+              : 'No se pudo reactivar el encargado.',
           ),
       },
     )
@@ -112,7 +131,7 @@ export function CustomerDetailPage() {
         <div className="page-header__row">
           <div className="detail-header__left">
             <Link
-              to="/catalogs/customers"
+              to="/catalogos/encargados"
               className="btn btn--icon"
               aria-label="Volver al listado de encargados"
             >
@@ -157,7 +176,7 @@ export function CustomerDetailPage() {
             ) : (
               <>
                 <Button onClick={() => setEditing(true)}>Editar</Button>
-                {customer.isActive && (
+                {customer.isActive ? (
                   /* El botón de eliminar con el tacho animado. Adentro del
                      panel oscuro va en vidrio y se pone blanco con texto rojo
                      al pasar el mouse. */
@@ -168,6 +187,10 @@ export function CustomerDetailPage() {
                   >
                     {deactivate.isPending ? 'Eliminando…' : 'Eliminar'}
                   </TrashButton>
+                ) : (
+                  <Button variant="outline" onClick={handleActivate} disabled={activate.isPending}>
+                    {activate.isPending ? 'Reactivando…' : 'Reactivar'}
+                  </Button>
                 )}
               </>
             )}

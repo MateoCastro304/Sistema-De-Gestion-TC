@@ -13,6 +13,8 @@ interface CustomersTableProps {
   industries: Industry[]
   /** Called when the user confirms the baja lógica of a customer. */
   onDeactivate: (customer: Customer) => void
+  /** Called to reactivar (CU-04 inverso) a customer dado de baja. */
+  onActivate?: (customer: Customer) => void
   /** Message shown when there are no rows (e.g. no matches for the search). */
   emptyMessage?: string
 }
@@ -23,6 +25,7 @@ export function CustomersTable({
   factories,
   industries,
   onDeactivate,
+  onActivate,
   emptyMessage = 'No hay encargados registrados.',
 }: CustomersTableProps) {
   const factoryById = (id: string) => factories.find((f) => f.id === id)
@@ -84,17 +87,25 @@ export function CustomersTable({
       cellClassName: 'table__cell--acciones',
       render: (c) => (
         <>
-          <Link className="link-btn" to={`/catalogs/customers/${c.factoryId}/${c.id}`}>
+          <Link className="link-btn" to={`/catalogos/encargados/${c.factoryId}/${c.id}`}>
             Ver
           </Link>
           {/* Eliminar va como ícono y no como segundo botón: borrar no
               puede pesar visualmente lo mismo que ver el detalle. Sólo
               aparece si el encargado está activo, igual que antes. */}
-          {c.isActive && (
+          {c.isActive ? (
             <TrashButton
               label={`Eliminar a ${c.firstName} ${c.lastName}`}
               onClick={() => onDeactivate(c)}
             />
+          ) : (
+            // Un eliminado no se puede volver a eliminar: en ese lugar va
+            // la acción inversa (CU-04), sólo si el que llama la habilita.
+            onActivate && (
+              <button type="button" className="table__action" onClick={() => onActivate(c)}>
+                Reactivar
+              </button>
+            )
           )}
         </>
       ),
@@ -108,7 +119,7 @@ export function CustomersTable({
       variant="cards"
       /* Teléfono, rubro y acciones van fijos: el teléfono no se parte
          (nowrap) y con 1.4fr se montaba sobre el email. */
-      gridTemplate="minmax(0,1.3fr) 150px minmax(0,1.4fr) minmax(0,0.9fr) 130px 120px"
+      gridTemplate="minmax(0,1.3fr) 150px minmax(0,1.4fr) minmax(0,0.9fr) 130px 150px"
       rowClassName={(c) => cn(`table__row--${toneByStatus(c.isActive)}`)}
       columns={columns}
       data={customers}

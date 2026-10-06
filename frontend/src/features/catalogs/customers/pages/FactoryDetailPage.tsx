@@ -42,8 +42,9 @@ export function FactoryDetailPage() {
 
   const factoriesQuery = useFactories()
   const { data: industries = [] } = useIndustries()
-  // Traemos también los inactivos; el filtro decide si se muestran.
-  const customersQuery = useCustomers({ includeInactive: true })
+  // Encargados de esta fábrica (GET /customers?factoryId=...). Traemos activos e
+  // inactivos; el filtro de abajo decide cuáles se listan.
+  const customersQuery = useCustomers({ factoryId: id, limit: 200 })
   const update = useUpdateFactory(id)
   const deactivate = useDeactivateCustomer()
 
@@ -80,7 +81,7 @@ export function FactoryDetailPage() {
             La fábrica que buscás no existe o no se pudo cargar.
           </p>
         </div>
-        <Link to="/catalogs/factories">
+        <Link to="/catalogos/fabricas">
           <Button variant="outline">Volver al listado</Button>
         </Link>
       </div>
@@ -89,9 +90,8 @@ export function FactoryDetailPage() {
 
   const industryName =
     industries.find((i) => i.id === factory.industryId)?.name ?? '—'
-  const factoryContacts = (customersQuery.data ?? []).filter(
-    (c) => c.factoryId === factory.id,
-  )
+  // El backend ya acotó a esta fábrica vía `factoryId`.
+  const factoryContacts = customersQuery.data?.items ?? []
   // Escenario 3 mira si la fábrica tiene encargados registrados (activos o no);
   // el filtro solo cambia cuáles se listan.
   const hasContacts = factoryContacts.length > 0
@@ -202,7 +202,7 @@ export function FactoryDetailPage() {
         <div className="page-header__row">
           <div className="detail-header__left">
             <Link
-              to="/catalogs/factories"
+              to="/catalogos/fabricas"
               className="btn btn--icon"
               aria-label="Volver al listado de fábricas"
             >

@@ -206,7 +206,7 @@ export function SuppliersPage() {
             // sólo lo obedece el hijo directo del grid.
             cellClassName: 'table__cell--fin',
             render: (s: Supplier) => (
-              <Link className="link-btn" to={`/catalogs/suppliers/${s.id}`}>
+              <Link className="link-btn" to={`/catalogos/proveedores/${s.id}`}>
                 Ver
               </Link>
             ),
@@ -274,7 +274,7 @@ export function SuppliersPage() {
               >
                 Eliminar proveedores
               </TrashButton>
-              <Link to="/catalogs/suppliers/new" className="btn btn--primary content__cta">
+              <Link to="/catalogos/proveedores/nuevo" className="btn btn--primary content__cta">
                 <span>+</span> Nuevo proveedor
               </Link>
             </div>

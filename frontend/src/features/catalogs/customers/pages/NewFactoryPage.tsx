@@ -17,7 +17,7 @@ export function NewFactoryPage() {
         showToast('success', 'Fábrica registrada correctamente.')
         // Escenario 1: ofrecer continuar con el alta de sus encargados (HU-E1)
         // abriendo el modal de "Agregar encargado" al llegar al detalle.
-        navigate(`/catalogs/factories/${factory.id}`, {
+        navigate(`/catalogos/fabricas/${factory.id}`, {
           state: { addContact: true },
         })
       },
@@ -38,7 +38,7 @@ export function NewFactoryPage() {
         <div className="page-header__row">
           <div className="detail-header__left">
             <Link
-              to="/catalogs/factories"
+              to="/catalogos/fabricas"
               className="btn btn--icon"
               aria-label="Volver al listado de fábricas"
             >
@@ -59,7 +59,7 @@ export function NewFactoryPage() {
 
       <FactoryForm
         onSubmit={handleSubmit}
-        onCancel={() => navigate('/catalogs/factories')}
+        onCancel={() => navigate('/catalogos/fabricas')}
         submitting={create.isPending}
         submitLabel="Registrar fábrica"
       />
