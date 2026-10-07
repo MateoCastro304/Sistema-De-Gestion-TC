@@ -167,14 +167,20 @@ export function CustomersPage() {
         )}
       </div>
 
-      {customersQuery.isLoading && <p>Cargando encargados…</p>}
+      {customersQuery.isLoading && (
+        <div className="empty-state">
+          <p className="empty-state__text">Cargando encargados…</p>
+        </div>
+      )}
 
       {customersQuery.isError && (
-        <p className="form-field__error">
-          {isApiError(customersQuery.error)
-            ? customersQuery.error.message
-            : 'No se pudieron cargar los encargados.'}
-        </p>
+        <div className="callout callout--warning">
+          <span>
+            {isApiError(customersQuery.error)
+              ? customersQuery.error.message
+              : 'No se pudieron cargar los encargados.'}
+          </span>
+        </div>
       )}
 
       {customersQuery.isSuccess && (

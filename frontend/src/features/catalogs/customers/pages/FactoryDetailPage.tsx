@@ -9,6 +9,7 @@ import {
   Modal,
   Table,
   TrashButton,
+  ValueOrDash,
 } from '@/shared/components/ui'
 import { toneByStatus } from '@/shared/lib/rowTone'
 import type { Column } from '@/shared/components/ui'
@@ -180,9 +181,9 @@ export function FactoryDetailPage() {
     },
     {
       header: 'Teléfono',
-      render: (c) => <span className="table__cell--mono">{c.phone || '—'}</span>,
+      render: (c) => <ValueOrDash value={c.phone} className="table__cell--mono" />,
     },
-    { header: 'Email', render: (c) => c.mail || '—' },
+    { header: 'Email', render: (c) => <ValueOrDash value={c.mail} /> },
     {
       header: '',
       align: 'center',
@@ -253,7 +254,9 @@ export function FactoryDetailPage() {
               </p>
             </div>
           </div>
-          <div className="detail-header__actions">
+          {/* --editing: en celular estos botones se esconden y los toman
+              los del pie del formulario (ver form-actions--mobile). */}
+          <div className={editing ? 'detail-header__actions detail-header__actions--editing' : 'detail-header__actions'}>
             {/* Editando, Cancelar y Guardar ocupan el lugar de Editar, como
                 en el detalle de Proveedores. Guardar está fuera del <form>:
                 lo envía por el atributo `form`, así la validación de
@@ -279,14 +282,25 @@ export function FactoryDetailPage() {
       </div>
 
       {editing ? (
-        <FactoryForm
-          defaultValues={toFactoryFormValues(factory)}
-          onSubmit={handleUpdate}
-          submitting={update.isPending}
-          // Los botones van arriba, en el panel (ver detail-header__actions).
-          formId={EDIT_FORM_ID}
-          hideActions
-        />
+        <>
+          <FactoryForm
+            defaultValues={toFactoryFormValues(factory)}
+            onSubmit={handleUpdate}
+            submitting={update.isPending}
+            // Los botones van arriba, en el panel (ver detail-header__actions).
+            formId={EDIT_FORM_ID}
+            hideActions
+          />
+          {/* Sólo en celular: los mismos botones, al pie del formulario. */}
+          <div className="form-actions form-actions--mobile">
+            <Button variant="outline" onClick={() => setEditing(false)} disabled={update.isPending}>
+              Cancelar
+            </Button>
+            <Button type="submit" form={EDIT_FORM_ID} disabled={update.isPending}>
+              {update.isPending ? 'Guardando…' : 'Guardar cambios'}
+            </Button>
+          </div>
+        </>
       ) : (
         <FactoryDetails factory={factory} categoryName={categoryName} />
       )}

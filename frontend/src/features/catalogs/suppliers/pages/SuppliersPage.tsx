@@ -9,6 +9,7 @@ import {
   Modal,
   Table,
   TrashButton,
+  ValueOrDash,
 } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
 import { cn } from '@/shared/lib/cn'
@@ -20,13 +21,6 @@ import { useDeleteSuppliers } from '../api/useDeleteSuppliers'
 import { SUPPLIER_TYPE_LABELS } from '../types/supplier'
 import type { Supplier } from '../types/supplier'
 import { TYPE_TONES, supplierTone } from '../utils/supplierTone'
-
-// Chequea trim() y no solo `??`: un campo que el usuario vacio llega como ''
-// (no undefined), y con `??` la celda quedaba en blanco en vez del guion.
-function orDash(value?: string) {
-  return value?.trim() ? value : <span className="table__cell--vacio">—</span>
-}
-
 
 export function SuppliersPage() {
   const { data, isPending, error } = useSuppliers()
@@ -181,7 +175,7 @@ export function SuppliersPage() {
     },
     // El CUIT en monoespaciada: son columnas de dígitos, y así los
     // guiones quedan alineados de una fila a la otra.
-    { header: 'CUIT', render: (s) => <span className="table__cell--mono">{orDash(s.cuit)}</span> },
+    { header: 'CUIT', render: (s) => <ValueOrDash value={s.cuit} className="table__cell--mono" /> },
     {
       header: 'Tipo',
       // Una etiqueta por rubro, cada una con su color. Si no entran en
@@ -198,13 +192,13 @@ export function SuppliersPage() {
     },
     {
       header: 'Contacto',
-      render: (s) => <span className="table__cell--contacto">{orDash(s.contactName)}</span>,
+      render: (s) => <ValueOrDash value={s.contactName} className="table__cell--contacto" />,
     },
     // El teléfono va en texto común: la monoespaciada es sólo para el
     // CUIT, que es un identificador y se lee en columna.
     {
       header: 'Teléfono',
-      render: (s) => <span className="table__cell--tel">{orDash(s.contactPhone)}</span>,
+      render: (s) => <ValueOrDash value={s.contactPhone} className="table__cell--tel" />,
     },
     // En modo eliminación no hay "Ver": navegar desmonta la pantalla y la
     // selección se perdería sin ningún aviso.

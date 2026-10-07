@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { ChangeEvent, SubmitEvent } from 'react'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { Button, CheckBox, Input } from '@/shared/components/ui'
 import { cn } from '@/shared/lib/cn'
 import { useToast } from '@/app/providers/ToastContext'
@@ -85,9 +85,22 @@ export function NewSupplierPage() {
           que las tres pantallas de Proveedores se lean como una sola. */}
       <div className="page-header">
         <div className="page-header__row">
-          <div>
-            <h1 className="page-header__title">Nuevo proveedor</h1>
-            <p className="page-header__subtitle">Datos del proveedor a registrar</p>
+          {/* La flecha redonda de volver, igual que en "Nuevo encargado" y
+              "Nueva fábrica": era la única pantalla de alta sin ella. */}
+          <div className="detail-header__left">
+            <Link
+              to="/catalogos/proveedores"
+              className="btn btn--icon"
+              aria-label="Volver al listado de proveedores"
+            >
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M10 3 5 8l5 5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </Link>
+            <div>
+              <h1 className="page-header__title">Nuevo proveedor</h1>
+              <p className="page-header__subtitle">Registrá los datos del proveedor.</p>
+            </div>
           </div>
         </div>
       </div>

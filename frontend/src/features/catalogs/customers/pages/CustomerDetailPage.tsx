@@ -162,7 +162,9 @@ export function CustomerDetailPage() {
               </p>
             </div>
           </div>
-          <div className="detail-header__actions">
+          {/* --editing: en celular estos botones se esconden y los toman
+              los del pie del formulario (ver form-actions--mobile). */}
+          <div className={editing ? 'detail-header__actions detail-header__actions--editing' : 'detail-header__actions'}>
             {/* Editando, Cancelar y Guardar ocupan el lugar de Editar, como
                 en el detalle de Proveedores. Guardar está fuera del <form>:
                 lo envía por el atributo `form`, así la validación de
@@ -205,17 +207,28 @@ export function CustomerDetailPage() {
       </div>
 
       {editing ? (
-        <CustomerForm
-          // La fábrica de un encargado es inmutable (RNF-3): se muestra como
-          // dato de solo lectura y no se puede reasignar al editar.
-          lockedFactoryId={customer.factoryId}
-          defaultValues={toCustomerFormValues(customer)}
-          onSubmit={handleSubmit}
-          submitting={update.isPending}
-          // Los botones van arriba, en el panel (ver detail-header__actions).
-          formId={EDIT_FORM_ID}
-          hideActions
-        />
+        <>
+          <CustomerForm
+            // La fábrica de un encargado es inmutable (RNF-3): se muestra como
+            // dato de solo lectura y no se puede reasignar al editar.
+            lockedFactoryId={customer.factoryId}
+            defaultValues={toCustomerFormValues(customer)}
+            onSubmit={handleSubmit}
+            submitting={update.isPending}
+            // Los botones van arriba, en el panel (ver detail-header__actions).
+            formId={EDIT_FORM_ID}
+            hideActions
+          />
+          {/* Sólo en celular: los mismos botones, al pie del formulario. */}
+          <div className="form-actions form-actions--mobile">
+            <Button variant="outline" onClick={() => setEditing(false)} disabled={update.isPending}>
+              Cancelar
+            </Button>
+            <Button type="submit" form={EDIT_FORM_ID} disabled={update.isPending}>
+              {update.isPending ? 'Guardando…' : 'Guardar cambios'}
+            </Button>
+          </div>
+        </>
       ) : (
         <CustomerDetails
           customer={customer}
