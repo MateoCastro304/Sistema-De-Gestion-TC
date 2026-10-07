@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { cuitDigits, formatCuit, hasCuitLength, isValidCuit } from '@/shared/lib/cuit'
+import { cuitDigits, cuitError, formatCuit, isValidCuit } from '@/shared/lib/cuit'
 import type { Factory, FactoryInput } from '../types/factory'
 
 // Se reexportan para lo que ya los importaba de acá.
@@ -21,14 +21,13 @@ export const factoryFormSchema = z.object({
     .string()
     .trim()
     .min(1, 'El CUIT es obligatorio')
-    .refine(
-      (value) => value === '' || hasCuitLength(value),
-      'El CUIT debe tener 11 dígitos',
-    )
-    .refine(
-      (value) => value === '' || isValidCuit(cuitDigits(value)),
-      'El CUIT no es válido (prefijo o dígito verificador)',
-    ),
+    // Un solo chequeo que dice QUÉ está mal (largo, prefijo o dígito
+    // verificador), en vez de un "no es válido" genérico.
+    .superRefine((value, ctx) => {
+      if (value === '') return
+      const message = cuitError(value)
+      if (message) ctx.addIssue({ code: 'custom', message })
+    }),
   // Optional: the DB column `factory_customer.address` is nullable.
   address: z.string().trim().max(255, 'La dirección admite hasta 255 caracteres'),
   // Required: the rubro (backend category) is mandatory for a factory.

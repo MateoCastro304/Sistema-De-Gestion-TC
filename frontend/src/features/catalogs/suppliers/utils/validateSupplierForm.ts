@@ -1,5 +1,5 @@
 import { isApiError } from "@/shared/api/ApiError";
-import { cuitDigits, hasCuitLength, isValidCuit } from "@/shared/lib/cuit";
+import { cuitError } from "@/shared/lib/cuit";
 import type { SupplierCreate, SupplierFormValues } from "../types/supplier";
 
 export type SupplierFormErrors = Partial<Record<keyof SupplierFormValues, string>>
@@ -16,11 +16,8 @@ export function validateSupplierForm(values: SupplierFormValues): SupplierFormEr
     const cuit = values.cuit.trim()
     if (cuit) {
         // Mismas reglas que el backend: 11 digitos, prefijo y verificador.
-        if (!hasCuitLength(cuit)) {
-            errors.cuit = 'El CUIT debe tener 11 dígitos.'
-        } else if (!isValidCuit(cuitDigits(cuit))) {
-            errors.cuit = 'El CUIT no es válido (prefijo o dígito verificador).'
-        }
+        const message = cuitError(cuit)
+        if (message) errors.cuit = message
     }
     if (phone) {
         // Mismos limites que el backend: entre 8 y 15 digitos (E.164).
