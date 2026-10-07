@@ -2,6 +2,8 @@
 
 Relevamiento del 6 de octubre de 2026 sobre `develop` (commit `9e72345`), para la reunión del jueves.
 
+**Actualizado el 7 de octubre de 2026:** ya se resolvió lo del frontend que no dependía de una decisión del equipo. El resumen está en "Qué se resolvió y qué queda"; los puntos resueltos siguen en su lugar, marcados como tales.
+
 ## Cómo se hizo
 
 - Se levantaron los contenedores de desarrollo (`make dev-up`) y se probó cada pantalla contra el backend y la base reales, sin mocks.
@@ -28,6 +30,31 @@ Los cuatro catálogos funcionan de punta a punta contra el backend real: **Encar
 | Integración continua | No hay (ver I-01) |
 
 El módulo más atrasado es **Proveedores en el backend**: es el único que sigue sin base de datos.
+
+## Qué se resolvió y qué queda
+
+Resuelto después del relevamiento, todo en el frontend y probado contra el backend real:
+
+| Punto | Qué se hizo |
+|---|---|
+| F-01 | Proveedores muestra todos y cuenta bien. Es un parche hasta que el backend devuelva el total (B-03). |
+| F-02 | Un rubro nuevo aparece al instante al crear una fábrica. |
+| F-05 | Pantalla propia para errores inesperados, en vez de la de React Router en inglés. |
+| F-07 | Detalles visuales: botones del panel, guardar en celular, paginador, guiones, estados vacíos. |
+| F-09 (parte) | `styles.css` pasó de 4820 a 2020 líneas; quedó sólo lo que está en uso. |
+
+Quedan **32 puntos** de los 36:
+
+| Área | Bloqueantes (P0) | Importantes (P1) | Menores (P2) |
+|---|---|---|---|
+| Backend | 2 | 11 | 6 |
+| Frontend | 0 | 2 | 3 |
+| Contrato y documentación | 0 | 2 | 1 |
+| Infraestructura y proceso | 0 | 2 | 3 |
+
+- Los **2 bloqueantes** son de proveedores en el backend: se guardan en memoria (B-01) y no se pueden eliminar (B-02).
+- Los **2 importantes del frontend** esperan una decisión: baja y reactivación de fábricas (F-03) y restaurar rubros (F-04).
+- En el frontend no queda nada que se pueda cerrar sin el backend o sin una decisión del equipo, salvo deuda: tests (F-06) y el tamaño del bundle (F-09).
 
 ## Prioridades
 
@@ -280,7 +307,7 @@ El frontend pide páginas grandes y filtra en el navegador. Si se superan, falta
 ### F-09 · P2 · Deuda técnica
 
 - **Resuelto:** `styles/styles.css` tenía 4820 líneas con dos capas, los estilos viejos y el rediseño encima. Se dejó sólo lo que está en uso: 2020 líneas, y el CSS compilado bajó de 87 a 42 kB. Se verificó comparando el estilo calculado de cada elemento antes y después, en 25 estados de la app y tres anchos de pantalla, sin diferencias. Los estilos de pantallas que todavía no existen (wizard de cotizaciones, stepper, carga de planos, hoja de ruta) se movieron a `styles/kit-pantallas-futuras.css`, que no se importa: están escritos con el diseño anterior y hay que adaptarlos antes de usarlos.
-- El bundle pesa 527 kB sin dividir. Vite lo advierte al compilar.
+- El bundle de JavaScript pesa 536 kB sin dividir. Vite lo advierte al compilar.
 - Los tipos de la API están escritos a mano en cada feature. La carpeta `src/api-contract`, pensada para generarlos del contrato, está vacía.
 - Cuatro pantallas muestran el mensaje de error tal cual al fallar la carga de un listado.
 - Advertencia de lint en `public/mockServiceWorker.js`, que es un archivo generado.
@@ -337,7 +364,7 @@ Definir cuándo se promueve develop a main al cerrar el sprint.
 
 ### I-04 · P2 · Limpieza de ramas
 
-Hay 16 ramas remotas ya mergeadas a develop que se pueden borrar.
+Hay 17 ramas remotas ya mergeadas a develop que se pueden borrar.
 
 Ramas sin mergear:
 
@@ -375,7 +402,7 @@ Para resolver el jueves, porque definen el trabajo de arriba.
 1. Tomar las decisiones 1 a 4. Sin eso, B-01, B-04 y D-01 no se pueden cerrar.
 2. **Proveedores en backend:** B-04, B-01, B-02, B-03, y después B-05.
 3. **Reglas de encargados y fábricas:** B-09, B-10, B-11, B-12.
-4. **Frontend:** F-03 y F-04 según la decisión 6. F-01, F-02 y F-05 ya están resueltos.
+4. **Frontend:** F-03 y F-04 según la decisión 6. F-01, F-02, F-05 y F-07 ya están resueltos.
 5. **Contrato:** D-01 y D-02, cuando la API quede estable.
 6. **CI y lint:** I-01 y B-17. Conviene dejarlo antes del próximo sprint.
 7. **Limpieza:** ramas (I-04) y documentos (D-03).
