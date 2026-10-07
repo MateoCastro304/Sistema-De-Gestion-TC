@@ -28,8 +28,8 @@ describe('CreateCategory (use case)', () => {
       await useCase.execute({ name: 'Metalurgica' });
       await useCase.execute({ name: 'Autopartes' });
 
-      const all = await repo.findAll(1, 10);
-      expect(all).toHaveLength(2);
+      const all = await repo.list({ page: 1, limit: 10 });
+      expect(all.items).toHaveLength(2);
     });
   });
 

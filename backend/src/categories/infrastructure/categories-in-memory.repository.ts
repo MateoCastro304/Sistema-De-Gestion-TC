@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { CategoriesRepository } from '../domain/ports/categories.repository';
+import {
+  CategoriesRepository,
+  CategoryListParams,
+  CategoryListResult,
+} from '../domain/ports/categories.repository';
 import { Category } from '../domain/category';
 
 @Injectable()
@@ -8,10 +12,19 @@ export class CategoriesInMemoryRepository implements CategoriesRepository {
   private autoIncrementId = 1;
 
 
-    async findAll(page: number, limit: number): Promise<Category[]> {
-    const active = Array.from(this.categories.values()).filter((c) => c.getActive());
-    const start = (page - 1) * limit;
-    return active.slice(start, start + limit);
+  async list(params: CategoryListParams): Promise<CategoryListResult> {
+    let filtered = Array.from(this.categories.values()).filter((c) => c.getActive());
+
+    if (params.nameContains) {
+      const needle = params.nameContains.trim().toLowerCase();
+      filtered = filtered.filter((c) => c.getName().toLowerCase().includes(needle));
+    }
+
+    const total = filtered.length;
+    const start = (params.page - 1) * params.limit;
+    const items = filtered.slice(start, start + params.limit);
+
+    return { items, total };
   }
 
   async findById(id: number): Promise<Category | null> {

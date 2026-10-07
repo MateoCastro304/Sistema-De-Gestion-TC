@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { Category } from '../domain/category';
-import { CategoriesRepository } from '../domain/ports/categories.repository';
+import {
+  CategoriesRepository,
+  CategoryListParams,
+  CategoryListResult,
+} from '../domain/ports/categories.repository';
 
-export type ListCategoriesInput = {
-  page: number;
-  limit: number;
-};
+export type ListCategoriesInput = CategoryListParams;
 
 @Injectable()
 export class ListCategories {
   constructor(private readonly repo: CategoriesRepository) {}
 
-  async execute(input: ListCategoriesInput): Promise<Category[]> {
-    return this.repo.findAll(input.page, input.limit);
+  async execute(input: ListCategoriesInput): Promise<CategoryListResult> {
+    return this.repo.list(input);
   }
 }

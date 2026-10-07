@@ -1,5 +1,5 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus, Logger } from '@nestjs/common';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { CategoryDomainError } from '../../domain/errors/category-domain.error';
 import { CategoryValidationError } from '../../domain/errors/category-validation.error';
 import { CategoryNotFound } from '../../domain/errors/category-not-found.error';
@@ -25,13 +25,20 @@ export class DomainErrorFilter implements ExceptionFilter {
   private readonly logger = new Logger(DomainErrorFilter.name);
 
   catch(exception: CategoryDomainError, host: ArgumentsHost): void {
-    const response = host.switchToHttp().getResponse<Response>();
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
     const { status, body } = this.mapToHttp(exception);
 
     if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
       this.logger.error(`Unmapped CategoryDomainError: ${exception.name} - ${exception.message}`, exception.stack);
     }
-    response.status(status).json(body);
+
+    response.status(status).json({
+      ...body,
+      path: request.url,
+      timestamp: new Date().toISOString(),
+    });
   }
 
   private mapToHttp(exception: CategoryDomainError): {

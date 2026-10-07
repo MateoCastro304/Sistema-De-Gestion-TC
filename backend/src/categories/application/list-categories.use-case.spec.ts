@@ -23,7 +23,8 @@ describe('ListCategories (use case)', () => {
   it('returns an empty page when there are no categories', async () => {
     const result = await useCase.execute({ page: 1, limit: 10 });
 
-    expect(result).toEqual([]);
+    expect(result.items).toEqual([]);
+    expect(result.total).toBe(0);
   });
 
   it('returns only active categories', async () => {
@@ -32,15 +33,16 @@ describe('ListCategories (use case)', () => {
 
     const result = await useCase.execute({ page: 1, limit: 10 });
 
-    expect(result).toHaveLength(1);
-    expect(result[0].getName()).toBe('Metalurgica');
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].getName()).toBe('Metalurgica');
+    expect(result.total).toBe(1);
   });
 
   // ---------------------------------------------------------------------------
   // pagination
   // ---------------------------------------------------------------------------
   describe('pagination', () => {
-    it('slices the active categories by page/limit', async () => {
+    it('slices the active categories by page/limit, and keeps total counting the full match', async () => {
       for (let i = 1; i <= 5; i++) {
         await seed(`Rubro ${i}`);
       }
@@ -48,8 +50,10 @@ describe('ListCategories (use case)', () => {
       const page1 = await useCase.execute({ page: 1, limit: 2 });
       const page3 = await useCase.execute({ page: 3, limit: 2 });
 
-      expect(page1).toHaveLength(2);
-      expect(page3).toHaveLength(1);
+      expect(page1.items).toHaveLength(2);
+      expect(page1.total).toBe(5);
+      expect(page3.items).toHaveLength(1);
+      expect(page3.total).toBe(5);
     });
 
     it('returns an empty page when the offset falls past the last match', async () => {
@@ -58,7 +62,45 @@ describe('ListCategories (use case)', () => {
 
       const result = await useCase.execute({ page: 5, limit: 10 });
 
-      expect(result).toEqual([]);
+      expect(result.items).toEqual([]);
+      expect(result.total).toBe(2);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // search
+  // ---------------------------------------------------------------------------
+  describe('nameContains', () => {
+    it('filters by name substring, case-insensitively', async () => {
+      await seed('Autopartes');
+      await seed('Metalurgica');
+      await seed('Autopiezas');
+
+      const result = await useCase.execute({ page: 1, limit: 10, nameContains: 'AUTO' });
+
+      expect(result.total).toBe(2);
+      const names = result.items.map((c) => c.getName());
+      expect(names).toEqual(expect.arrayContaining(['Autopartes', 'Autopiezas']));
+    });
+
+    it('computes total over the filtered set, not over the full store', async () => {
+      await seed('Autopartes');
+      await seed('Metalurgica');
+      await seed('Autopiezas');
+
+      const result = await useCase.execute({ page: 1, limit: 1, nameContains: 'auto' });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.total).toBe(2);
+    });
+
+    it('returns an empty result when nothing matches', async () => {
+      await seed('Metalurgica');
+
+      const result = await useCase.execute({ page: 1, limit: 10, nameContains: 'xyz' });
+
+      expect(result.items).toEqual([]);
+      expect(result.total).toBe(0);
     });
   });
 });
