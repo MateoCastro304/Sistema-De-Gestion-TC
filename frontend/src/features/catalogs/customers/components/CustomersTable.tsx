@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { Avatar, Badge, Table, TrashButton } from '@/shared/components/ui'
+import { Avatar, Badge, Table, TrashButton, ValueOrDash } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
 import { toneByStatus } from '@/shared/lib/rowTone'
 import { cn } from '@/shared/lib/cn'
@@ -50,7 +50,7 @@ export function CustomersTable({
     },
     {
       header: 'Teléfono',
-      render: (c) => <span className="table__cell--mono">{c.phone || '—'}</span>,
+      render: (c) => <ValueOrDash value={c.phone} className="table__cell--mono" />,
     },
     {
       header: 'Email',
@@ -58,23 +58,21 @@ export function CustomersTable({
       // muestra el completo al pasar el mouse.
       render: (c) => (
         <span className="table__cell--email" title={c.mail || undefined}>
-          {c.mail || '—'}
+          <ValueOrDash value={c.mail} />
         </span>
       ),
     },
     {
       header: 'Fábrica',
       render: (c) => (
-        <span className="table__cell--contacto">
-          {factoryById(c.factoryId)?.name ?? '—'}
-        </span>
+        <ValueOrDash value={factoryById(c.factoryId)?.name} className="table__cell--contacto" />
       ),
     },
     {
       header: 'Rubro',
       render: (c) => {
         const factory = factoryById(c.factoryId)
-        return factory ? <Badge variant="suave">{categoryName(factory.categoryId)}</Badge> : '—'
+        return factory ? <Badge variant="suave">{categoryName(factory.categoryId)}</Badge> : <ValueOrDash />
       },
     },
     {
@@ -115,7 +113,7 @@ export function CustomersTable({
       variant="cards"
       /* Teléfono, rubro y acciones van fijos: el teléfono no se parte
          (nowrap) y con 1.4fr se montaba sobre el email. */
-      gridTemplate="minmax(0,1.3fr) 150px minmax(0,1.4fr) minmax(0,0.9fr) 130px 150px"
+      gridTemplate="minmax(0,1.7fr) 150px minmax(0,1.2fr) minmax(0,1fr) 130px 150px"
       rowClassName={(c) => cn(`table__row--${toneByStatus(c.isActive)}`)}
       columns={columns}
       data={customers}

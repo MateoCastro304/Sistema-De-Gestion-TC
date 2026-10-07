@@ -113,14 +113,20 @@ export function FactoriesPage() {
         )}
       </div>
 
-      {factoriesQuery.isLoading && <p>Cargando fábricas…</p>}
+      {factoriesQuery.isLoading && (
+        <div className="empty-state">
+          <p className="empty-state__text">Cargando fábricas…</p>
+        </div>
+      )}
 
       {factoriesQuery.isError && (
-        <p className="form-field__error">
-          {isApiError(factoriesQuery.error)
-            ? factoriesQuery.error.message
-            : 'No se pudieron cargar las fábricas.'}
-        </p>
+        <div className="callout callout--warning">
+          <span>
+            {isApiError(factoriesQuery.error)
+              ? factoriesQuery.error.message
+              : 'No se pudieron cargar las fábricas.'}
+          </span>
+        </div>
       )}
 
       {factoriesQuery.isSuccess && (

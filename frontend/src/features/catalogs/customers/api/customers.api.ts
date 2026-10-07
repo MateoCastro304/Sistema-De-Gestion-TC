@@ -6,21 +6,20 @@ import type {
   CustomerListParams,
 } from '../types/customer'
 import type { Factory, FactoryInput } from '../types/factory'
-import type { Category } from '../types/category'
 
 /**
- * HTTP calls for the Customer catalog and its related Factory and Category
- * catalogs. Paths are relative to the axios `baseURL` (`/api`). The contract is
- * proposed in `docs/openapi/customers.yaml` (pending DTC-54).
+ * HTTP calls for the Customer catalog and its related Factory catalog. Paths
+ * are relative to the axios `baseURL` (`/api`) and follow the backend
+ * controllers (`customers.controller.ts`, `factory.controller.ts`); the
+ * decisions behind names and shapes are in
+ * `docs/decisiones-clientes-fabricas.md`.
  */
 
 const CUSTOMERS = '/customers'
 const FACTORIES = '/factories'
-const CATEGORIES = '/categories'
 
 /** Los catálogos chicos se piden en una sola página grande y se filtran acá. */
 const CATALOG_LIMIT = 1000
-const CATEGORIES_LIMIT = 100
 
 // Customers (EncargadoCliente) --------------------------------------------
 //
@@ -127,24 +126,6 @@ export async function updateFactory(
   return data
 }
 
-// Categories (Rubro) -------------------------------------------------------
-//
-// Solo lectura: el rubro es el catálogo de categorías del backend (su propio
-// ABMC). Acá únicamente se consume la lista para el selector de la fábrica.
-
-interface CategoryResponse {
-  id: number
-  name: string
-  active?: boolean
-}
-
-export async function listCategories(): Promise<Category[]> {
-  const { data } = await http.get<CategoryResponse[]>(CATEGORIES, {
-    params: { page: 1, limit: CATEGORIES_LIMIT },
-  })
-  return data.map((category) => ({
-    id: String(category.id),
-    name: category.name,
-    isActive: category.active ?? true,
-  }))
-}
+// Los rubros no se piden desde acá: la lista la trae la feature de Rubros
+// (`features/catalogs/categories`) y el selector de la fábrica la lee de su
+// misma caché. Ver `useCategories` en customers.queries.ts.

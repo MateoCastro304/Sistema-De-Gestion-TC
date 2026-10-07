@@ -2,6 +2,8 @@
 
 Relevamiento del 6 de octubre de 2026 sobre `develop` (commit `9e72345`), para la reunión del jueves.
 
+**Actualizado el 7 de octubre de 2026:** ya se resolvió lo del frontend que no dependía de una decisión del equipo. El resumen está en "Qué se resolvió y qué queda"; los puntos resueltos siguen en su lugar, marcados como tales.
+
 ## Cómo se hizo
 
 - Se levantaron los contenedores de desarrollo (`make dev-up`) y se probó cada pantalla contra el backend y la base reales, sin mocks.
@@ -29,6 +31,31 @@ Los cuatro catálogos funcionan de punta a punta contra el backend real: **Encar
 
 El módulo más atrasado es **Proveedores en el backend**: es el único que sigue sin base de datos.
 
+## Qué se resolvió y qué queda
+
+Resuelto después del relevamiento, todo en el frontend y probado contra el backend real:
+
+| Punto | Qué se hizo |
+|---|---|
+| F-01 | Proveedores muestra todos y cuenta bien. Es un parche hasta que el backend devuelva el total (B-03). |
+| F-02 | Un rubro nuevo aparece al instante al crear una fábrica. |
+| F-05 | Pantalla propia para errores inesperados, en vez de la de React Router en inglés. |
+| F-07 | Detalles visuales: botones del panel, guardar en celular, paginador, guiones, estados vacíos. |
+| F-09 (parte) | `styles.css` pasó de 4820 a 2020 líneas; quedó sólo lo que está en uso. |
+
+Quedan **32 puntos** de los 36:
+
+| Área | Bloqueantes (P0) | Importantes (P1) | Menores (P2) |
+|---|---|---|---|
+| Backend | 2 | 11 | 6 |
+| Frontend | 0 | 2 | 3 |
+| Contrato y documentación | 0 | 2 | 1 |
+| Infraestructura y proceso | 0 | 2 | 3 |
+
+- Los **2 bloqueantes** son de proveedores en el backend: se guardan en memoria (B-01) y no se pueden eliminar (B-02).
+- Los **2 importantes del frontend** esperan una decisión: baja y reactivación de fábricas (F-03) y restaurar rubros (F-04).
+- En el frontend no queda nada que se pueda cerrar sin el backend o sin una decisión del equipo, salvo deuda: tests (F-06) y el tamaño del bundle (F-09).
+
 ## Prioridades
 
 - **P0 — Bloqueante.** Hay una función a la vista que no anda o se pierden datos.
@@ -55,11 +82,11 @@ El contrato lo define y el frontend lo usa, pero el controlador no lo tiene. Tam
 - **Cómo se ve:** `DELETE /suppliers/3` responde `404 Cannot DELETE`. En pantalla, "Eliminar proveedores" termina siempre en "No se pudo eliminar el proveedor".
 - **Qué hacer:** agregar el endpoint de baja lógica. El contrato pide 409 si el proveedor está asignado a órdenes de trabajo abiertas.
 
-### B-03 · P0 · El listado devuelve como máximo 20 y no informa el total
+### B-03 · P1 · El listado devuelve como máximo 20 y no informa el total
 
 `GET /suppliers` pagina de a 20 pero responde un array pelado. El frontend no tiene forma de saber que hay más.
 
-- **Cómo se ve:** se cargaron 22 proveedores; la pantalla muestra 20 y el subtítulo dice "20 proveedores registrados".
+- **Cómo se ve:** se cargaron 22 proveedores y `GET /suppliers` devolvió 20, sin indicar que había más. La pantalla mostraba 20 y decía "20 proveedores registrados". El frontend lo esquiva pidiendo una página de 1000 (ver F-01), por eso dejó de ser bloqueante.
 - **Qué hacer:** responder `{ items, total, page, limit }`, como ya hacen `/customers` y `/factories`. Del lado del frontend, ver F-01.
 
 ### B-04 · P1 · La tabla no puede guardar lo que la API acepta
@@ -218,16 +245,17 @@ Cada módulo arma sus errores a su manera, y las rutas inexistentes usan el form
 
 ## 5. Frontend
 
-### F-01 · P0 · Proveedores muestra sólo 20 y cuenta mal
+### F-01 · Resuelto con un parche · Proveedores mostraba sólo 20 y contaba mal
 
-Consecuencia de B-03. Mientras el backend no devuelva el total, se puede pedir una página grande, como ya hacen fábricas y rubros.
+Consecuencia de B-03. El frontend ahora pide una página grande (1000), como ya hacen fábricas y rubros: con 24 proveedores cargados muestra los 24 y el contador coincide.
 
-### F-02 · P1 · Un rubro nuevo tarda hasta un minuto en aparecer al crear una fábrica
+Es un parche. La solución de fondo sigue siendo B-03: que el backend devuelva el total y paginar en pantalla.
 
-La pantalla de Rubros y el selector de rubro de Fábricas guardan la lista en cachés separadas (`['categories']` y `['factory-categories']`). Crear, renombrar o eliminar un rubro no avisa al selector.
+### F-02 · Resuelto · Un rubro nuevo tardaba hasta un minuto en aparecer al crear una fábrica
 
-- **Cómo se ve:** se creó un rubro y, yendo enseguida a "Nueva fábrica", no estaba en el desplegable.
-- **Qué hacer:** unificar. Hoy además hay dos tipos `Category` y dos funciones `listCategories` (en `features/catalogs/categories` y en `features/catalogs/customers`).
+La pantalla de Rubros y el selector de rubro de Fábricas guardaban la lista en cachés separadas, y crear, renombrar o eliminar un rubro no avisaba al selector.
+
+Ahora las dos leen la misma caché: el selector usa la lista de `features/catalogs/categories` y sólo la adapta a la forma de su formulario. Se eliminó la segunda función `listCategories`. Comprobado: un rubro recién creado aparece al instante en "Nueva fábrica", sin un pedido extra al backend.
 
 ### F-03 · P1 · No hay forma de dar de baja ni reactivar una fábrica
 
@@ -241,21 +269,28 @@ Además, una fábrica inactiva es invisible: no está en el listado y entrar por
 
 El backend tiene `PATCH /categories/:id/restore`. La pantalla no lista los eliminados ni ofrece restaurarlos.
 
-### F-05 · P2 · Sin pantalla para errores inesperados
+### F-05 · Resuelto · Sin pantalla para errores inesperados
 
-Hay página 404, pero el router no tiene `errorElement`. Si una pantalla falla al dibujarse, se ve la pantalla de error por defecto de React Router, en inglés.
+Si una pantalla fallaba al dibujarse se veía la pantalla de error por defecto de React Router, en inglés. Ahora hay una página propia (`app/router/ErrorPage.tsx`) que conserva el menú, ofrece reintentar y deja salir navegando.
+
+De paso el router pasó a tener un solo layout para toda la app: antes cada sección montaba el suyo y el menú perdía su estado (por ejemplo, si estaba colapsado) al cambiar de sección.
 
 ### F-06 · P2 · El frontend no tiene tests
 
 Ni archivos de test ni comando para correrlos. Para empezar, lo más barato de cubrir son las validaciones: `shared/lib/cuit.ts`, teléfono y los esquemas de los formularios.
 
-### F-07 · P2 · Detalles visuales
+### F-07 · Resuelto · Detalles visuales
 
-- **"Cancelar" en el panel azul:** cuando el degradado animado pasa por su fase clara, el botón parece deshabilitado.
-- **Edición en celular:** "Guardar cambios" queda arriba, en el panel; hay que volver a subir después de completar el formulario.
-- **Listado de Encargados:** la columna Nombre es angosta. Un nombre y apellido de 17 letras se parte en dos renglones a 1440 px.
-- **Paginador de Encargados:** el texto "Página 1 de 2" es muy chico.
-- **Teléfono del proveedor:** se muestra como lo devuelve el backend (ver B-08).
+- **Botones del panel azul:** "Cancelar" y "Eliminar proveedores" parecían deshabilitados cuando el degradado animado pasaba por su fase clara. Ahora usan un vidrio oscuro que se lee en las dos fases. El subtítulo del panel también se aclaró.
+- **Edición en celular:** "Cancelar" y "Guardar cambios" aparecen al pie del formulario. Antes quedaban arriba, en el panel, y había que volver a subir.
+- **Listado de Encargados:** la columna Nombre y la de Fábrica tienen más lugar. A menos de 1350 px un nombre largo todavía ocupa dos renglones, igual que en Proveedores.
+- **Paginador de Encargados:** centrado y con el texto legible.
+- **Datos vacíos:** el guion es el mismo en todas las tablas (componente `ValueOrDash`). En la ficha de celular esos datos se esconden.
+- **"Incluir eliminados"** en el detalle de fábrica dejó de verse chico y gris.
+- **"Nuevo proveedor"** tiene la flecha de volver, como las otras pantallas de alta.
+- **Cargando, no encontrado y listas vacías** usan el mismo recuadro en toda la app.
+
+Queda pendiente: el teléfono del proveedor se muestra como lo devuelve el backend (ver B-08).
 
 ### F-08 · P2 · Límites silenciosos
 
@@ -267,12 +302,12 @@ El frontend pide páginas grandes y filtra en el navegador. Si se superan, falta
 | Rubros | 100 |
 | Encargados de una fábrica | 200 |
 | Encargados, para contar por fábrica | 1000 |
-| Proveedores | 20 (ver F-01) |
+| Proveedores | 1000 (parche, ver F-01) |
 
 ### F-09 · P2 · Deuda técnica
 
-- `styles/styles.css` tiene 4820 líneas con dos capas: los estilos viejos y el rediseño encima.
-- El bundle pesa 527 kB sin dividir. Vite lo advierte al compilar.
+- **Resuelto:** `styles/styles.css` tenía 4820 líneas con dos capas, los estilos viejos y el rediseño encima. Se dejó sólo lo que está en uso: 2020 líneas, y el CSS compilado bajó de 87 a 42 kB. Se verificó comparando el estilo calculado de cada elemento antes y después, en 25 estados de la app y tres anchos de pantalla, sin diferencias. Los estilos de pantallas que todavía no existen (wizard de cotizaciones, stepper, carga de planos, hoja de ruta) se movieron a `styles/kit-pantallas-futuras.css`, que no se importa: están escritos con el diseño anterior y hay que adaptarlos antes de usarlos.
+- El bundle de JavaScript pesa 536 kB sin dividir. Vite lo advierte al compilar.
 - Los tipos de la API están escritos a mano en cada feature. La carpeta `src/api-contract`, pensada para generarlos del contrato, está vacía.
 - Cuatro pantallas muestran el mensaje de error tal cual al fallar la carga de un listado.
 - Advertencia de lint en `public/mockServiceWorker.js`, que es un archivo generado.
@@ -329,7 +364,7 @@ Definir cuándo se promueve develop a main al cerrar el sprint.
 
 ### I-04 · P2 · Limpieza de ramas
 
-Hay 16 ramas remotas ya mergeadas a develop que se pueden borrar.
+Hay 17 ramas remotas ya mergeadas a develop que se pueden borrar.
 
 Ramas sin mergear:
 
@@ -344,6 +379,7 @@ Ramas sin mergear:
 
 - El contenedor de desarrollo del backend monta `docker.sock` e instala el cliente de Docker, para los tests con contenedores. Sólo debería existir en desarrollo.
 - El servicio `seed` del compose de test falla hasta que haya un seed (ver B-19).
+- Entrando por el puerto 80, la recarga en caliente de Vite no funciona: `nginx.dev.conf` no reenvía la conexión WebSocket y la consola muestra `WebSocket connection to ws://localhost/ failed`. Hay que recargar la página a mano. Por el puerto 5173 sí funciona.
 
 ---
 
@@ -366,7 +402,7 @@ Para resolver el jueves, porque definen el trabajo de arriba.
 1. Tomar las decisiones 1 a 4. Sin eso, B-01, B-04 y D-01 no se pueden cerrar.
 2. **Proveedores en backend:** B-04, B-01, B-02, B-03, y después B-05.
 3. **Reglas de encargados y fábricas:** B-09, B-10, B-11, B-12.
-4. **Frontend:** F-01, F-02, y F-03 y F-04 según la decisión 6.
+4. **Frontend:** F-03 y F-04 según la decisión 6. F-01, F-02, F-05 y F-07 ya están resueltos.
 5. **Contrato:** D-01 y D-02, cuando la API quede estable.
 6. **CI y lint:** I-01 y B-17. Conviene dejarlo antes del próximo sprint.
 7. **Limpieza:** ramas (I-04) y documentos (D-03).

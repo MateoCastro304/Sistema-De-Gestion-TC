@@ -10,7 +10,13 @@ import type {
   CustomerListParams,
 } from '../types/customer'
 import type { FactoryInput } from '../types/factory'
-import { customerKeys, factoryKeys, categoryKeys } from './customers.keys'
+import type { Category } from '../types/category'
+import {
+  categoryKeys,
+  listCategories,
+} from '@/features/catalogs/categories'
+import type { Category as BackendCategory } from '@/features/catalogs/categories'
+import { customerKeys, factoryKeys } from './customers.keys'
 import {
   activateCustomer,
   createCustomer,
@@ -19,7 +25,6 @@ import {
   getCustomer,
   listCustomers,
   listFactories,
-  listCategories,
   updateCustomer,
   updateFactory,
 } from './customers.api'
@@ -144,10 +149,32 @@ export function useUpdateFactory(id: string) {
 // Solo consumo: el ABMC de rubro es de otra persona. Acá únicamente se lee la
 // lista para poblar el selector de la fábrica.
 
-/** Rubros for the factory form's selector (read-only). */
+/**
+ * Adapta los rubros del backend a la forma que usa el formulario de fábrica:
+ * id como texto (sale de un <Select>) e `isActive`. Está fuera del hook para
+ * que su referencia no cambie: react-query sólo vuelve a correr `select`
+ * cuando cambian los datos o la función.
+ */
+function toSelectorCategories(categories: BackendCategory[]): Category[] {
+  return categories.map((category) => ({
+    id: String(category.id),
+    name: category.name,
+    isActive: category.active ?? true,
+  }))
+}
+
+/**
+ * Rubros for the factory form's selector (read-only).
+ *
+ * Usa la MISMA clave y la misma función que la pantalla de Rubros, así las dos
+ * comparten una sola caché: crear, renombrar o eliminar un rubro allá invalida
+ * esta lista y el selector se entera al instante. Antes cada pantalla tenía su
+ * copia y un rubro nuevo tardaba hasta un minuto en aparecer acá.
+ */
 export function useCategories() {
   return useQuery({
-    queryKey: categoryKeys.all,
+    queryKey: categoryKeys.lists(),
     queryFn: listCategories,
+    select: toSelectorCategories,
   })
 }
