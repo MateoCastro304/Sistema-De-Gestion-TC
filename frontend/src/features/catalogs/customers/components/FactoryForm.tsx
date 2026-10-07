@@ -71,7 +71,11 @@ export function FactoryForm({
           <div className="form-field">
             <Input
               label="CUIT"
-              placeholder="30-71234567-8"
+              // El ejemplo tiene que ser un CUIT válido: el anterior
+              // (30-71234567-8) tenía mal el dígito verificador y, copiado
+              // tal cual, el formulario lo rechazaba.
+              placeholder="30-71234567-1"
+              hint="11 dígitos, con o sin guiones"
               error={errors.cuit?.message}
               {...register('cuit')}
             />
