@@ -91,6 +91,8 @@ El contrato lo define y el frontend lo usa, pero el controlador no lo tiene. Tam
 
 ### B-04 · P1 · La tabla no puede guardar lo que la API acepta
 
+**Hoy esto no se nota.** Crear un proveedor con dos tipos funciona, porque los proveedores todavía se guardan en memoria (B-01) y la tabla no se usa: tiene 0 filas. El problema aparece al conectar proveedores a la base.
+
 | Dato | API | Base (`supplier`) |
 |---|---|---|
 | Tipos | `supplierTypes`, una lista con al menos uno | `supplierType`, un solo valor |
