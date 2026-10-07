@@ -252,13 +252,18 @@ De paso el router pasó a tener un solo layout para toda la app: antes cada secc
 
 Ni archivos de test ni comando para correrlos. Para empezar, lo más barato de cubrir son las validaciones: `shared/lib/cuit.ts`, teléfono y los esquemas de los formularios.
 
-### F-07 · P2 · Detalles visuales
+### F-07 · Resuelto · Detalles visuales
 
-- **"Cancelar" en el panel azul:** cuando el degradado animado pasa por su fase clara, el botón parece deshabilitado.
-- **Edición en celular:** "Guardar cambios" queda arriba, en el panel; hay que volver a subir después de completar el formulario.
-- **Listado de Encargados:** la columna Nombre es angosta. Un nombre y apellido de 17 letras se parte en dos renglones a 1440 px.
-- **Paginador de Encargados:** el texto "Página 1 de 2" es muy chico.
-- **Teléfono del proveedor:** se muestra como lo devuelve el backend (ver B-08).
+- **Botones del panel azul:** "Cancelar" y "Eliminar proveedores" parecían deshabilitados cuando el degradado animado pasaba por su fase clara. Ahora usan un vidrio oscuro que se lee en las dos fases. El subtítulo del panel también se aclaró.
+- **Edición en celular:** "Cancelar" y "Guardar cambios" aparecen al pie del formulario. Antes quedaban arriba, en el panel, y había que volver a subir.
+- **Listado de Encargados:** la columna Nombre y la de Fábrica tienen más lugar. A menos de 1350 px un nombre largo todavía ocupa dos renglones, igual que en Proveedores.
+- **Paginador de Encargados:** centrado y con el texto legible.
+- **Datos vacíos:** el guion es el mismo en todas las tablas (componente `ValueOrDash`). En la ficha de celular esos datos se esconden.
+- **"Incluir eliminados"** en el detalle de fábrica dejó de verse chico y gris.
+- **"Nuevo proveedor"** tiene la flecha de volver, como las otras pantallas de alta.
+- **Cargando, no encontrado y listas vacías** usan el mismo recuadro en toda la app.
+
+Queda pendiente: el teléfono del proveedor se muestra como lo devuelve el backend (ver B-08).
 
 ### F-08 · P2 · Límites silenciosos
 
@@ -274,7 +279,7 @@ El frontend pide páginas grandes y filtra en el navegador. Si se superan, falta
 
 ### F-09 · P2 · Deuda técnica
 
-- `styles/styles.css` tiene 4820 líneas con dos capas: los estilos viejos y el rediseño encima.
+- **Resuelto:** `styles/styles.css` tenía 4820 líneas con dos capas, los estilos viejos y el rediseño encima. Se dejó sólo lo que está en uso: 2020 líneas, y el CSS compilado bajó de 87 a 42 kB. Se verificó comparando el estilo calculado de cada elemento antes y después, en 25 estados de la app y tres anchos de pantalla, sin diferencias. Los estilos de pantallas que todavía no existen (wizard de cotizaciones, stepper, carga de planos, hoja de ruta) se movieron a `styles/kit-pantallas-futuras.css`, que no se importa: están escritos con el diseño anterior y hay que adaptarlos antes de usarlos.
 - El bundle pesa 527 kB sin dividir. Vite lo advierte al compilar.
 - Los tipos de la API están escritos a mano en cada feature. La carpeta `src/api-contract`, pensada para generarlos del contrato, está vacía.
 - Cuatro pantallas muestran el mensaje de error tal cual al fallar la carga de un listado.
