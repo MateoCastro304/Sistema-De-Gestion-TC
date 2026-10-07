@@ -12,7 +12,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     const show: ShowToast = (kind, message) => {
         const id = nextId++
         setToasts((current) => [...current, { id, kind, message }].slice(-2))
-        setTimeout(() => setToasts((current) => current.filter((t) => t.id !== id)), 2000)
+        // Un error hay que alcanzar a leerlo: dos segundos alcanzan para un
+        // "guardado", no para entender qué falló.
+        const duration = kind === 'error' ? 6000 : 3000
+        setTimeout(() => setToasts((current) => current.filter((t) => t.id !== id)), duration)
     }
 
     return (

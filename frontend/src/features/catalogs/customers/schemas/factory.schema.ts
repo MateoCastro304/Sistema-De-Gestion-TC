@@ -1,34 +1,9 @@
 import { z } from 'zod'
+import { cuitDigits, formatCuit, hasCuitLength, isValidCuit } from '@/shared/lib/cuit'
 import type { Factory, FactoryInput } from '../types/factory'
 
-/** Digits-only CUIT length (Argentina: 2 + 8 + 1). */
-const CUIT_DIGITS = 11
-
-/** Weights applied to the first 10 digits to compute the check digit. */
-const CUIT_WEIGHTS = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2] as const
-
-/** Prefixes the backend accepts (persona física / jurídica). */
-const CUIT_PREFIXES = ['20', '23', '24', '27', '30', '33', '34']
-
-/** Strips everything but digits, so "30-71234567-8" -> "30712345678". */
-function cuitDigits(value: string): string {
-  return value.replace(/\D/g, '')
-}
-
-/**
- * Validates the CUIT (prefix and check digit, módulo 11) over its 11 digits,
- * the same rules the backend applies. A computed check of 10 is not assignable.
- */
-export function isValidCuit(digits: string): boolean {
-  if (digits.length !== CUIT_DIGITS) return false
-  if (!CUIT_PREFIXES.includes(digits.slice(0, 2))) return false
-  const nums = digits.split('').map(Number)
-  const sum = CUIT_WEIGHTS.reduce((acc, weight, i) => acc + weight * nums[i], 0)
-  let check = 11 - (sum % 11)
-  if (check === 11) check = 0
-  if (check === 10) return false
-  return check === nums[CUIT_DIGITS - 1]
-}
+// Se reexportan para lo que ya los importaba de acá.
+export { formatCuit, isValidCuit }
 
 /**
  * Validation for the factory form (FabricaCliente, CU-58/59). El CUIT y el
@@ -47,7 +22,7 @@ export const factoryFormSchema = z.object({
     .trim()
     .min(1, 'El CUIT es obligatorio')
     .refine(
-      (value) => value === '' || cuitDigits(value).length === CUIT_DIGITS,
+      (value) => value === '' || hasCuitLength(value),
       'El CUIT debe tener 11 dígitos',
     )
     .refine(
@@ -93,11 +68,4 @@ export function toFactoryFormValues(factory: Factory): FactoryFormValues {
     categoryId: factory.categoryId,
     payMethod: factory.payMethod,
   }
-}
-
-/** Formats a stored 11-digit CUIT as "XX-XXXXXXXX-X" for display. */
-export function formatCuit(cuit: string): string {
-  const digits = cuitDigits(cuit)
-  if (digits.length !== CUIT_DIGITS) return cuit
-  return `${digits.slice(0, 2)}-${digits.slice(2, 10)}-${digits.slice(10)}`
 }

@@ -1,10 +1,10 @@
 import { Modal } from '@/shared/components/ui'
 import { useToast } from '@/app/providers/ToastContext'
-import { isApiError } from '@/shared/api/ApiError'
 import type { Customer, CustomerInput } from '../types/customer'
 import { toCustomerFormValues } from '../schemas/customer.schema'
 import { useCreateCustomer, useUpdateCustomer } from '../api/customers.queries'
 import { CustomerForm } from './CustomerForm'
+import { customerErrorMessage, customerFullName } from '../utils/errorMessages'
 
 interface CustomerFormModalProps {
   open: boolean
@@ -37,7 +37,7 @@ export function CustomerFormModal({
     const onSuccess = (saved: Customer) => {
       showToast(
         'success',
-        `Encargado "${saved.firstName} ${saved.lastName}" ${
+        `Encargado "${customerFullName(saved)}" ${
           isEdit ? 'actualizado' : 'agregado'
         }.`,
       )
@@ -46,7 +46,7 @@ export function CustomerFormModal({
     const onError = (error: unknown) => {
       showToast(
         'error',
-        isApiError(error) ? error.message : 'No se pudo guardar el encargado.',
+        customerErrorMessage(error, 'No se pudo guardar el encargado.'),
       )
     }
 

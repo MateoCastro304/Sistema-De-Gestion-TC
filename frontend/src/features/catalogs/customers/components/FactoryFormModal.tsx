@@ -1,9 +1,9 @@
 import { Modal } from '@/shared/components/ui'
 import { useToast } from '@/app/providers/ToastContext'
-import { isApiError } from '@/shared/api/ApiError'
 import type { Factory, FactoryInput } from '../types/factory'
 import { useCreateFactory } from '../api/customers.queries'
 import { FactoryForm } from './FactoryForm'
+import { factoryErrorMessage } from '../utils/errorMessages'
 
 interface FactoryFormModalProps {
   open: boolean
@@ -34,7 +34,7 @@ export function FactoryFormModal({
       onError: (error) => {
         showToast(
           'error',
-          isApiError(error) ? error.message : 'No se pudo registrar la fábrica.',
+          factoryErrorMessage(error, 'No se pudo registrar la fábrica.'),
         )
       },
     })
