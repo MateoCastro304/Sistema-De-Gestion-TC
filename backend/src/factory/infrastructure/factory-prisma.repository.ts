@@ -97,15 +97,14 @@ export class FactoryPrismaRepository implements FactoryRepository {
     return { items: rows.map((row) => this.toDomain(row)), total };
   }
 
-  // TODO: quitar los "!" de cuit y categoryId cuando se aplique la migración (NOT NULL).
   private toDomain(row: FactoryRow): Factory {
     return Factory.reconstruct(
       row.id,
-      row.cuit!,
+      row.cuit,
       row.name,
       row.address,
       row.payMethod,
-      row.categoryId!,
+      row.categoryId,
       row.isActive,
       row.createdAt,
       row.updatedAt,

@@ -10,7 +10,7 @@ import type {
   CustomerListParams,
 } from '../types/customer'
 import type { FactoryInput } from '../types/factory'
-import { customerKeys, factoryKeys, industryKeys } from './customers.keys'
+import { customerKeys, factoryKeys, categoryKeys } from './customers.keys'
 import {
   activateCustomer,
   createCustomer,
@@ -19,7 +19,7 @@ import {
   getCustomer,
   listCustomers,
   listFactories,
-  listIndustries,
+  listCategories,
   updateCustomer,
   updateFactory,
 } from './customers.api'
@@ -139,15 +139,15 @@ export function useUpdateFactory(id: string) {
   })
 }
 
-// Industries (Rubro) -------------------------------------------------------
+// Categories (Rubro) -------------------------------------------------------
 //
 // Solo consumo: el ABMC de rubro es de otra persona. Acá únicamente se lee la
 // lista para poblar el selector de la fábrica.
 
 /** Rubros for the factory form's selector (read-only). */
-export function useIndustries() {
+export function useCategories() {
   return useQuery({
-    queryKey: industryKeys.all,
-    queryFn: listIndustries,
+    queryKey: categoryKeys.all,
+    queryFn: listCategories,
   })
 }

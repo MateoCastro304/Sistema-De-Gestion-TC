@@ -1,6 +1,6 @@
 /**
  * TanStack Query keys for the Customer catalog and the related Factory and
- * Industry catalogs it manages inline. Centralised so that invalidation from
+ * Category catalogs it manages inline. Centralised so that invalidation from
  * mutations always matches what the queries registered.
  */
 import type { CustomerListParams } from '../types/customer'
@@ -23,6 +23,6 @@ export const factoryKeys = {
   lists: () => [...factoryKeys.all, 'list'] as const,
 }
 
-export const industryKeys = {
-  all: ['industries'] as const,
+export const categoryKeys = {
+  all: ['factory-categories'] as const,
 }

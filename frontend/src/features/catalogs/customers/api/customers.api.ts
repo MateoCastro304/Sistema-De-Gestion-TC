@@ -6,10 +6,10 @@ import type {
   CustomerListParams,
 } from '../types/customer'
 import type { Factory, FactoryInput } from '../types/factory'
-import type { Industry } from '../types/industry'
+import type { Category } from '../types/category'
 
 /**
- * HTTP calls for the Customer catalog and its related Factory and Industry
+ * HTTP calls for the Customer catalog and its related Factory and Category
  * catalogs. Paths are relative to the axios `baseURL` (`/api`). The contract is
  * proposed in `docs/openapi/customers.yaml` (pending DTC-54).
  */
@@ -127,7 +127,7 @@ export async function updateFactory(
   return data
 }
 
-// Industries (Rubro) -------------------------------------------------------
+// Categories (Rubro) -------------------------------------------------------
 //
 // Solo lectura: el rubro es el catálogo de categorías del backend (su propio
 // ABMC). Acá únicamente se consume la lista para el selector de la fábrica.
@@ -138,7 +138,7 @@ interface CategoryResponse {
   active?: boolean
 }
 
-export async function listIndustries(): Promise<Industry[]> {
+export async function listCategories(): Promise<Category[]> {
   const { data } = await http.get<CategoryResponse[]>(CATEGORIES, {
     params: { page: 1, limit: CATEGORIES_LIMIT },
   })

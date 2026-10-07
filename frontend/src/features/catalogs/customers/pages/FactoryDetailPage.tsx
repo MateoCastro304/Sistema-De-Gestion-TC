@@ -22,7 +22,7 @@ import {
   useCustomers,
   useDeactivateCustomer,
   useFactories,
-  useIndustries,
+  useCategories,
   useUpdateFactory,
 } from '../api/customers.queries'
 import { FactoryForm } from '../components/FactoryForm'
@@ -42,7 +42,7 @@ export function FactoryDetailPage() {
   const showToast = useToast()
 
   const factoriesQuery = useFactories()
-  const { data: industries = [] } = useIndustries()
+  const { data: categories = [] } = useCategories()
   // Encargados de esta fábrica (GET /customers?factoryId=...). Traemos activos e
   // inactivos; el filtro de abajo decide cuáles se listan.
   const customersQuery = useCustomers({ factoryId: id, limit: 200 })
@@ -101,8 +101,8 @@ export function FactoryDetailPage() {
     )
   }
 
-  const industryName =
-    industries.find((i) => i.id === factory.categoryId)?.name ?? '—'
+  const categoryName =
+    categories.find((c) => c.id === factory.categoryId)?.name ?? '—'
   // El backend ya acotó a esta fábrica vía `factoryId`.
   const factoryContacts = customersQuery.data?.items ?? []
   // Escenario 3 mira si la fábrica tiene encargados registrados (activos o no);
@@ -251,7 +251,7 @@ export function FactoryDetailPage() {
               </div>
               <p className="page-header__subtitle detail-header__meta">
                 {`CUIT: ${formatCuit(factory.cuit)}`}
-                <Badge variant="suave">{industryName}</Badge>
+                <Badge variant="suave">{categoryName}</Badge>
               </p>
             </div>
           </div>
@@ -290,7 +290,7 @@ export function FactoryDetailPage() {
           hideActions
         />
       ) : (
-        <FactoryDetails factory={factory} industryName={industryName} />
+        <FactoryDetails factory={factory} categoryName={categoryName} />
       )}
 
       {/* Encargados that belong to this factory. */}
@@ -378,10 +378,10 @@ export function FactoryDetailPage() {
 /** Read-only presentation of a factory. */
 function FactoryDetails({
   factory,
-  industryName,
+  categoryName,
 }: {
   factory: Factory
-  industryName: string
+  categoryName: string
 }) {
   return (
     <div className="card">
@@ -389,7 +389,7 @@ function FactoryDetails({
       <div className="card__grid">
         <div className="field">
           <span className="field__label">Rubro</span>
-          <span className="field__value">{industryName}</span>
+          <span className="field__value">{categoryName}</span>
         </div>
         <div className="field">
           <span className="field__label">CUIT</span>

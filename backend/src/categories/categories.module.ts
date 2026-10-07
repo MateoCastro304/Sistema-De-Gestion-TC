@@ -1,7 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { CategoriesController } from './http/categories.controller';
 import { CategoriesRepository } from './domain/ports/categories.repository';
-import { CategoriesInMemoryRepository } from './infrastructure/categories-in-memory.repository';
+import { CategoriesPrismaRepository } from './infrastructure/categories-prisma.repository';
 import { FactoryModule } from '../factory/factory.module';
 import { CreateCategory } from './application/create-category.use-case';
 import { GetCategoryById } from './application/get-category-by-id.use-case';
@@ -20,7 +20,7 @@ import { ActivateCategory } from './application/activate-category.use-case';
     UpdateCategory,
     DeactivateCategory,
     ActivateCategory,
-    { provide: CategoriesRepository, useClass: CategoriesInMemoryRepository },
+    { provide: CategoriesRepository, useClass: CategoriesPrismaRepository },
   ],
   exports: [CategoriesRepository],
 })

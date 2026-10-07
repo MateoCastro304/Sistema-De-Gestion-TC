@@ -10,7 +10,7 @@ Este documento reemplaza a `docs/inconsistencias-clientes-fabricas.md`, que qued
 |---|---|
 | Fuente de verdad | Para fábricas, la historia de usuario CU-58. La base se adapta a la historia, no al revés. Para clientes, el contrato del frontend (`docs/openapi/customers.yaml`) y las columnas que existen en la base. |
 | Nombres en el JSON | Los del frontend: `firstName`, `isActive`, `payMethod`. El dominio y la base mantienen sus nombres (`name`, `active`, `paymentDescription`); el mapeo está en los DTOs de respuesta y de entrada. |
-| Rubro = `category` | El rubro se llama **`category` / `categoryId`** en la base, el backend y el JSON. **No se renombra a `industry`.** El frontend cambia su campo `industryId` por `categoryId`. Sus nombres internos (`Industry`, `useIndustries`, `industryName`) no viajan en el JSON y pueden quedar. |
+| Rubro = `category` | El rubro se llama **`category` / `categoryId`** en la base, el backend y el JSON. **No se renombra a `industry`.** El frontend cambió su campo `industryId` por `categoryId` y renombró también sus nombres internos (`Industry` → `Category`, `useIndustries` → `useCategories`, `industryName` → `categoryName`, etc.). Es solo un renombrado: la lógica, los ids (siguen siendo strings) y los datos son los mismos. |
 | Ids | El backend devuelve los ids como string (`"3"`), como los tipa el frontend. Los pedidos los siguen recibiendo como número en la URL. |
 | Campos opcionales vacíos | El frontend manda `''`; el backend lo guarda como `null`. Al devolver, `null` sale como `''`. |
 | Listados de catálogos | El frontend pide una página grande y filtra del lado del cliente: hasta 1000 fábricas y 100 rubros. |

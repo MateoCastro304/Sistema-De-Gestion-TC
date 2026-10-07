@@ -11,7 +11,7 @@ import {
   useCustomer,
   useDeactivateCustomer,
   useFactories,
-  useIndustries,
+  useCategories,
   useUpdateCustomer,
 } from '../api/customers.queries'
 import { toCustomerFormValues } from '../schemas/customer.schema'
@@ -35,7 +35,7 @@ export function CustomerDetailPage() {
 
   const customerQuery = useCustomer(factoryId, id)
   const { data: factories = [] } = useFactories()
-  const { data: industries = [] } = useIndustries()
+  const { data: categories = [] } = useCategories()
   const update = useUpdateCustomer(factoryId, id)
   const deactivate = useDeactivateCustomer()
   const activate = useActivateCustomer()
@@ -73,8 +73,8 @@ export function CustomerDetailPage() {
   const customer = customerQuery.data
   const fullName = `${customer.firstName} ${customer.lastName}`
   const factory = factories.find((f) => f.id === customer.factoryId)
-  const industryName =
-    industries.find((i) => i.id === factory?.categoryId)?.name ?? '—'
+  const categoryName =
+    categories.find((c) => c.id === factory?.categoryId)?.name ?? '—'
 
   const handleSubmit = (input: CustomerInput) => {
     update.mutate(input, {
@@ -223,7 +223,7 @@ export function CustomerDetailPage() {
         <CustomerDetails
           customer={customer}
           factory={factory}
-          industryName={industryName}
+          categoryName={categoryName}
         />
       )}
 
@@ -261,11 +261,11 @@ export function CustomerDetailPage() {
 function CustomerDetails({
   customer,
   factory,
-  industryName,
+  categoryName,
 }: {
   customer: Customer
   factory?: Factory
-  industryName: string
+  categoryName: string
 }) {
   return (
     <>
@@ -293,7 +293,7 @@ function CustomerDetails({
             </div>
             <div className="field">
               <span className="field__label">Rubro</span>
-              <span className="field__value">{industryName}</span>
+              <span className="field__value">{categoryName}</span>
             </div>
             <div className="field">
               <span className="field__label">CUIT</span>

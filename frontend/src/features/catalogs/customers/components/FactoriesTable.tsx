@@ -4,12 +4,12 @@ import type { Column } from '@/shared/components/ui'
 import { toneByStatus } from '@/shared/lib/rowTone'
 import { cn } from '@/shared/lib/cn'
 import type { Factory } from '../types/factory'
-import type { Industry } from '../types/industry'
+import type { Category } from '../types/category'
 import { formatCuit } from '../schemas/factory.schema'
 
 interface FactoriesTableProps {
   factories: Factory[]
-  industries: Industry[]
+  categories: Category[]
   /** How many encargados each factory has, keyed by factory id. */
   contactsByFactory: Record<string, number>
   /** Message shown when there are no rows (e.g. no factories vs. no matches). */
@@ -19,12 +19,12 @@ interface FactoriesTableProps {
 /** Read-only listing of factories (CU-60), with a link to the detail. */
 export function FactoriesTable({
   factories,
-  industries,
+  categories,
   contactsByFactory,
   emptyMessage = 'No hay fábricas registradas.',
 }: FactoriesTableProps) {
-  const industryName = (id: string) =>
-    industries.find((i) => i.id === id)?.name ?? '—'
+  const categoryName = (id: string) =>
+    categories.find((c) => c.id === id)?.name ?? '—'
 
   const columns: Column<Factory>[] = [
     {
@@ -47,7 +47,7 @@ export function FactoriesTable({
     // a la que asignarles colores. El color de la fila lo da el estado.
     {
       header: 'Rubro',
-      render: (f) => <Badge variant="suave">{industryName(f.categoryId)}</Badge>,
+      render: (f) => <Badge variant="suave">{categoryName(f.categoryId)}</Badge>,
     },
     {
       header: 'Encargados',

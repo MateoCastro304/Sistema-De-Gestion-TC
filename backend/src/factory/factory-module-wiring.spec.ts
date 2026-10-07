@@ -9,6 +9,8 @@ import { CreateCustomer } from '../customers/application/create-customer.use-cas
 import { CustomerRepository } from '../customers/domain/port/customer.repository';
 import { CustomerInMemoryRepository } from '../customers/infrastructure/customers.repository';
 import { CreateCategory } from '../categories/application/create-category.use-case';
+import { CategoriesRepository } from '../categories/domain/ports/categories.repository';
+import { CategoriesInMemoryRepository } from '../categories/infrastructure/categories-in-memory.repository';
 
 const buildModule = () =>
   Test.createTestingModule({ imports: [FactoryModule] })
@@ -16,6 +18,8 @@ const buildModule = () =>
     .useClass(FactoryInMemoryRepository)
     .overrideProvider(CustomerRepository)
     .useClass(CustomerInMemoryRepository)
+    .overrideProvider(CategoriesRepository)
+    .useClass(CategoriesInMemoryRepository)
     .compile();
 
 describe('FactoryModule wiring (forwardRef)', () => {

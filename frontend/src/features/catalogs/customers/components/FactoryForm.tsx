@@ -8,7 +8,7 @@ import {
   toFactoryInput,
 } from '../schemas/factory.schema'
 import type { FactoryFormValues } from '../schemas/factory.schema'
-import { useIndustries } from '../api/customers.queries'
+import { useCategories } from '../api/customers.queries'
 
 interface FactoryFormProps {
   /** Pre-filled values when editing; omit to create a new factory. */
@@ -41,7 +41,7 @@ export function FactoryForm({
   formId,
   hideActions = false,
 }: FactoryFormProps) {
-  const { data: industries = [], isLoading: loadingIndustries } = useIndustries()
+  const { data: categories = [], isLoading: loadingCategories } = useCategories()
 
   const {
     register,
@@ -78,7 +78,7 @@ export function FactoryForm({
           </div>
 
           <div className="form-field">
-            <label className="form-field__label" htmlFor="factory-industry">
+            <label className="form-field__label" htmlFor="factory-category">
               Rubro
             </label>
             <Controller
@@ -89,16 +89,16 @@ export function FactoryForm({
                 // acepta así. field.ref deja que react-hook-form enfoque el
                 // campo cuando la validación falla.
                 <Select
-                  id="factory-industry"
+                  id="factory-category"
                   name={field.name}
                   ref={field.ref}
                   value={field.value}
                   onChange={field.onChange}
                   onBlur={field.onBlur}
                   invalid={!!errors.categoryId}
-                  disabled={loadingIndustries}
-                  placeholder={loadingIndustries ? 'Cargando rubros…' : 'Seleccioná un rubro'}
-                  options={industries.map((industry) => ({ value: industry.id, label: industry.name }))}
+                  disabled={loadingCategories}
+                  placeholder={loadingCategories ? 'Cargando rubros…' : 'Seleccioná un rubro'}
+                  options={categories.map((category) => ({ value: category.id, label: category.name }))}
                 />
               )}
             />
@@ -107,7 +107,7 @@ export function FactoryForm({
                 {errors.categoryId.message}
               </span>
             )}
-            {!loadingIndustries && industries.length === 0 && (
+            {!loadingCategories && categories.length === 0 && (
               <span className="form-field__hint">
                 No hay rubros disponibles. Se cargan desde la sección Rubros.
               </span>
