@@ -4,147 +4,174 @@ import { Mail } from '../../shared/domain/mail';
 
 export class Customer {
   private constructor(
-    private readonly id: CustomerId | null,
-    private name: string,
-    private lastName: string,
-    private phone: string,
-    private mail: Mail,
-    private factoryId: FactoryId,  // Fabrica asociada
-    private active: boolean, 
-    
+    private readonly _id: CustomerId | null,
+    private _name: string,
+    private _lastName: string | null,
+    private _phone: string | null,
+    private _mail: Mail | null,
+    private _factoryId: FactoryId,  // Fabrica asociada
+    private _active: boolean,
+    private readonly _createdAt: Date,
+    private _updatedAt: Date,
   ) {}
-// OPERATIONS 
+
+  // OPERATIONS
 
   // CREATE
   static create(
     name: string,
-    lastName: string,
-    phone: string,
-    mail: string,
+    lastName: string | null,
+    phone: string | null,
+    mail: string | null,
     factoryId: number,
   ): Customer {
-    if (!name.trim()){
-      throw new Error('Customer name cannot be empty');
-    }
+    const normalizedName = Customer.requireName(name);
+    const normalizedPhone = Customer.optionalText(phone);
+    const normalizedMail = Customer.toMail(mail);
+    Customer.assertHasContact(normalizedPhone, normalizedMail);
 
-    if (!lastName.trim()){
-      throw new Error('Customer lastName cannot be empty');
-    }
-
-    if (!phone.trim()){
-      throw new Error('Customer phone cannot be empty');
-    }
+    const now = new Date();
 
     return new Customer(
       null,
-      name.trim(),
-      lastName.trim(),
-      phone.trim(),
-      Mail.create(mail),
+      normalizedName,
+      Customer.optionalText(lastName),
+      normalizedPhone,
+      normalizedMail,
       FactoryId.create(factoryId),
       true,
+      now,
+      now,
     );
   }
 
   static reconstruct(
     id: number,
     name: string,
-    lastName: string,
-    phone: string,
-    mail: string,
+    lastName: string | null,
+    phone: string | null,
+    mail: string | null,
     factoryId: number,
     active: boolean,
+    createdAt: Date = new Date(),
+    updatedAt: Date = new Date(),
   ): Customer {
     return new Customer(
       CustomerId.create(id),
       name,
-      lastName,
-      phone,
-      Mail.create(mail),
+      Customer.optionalText(lastName),
+      Customer.optionalText(phone),
+      Customer.toMail(mail),
       FactoryId.create(factoryId),
       active,
+      createdAt,
+      updatedAt,
     );
   }
 
-  // UPDATE
+  // UPDATE: valida todo antes de asignar, para no dejar el objeto a medio modificar.
   update(
     name: string,
-    lastName: string,
-    phone: string,
-    mail: string,
+    lastName: string | null,
+    phone: string | null,
+    mail: string | null,
     factoryId: number,
   ): void {
-    this.changeName(name);
-    this.changeLastName(lastName);
-    this.changePhone(phone);
-    this.changeMail(mail);
-    this.changeFactoryId(factoryId);
+    const normalizedName = Customer.requireName(name);
+    const normalizedLastName = Customer.optionalText(lastName);
+    const normalizedPhone = Customer.optionalText(phone);
+    const normalizedMail = Customer.toMail(mail);
+    const normalizedFactoryId = FactoryId.create(factoryId);
+    Customer.assertHasContact(normalizedPhone, normalizedMail);
+
+    this._name = normalizedName;
+    this._lastName = normalizedLastName;
+    this._phone = normalizedPhone;
+    this._mail = normalizedMail;
+    this._factoryId = normalizedFactoryId;
+    this._updatedAt = new Date();
   }
 
   // DELETE (baja logica)
   deactivate(): void {
-    if(!this.active){
+    if (!this._active) {
       throw new Error('Customer is already inactive');
-    };
-    this.active = false
+    }
+    this._active = false;
+    this._updatedAt = new Date();
   }
 
   // Reactivar (alta logica)
   activate(): void {
-    if(this.active){
+    if (this._active) {
       throw new Error('Customer is already active');
     }
-    this.active = true;
+    this._active = true;
+    this._updatedAt = new Date();
   }
 
-// CHANGE METHODS
+  // VALIDATION HELPERS
 
-  changeName(name:string): void {
-    const normalizedName = name.trim();
-
-    if(!normalizedName){ // el trim es para eliminar los espacios vacios
+  private static requireName(name: string): string {
+    const normalized = name.trim();
+    if (!normalized) {
       throw new Error('Customer name cannot be empty');
     }
-    this.name = normalizedName;
+    return normalized;
   }
 
-  changeLastName(lastName: string): void {
-    const normalizedLastName = lastName.trim();
+  private static optionalText(value: string | null): string | null {
+    return value?.trim() || null;
+  }
 
-    if (!normalizedLastName) {
-      throw new Error('Customer lastName cannot be empty');
+  private static toMail(mail: string | null): Mail | null {
+    const trimmed = mail?.trim();
+    return trimmed ? Mail.create(trimmed) : null;
+  }
+
+  // Regla de negocio: el informe se envía por mail o por teléfono, hace falta al menos uno.
+  private static assertHasContact(phone: string | null, mail: Mail | null): void {
+    if (!phone && !mail) {
+      throw new Error('Customer must have at least one contact: phone or mail');
     }
-
-    this.lastName = normalizedLastName;
-    }
-
-  changeMail(mail: string): void {
-    this.mail = Mail.create(mail);
   }
 
-  changePhone(phone:string): void {
-    const normalizedPhone = phone.trim();
+  // CHANGE METHODS
 
-    if(!normalizedPhone){
-      throw new Error('Customer phone cannot be empty');
-    }
-    this.phone = normalizedPhone;
+  setName(name: string): void {
+    this._name = Customer.requireName(name);
   }
 
-  changeFactoryId(factoryId: number): void {
-    this.factoryId = FactoryId.create(factoryId);
+  setLastName(lastName: string | null): void {
+    this._lastName = Customer.optionalText(lastName);
   }
 
+  setMail(mail: string | null): void {
+    const normalizedMail = Customer.toMail(mail);
+    Customer.assertHasContact(this._phone, normalizedMail);
+    this._mail = normalizedMail;
+  }
+
+  setPhone(phone: string | null): void {
+    const normalizedPhone = Customer.optionalText(phone);
+    Customer.assertHasContact(normalizedPhone, this._mail);
+    this._phone = normalizedPhone;
+  }
+
+  setFactoryId(factoryId: number): void {
+    this._factoryId = FactoryId.create(factoryId);
+  }
+
+  // GETTERS
   getId(): number | null {
-    return this.id ? this.id.getValue() : null;
+    return this._id ? this._id.getValue() : null;
   }
-  getName(): string { return this.name; }
-  getLastName(): string { return this.lastName; }
-  getPhone(): string { return this.phone; }
-  getMail(): string { return this.mail.getValue(); }
-  getFactoryId(): number { return this.factoryId.getValue(); }
-  isActive(): boolean { return this.active; }
-
-
-
+  getName(): string { return this._name; }
+  getLastName(): string | null { return this._lastName; }
+  getPhone(): string | null { return this._phone; }
+  getMail(): string | null { return this._mail ? this._mail.getValue() : null; }
+  getFactoryId(): number { return this._factoryId.getValue(); }
+  isActive(): boolean { return this._active; }
+  getCreatedAt(): Date { return this._createdAt; }
+  getUpdatedAt(): Date { return this._updatedAt; }
 }

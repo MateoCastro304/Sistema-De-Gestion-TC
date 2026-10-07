@@ -9,7 +9,7 @@ import {
   useCustomers,
   useDeactivateCustomer,
   useFactories,
-  useIndustries,
+  useCategories,
 } from '../api/customers.queries'
 import { CustomersTable } from '../components/CustomersTable'
 
@@ -20,7 +20,7 @@ const PAGE_SIZE = 20
 export function CustomersPage() {
   const showToast = useToast()
   const { data: factories = [] } = useFactories()
-  const { data: industries = [] } = useIndustries()
+  const { data: categories = [] } = useCategories()
   const deactivate = useDeactivateCustomer()
   const activate = useActivateCustomer()
 
@@ -183,7 +183,7 @@ export function CustomersPage() {
           <CustomersTable
             customers={customers}
             factories={factories}
-            industries={industries}
+            categories={categories}
             onDeactivate={setToDeactivate}
             onActivate={handleActivate}
             emptyMessage={

@@ -6,17 +6,21 @@ import type {
   CustomerListParams,
 } from '../types/customer'
 import type { Factory, FactoryInput } from '../types/factory'
-import type { Industry } from '../types/industry'
+import type { Category } from '../types/category'
 
 /**
- * HTTP calls for the Customer catalog and its related Factory and Industry
+ * HTTP calls for the Customer catalog and its related Factory and Category
  * catalogs. Paths are relative to the axios `baseURL` (`/api`). The contract is
  * proposed in `docs/openapi/customers.yaml` (pending DTC-54).
  */
 
 const CUSTOMERS = '/customers'
 const FACTORIES = '/factories'
-const INDUSTRIES = '/industries'
+const CATEGORIES = '/categories'
+
+/** Los catálogos chicos se piden en una sola página grande y se filtran acá. */
+const CATALOG_LIMIT = 1000
+const CATEGORIES_LIMIT = 100
 
 // Customers (EncargadoCliente) --------------------------------------------
 //
@@ -27,6 +31,14 @@ const INDUSTRIES = '/industries'
 
 function customerPath(factoryId: string, id: string): string {
   return `${FACTORIES}/${factoryId}${CUSTOMERS}/${id}`
+}
+
+/**
+ * El factoryId viaja en la URL, no en el cuerpo: el backend rechaza las
+ * propiedades que no declara.
+ */
+function toCustomerBody({ firstName, lastName, phone, mail }: CustomerInput) {
+  return { firstName, lastName, phone, mail }
 }
 
 /**
@@ -53,7 +65,7 @@ export async function getCustomer(
 export async function createCustomer(input: CustomerInput): Promise<Customer> {
   const { data } = await http.post<Customer>(
     `${FACTORIES}/${input.factoryId}${CUSTOMERS}`,
-    input,
+    toCustomerBody(input),
   )
   return data
 }
@@ -65,7 +77,7 @@ export async function updateCustomer(
 ): Promise<Customer> {
   const { data } = await http.patch<Customer>(
     customerPath(factoryId, id),
-    input,
+    toCustomerBody(input),
   )
   return data
 }
@@ -94,9 +106,12 @@ export async function activateCustomer(
 
 // Factories (FabricaCliente) ----------------------------------------------
 
+/** El backend pagina: se pide una página grande y se devuelven sus items. */
 export async function listFactories(): Promise<Factory[]> {
-  const { data } = await http.get<Factory[]>(FACTORIES)
-  return data
+  const { data } = await http.get<Page<Factory>>(FACTORIES, {
+    params: { page: 1, limit: CATALOG_LIMIT },
+  })
+  return data.items
 }
 
 export async function createFactory(input: FactoryInput): Promise<Factory> {
@@ -112,13 +127,24 @@ export async function updateFactory(
   return data
 }
 
-// Industries (Rubro) -------------------------------------------------------
+// Categories (Rubro) -------------------------------------------------------
 //
-// Solo lectura: el rubro es un catálogo de otra persona (su propio ABMC). Acá
-// únicamente se consume la lista para el selector de la fábrica. El alta/edición
-// de rubros no vive en este feature.
+// Solo lectura: el rubro es el catálogo de categorías del backend (su propio
+// ABMC). Acá únicamente se consume la lista para el selector de la fábrica.
 
-export async function listIndustries(): Promise<Industry[]> {
-  const { data } = await http.get<Industry[]>(INDUSTRIES)
-  return data
+interface CategoryResponse {
+  id: number
+  name: string
+  active?: boolean
+}
+
+export async function listCategories(): Promise<Category[]> {
+  const { data } = await http.get<CategoryResponse[]>(CATEGORIES, {
+    params: { page: 1, limit: CATEGORIES_LIMIT },
+  })
+  return data.map((category) => ({
+    id: String(category.id),
+    name: category.name,
+    isActive: category.active ?? true,
+  }))
 }

@@ -11,7 +11,7 @@ import {
   useCustomer,
   useDeactivateCustomer,
   useFactories,
-  useIndustries,
+  useCategories,
   useUpdateCustomer,
 } from '../api/customers.queries'
 import { toCustomerFormValues } from '../schemas/customer.schema'
@@ -35,7 +35,7 @@ export function CustomerDetailPage() {
 
   const customerQuery = useCustomer(factoryId, id)
   const { data: factories = [] } = useFactories()
-  const { data: industries = [] } = useIndustries()
+  const { data: categories = [] } = useCategories()
   const update = useUpdateCustomer(factoryId, id)
   const deactivate = useDeactivateCustomer()
   const activate = useActivateCustomer()
@@ -73,8 +73,8 @@ export function CustomerDetailPage() {
   const customer = customerQuery.data
   const fullName = `${customer.firstName} ${customer.lastName}`
   const factory = factories.find((f) => f.id === customer.factoryId)
-  const industryName =
-    industries.find((i) => i.id === factory?.industryId)?.name ?? '—'
+  const categoryName =
+    categories.find((c) => c.id === factory?.categoryId)?.name ?? '—'
 
   const handleSubmit = (input: CustomerInput) => {
     update.mutate(input, {
@@ -223,7 +223,7 @@ export function CustomerDetailPage() {
         <CustomerDetails
           customer={customer}
           factory={factory}
-          industryName={industryName}
+          categoryName={categoryName}
         />
       )}
 
@@ -261,11 +261,11 @@ export function CustomerDetailPage() {
 function CustomerDetails({
   customer,
   factory,
-  industryName,
+  categoryName,
 }: {
   customer: Customer
   factory?: Factory
-  industryName: string
+  categoryName: string
 }) {
   return (
     <>
@@ -274,23 +274,12 @@ function CustomerDetails({
         <div className="card__grid">
           <div className="field">
             <span className="field__label">Teléfono</span>
-            <span className="field__value">
-              {customer.phone || '—'}
-              {/* verde, igual que en el listado: la variante pastel "si"
-                  quedaba de otro color que la misma etiqueta en la tabla. */}
-              {customer.hasWhatsapp && <Badge variant="verde">WhatsApp</Badge>}
-            </span>
+            <span className="field__value">{customer.phone || '—'}</span>
           </div>
           <div className="field">
             <span className="field__label">Email</span>
             <span className="field__value">{customer.mail || '—'}</span>
           </div>
-          {customer.observation && (
-            <div className="field card__full">
-              <span className="field__label">Observaciones</span>
-              <p className="field__value">{customer.observation}</p>
-            </div>
-          )}
         </div>
       </div>
 
@@ -304,7 +293,7 @@ function CustomerDetails({
             </div>
             <div className="field">
               <span className="field__label">Rubro</span>
-              <span className="field__value">{industryName}</span>
+              <span className="field__value">{categoryName}</span>
             </div>
             <div className="field">
               <span className="field__label">CUIT</span>
@@ -312,11 +301,11 @@ function CustomerDetails({
             </div>
             <div className="field card__full">
               <span className="field__label">Dirección</span>
-              <span className="field__value">{factory.address}</span>
+              <span className="field__value">{factory.address || '—'}</span>
             </div>
             <div className="field card__full">
               <span className="field__label">Formas de pago</span>
-              <p className="field__value">{factory.payMethod}</p>
+              <p className="field__value">{factory.payMethod || '—'}</p>
             </div>
           </div>
         ) : (

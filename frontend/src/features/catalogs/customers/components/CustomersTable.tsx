@@ -5,12 +5,12 @@ import { toneByStatus } from '@/shared/lib/rowTone'
 import { cn } from '@/shared/lib/cn'
 import type { Customer } from '../types/customer'
 import type { Factory } from '../types/factory'
-import type { Industry } from '../types/industry'
+import type { Category } from '../types/category'
 
 interface CustomersTableProps {
   customers: Customer[]
   factories: Factory[]
-  industries: Industry[]
+  categories: Category[]
   /** Called when the user confirms the baja lógica of a customer. */
   onDeactivate: (customer: Customer) => void
   /** Called to reactivar (CU-04 inverso) a customer dado de baja. */
@@ -23,14 +23,14 @@ interface CustomersTableProps {
 export function CustomersTable({
   customers,
   factories,
-  industries,
+  categories,
   onDeactivate,
   onActivate,
   emptyMessage = 'No hay encargados registrados.',
 }: CustomersTableProps) {
   const factoryById = (id: string) => factories.find((f) => f.id === id)
-  const industryName = (id: string) =>
-    industries.find((i) => i.id === id)?.name ?? '—'
+  const categoryName = (id: string) =>
+    categories.find((c) => c.id === id)?.name ?? '—'
 
   const columns: Column<Customer>[] = [
     {
@@ -49,12 +49,7 @@ export function CustomersTable({
     },
     {
       header: 'Teléfono',
-      render: (c) => (
-        <span className="table__cell--nombre">
-          <span className="table__cell--mono">{c.phone || '—'}</span>
-          {c.hasWhatsapp && <Badge variant="verde">WhatsApp</Badge>}
-        </span>
-      ),
+      render: (c) => <span className="table__cell--mono">{c.phone || '—'}</span>,
     },
     {
       header: 'Email',
@@ -78,7 +73,7 @@ export function CustomersTable({
       header: 'Rubro',
       render: (c) => {
         const factory = factoryById(c.factoryId)
-        return factory ? <Badge variant="suave">{industryName(factory.industryId)}</Badge> : '—'
+        return factory ? <Badge variant="suave">{categoryName(factory.categoryId)}</Badge> : '—'
       },
     },
     {

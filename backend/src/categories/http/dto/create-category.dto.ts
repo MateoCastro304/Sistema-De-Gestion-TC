@@ -4,7 +4,7 @@ import { IsString, MinLength, MaxLength } from 'class-validator';
 export class CreateCategoryDto {
   @IsString() 
   @Transform(({ value }) => value?.trim())
-  @MinLength(1)
+  @MinLength(3)
   @MaxLength(80)
   name: string; 
 }

@@ -1,26 +1,32 @@
-import { IsNotEmpty, IsString, IsEmail, IsInt, IsPositive } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
+import type { TransformFnParams } from 'class-transformer';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+
+// El frontend manda '' cuando un campo opcional queda vacío: se guarda como null.
+const emptyToNull = ({ value }: TransformFnParams) =>
+  typeof value === 'string' && value.trim() === '' ? null : value;
 
 export class CreateCustomerDto {
   @IsString()
   @IsNotEmpty()
-  name!: string;
+  @MaxLength(50)
+  firstName!: string;
 
+  @Transform(emptyToNull)
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  lastName!: string;
+  @MaxLength(50)
+  lastName?: string | null;
 
+  @Transform(emptyToNull)
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  phone!: string;
+  @MaxLength(50)
+  phone?: string | null;
 
-  @IsNotEmpty()
+  @Transform(emptyToNull)
+  @IsOptional()
   @IsEmail()
-  mail!: string;
-
-  @Type(() => Number)
-  @IsInt()
-  @IsPositive()
-  factoryId!: number;
-
+  @MaxLength(120)
+  mail?: string | null;
 }

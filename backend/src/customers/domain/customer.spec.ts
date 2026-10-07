@@ -22,6 +22,7 @@ describe('Customer Entity', () => {
       expect(customer.getName()).toBe(validName);
       expect(customer.getLastName()).toBe(validLastName);
       expect(customer.getPhone()).toBe(validPhone);
+      expect(customer.getMail()).toBe('juan.perez@example.com');
       expect(customer.getFactoryId()).toBe(validFactoryId);
       expect(customer.isActive()).toBe(true);
     });
@@ -56,16 +57,40 @@ describe('Customer Entity', () => {
       ).toThrow('Customer name cannot be empty');
     });
 
-    it('debería lanzar un error si el apellido está vacío', () => {
-      expect(() =>
-        Customer.create(validName, '', validPhone, validMail, validFactoryId),
-      ).toThrow('Customer lastName cannot be empty');
+    it('debería permitir un apellido ausente (null o vacío)', () => {
+      const withNull = Customer.create(validName, null, validPhone, validMail, validFactoryId);
+      const withBlank = Customer.create(validName, '  ', validPhone, validMail, validFactoryId);
+
+      expect(withNull.getLastName()).toBeNull();
+      expect(withBlank.getLastName()).toBeNull();
     });
 
-    it('debería lanzar un error si el teléfono está vacío', () => {
+    it('debería permitir crear un cliente solo con mail', () => {
+      const customer = Customer.create(validName, validLastName, null, validMail, validFactoryId);
+
+      expect(customer.getPhone()).toBeNull();
+      expect(customer.getMail()).toBe('juan.perez@example.com');
+    });
+
+    it('debería permitir crear un cliente solo con teléfono', () => {
+      const customer = Customer.create(validName, validLastName, validPhone, null, validFactoryId);
+
+      expect(customer.getPhone()).toBe(validPhone);
+      expect(customer.getMail()).toBeNull();
+    });
+
+    it('debería tratar un teléfono con solo espacios como ausente', () => {
+      const customer = Customer.create(validName, validLastName, '   ', validMail, validFactoryId);
+      expect(customer.getPhone()).toBeNull();
+    });
+
+    it('debería lanzar un error si no hay teléfono ni mail', () => {
       expect(() =>
-        Customer.create(validName, validLastName, '   ', validMail, validFactoryId),
-      ).toThrow('Customer phone cannot be empty');
+        Customer.create(validName, validLastName, null, null, validFactoryId),
+      ).toThrow('Customer must have at least one contact: phone or mail');
+      expect(() =>
+        Customer.create(validName, validLastName, '   ', '   ', validFactoryId),
+      ).toThrow('Customer must have at least one contact: phone or mail');
     });
 
     it('debería lanzar un error si el mail tiene un formato inválido', () => {
@@ -97,6 +122,14 @@ describe('Customer Entity', () => {
       expect(customer.getName()).toBe(validName);
       expect(customer.isActive()).toBe(false);
     });
+
+    it('debería reconstruir un cliente con apellido, teléfono y mail en null', () => {
+      const customer = Customer.reconstruct(10, validName, null, null, null, validFactoryId, true);
+
+      expect(customer.getLastName()).toBeNull();
+      expect(customer.getPhone()).toBeNull();
+      expect(customer.getMail()).toBeNull();
+    });
   });
 
   describe('update()', () => {
@@ -118,6 +151,38 @@ describe('Customer Entity', () => {
       expect(customer.getFactoryId()).toBe(2);
     });
 
+    it('debería permitir quitar apellido y teléfono si queda el mail', () => {
+      const customer = Customer.create(
+        validName,
+        validLastName,
+        validPhone,
+        validMail,
+        validFactoryId,
+      );
+
+      customer.update(validName, null, null, validMail, validFactoryId);
+
+      expect(customer.getLastName()).toBeNull();
+      expect(customer.getPhone()).toBeNull();
+      expect(customer.getMail()).toBe('juan.perez@example.com');
+    });
+
+    it('debería rechazar un update que deja al cliente sin contacto y no modificar nada', () => {
+      const customer = Customer.create(
+        validName,
+        validLastName,
+        validPhone,
+        validMail,
+        validFactoryId,
+      );
+
+      expect(() => customer.update('Otro', 'Nombre', null, null, validFactoryId)).toThrow(
+        'Customer must have at least one contact: phone or mail',
+      );
+      expect(customer.getName()).toBe(validName);
+      expect(customer.getPhone()).toBe(validPhone);
+    });
+
     it('debería recortar los espacios en blanco en las modificaciones', () => {
       const customer = Customer.create(
         validName,
@@ -127,9 +192,9 @@ describe('Customer Entity', () => {
         validFactoryId,
       );
 
-      customer.changeName('   Nombre Nuevo  ');
-      customer.changeLastName('   Apellido Nuevo  ');
-      customer.changePhone('   555   ');
+      customer.setName('   Nombre Nuevo  ');
+      customer.setLastName('   Apellido Nuevo  ');
+      customer.setPhone('   555   ');
 
       expect(customer.getName()).toBe('Nombre Nuevo');
       expect(customer.getLastName()).toBe('Apellido Nuevo');
