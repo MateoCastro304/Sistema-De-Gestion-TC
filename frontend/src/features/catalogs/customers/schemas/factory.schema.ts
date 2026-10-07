@@ -1,90 +1,58 @@
 import { z } from 'zod'
+import { cuitDigits, cuitError, formatCuit, isValidCuit } from '@/shared/lib/cuit'
 import type { Factory, FactoryInput } from '../types/factory'
 
-/** Digits-only CUIT length (Argentina: 2 + 8 + 1). */
-const CUIT_DIGITS = 11
-
-/** Weights applied to the first 10 digits to compute the check digit. */
-const CUIT_WEIGHTS = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2] as const
-
-/** Strips everything but digits, so "30-71234567-8" -> "30712345678". */
-function cuitDigits(value: string): string {
-  return value.replace(/\D/g, '')
-}
+// Se reexportan para lo que ya los importaba de acá.
+export { formatCuit, isValidCuit }
 
 /**
- * Validates the CUIT check digit (módulo 11) over its 11 digits. The first 10
- * digits are weighted and summed; the expected 11th digit is `11 - (sum % 11)`,
- * with 11 → 0 and 10 → 9 per the AFIP convention.
- */
-export function isValidCuit(digits: string): boolean {
-  if (digits.length !== CUIT_DIGITS) return false
-  const nums = digits.split('').map(Number)
-  const sum = CUIT_WEIGHTS.reduce((acc, weight, i) => acc + weight * nums[i], 0)
-  let check = 11 - (sum % 11)
-  if (check === 11) check = 0
-  if (check === 10) check = 9
-  return check === nums[CUIT_DIGITS - 1]
-}
-
-/**
- * Validation for the factory form (FabricaCliente, CU-58/59). CUIT is optional;
- * when provided it must have the expected 11-digit length and a valid check
- * digit. Dashes/spaces are allowed and normalised away by {@link toFactoryInput}.
+ * Validation for the factory form (FabricaCliente, CU-58/59). El CUIT y el
+ * rubro son obligatorios; dirección y formas de pago son opcionales (las
+ * columnas admiten null). Dashes/spaces in the CUIT are allowed and normalised
+ * away by {@link toFactoryInput}.
  */
 export const factoryFormSchema = z.object({
-  name: z.string().trim().min(1, 'El nombre de la fábrica es obligatorio'),
-  code: z
+  name: z
     .string()
     .trim()
-    .min(1, 'El código de fábrica es obligatorio')
-    .refine(
-      (value) => /^[A-Za-z0-9]{3,4}$/.test(value),
-      'El código debe tener entre 3 y 4 caracteres alfanuméricos',
-    ),
+    .min(1, 'El nombre de la fábrica es obligatorio')
+    .max(100, 'El nombre admite hasta 100 caracteres'),
   cuit: z
     .string()
     .trim()
-    .refine(
-      (value) => value === '' || cuitDigits(value).length === CUIT_DIGITS,
-      'El CUIT debe tener 11 dígitos',
-    )
-    .refine(
-      (value) => value === '' || isValidCuit(cuitDigits(value)),
-      'El dígito verificador del CUIT no es válido',
-    ),
+    .min(1, 'El CUIT es obligatorio')
+    // Un solo chequeo que dice QUÉ está mal (largo, prefijo o dígito
+    // verificador), en vez de un "no es válido" genérico.
+    .superRefine((value, ctx) => {
+      if (value === '') return
+      const message = cuitError(value)
+      if (message) ctx.addIssue({ code: 'custom', message })
+    }),
   // Optional: the DB column `factory_customer.address` is nullable.
-  address: z.string().trim(),
-  // Optional: the DB column `factory_customer.industry_id` is nullable.
-  industryId: z.string(),
-  payMethod: z
-    .string()
-    .trim()
-    .min(1, 'Ingresá las formas de pago'),
+  address: z.string().trim().max(255, 'La dirección admite hasta 255 caracteres'),
+  // Required: the rubro (backend category) is mandatory for a factory.
+  categoryId: z.string().min(1, 'Elegí un rubro'),
+  // Optional: the DB column `factory_customer.pay_method` is nullable.
+  payMethod: z.string().trim().max(255, 'Las formas de pago admiten hasta 255 caracteres'),
 })
 
 export type FactoryFormValues = z.infer<typeof factoryFormSchema>
 
 export const emptyFactoryForm: FactoryFormValues = {
   name: '',
-  code: '',
   cuit: '',
   address: '',
-  industryId: '',
+  categoryId: '',
   payMethod: '',
 }
 
-/**
- * Maps validated form values to the API payload (CUIT normalised to digits,
- * factory code uppercased since it prefixes the internal piece ids).
- */
+/** Maps validated form values to the API payload (CUIT normalised to digits). */
 export function toFactoryInput(values: FactoryFormValues): FactoryInput {
   return {
     name: values.name.trim(),
-    code: values.code.trim().toUpperCase(),
     cuit: cuitDigits(values.cuit),
     address: values.address.trim(),
-    industryId: values.industryId,
+    categoryId: values.categoryId,
     payMethod: values.payMethod.trim(),
   }
 }
@@ -93,17 +61,10 @@ export function toFactoryInput(values: FactoryFormValues): FactoryInput {
 export function toFactoryFormValues(factory: Factory): FactoryFormValues {
   return {
     name: factory.name,
-    code: factory.code,
-    cuit: factory.cuit,
+    // Con guiones, igual que se muestra en lectura.
+    cuit: formatCuit(factory.cuit),
     address: factory.address,
-    industryId: factory.industryId,
+    categoryId: factory.categoryId,
     payMethod: factory.payMethod,
   }
-}
-
-/** Formats a stored 11-digit CUIT as "XX-XXXXXXXX-X" for display. */
-export function formatCuit(cuit: string): string {
-  const digits = cuitDigits(cuit)
-  if (digits.length !== CUIT_DIGITS) return cuit
-  return `${digits.slice(0, 2)}-${digits.slice(2, 10)}-${digits.slice(10)}`
 }

@@ -97,16 +97,14 @@ export class FactoryPrismaRepository implements FactoryRepository {
     return { items: rows.map((row) => this.toDomain(row)), total };
   }
 
-  // Los "!" asumen filas completas: si la DB tiene cuit, address o categoryId en null,
-  // reconstruct() va a fallar hasta que se resuelva esa decisión (relajar dominio o NOT NULL).
   private toDomain(row: FactoryRow): Factory {
     return Factory.reconstruct(
       row.id,
-      row.cuit!,
+      row.cuit,
       row.name,
-      row.address!,
+      row.address,
       row.payMethod,
-      row.categoryId!,
+      row.categoryId,
       row.isActive,
       row.createdAt,
       row.updatedAt,

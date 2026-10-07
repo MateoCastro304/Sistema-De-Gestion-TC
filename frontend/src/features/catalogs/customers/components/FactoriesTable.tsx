@@ -4,12 +4,12 @@ import type { Column } from '@/shared/components/ui'
 import { toneByStatus } from '@/shared/lib/rowTone'
 import { cn } from '@/shared/lib/cn'
 import type { Factory } from '../types/factory'
-import type { Industry } from '../types/industry'
+import type { Category } from '../types/category'
 import { formatCuit } from '../schemas/factory.schema'
 
 interface FactoriesTableProps {
   factories: Factory[]
-  industries: Industry[]
+  categories: Category[]
   /** How many encargados each factory has, keyed by factory id. */
   contactsByFactory: Record<string, number>
   /** Message shown when there are no rows (e.g. no factories vs. no matches). */
@@ -19,12 +19,12 @@ interface FactoriesTableProps {
 /** Read-only listing of factories (CU-60), with a link to the detail. */
 export function FactoriesTable({
   factories,
-  industries,
+  categories,
   contactsByFactory,
   emptyMessage = 'No hay fábricas registradas.',
 }: FactoriesTableProps) {
-  const industryName = (id: string) =>
-    industries.find((i) => i.id === id)?.name ?? '—'
+  const categoryName = (id: string) =>
+    categories.find((c) => c.id === id)?.name ?? '—'
 
   const columns: Column<Factory>[] = [
     {
@@ -36,9 +36,8 @@ export function FactoriesTable({
         </span>
       ),
     },
-    // Código y CUIT en monoespaciada: son identificadores, y así quedan
-    // alineados de una fila a la otra.
-    { header: 'Código', render: (f) => <span className="table__cell--mono">{f.code}</span> },
+    // El CUIT va en monoespaciada: es un identificador, y así queda alineado
+    // de una fila a la otra.
     {
       header: 'CUIT',
       render: (f) => <span className="table__cell--mono">{formatCuit(f.cuit)}</span>,
@@ -48,7 +47,7 @@ export function FactoriesTable({
     // a la que asignarles colores. El color de la fila lo da el estado.
     {
       header: 'Rubro',
-      render: (f) => <Badge variant="suave">{industryName(f.industryId)}</Badge>,
+      render: (f) => <Badge variant="suave">{categoryName(f.categoryId)}</Badge>,
     },
     {
       header: 'Encargados',
@@ -72,7 +71,7 @@ export function FactoriesTable({
       /* Rediseño: filas-tarjeta en vez de <table>. Los datos, el filtro y
          el rowKey son los mismos; lo nuevo son sólo props de presentación. */
       variant="cards"
-      gridTemplate="minmax(0,2.4fr) 96px 136px minmax(0,1fr) 110px 72px"
+      gridTemplate="minmax(0,2.4fr) 136px minmax(0,1fr) 110px 72px"
       rowClassName={(f) => cn(`table__row--${toneByStatus(f.isActive)}`)}
       columns={columns}
       data={factories}

@@ -1,40 +1,40 @@
 import { Customer } from '../../domain/customer';
 
 export class CustomerResponseDto {
-    id: number;
-    name: string;
+    id: string;
+    firstName: string;
     lastName: string;
     phone: string;
     mail: string;
-    factoryId: number;
-    active: boolean;
+    factoryId: string;
+    isActive: boolean;
 
     private constructor(
-        id: number,
-        name: string,
+        id: string,
+        firstName: string,
         lastName: string,
         phone: string,
         mail: string,
-        factoryId: number,
-        active: boolean,
+        factoryId: string,
+        isActive: boolean,
     ) {
         this.id = id;
-        this.name = name;
+        this.firstName = firstName;
         this.lastName = lastName;
         this.phone = phone;
         this.mail = mail;
         this.factoryId = factoryId;
-        this.active = active;
+        this.isActive = isActive;
     }
 
     static fromDomain(customer: Customer): CustomerResponseDto {
         return new CustomerResponseDto(
-            customer.getId() as number,
+            String(customer.getId()),
             customer.getName(),
-            customer.getLastName(),
-            customer.getPhone(),
-            customer.getMail(),
-            customer.getFactoryId(),
+            customer.getLastName() ?? '',
+            customer.getPhone() ?? '',
+            customer.getMail() ?? '',
+            String(customer.getFactoryId()),
             customer.isActive(),
         );
     }

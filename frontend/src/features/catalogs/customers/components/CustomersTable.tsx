@@ -1,16 +1,17 @@
 import { Link } from 'react-router'
-import { Avatar, Badge, Table, TrashButton } from '@/shared/components/ui'
+import { Avatar, Badge, Table, TrashButton, ValueOrDash } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
 import { toneByStatus } from '@/shared/lib/rowTone'
 import { cn } from '@/shared/lib/cn'
 import type { Customer } from '../types/customer'
 import type { Factory } from '../types/factory'
-import type { Industry } from '../types/industry'
+import type { Category } from '../types/category'
+import { customerFullName } from '../utils/errorMessages'
 
 interface CustomersTableProps {
   customers: Customer[]
   factories: Factory[]
-  industries: Industry[]
+  categories: Category[]
   /** Called when the user confirms the baja lógica of a customer. */
   onDeactivate: (customer: Customer) => void
   /** Called to reactivar (CU-04 inverso) a customer dado de baja. */
@@ -23,23 +24,23 @@ interface CustomersTableProps {
 export function CustomersTable({
   customers,
   factories,
-  industries,
+  categories,
   onDeactivate,
   onActivate,
   emptyMessage = 'No hay encargados registrados.',
 }: CustomersTableProps) {
   const factoryById = (id: string) => factories.find((f) => f.id === id)
-  const industryName = (id: string) =>
-    industries.find((i) => i.id === id)?.name ?? '—'
+  const categoryName = (id: string) =>
+    categories.find((c) => c.id === id)?.name ?? '—'
 
   const columns: Column<Customer>[] = [
     {
       header: 'Nombre',
       render: (c) => (
         <span className="table__cell--nombre">
-          <Avatar name={`${c.firstName} ${c.lastName}`} tone={toneByStatus(c.isActive)} />
+          <Avatar name={customerFullName(c)} tone={toneByStatus(c.isActive)} />
           <b>
-            {c.firstName} {c.lastName}
+            {customerFullName(c)}
           </b>
           {/* La etiqueta se queda además de la franja gris: el color solo
               distingue, la palabra explica. */}
@@ -49,12 +50,7 @@ export function CustomersTable({
     },
     {
       header: 'Teléfono',
-      render: (c) => (
-        <span className="table__cell--nombre">
-          <span className="table__cell--mono">{c.phone || '—'}</span>
-          {c.hasWhatsapp && <Badge variant="verde">WhatsApp</Badge>}
-        </span>
-      ),
+      render: (c) => <ValueOrDash value={c.phone} className="table__cell--mono" />,
     },
     {
       header: 'Email',
@@ -62,23 +58,21 @@ export function CustomersTable({
       // muestra el completo al pasar el mouse.
       render: (c) => (
         <span className="table__cell--email" title={c.mail || undefined}>
-          {c.mail || '—'}
+          <ValueOrDash value={c.mail} />
         </span>
       ),
     },
     {
       header: 'Fábrica',
       render: (c) => (
-        <span className="table__cell--contacto">
-          {factoryById(c.factoryId)?.name ?? '—'}
-        </span>
+        <ValueOrDash value={factoryById(c.factoryId)?.name} className="table__cell--contacto" />
       ),
     },
     {
       header: 'Rubro',
       render: (c) => {
         const factory = factoryById(c.factoryId)
-        return factory ? <Badge variant="suave">{industryName(factory.industryId)}</Badge> : '—'
+        return factory ? <Badge variant="suave">{categoryName(factory.categoryId)}</Badge> : <ValueOrDash />
       },
     },
     {
@@ -95,7 +89,7 @@ export function CustomersTable({
               aparece si el encargado está activo, igual que antes. */}
           {c.isActive ? (
             <TrashButton
-              label={`Eliminar a ${c.firstName} ${c.lastName}`}
+              label={`Eliminar a ${customerFullName(c)}`}
               onClick={() => onDeactivate(c)}
             />
           ) : (
@@ -119,7 +113,7 @@ export function CustomersTable({
       variant="cards"
       /* Teléfono, rubro y acciones van fijos: el teléfono no se parte
          (nowrap) y con 1.4fr se montaba sobre el email. */
-      gridTemplate="minmax(0,1.3fr) 150px minmax(0,1.4fr) minmax(0,0.9fr) 130px 150px"
+      gridTemplate="minmax(0,1.7fr) 150px minmax(0,1.2fr) minmax(0,1fr) 130px 150px"
       rowClassName={(c) => cn(`table__row--${toneByStatus(c.isActive)}`)}
       columns={columns}
       data={customers}

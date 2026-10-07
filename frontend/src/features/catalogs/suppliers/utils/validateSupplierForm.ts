@@ -1,9 +1,8 @@
 import { isApiError } from "@/shared/api/ApiError";
+import { cuitError } from "@/shared/lib/cuit";
 import type { SupplierCreate, SupplierFormValues } from "../types/supplier";
 
 export type SupplierFormErrors = Partial<Record<keyof SupplierFormValues, string>>
-
-const CUIT_PATTERN = /^\d{2}-\d{8}-\d$/
 
 /** Digitos y los separadores que el backend descarta: espacios, + ( ) - y punto. */
 const PHONE_PATTERN = /^\+?[\d\s().-]+$/
@@ -15,10 +14,10 @@ export function validateSupplierForm(values: SupplierFormValues): SupplierFormEr
     const errors: SupplierFormErrors = {}
     const phone = values.contactPhone.trim()
     const cuit = values.cuit.trim()
-    if(cuit) {
-            if (!CUIT_PATTERN.test(values.cuit.trim())) {
-            errors.cuit = 'El CUIT debe tener el formato XX-XXXXXXXX-X.'
-        }
+    if (cuit) {
+        // Mismas reglas que el backend: 11 digitos, prefijo y verificador.
+        const message = cuitError(cuit)
+        if (message) errors.cuit = message
     }
     if (phone) {
         // Mismos limites que el backend: entre 8 y 15 digitos (E.164).
@@ -62,6 +61,18 @@ export function conflictErrors(error: unknown): SupplierFormErrors | null {
         return { cuit: 'Ya existe un proveedor con ese CUIT.' }
     }
     return null
+}
+
+/**
+ * Mensaje para el toast cuando falla un guardado que no es un conflicto de
+ * campo. El backend manda sus mensajes en ingles ("CUIT check digit is
+ * invalid"), asi que solo se muestran tal cual los de red o de servidor,
+ * que http.ts ya arma en español.
+ */
+export function supplierErrorMessage(error: unknown, fallback: string): string {
+    if (isApiError(error) && (error.isNetworkError || error.isServer)) return error.message
+    if (isApiError(error) && error.isNotFound) return 'El proveedor ya no existe.'
+    return fallback
 }
 
 export function toSupplierCreate(values: SupplierFormValues): SupplierCreate {

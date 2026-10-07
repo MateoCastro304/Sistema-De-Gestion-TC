@@ -1,6 +1,7 @@
 /**
- * TanStack Query keys for the Customer catalog and the related Factory and
- * Industry catalogs it manages inline. Centralised so that invalidation from
+ * TanStack Query keys for the Customer catalog and the related Factory
+ * catalog it manages inline. Los rubros usan las claves de su propia feature
+ * (`features/catalogs/categories`), para compartir la caché. Centralised so that invalidation from
  * mutations always matches what the queries registered.
  */
 import type { CustomerListParams } from '../types/customer'
@@ -21,8 +22,4 @@ export const customerKeys = {
 export const factoryKeys = {
   all: ['factories'] as const,
   lists: () => [...factoryKeys.all, 'list'] as const,
-}
-
-export const industryKeys = {
-  all: ['industries'] as const,
 }

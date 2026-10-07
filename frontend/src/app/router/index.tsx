@@ -1,5 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router'
 import { AppLayout } from '@/app/layouts/AppLayout'
+import { ErrorPage } from '@/app/router/ErrorPage'
+import { NotFoundPage } from '@/app/router/NotFoundPage'
 import { SuppliersPage } from '@/features/catalogs/suppliers/pages/SuppliersPage'
 import { NewSupplierPage } from '@/features/catalogs/suppliers/pages/NewSupplierPage'
 import { SupplierDetailPage } from '@/features/catalogs/suppliers/pages/SupplierDetailPage'
@@ -11,37 +13,59 @@ import {
   NewFactoryPage,
   FactoryDetailPage,
 } from '@/features/catalogs/customers'
+import { CategoriesPage } from '@/features/catalogs/categories'
 
 export const router = createBrowserRouter([
   // The app has no landing page yet: send "/" to the customers catalog.
   { index: true, element: <Navigate to="/catalogos/encargados" replace /> },
   {
-    path: '/catalogos/proveedores',
+    // Un solo layout para toda la app. Antes cada sección montaba el suyo y
+    // al cambiar de sección el menú se volvía a crear (perdía, por ejemplo,
+    // si estaba colapsado).
     element: <AppLayout />,
+    // Si lo que falla es el layout no hay marco donde mostrar el error.
+    errorElement: <ErrorPage standalone />,
     children: [
-      { index: true, element: <SuppliersPage /> },
-      { path: 'nuevo', element: <NewSupplierPage /> },
-      { path: ':id', element: <SupplierDetailPage /> },
-    ],
-  },
-  {
-    path: '/catalogos/encargados',
-    element: <AppLayout />,
-    children: [
-      { index: true, element: <CustomersPage /> },
-      { path: 'nuevo', element: <NewCustomerPage /> },
-      // A customer is addressed by its composite key (factoryId, id): `id` is
-      // only unique within a factory (DB `manager_customer(factory_id, id)`).
-      { path: ':factoryId/:id', element: <CustomerDetailPage /> },
-    ],
-  },
-  {
-    path: '/catalogos/fabricas',
-    element: <AppLayout />,
-    children: [
-      { index: true, element: <FactoriesPage /> },
-      { path: 'nuevo', element: <NewFactoryPage /> },
-      { path: ':id', element: <FactoryDetailPage /> },
+      {
+        // Ruta sin path ni pantalla propia: sólo existe para atrapar los
+        // errores de las pantallas de abajo SIN perder el layout. El menú
+        // sigue a la vista y se puede salir del error navegando.
+        errorElement: <ErrorPage />,
+        children: [
+          {
+            path: '/catalogos/proveedores',
+            children: [
+              { index: true, element: <SuppliersPage /> },
+              { path: 'nuevo', element: <NewSupplierPage /> },
+              { path: ':id', element: <SupplierDetailPage /> },
+            ],
+          },
+          {
+            path: '/catalogos/encargados',
+            children: [
+              { index: true, element: <CustomersPage /> },
+              { path: 'nuevo', element: <NewCustomerPage /> },
+              // A customer is addressed by its composite key (factoryId, id): `id` is
+              // only unique within a factory (DB `manager_customer(factory_id, id)`).
+              { path: ':factoryId/:id', element: <CustomerDetailPage /> },
+            ],
+          },
+          {
+            path: '/catalogos/fabricas',
+            children: [
+              { index: true, element: <FactoriesPage /> },
+              { path: 'nuevo', element: <NewFactoryPage /> },
+              { path: ':id', element: <FactoryDetailPage /> },
+            ],
+          },
+          {
+            path: '/catalogos/rubros',
+            children: [{ index: true, element: <CategoriesPage /> }],
+          },
+          // Cualquier otra URL.
+          { path: '*', element: <NotFoundPage /> },
+        ],
+      },
     ],
   },
 ])

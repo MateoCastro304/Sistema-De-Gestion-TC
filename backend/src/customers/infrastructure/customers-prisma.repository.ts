@@ -130,15 +130,13 @@ export class CustomerPrismaRepository implements CustomerRepository {
     return { items: rows.map((row) => this.toDomain(row)), total };
   }
 
-  // Los "!" asumen filas completas: si la DB tiene last_name, phone o mail en null,
-  // reconstruct() va a fallar hasta resolver esa decisión (relajar dominio o NOT NULL).
   private toDomain(row: CustomerRow): Customer {
     return Customer.reconstruct(
       row.id,
       row.name,
-      row.lastName!,
-      row.phone!,
-      row.mail!,
+      row.lastName,
+      row.phone,
+      row.mail,
       row.factoryId,
       row.isActive,
       row.createdAt,

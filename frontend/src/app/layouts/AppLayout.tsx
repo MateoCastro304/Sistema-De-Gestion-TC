@@ -25,6 +25,7 @@ import { Outlet, NavLink, useLocation } from 'react-router'
 const SECTION_LABELS: Record<string, string> = {
   encargados: 'Encargados',
   fabricas: 'Fábricas',
+  rubros: 'Rubros',
   proveedores: 'Proveedores',
 }
 
@@ -40,6 +41,7 @@ function sectionLabel(pathname: string): string {
 const NAV_ITEMS = [
   { to: '/catalogos/encargados', label: 'Encargados', icon: IconPersona },
   { to: '/catalogos/fabricas', label: 'Fábricas', icon: IconFabrica },
+  { to: '/catalogos/rubros', label: 'Rubros', icon: IconEtiqueta },
   { to: '/catalogos/proveedores', label: 'Proveedores', icon: IconCaja },
 ]
 
@@ -201,6 +203,15 @@ function IconFabrica() {
   return (
     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
       <path d="M3 17V8.5l4.5 3V8.5l4.5 3V5h5v12z" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function IconEtiqueta() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <path d="M3 3h6.5l7.5 7.5-6.5 6.5L3 9.5z" strokeLinejoin="round" />
+      <circle cx="6.8" cy="6.8" r="1.2" />
     </svg>
   )
 }

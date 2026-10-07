@@ -5,14 +5,15 @@ import { Select } from '@/shared/components/ui'
 import {
   useCustomers,
   useFactories,
-  useIndustries,
+  useCategories,
 } from '../api/customers.queries'
 import { FactoriesTable } from '../components/FactoriesTable'
+import { normalizeText } from '@/shared/lib/normalizeText'
 
 /** CU-60 Consultar Fábrica: listing of the FabricaCliente catalog. */
 export function FactoriesPage() {
   const factoriesQuery = useFactories()
-  const { data: industries = [] } = useIndustries()
+  const { data: categories = [] } = useCategories()
   // Para contar encargados activos por fábrica necesitamos todos: pedimos una
   // página grande hasta que el backend ofrezca un conteo dedicado (DTC-54).
   const { data: customersPage } = useCustomers({ active: true, limit: 1000 })
@@ -20,7 +21,7 @@ export function FactoriesPage() {
 
   // Filters: free-text search (razón social / CUIT, case-insensitive) + rubro.
   const [search, setSearch] = useState('')
-  const [industryId, setIndustryId] = useState('')
+  const [categoryId, setCategoryId] = useState('')
 
   // Count encargados per factory, to show in the table.
   const contactsByFactory = customers.reduce<Record<string, number>>(
@@ -34,20 +35,20 @@ export function FactoriesPage() {
   const factories = useMemo(() => factoriesQuery.data ?? [], [factoriesQuery.data])
 
   const filteredFactories = useMemo(() => {
-    const query = search.trim().toLowerCase()
+    const query = normalizeText(search.trim())
     // Compare CUIT by digits so "30-71" matches a stored "30712345671".
     const queryDigits = query.replace(/\D/g, '')
     return factories.filter((factory) => {
-      if (industryId && factory.industryId !== industryId) return false
+      if (categoryId && factory.categoryId !== categoryId) return false
       if (!query) return true
-      const matchesName = factory.name.toLowerCase().includes(query)
+      const matchesName = normalizeText(factory.name).includes(query)
       const matchesCuit =
         queryDigits.length > 0 && factory.cuit.includes(queryDigits)
       return matchesName || matchesCuit
     })
-  }, [factories, search, industryId])
+  }, [factories, search, categoryId])
 
-  const isFiltering = search.trim() !== '' || industryId !== ''
+  const isFiltering = search.trim() !== '' || categoryId !== ''
 
   return (
     <>
@@ -101,32 +102,38 @@ export function FactoriesPage() {
             <Select
               variant="glass"
               aria-label="Filtrar por rubro"
-              value={industryId}
-              onChange={setIndustryId}
+              value={categoryId}
+              onChange={setCategoryId}
               options={[
                 { value: '', label: 'Todos los rubros' },
-                ...industries.map((industry) => ({ value: industry.id, label: industry.name })),
+                ...categories.map((category) => ({ value: category.id, label: category.name })),
               ]}
             />
           </div>
         )}
       </div>
 
-      {factoriesQuery.isLoading && <p>Cargando fábricas…</p>}
+      {factoriesQuery.isLoading && (
+        <div className="empty-state">
+          <p className="empty-state__text">Cargando fábricas…</p>
+        </div>
+      )}
 
       {factoriesQuery.isError && (
-        <p className="form-field__error">
-          {isApiError(factoriesQuery.error)
-            ? factoriesQuery.error.message
-            : 'No se pudieron cargar las fábricas.'}
-        </p>
+        <div className="callout callout--warning">
+          <span>
+            {isApiError(factoriesQuery.error)
+              ? factoriesQuery.error.message
+              : 'No se pudieron cargar las fábricas.'}
+          </span>
+        </div>
       )}
 
       {factoriesQuery.isSuccess && (
         <>
           <FactoriesTable
             factories={filteredFactories}
-            industries={industries}
+            categories={categories}
             contactsByFactory={contactsByFactory}
             emptyMessage={
               isFiltering

@@ -17,20 +17,14 @@ export class CategoriesPrismaRepository implements CategoriesRepository {
 
     if (id === null) {
       const row = await this.prisma.category.create({
-        data: {
-          name: category.getName(),
-          isActive: category.getActive(),
-        },
+        data: { name: category.getName(), isActive: category.getActive() },
       });
       return this.toDomain(row);
     }
 
     const row = await this.prisma.category.update({
       where: { id },
-      data: {
-        name: category.getName(),
-        isActive: category.getActive(),
-      },
+      data: { name: category.getName(), isActive: category.getActive() },
     });
     return this.toDomain(row);
   }
@@ -40,6 +34,7 @@ export class CategoriesPrismaRepository implements CategoriesRepository {
     return row ? this.toDomain(row) : null;
   }
 
+  // Solo rubros activos, como el repositorio en memoria.
   async list(params: CategoryListParams): Promise<CategoryListResult> {
     const where = {
       isActive: true,
@@ -61,6 +56,7 @@ export class CategoriesPrismaRepository implements CategoriesRepository {
     return { items: rows.map((row) => this.toDomain(row)), total };
   }
 
+  // Sin distinguir mayúsculas ni espacios de los extremos, como el repositorio en memoria.
   async findByName(name: string): Promise<Category | null> {
     const row = await this.prisma.category.findFirst({
       where: { name: { equals: name.trim(), mode: 'insensitive' } },

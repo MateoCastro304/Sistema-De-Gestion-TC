@@ -4,7 +4,7 @@
  * la lista) para el selector de la fábrica. Por eso acá no hay tipo de alta ni
  * de edición. Los rubros semilla incluyen "Particular" (clientes no empresa).
  */
-export interface Industry {
+export interface Category {
   id: string
   name: string
   /** Logical-delete flag. */

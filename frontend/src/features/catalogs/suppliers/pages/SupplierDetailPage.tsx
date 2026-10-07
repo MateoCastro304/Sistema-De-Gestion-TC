@@ -11,7 +11,7 @@ import { useUpdateSupplier } from '../api/useUpdateSupplier'
 import { buildSupplierPatch } from '../utils/buildSupplierPatch'
 import { TYPE_TONES, supplierTone } from '../utils/supplierTone'
 import { useToast } from '@/app/providers/ToastContext'
-import { conflictErrors, validateSupplierForm } from '../utils/validateSupplierForm'
+import { conflictErrors, supplierErrorMessage, validateSupplierForm } from '../utils/validateSupplierForm'
 import type { SupplierFormErrors } from '../utils/validateSupplierForm'
 /** ISO 8601 -> "22 ago 2026". Las fechas viajan como string, no como Date. */
 function formatDate(iso: string) {
@@ -176,7 +176,7 @@ export function SupplierDetailPage() {
           setErrors(fieldErrors)
           return
         }
-        showToast('error', isApiError(mutationError) ? mutationError.message : 'Ocurrió un error inesperado.')
+        showToast('error', supplierErrorMessage(mutationError, 'No se pudo actualizar el proveedor.'))
       }
     })
   }
@@ -222,7 +222,9 @@ export function SupplierDetailPage() {
             </div>
           </div>
 
-          <div className="detail-header__actions">
+          {/* --editing: en celular estos botones se esconden y los toman
+              los del pie del formulario (ver form-actions--mobile). */}
+          <div className={cn('detail-header__actions', isEditing && 'detail-header__actions--editing')}>
           {isEditing ? (
             <>
               <Button variant="outline" onClick={() => {setForm(null); setErrors({})}} disabled={isSaving}>
@@ -363,6 +365,20 @@ export function SupplierDetailPage() {
           </section>
         </aside>
       </div>
+
+      {/* Sólo en celular: en una pantalla angosta los botones del panel
+          quedan arriba de todo y, después de completar el formulario, había
+          que volver a subir para guardar. */}
+      {isEditing && (
+        <div className="form-actions form-actions--mobile">
+          <Button variant="outline" onClick={() => {setForm(null); setErrors({})}} disabled={isSaving}>
+            Cancelar
+          </Button>
+          <Button variant="primary" onClick={handlePatch} disabled={isSaving}>
+            {isSaving ? 'Guardando...' : 'Guardar cambios'}
+          </Button>
+        </div>
+      )}
     </>
   )
 }

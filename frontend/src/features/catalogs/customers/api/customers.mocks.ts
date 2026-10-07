@@ -1,70 +1,64 @@
 import { http, HttpResponse } from 'msw'
+import { normalizeText } from '@/shared/lib/normalizeText'
+import { formatCuit } from '../schemas/factory.schema'
 import type { Customer, CustomerInput } from '../types/customer'
 import type { Factory, FactoryInput } from '../types/factory'
-import type { Industry } from '../types/industry'
 
 /**
- * MSW handlers that stand in for the backend (DTC-54) while it is not ready.
- * They implement the contract proposed in `docs/openapi/customers.yaml` so the
- * frontend can be built and demoed end to end: contacts (EncargadoCliente),
- * their factories (FabricaCliente) and rubros (Industry). Data lives in memory
- * and resets on every page reload.
+ * MSW handlers that stand in for the backend while it is not ready. They
+ * implement the same contract as the real API: contacts (EncargadoCliente) and
+ * their factories (FabricaCliente). Los rubros los mockea el feature de
+ * categorías (`/api/categories`). Data lives in memory and resets on every page
+ * reload.
  */
 
-const industries: Industry[] = [
-  { id: 'ind-particular', name: 'Particular', isActive: true },
-  { id: 'ind-metal', name: 'Metalúrgica', isActive: true },
-  { id: 'ind-auto', name: 'Autopartes', isActive: true },
-  { id: 'ind-agro', name: 'Agroindustria', isActive: true },
-  { id: 'ind-oil', name: 'Petróleo y gas', isActive: true },
-]
+/** El factoryId viaja en la URL, no en el cuerpo. */
+type CustomerBody = Omit<CustomerInput, 'factoryId'>
 
+// categoryId: ids de los rubros del mock de categorías ('3' Autopartes, '5' Petróleo y gas).
 let factories: Factory[] = [
   {
-    id: 'fac-edasa',
+    id: '1',
     name: 'EDASA',
-    code: 'EDA',
     cuit: '30712345671',
     address: 'Av. Siempre Viva 123, Córdoba',
     payMethod:
       'Cliente puntual con los pagos, suele abonar por transferencia a 30 días.',
-    industryId: 'ind-auto',
+    categoryId: '3',
     isActive: true,
   },
   {
-    id: 'fac-oxycam',
+    id: '2',
     name: 'OxyCAM',
-    code: 'OXY',
     cuit: '30798765430',
     address: 'Ruta 9 Km 7, Córdoba',
     payMethod: 'Casi siempre paga adelantado. Pedir seña en trabajos grandes.',
-    industryId: 'ind-oil',
+    categoryId: '5',
     isActive: true,
   },
 ]
 
+function nextFactoryId(): string {
+  const maxId = factories.reduce((max, f) => Math.max(max, Number(f.id)), 0)
+  return String(maxId + 1)
+}
+
 /**
- * Enforces the "CUIT y código de fábrica son únicos" rule (CU-58, escenario 2).
- * Returns a 409 response when the payload collides with an existing factory,
- * skipping the factory being edited (`ignoreId`); otherwise `null`.
+ * Enforces the "CUIT único" rule (CU-58, escenario 2). Returns a 409 response
+ * when the payload collides with an existing factory, skipping the factory
+ * being edited (`ignoreId`); otherwise `null`.
  */
 function factoryConflict(
   input: FactoryInput,
   ignoreId?: string,
 ): Response | null {
-  const code = input.code.trim().toUpperCase()
   const cuit = input.cuit.replace(/\D/g, '')
-  const clash = factories.find(
-    (f) =>
-      f.id !== ignoreId &&
-      (f.cuit === cuit || f.code.toUpperCase() === code),
-  )
+  const clash = factories.find((f) => f.id !== ignoreId && f.cuit === cuit)
   if (!clash) return null
-  const field = clash.cuit === cuit ? `CUIT ${input.cuit}` : `código "${code}"`
   return HttpResponse.json(
     {
       statusCode: 409,
-      message: `Ya existe una fábrica registrada con ese ${field}.`,
+      message: `Ya existe una fábrica registrada con ese CUIT ${formatCuit(cuit)}.`,
     },
     { status: 409 },
   )
@@ -79,10 +73,8 @@ let customers: Customer[] = [
     firstName: 'Laura',
     lastName: 'Gómez',
     phone: '+54 351 555-0001',
-    hasWhatsapp: true,
     mail: 'compras@edasa.com',
-    observation: '',
-    factoryId: 'fac-edasa',
+    factoryId: '1',
     isActive: true,
   },
   {
@@ -90,19 +82,17 @@ let customers: Customer[] = [
     firstName: 'Martín',
     lastName: 'Pérez',
     phone: '+54 351 555-0002',
-    hasWhatsapp: false,
     mail: 'pedidos@oxycam.com',
-    observation: '',
-    factoryId: 'fac-oxycam',
+    factoryId: '2',
     isActive: true,
   },
 ]
 
 /**
- * Enforces "el mail debe ser único dentro de la fábrica" (HU encargados,
- * escenario 2). Compares case-insensitively, ignores empty mails (el mail es
- * condicional) and the manager being edited (`ignoreId`). Returns a 409
- * response on collision; otherwise `null`.
+ * Enforces "el mail debe ser único dentro de la fábrica". Compares
+ * case-insensitively, ignores empty mails (el mail es opcional) and the manager
+ * being edited (`ignoreId`). Returns a 409 response on collision; otherwise
+ * `null`.
  */
 function mailConflict(
   factoryId: string,
@@ -156,7 +146,7 @@ export const customerHandlers = [
     const page = Number(url.searchParams.get('page') ?? '1')
     const limit = Number(url.searchParams.get('limit') ?? '20')
     const factoryId = url.searchParams.get('factoryId')
-    const nameContains = url.searchParams.get('nameContains')?.trim().toLowerCase()
+    const nameContains = normalizeText(url.searchParams.get('nameContains')?.trim() ?? '')
     const activeParam = url.searchParams.get('active')
 
     let result = customers
@@ -165,10 +155,10 @@ export const customerHandlers = [
       const active = activeParam === 'true'
       result = result.filter((c) => c.isActive === active)
     }
-    // nameContains busca por nombre o apellido (como el backend, DTC-54).
+    // nameContains busca por nombre o apellido (como el backend).
     if (nameContains) {
       result = result.filter((c) =>
-        `${c.firstName} ${c.lastName}`.toLowerCase().includes(nameContains),
+        normalizeText(`${c.firstName} ${c.lastName}`).includes(nameContains),
       )
     }
     const total = result.length
@@ -185,7 +175,7 @@ export const customerHandlers = [
 
   http.post('/api/factories/:factoryId/customers', async ({ params, request }) => {
     const factoryId = String(params.factoryId)
-    const body = (await request.json()) as CustomerInput
+    const body = (await request.json()) as CustomerBody
     // Regla: un encargado se asocia a una fábrica activa (FK a Fábrica activa).
     const factory = findFactory(factoryId)
     if (!factory || !factory.isActive) {
@@ -236,7 +226,7 @@ export const customerHandlers = [
     async ({ params, request }) => {
       const customer = findCustomer(String(params.factoryId), String(params.id))
       if (!customer) return new HttpResponse(null, { status: 404 })
-      const body = (await request.json()) as CustomerInput
+      const body = (await request.json()) as CustomerBody
       const conflict = mailConflict(customer.factoryId, body.mail, customer.id)
       if (conflict) return conflict
       // Keep the composite identity fixed; only mutable fields change.
@@ -249,14 +239,26 @@ export const customerHandlers = [
   ),
 
   // Factories (FabricaCliente) --------------------------------------------
-  http.get('/api/factories', () => HttpResponse.json(factories)),
+  // Paginado, como el backend: { items, total, page, limit }.
+  http.get('/api/factories', ({ request }) => {
+    const url = new URL(request.url)
+    const page = Number(url.searchParams.get('page') ?? '1')
+    const limit = Number(url.searchParams.get('limit') ?? '20')
+    const start = (page - 1) * limit
+    return HttpResponse.json({
+      items: factories.slice(start, start + limit),
+      total: factories.length,
+      page,
+      limit,
+    })
+  }),
 
   http.post('/api/factories', async ({ request }) => {
     const body = (await request.json()) as FactoryInput
     const conflict = factoryConflict(body)
     if (conflict) return conflict
     const newFactory: Factory = {
-      id: crypto.randomUUID(),
+      id: nextFactoryId(),
       isActive: true,
       ...body,
     }
@@ -273,10 +275,4 @@ export const customerHandlers = [
     Object.assign(factory, body)
     return HttpResponse.json(factory)
   }),
-
-  // Industries (Rubro) ----------------------------------------------------
-  // Solo lectura: el rubro es un catálogo de otra persona. Este GET es un
-  // stand-in para poblar el selector de la fábrica mientras su endpoint real no
-  // está conectado; el alta/edición de rubros no se mockea acá.
-  http.get('/api/industries', () => HttpResponse.json(industries)),
 ]

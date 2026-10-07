@@ -9,23 +9,25 @@ import {
   Modal,
   Table,
   TrashButton,
+  ValueOrDash,
 } from '@/shared/components/ui'
 import { toneByStatus } from '@/shared/lib/rowTone'
 import type { Column } from '@/shared/components/ui'
 import { useToast } from '@/app/providers/ToastContext'
-import { isApiError } from '@/shared/api/ApiError'
 import type { Customer } from '../types/customer'
 import type { Factory, FactoryInput } from '../types/factory'
 import { formatCuit, toFactoryFormValues } from '../schemas/factory.schema'
 import {
+  useActivateCustomer,
   useCustomers,
   useDeactivateCustomer,
   useFactories,
-  useIndustries,
+  useCategories,
   useUpdateFactory,
 } from '../api/customers.queries'
 import { FactoryForm } from '../components/FactoryForm'
 import { CustomerFormModal } from '../components/CustomerFormModal'
+import { customerErrorMessage, customerFullName, factoryErrorMessage } from '../utils/errorMessages'
 
 /** id del formulario de edición: lo usa el botón Guardar del panel. */
 const EDIT_FORM_ID = 'factory-edit-form'
@@ -41,55 +43,67 @@ export function FactoryDetailPage() {
   const showToast = useToast()
 
   const factoriesQuery = useFactories()
-  const { data: industries = [] } = useIndustries()
+  const { data: categories = [] } = useCategories()
   // Encargados de esta fábrica (GET /customers?factoryId=...). Traemos activos e
   // inactivos; el filtro de abajo decide cuáles se listan.
   const customersQuery = useCustomers({ factoryId: id, limit: 200 })
   const update = useUpdateFactory(id)
   const deactivate = useDeactivateCustomer()
+  const activate = useActivateCustomer()
 
   const [editing, setEditing] = useState(false)
   // Regla de negocio: los encargados inactivos se muestran solo con este filtro.
   const [showInactive, setShowInactive] = useState(false)
   // Encargado modal: null closed; { customer } edits; { customer: undefined } adds.
+  // Escenario 1 (HU-E1): al llegar recién creada la fábrica se ofrece cargar su
+  // primer encargado, así que el modal arranca abierto. Se resuelve en el
+  // valor inicial y no en un efecto: un setState dentro de un efecto dispara
+  // un render en cascada.
   const [contactModal, setContactModal] = useState<{
     customer?: Customer
-  } | null>(null)
+  } | null>(() =>
+    (location.state as { addContact?: boolean } | null)?.addContact
+      ? { customer: undefined }
+      : null,
+  )
   // Encargado pending confirmation for baja lógica.
   const [toDeactivate, setToDeactivate] = useState<Customer | null>(null)
 
-  // Escenario 1 (HU-E1): al llegar recién creada la fábrica, ofrecer cargar su
-  // primer encargado abriendo el modal automáticamente. Se limpia el state para
-  // no reabrirlo al refrescar o volver.
+  // Se limpia el state de la navegación para que el modal no se reabra al
+  // refrescar o al volver.
   useEffect(() => {
     if ((location.state as { addContact?: boolean } | null)?.addContact) {
-      setContactModal({ customer: undefined })
       window.history.replaceState({}, '')
     }
   }, [location.state])
 
-  if (factoriesQuery.isLoading) return <p>Cargando fábrica…</p>
+  if (factoriesQuery.isLoading) {
+    return (
+      <div className="empty-state">
+        <p className="empty-state__text">Cargando fábrica…</p>
+      </div>
+    )
+  }
 
   const factory = factoriesQuery.data?.find((f) => f.id === id)
 
   if (factoriesQuery.isError || !factory) {
     return (
-      <div className="content__heading">
-        <div>
-          <h1 className="content__title">Fábrica no encontrada</h1>
-          <p className="content__subtitle">
-            La fábrica que buscás no existe o no se pudo cargar.
-          </p>
-        </div>
-        <Link to="/catalogos/fabricas">
-          <Button variant="outline">Volver al listado</Button>
-        </Link>
+      <div className="empty-state">
+        <p className="empty-state__text">
+          {factoriesQuery.isError
+            ? 'No se pudo cargar la fábrica.'
+            : 'No encontramos la fábrica que buscabas.'}{' '}
+          <Link className="table__action" to="/catalogos/fabricas">
+            Volver al listado
+          </Link>
+        </p>
       </div>
     )
   }
 
-  const industryName =
-    industries.find((i) => i.id === factory.industryId)?.name ?? '—'
+  const categoryName =
+    categories.find((c) => c.id === factory.categoryId)?.name ?? '—'
   // El backend ya acotó a esta fábrica vía `factoryId`.
   const factoryContacts = customersQuery.data?.items ?? []
   // Escenario 3 mira si la fábrica tiene encargados registrados (activos o no);
@@ -98,7 +112,7 @@ export function FactoryDetailPage() {
   const contacts = showInactive
     ? factoryContacts
     : factoryContacts.filter((c) => c.isActive)
-  const fullName = (c: Customer) => `${c.firstName} ${c.lastName}`
+  const fullName = (c: Customer) => customerFullName(c)
 
   const handleUpdate = (input: FactoryInput) => {
     update.mutate(input, {
@@ -109,9 +123,24 @@ export function FactoryDetailPage() {
       onError: (error) =>
         showToast(
           'error',
-          isApiError(error) ? error.message : 'No se pudo actualizar la fábrica.',
+          factoryErrorMessage(error, 'No se pudo actualizar la fábrica.'),
         ),
     })
+  }
+
+  const handleActivate = (customer: Customer) => {
+    activate.mutate(
+      { factoryId: customer.factoryId, id: customer.id },
+      {
+        onSuccess: () =>
+          showToast('success', `Encargado "${fullName(customer)}" reactivado.`),
+        onError: (error) =>
+          showToast(
+            'error',
+            customerErrorMessage(error, 'No se pudo reactivar el encargado.'),
+          ),
+      },
+    )
   }
 
   const confirmDeactivate = () => {
@@ -131,9 +160,7 @@ export function FactoryDetailPage() {
         onError: (error) => {
           showToast(
             'error',
-            isApiError(error)
-              ? error.message
-              : 'No se pudo eliminar el encargado.',
+            customerErrorMessage(error, 'No se pudo eliminar el encargado.'),
           )
           setToDeactivate(null)
         },
@@ -154,14 +181,9 @@ export function FactoryDetailPage() {
     },
     {
       header: 'Teléfono',
-      render: (c) => (
-        <span className="table__cell--nombre">
-          <span className="table__cell--mono">{c.phone || '—'}</span>
-          {c.hasWhatsapp && <Badge variant="verde">WhatsApp</Badge>}
-        </span>
-      ),
+      render: (c) => <ValueOrDash value={c.phone} className="table__cell--mono" />,
     },
-    { header: 'Email', render: (c) => c.mail || '—' },
+    { header: 'Email', render: (c) => <ValueOrDash value={c.mail} /> },
     {
       header: '',
       align: 'center',
@@ -188,7 +210,16 @@ export function FactoryDetailPage() {
             />
           </>
         ) : (
-          '—'
+          // Un eliminado no se edita ni se vuelve a eliminar: sólo se
+          // reactiva, igual que en el listado general de Encargados.
+          <button
+            type="button"
+            className="table__action"
+            onClick={() => handleActivate(c)}
+            disabled={activate.isPending}
+          >
+            Reactivar
+          </button>
         ),
     },
   ]
@@ -219,11 +250,13 @@ export function FactoryDetailPage() {
               </div>
               <p className="page-header__subtitle detail-header__meta">
                 {`CUIT: ${formatCuit(factory.cuit)}`}
-                <Badge variant="suave">{industryName}</Badge>
+                <Badge variant="suave">{categoryName}</Badge>
               </p>
             </div>
           </div>
-          <div className="detail-header__actions">
+          {/* --editing: en celular estos botones se esconden y los toman
+              los del pie del formulario (ver form-actions--mobile). */}
+          <div className={editing ? 'detail-header__actions detail-header__actions--editing' : 'detail-header__actions'}>
             {/* Editando, Cancelar y Guardar ocupan el lugar de Editar, como
                 en el detalle de Proveedores. Guardar está fuera del <form>:
                 lo envía por el atributo `form`, así la validación de
@@ -249,16 +282,27 @@ export function FactoryDetailPage() {
       </div>
 
       {editing ? (
-        <FactoryForm
-          defaultValues={toFactoryFormValues(factory)}
-          onSubmit={handleUpdate}
-          submitting={update.isPending}
-          // Los botones van arriba, en el panel (ver detail-header__actions).
-          formId={EDIT_FORM_ID}
-          hideActions
-        />
+        <>
+          <FactoryForm
+            defaultValues={toFactoryFormValues(factory)}
+            onSubmit={handleUpdate}
+            submitting={update.isPending}
+            // Los botones van arriba, en el panel (ver detail-header__actions).
+            formId={EDIT_FORM_ID}
+            hideActions
+          />
+          {/* Sólo en celular: los mismos botones, al pie del formulario. */}
+          <div className="form-actions form-actions--mobile">
+            <Button variant="outline" onClick={() => setEditing(false)} disabled={update.isPending}>
+              Cancelar
+            </Button>
+            <Button type="submit" form={EDIT_FORM_ID} disabled={update.isPending}>
+              {update.isPending ? 'Guardando…' : 'Guardar cambios'}
+            </Button>
+          </div>
+        </>
       ) : (
-        <FactoryDetails factory={factory} industryName={industryName} />
+        <FactoryDetails factory={factory} categoryName={categoryName} />
       )}
 
       {/* Encargados that belong to this factory. */}
@@ -346,22 +390,18 @@ export function FactoryDetailPage() {
 /** Read-only presentation of a factory. */
 function FactoryDetails({
   factory,
-  industryName,
+  categoryName,
 }: {
   factory: Factory
-  industryName: string
+  categoryName: string
 }) {
   return (
     <div className="card">
       <h2 className="card__title">Datos de la fábrica</h2>
       <div className="card__grid">
         <div className="field">
-          <span className="field__label">Código de fábrica</span>
-          <span className="field__value">{factory.code}</span>
-        </div>
-        <div className="field">
           <span className="field__label">Rubro</span>
-          <span className="field__value">{industryName}</span>
+          <span className="field__value">{categoryName}</span>
         </div>
         <div className="field">
           <span className="field__label">CUIT</span>
@@ -369,11 +409,11 @@ function FactoryDetails({
         </div>
         <div className="field card__full">
           <span className="field__label">Dirección</span>
-          <span className="field__value">{factory.address}</span>
+          <span className="field__value">{factory.address || '—'}</span>
         </div>
         <div className="field card__full">
           <span className="field__label">Formas de pago</span>
-          <p className="field__value">{factory.payMethod}</p>
+          <p className="field__value">{factory.payMethod || '—'}</p>
         </div>
       </div>
     </div>

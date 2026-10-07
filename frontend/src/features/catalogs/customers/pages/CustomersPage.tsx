@@ -9,9 +9,10 @@ import {
   useCustomers,
   useDeactivateCustomer,
   useFactories,
-  useIndustries,
+  useCategories,
 } from '../api/customers.queries'
 import { CustomersTable } from '../components/CustomersTable'
+import { customerErrorMessage, customerFullName } from '../utils/errorMessages'
 
 /** Tamaño de página del listado global (coincide con el default del backend). */
 const PAGE_SIZE = 20
@@ -20,7 +21,7 @@ const PAGE_SIZE = 20
 export function CustomersPage() {
   const showToast = useToast()
   const { data: factories = [] } = useFactories()
-  const { data: industries = [] } = useIndustries()
+  const { data: categories = [] } = useCategories()
   const deactivate = useDeactivateCustomer()
   const activate = useActivateCustomer()
 
@@ -64,7 +65,7 @@ export function CustomersPage() {
   const total = customersQuery.data?.total ?? 0
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
-  const fullName = (c: Customer) => `${c.firstName} ${c.lastName}`
+  const fullName = (c: Customer) => customerFullName(c)
 
   const handleActivate = (customer: Customer) => {
     activate.mutate(
@@ -75,7 +76,7 @@ export function CustomersPage() {
         onError: (error) =>
           showToast(
             'error',
-            isApiError(error) ? error.message : 'No se pudo reactivar el encargado.',
+            customerErrorMessage(error, 'No se pudo reactivar el encargado.'),
           ),
       },
     )
@@ -99,9 +100,7 @@ export function CustomersPage() {
         onError: (error) => {
           showToast(
             'error',
-            isApiError(error)
-              ? error.message
-              : 'No se pudo eliminar el encargado.',
+            customerErrorMessage(error, 'No se pudo eliminar el encargado.'),
           )
         },
       },
@@ -168,14 +167,20 @@ export function CustomersPage() {
         )}
       </div>
 
-      {customersQuery.isLoading && <p>Cargando encargados…</p>}
+      {customersQuery.isLoading && (
+        <div className="empty-state">
+          <p className="empty-state__text">Cargando encargados…</p>
+        </div>
+      )}
 
       {customersQuery.isError && (
-        <p className="form-field__error">
-          {isApiError(customersQuery.error)
-            ? customersQuery.error.message
-            : 'No se pudieron cargar los encargados.'}
-        </p>
+        <div className="callout callout--warning">
+          <span>
+            {isApiError(customersQuery.error)
+              ? customersQuery.error.message
+              : 'No se pudieron cargar los encargados.'}
+          </span>
+        </div>
       )}
 
       {customersQuery.isSuccess && (
@@ -183,7 +188,7 @@ export function CustomersPage() {
           <CustomersTable
             customers={customers}
             factories={factories}
-            industries={industries}
+            categories={categories}
             onDeactivate={setToDeactivate}
             onActivate={handleActivate}
             emptyMessage={
