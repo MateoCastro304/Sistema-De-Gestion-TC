@@ -6,8 +6,18 @@ import type { Supplier, SupplierCreate, SupplierUpdate } from '../types/supplier
  * hooks ni los componentes tienen que saber que abajo hay axios.
  */
 
+/**
+ * El backend pagina de a 20 y devuelve la lista sin el total, así que no hay
+ * forma de saber si quedaron proveedores afuera ni de armar un paginado. Hasta
+ * que responda `{ items, total, page, limit }` (como fábricas y encargados),
+ * se pide una página grande y el listado busca y filtra en el navegador.
+ */
+const WHOLE_CATALOG = 1000
+
 export async function listSuppliers(): Promise<Supplier[]> {
-  const { data } = await http.get<Supplier[]>('/suppliers')
+  const { data } = await http.get<Supplier[]>('/suppliers', {
+    params: { page: 1, limit: WHOLE_CATALOG },
+  })
   return data
 }
 
