@@ -1,9 +1,9 @@
 import { useNavigate, Link } from 'react-router'
 import { useToast } from '@/app/providers/ToastContext'
-import { isApiError } from '@/shared/api/ApiError'
 import type { FactoryInput } from '../types/factory'
 import { useCreateFactory } from '../api/customers.queries'
 import { FactoryForm } from '../components/FactoryForm'
+import { factoryErrorMessage } from '../utils/errorMessages'
 
 /** CU-58 Registrar Fábrica. */
 export function NewFactoryPage() {
@@ -24,7 +24,7 @@ export function NewFactoryPage() {
       onError: (error) => {
         showToast(
           'error',
-          isApiError(error) ? error.message : 'No se pudo registrar la fábrica.',
+          factoryErrorMessage(error, 'No se pudo registrar la fábrica.'),
         )
       },
     })

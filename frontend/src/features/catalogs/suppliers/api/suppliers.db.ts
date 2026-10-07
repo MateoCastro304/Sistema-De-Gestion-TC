@@ -9,7 +9,7 @@ export const db = {
     {
       id: 1,
       legalName: 'Aceros del Sur S.A.',
-      cuit: '30-70987654-3',
+      cuit: '30-70987654-2',
       supplierTypes: ['MATERIAL', 'PROCESS'],
       contactName: 'Diego Fernández',
       contactEmail: 'ventas@acerosdelsur.com',
@@ -22,7 +22,7 @@ export const db = {
     {
       id: 2,
       legalName: 'Metalúrgica Rivadavia S.R.L.',
-      cuit: '30-71234567-9',
+      cuit: '30-71234567-1',
       supplierTypes: ['PAINT'],
       contactName: 'Laura Giménez',
       contactEmail: 'compras@metrivadavia.com.ar',
@@ -35,7 +35,7 @@ export const db = {
     {
       id: 3,
       legalName: 'Bronces Industriales Castro',
-      cuit: '33-69874521-4',
+      cuit: '33-69874521-0',
       supplierTypes: ['REPLACEMENT'],
       contactName: 'Martín Sosa',
       contactEmail: 'info@broncescastro.com',
@@ -50,7 +50,7 @@ export const db = {
       // cuando faltan los campos opcionales.
       id: 4,
       legalName: 'Insumos Técnicos del Litoral S.A.',
-      cuit: '30-71987456-1',
+      cuit: '30-71987456-4',
       supplierTypes: ['PAINT'],
       contactEmail: 'pedidos@itlitoral.com.ar',
       address: 'Ruta 11 km 8, Santa Fe',

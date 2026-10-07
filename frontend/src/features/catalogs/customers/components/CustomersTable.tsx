@@ -6,6 +6,7 @@ import { cn } from '@/shared/lib/cn'
 import type { Customer } from '../types/customer'
 import type { Factory } from '../types/factory'
 import type { Category } from '../types/category'
+import { customerFullName } from '../utils/errorMessages'
 
 interface CustomersTableProps {
   customers: Customer[]
@@ -37,9 +38,9 @@ export function CustomersTable({
       header: 'Nombre',
       render: (c) => (
         <span className="table__cell--nombre">
-          <Avatar name={`${c.firstName} ${c.lastName}`} tone={toneByStatus(c.isActive)} />
+          <Avatar name={customerFullName(c)} tone={toneByStatus(c.isActive)} />
           <b>
-            {c.firstName} {c.lastName}
+            {customerFullName(c)}
           </b>
           {/* La etiqueta se queda además de la franja gris: el color solo
               distingue, la palabra explica. */}
@@ -90,7 +91,7 @@ export function CustomersTable({
               aparece si el encargado está activo, igual que antes. */}
           {c.isActive ? (
             <TrashButton
-              label={`Eliminar a ${c.firstName} ${c.lastName}`}
+              label={`Eliminar a ${customerFullName(c)}`}
               onClick={() => onDeactivate(c)}
             />
           ) : (

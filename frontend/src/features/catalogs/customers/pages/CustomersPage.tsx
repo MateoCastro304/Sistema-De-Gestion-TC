@@ -12,6 +12,7 @@ import {
   useCategories,
 } from '../api/customers.queries'
 import { CustomersTable } from '../components/CustomersTable'
+import { customerErrorMessage, customerFullName } from '../utils/errorMessages'
 
 /** Tamaño de página del listado global (coincide con el default del backend). */
 const PAGE_SIZE = 20
@@ -64,7 +65,7 @@ export function CustomersPage() {
   const total = customersQuery.data?.total ?? 0
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
-  const fullName = (c: Customer) => `${c.firstName} ${c.lastName}`
+  const fullName = (c: Customer) => customerFullName(c)
 
   const handleActivate = (customer: Customer) => {
     activate.mutate(
@@ -75,7 +76,7 @@ export function CustomersPage() {
         onError: (error) =>
           showToast(
             'error',
-            isApiError(error) ? error.message : 'No se pudo reactivar el encargado.',
+            customerErrorMessage(error, 'No se pudo reactivar el encargado.'),
           ),
       },
     )
@@ -99,9 +100,7 @@ export function CustomersPage() {
         onError: (error) => {
           showToast(
             'error',
-            isApiError(error)
-              ? error.message
-              : 'No se pudo eliminar el encargado.',
+            customerErrorMessage(error, 'No se pudo eliminar el encargado.'),
           )
         },
       },

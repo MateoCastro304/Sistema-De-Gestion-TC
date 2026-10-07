@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input, Modal } from '@/shared/components/ui'
 import { useToast } from '@/app/providers/ToastContext'
-import { isApiError } from '@/shared/api/ApiError'
+import { categoryErrorMessage } from '../utils/errorMessages'
 import type { Category } from '../types/category'
 import {
   categoryFormSchema,
@@ -72,11 +72,10 @@ export function CategoryFormModal({
   const onError = (error: unknown) => {
     showToast(
       'error',
-      isApiError(error)
-        ? error.message
-        : isEdit
-          ? 'No se pudo actualizar el rubro.'
-          : 'No se pudo crear el rubro.',
+      categoryErrorMessage(
+        error,
+        isEdit ? 'No se pudo actualizar el rubro.' : 'No se pudo crear el rubro.',
+      ),
     )
   }
 

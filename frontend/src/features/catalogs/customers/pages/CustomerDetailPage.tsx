@@ -17,6 +17,7 @@ import {
 import { toCustomerFormValues } from '../schemas/customer.schema'
 import { formatCuit } from '../schemas/factory.schema'
 import { CustomerForm } from '../components/CustomerForm'
+import { customerErrorMessage, customerFullName } from '../utils/errorMessages'
 
 /** id del formulario de edición: lo usa el botón Guardar del panel. */
 const EDIT_FORM_ID = 'customer-edit-form'
@@ -71,7 +72,7 @@ export function CustomerDetailPage() {
   }
 
   const customer = customerQuery.data
-  const fullName = `${customer.firstName} ${customer.lastName}`
+  const fullName = customerFullName(customer)
   const factory = factories.find((f) => f.id === customer.factoryId)
   const categoryName =
     categories.find((c) => c.id === factory?.categoryId)?.name ?? '—'
@@ -85,7 +86,7 @@ export function CustomerDetailPage() {
       onError: (error) =>
         showToast(
           'error',
-          isApiError(error) ? error.message : 'No se pudo actualizar.',
+          customerErrorMessage(error, 'No se pudo actualizar.'),
         ),
     })
   }
@@ -103,9 +104,7 @@ export function CustomerDetailPage() {
           setConfirmOpen(false)
           showToast(
             'error',
-            isApiError(error)
-              ? error.message
-              : 'No se pudo eliminar el encargado.',
+            customerErrorMessage(error, 'No se pudo eliminar el encargado.'),
           )
         },
       },
@@ -121,9 +120,7 @@ export function CustomerDetailPage() {
         onError: (error) =>
           showToast(
             'error',
-            isApiError(error)
-              ? error.message
-              : 'No se pudo reactivar el encargado.',
+            customerErrorMessage(error, 'No se pudo reactivar el encargado.'),
           ),
       },
     )

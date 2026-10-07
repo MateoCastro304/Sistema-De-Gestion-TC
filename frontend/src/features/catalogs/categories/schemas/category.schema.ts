@@ -2,6 +2,7 @@ import { z } from 'zod'
 import type { Category, CategoryInput } from '../types/category'
 
 /** Upper bound declared by the contract (`Category.yaml#/properties/name`). */
+const NAME_MIN_LENGTH = 3
 const NAME_MAX_LENGTH = 80
 
 /**
@@ -16,6 +17,8 @@ export const categoryFormSchema = z.object({
     .string()
     .trim()
     .min(1, 'El nombre del rubro es obligatorio')
+    // El backend rechaza nombres de menos de 3 caracteres.
+    .min(NAME_MIN_LENGTH, `El nombre debe tener al menos ${NAME_MIN_LENGTH} caracteres`)
     .max(
       NAME_MAX_LENGTH,
       `El nombre no puede superar los ${NAME_MAX_LENGTH} caracteres`,

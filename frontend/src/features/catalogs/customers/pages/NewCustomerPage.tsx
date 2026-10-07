@@ -1,9 +1,9 @@
 import { useNavigate, Link } from 'react-router'
 import { useToast } from '@/app/providers/ToastContext'
-import { isApiError } from '@/shared/api/ApiError'
 import type { CustomerInput } from '../types/customer'
 import { useCreateCustomer } from '../api/customers.queries'
 import { CustomerForm } from '../components/CustomerForm'
+import { customerErrorMessage, customerFullName } from '../utils/errorMessages'
 
 /** CU-01 Registrar Cliente. */
 export function NewCustomerPage() {
@@ -16,14 +16,14 @@ export function NewCustomerPage() {
       onSuccess: (customer) => {
         showToast(
           'success',
-          `Encargado "${customer.firstName} ${customer.lastName}" registrado.`,
+          `Encargado "${customerFullName(customer)}" registrado.`,
         )
         navigate('/catalogos/encargados')
       },
       onError: (error) => {
         showToast(
           'error',
-          isApiError(error) ? error.message : 'No se pudo registrar el encargado.',
+          customerErrorMessage(error, 'No se pudo registrar el encargado.'),
         )
       },
     })

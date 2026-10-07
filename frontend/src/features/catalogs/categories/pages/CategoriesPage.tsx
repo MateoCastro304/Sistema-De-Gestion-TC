@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { Button, Modal } from '@/shared/components/ui'
+import { Button, IconTrash, Modal } from '@/shared/components/ui'
+import { normalizeText } from '@/shared/lib/normalizeText'
 import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
 import type { Category } from '../types/category'
 import { useCategories, useDeleteCategory } from '../api/categories.queries'
 import { CategoriesTable } from '../components/CategoriesTable'
 import { CategoryFormModal } from '../components/CategoryFormModal'
+import { categoryErrorMessage } from '../utils/errorMessages'
 
 /**
  * Rubros catalog: CU-43 Consultar Rubro, plus CU-41 Registrar and CU-42
@@ -37,53 +39,62 @@ export function CategoriesPage() {
     if (!toDelete) return
     remove.mutate(toDelete.id, {
       onSuccess: () => {
-        showToast('success', `Rubro "${toDelete.name}" eliminado.`)
+        // 'info' y no 'success', igual que en los otros catálogos.
+        showToast('info', `Rubro "${toDelete.name}" eliminado.`)
         setToDelete(null)
       },
       onError: (error) => {
         showToast(
           'error',
-          isApiError(error) ? error.message : 'No se pudo eliminar el rubro.',
+          categoryErrorMessage(error, 'No se pudo eliminar el rubro.'),
         )
         setToDelete(null)
       },
     })
   }
 
-  const term = search.trim().toLocaleLowerCase()
+  // Sin acentos ni mayúsculas: "metalurgica" encuentra "Metalúrgica".
+  const term = normalizeText(search.trim())
   const visible = (categoriesQuery.data ?? [])
-    .filter((c) => c.name.toLocaleLowerCase().includes(term))
+    .filter((c) => normalizeText(c.name).includes(term))
     .sort((a, b) => a.name.localeCompare(b.name, 'es'))
 
   return (
     <>
-      <div className="content__heading">
-        <div>
-          <h1 className="content__title">Rubros</h1>
-          <p className="content__subtitle">
-            Alta, baja, modificación y consulta de los rubros de las fábricas.
-          </p>
+      {/* El mismo panel azul de Encargados, Fábricas y Proveedores, con el
+          buscador adentro. */}
+      <div className="page-header">
+        <div className="page-header__row">
+          <div className="page-header__heading">
+            <span className="page-header__eyebrow">Catálogo</span>
+            <h1 className="page-header__title">Rubros</h1>
+            <p className="page-header__subtitle">
+              Alta, baja, modificación y consulta de los rubros de las fábricas.
+            </p>
+          </div>
+          <div className="content__actions">
+            <button type="button" className="btn btn--primary content__cta" onClick={openCreate}>
+              <span>+</span> Nuevo rubro
+            </button>
+          </div>
         </div>
-        <Button onClick={openCreate}>+ Nuevo rubro</Button>
-      </div>
 
-      <div className="filters">
-        <label className="filters__search">
+        <label className="search-field">
           <svg
-            className="filters__search-icon"
-            viewBox="0 0 24 24"
+            className="search-field__icon"
+            viewBox="0 0 20 20"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
             aria-hidden="true"
           >
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-3.5-3.5" />
+            <circle cx="9" cy="9" r="6" />
+            <path d="m14 14 4 4" strokeLinecap="round" />
           </svg>
           <input
-            className="filters__search-input"
+            className="search-input"
             type="search"
-            placeholder="Buscar rubro…"
+            placeholder="Buscar rubro"
             aria-label="Buscar rubro"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
@@ -91,14 +102,20 @@ export function CategoriesPage() {
         </label>
       </div>
 
-      {categoriesQuery.isLoading && <p>Cargando rubros…</p>}
+      {categoriesQuery.isLoading && (
+        <div className="empty-state">
+          <p className="empty-state__text">Cargando rubros…</p>
+        </div>
+      )}
 
       {categoriesQuery.isError && (
-        <p className="form-field__hint--error">
-          {isApiError(categoriesQuery.error)
-            ? categoriesQuery.error.message
-            : 'No se pudieron cargar los rubros.'}
-        </p>
+        <div className="callout callout--warning">
+          <span>
+            {isApiError(categoriesQuery.error)
+              ? categoriesQuery.error.message
+              : 'No se pudieron cargar los rubros.'}
+          </span>
+        </div>
       )}
 
       {categoriesQuery.isSuccess && (
@@ -134,7 +151,9 @@ export function CategoriesPage() {
             >
               Cancelar
             </Button>
-            <Button onClick={confirmDelete} disabled={remove.isPending}>
+            {/* danger: confirmar un borrado va en rojo, como en el resto. */}
+            <Button variant="danger" onClick={confirmDelete} disabled={remove.isPending}>
+              <IconTrash />
               {remove.isPending ? 'Eliminando…' : 'Eliminar'}
             </Button>
           </>

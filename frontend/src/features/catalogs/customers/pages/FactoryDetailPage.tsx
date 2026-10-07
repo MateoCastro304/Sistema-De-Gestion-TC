@@ -13,7 +13,6 @@ import {
 import { toneByStatus } from '@/shared/lib/rowTone'
 import type { Column } from '@/shared/components/ui'
 import { useToast } from '@/app/providers/ToastContext'
-import { isApiError } from '@/shared/api/ApiError'
 import type { Customer } from '../types/customer'
 import type { Factory, FactoryInput } from '../types/factory'
 import { formatCuit, toFactoryFormValues } from '../schemas/factory.schema'
@@ -27,6 +26,7 @@ import {
 } from '../api/customers.queries'
 import { FactoryForm } from '../components/FactoryForm'
 import { CustomerFormModal } from '../components/CustomerFormModal'
+import { customerErrorMessage, customerFullName, factoryErrorMessage } from '../utils/errorMessages'
 
 /** id del formulario de edición: lo usa el botón Guardar del panel. */
 const EDIT_FORM_ID = 'factory-edit-form'
@@ -111,7 +111,7 @@ export function FactoryDetailPage() {
   const contacts = showInactive
     ? factoryContacts
     : factoryContacts.filter((c) => c.isActive)
-  const fullName = (c: Customer) => `${c.firstName} ${c.lastName}`
+  const fullName = (c: Customer) => customerFullName(c)
 
   const handleUpdate = (input: FactoryInput) => {
     update.mutate(input, {
@@ -122,7 +122,7 @@ export function FactoryDetailPage() {
       onError: (error) =>
         showToast(
           'error',
-          isApiError(error) ? error.message : 'No se pudo actualizar la fábrica.',
+          factoryErrorMessage(error, 'No se pudo actualizar la fábrica.'),
         ),
     })
   }
@@ -136,7 +136,7 @@ export function FactoryDetailPage() {
         onError: (error) =>
           showToast(
             'error',
-            isApiError(error) ? error.message : 'No se pudo reactivar el encargado.',
+            customerErrorMessage(error, 'No se pudo reactivar el encargado.'),
           ),
       },
     )
@@ -159,9 +159,7 @@ export function FactoryDetailPage() {
         onError: (error) => {
           showToast(
             'error',
-            isApiError(error)
-              ? error.message
-              : 'No se pudo eliminar el encargado.',
+            customerErrorMessage(error, 'No se pudo eliminar el encargado.'),
           )
           setToDeactivate(null)
         },

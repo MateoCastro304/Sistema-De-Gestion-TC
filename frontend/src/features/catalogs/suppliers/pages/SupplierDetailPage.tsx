@@ -11,7 +11,7 @@ import { useUpdateSupplier } from '../api/useUpdateSupplier'
 import { buildSupplierPatch } from '../utils/buildSupplierPatch'
 import { TYPE_TONES, supplierTone } from '../utils/supplierTone'
 import { useToast } from '@/app/providers/ToastContext'
-import { conflictErrors, validateSupplierForm } from '../utils/validateSupplierForm'
+import { conflictErrors, supplierErrorMessage, validateSupplierForm } from '../utils/validateSupplierForm'
 import type { SupplierFormErrors } from '../utils/validateSupplierForm'
 /** ISO 8601 -> "22 ago 2026". Las fechas viajan como string, no como Date. */
 function formatDate(iso: string) {
@@ -176,7 +176,7 @@ export function SupplierDetailPage() {
           setErrors(fieldErrors)
           return
         }
-        showToast('error', isApiError(mutationError) ? mutationError.message : 'Ocurrió un error inesperado.')
+        showToast('error', supplierErrorMessage(mutationError, 'No se pudo actualizar el proveedor.'))
       }
     })
   }

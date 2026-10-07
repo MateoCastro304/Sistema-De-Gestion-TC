@@ -3,12 +3,16 @@ import type { ChangeEvent, SubmitEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { Button, CheckBox, Input } from '@/shared/components/ui'
 import { cn } from '@/shared/lib/cn'
-import { isApiError } from '@/shared/api/ApiError'
 import { useToast } from '@/app/providers/ToastContext'
 import { useCreateSupplier } from '../api/useCreateSupplier'
 import { SUPPLIER_TYPES, SUPPLIER_TYPE_LABELS } from '../types/supplier'
 import type { SupplierFormValues, SupplierType } from '../types/supplier'
-import { conflictErrors, toSupplierCreate, validateSupplierForm } from '../utils/validateSupplierForm'
+import {
+  conflictErrors,
+  supplierErrorMessage,
+  toSupplierCreate,
+  validateSupplierForm,
+} from '../utils/validateSupplierForm'
 import type { SupplierFormErrors } from '../utils/validateSupplierForm'
 
 /** Fuera del componente: es constante y no tiene por que recrearse por render. */
@@ -68,10 +72,7 @@ export function NewSupplierPage() {
           setErrors(fieldErrors)
           return
         }
-        showToast(
-          'error',
-          isApiError(error) ? error.message : 'Ocurrió un error inesperado.',
-        )
+        showToast('error', supplierErrorMessage(error, 'No se pudo crear el proveedor.'))
       },
     })
   }

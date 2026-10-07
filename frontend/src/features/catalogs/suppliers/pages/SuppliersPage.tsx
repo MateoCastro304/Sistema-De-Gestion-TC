@@ -125,13 +125,12 @@ export function SuppliersPage() {
         if (deleted.length === 0) {
           showToast(
             'error',
-            'No se pudo eliminar: puede que estén en uso en otros registros.',
+            'No se pudo eliminar el proveedor.',
           )
         } else {
           showToast(
             'error',
-            `${deleted.length} eliminados. ${failed.length} no se pudieron ` +
-              'eliminar porque están en uso.',
+            `${deleted.length} eliminados. ${failed.length} no se pudieron eliminar.`,
           )
         }
       },
