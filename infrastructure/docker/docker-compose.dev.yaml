@@ -13,7 +13,7 @@ services:
             - ../../backend:/app
             - /app/node_modules
             - /var/run/docker.sock:/var/run/docker.sock
-        command: npm run start:dev
+        command: sh -c "npx prisma generate && npm run start:dev"
         environment:
             - TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal
 
