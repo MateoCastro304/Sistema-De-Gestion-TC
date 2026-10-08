@@ -110,6 +110,7 @@ export function CategoriesPage() {
         open={toDelete !== null}
         onClose={() => setToDelete(null)}
         title="Eliminar rubro"
+        tone="danger"
         size="sm"
         footer={
           <>

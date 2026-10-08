@@ -156,11 +156,7 @@ export function AppLayout() {
           className="app__backdrop"
           aria-label="Cerrar el menú"
           onClick={() => setDrawerOpen(false)}
-        >
-          <span className="app__backdrop-close" aria-hidden="true">
-            ×
-          </span>
-        </button>
+        />
       )}
 
       <div className="main">

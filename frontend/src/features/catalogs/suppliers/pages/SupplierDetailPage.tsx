@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { heroPhoto } from '@/shared/lib/heroPhoto'
+import fotoTaller from '@/assets/foto-piezas-bronce.png'
 import { Avatar, Badge, Button } from '@/shared/components/ui'
 import { isApiError } from '@/shared/api/ApiError'
 import { cn } from '@/shared/lib/cn'
@@ -186,19 +188,14 @@ export function SupplierDetailPage() {
       {/* Rediseño: el encabezado del detalle es el mismo panel azul del
           listado. Cambia la envoltura y las clases; los datos, el botón
           de volver y las acciones son los de antes. */}
-      <div className="page-header">
+      <div className="page-header page-header--foto" style={heroPhoto(fotoTaller)}>
         <div className="page-header__row">
           <div className="detail-header__left">
-            <Link
-              to="/catalogos/proveedores"
-              /* --icon es el botón redondo del panel: mismo link, misma
-                 ruta, sólo cambia cómo se ve sobre el fondo oscuro. */
-              className="btn btn--icon"
-              aria-label="Volver al listado de proveedores"
-            >
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+            <Link to="/catalogos/proveedores" className="back-link">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="M10 3 5 8l5 5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
+              Proveedores
             </Link>
 
             {/* El cuadrado con las iniciales, en su tamaño grande y con

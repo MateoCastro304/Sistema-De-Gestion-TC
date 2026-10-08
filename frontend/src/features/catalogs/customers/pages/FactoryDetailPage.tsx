@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useLocation, Link } from 'react-router'
+import { heroPhoto } from '@/shared/lib/heroPhoto'
+import fotoTaller from '@/assets/foto-prensa.png'
 import {
   Avatar,
   Badge,
@@ -229,17 +231,14 @@ export function FactoryDetailPage() {
       {/* Rediseño: el encabezado es el panel azul de los otros catálogos.
           El "← Volver" pasa a ser el botón redondo de la izquierda, que es
           donde el resto de las pantallas lo tiene. Misma ruta, mismo link. */}
-      <div className="page-header">
+      <div className="page-header page-header--foto" style={heroPhoto(fotoTaller)}>
         <div className="page-header__row">
           <div className="detail-header__left">
-            <Link
-              to="/catalogos/fabricas"
-              className="btn btn--icon"
-              aria-label="Volver al listado de fábricas"
-            >
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+            <Link to="/catalogos/fabricas" className="back-link">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="M10 3 5 8l5 5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
+              Fábricas
             </Link>
 
             <Avatar name={factory.name} icon="fabrica" tone={toneByStatus(factory.isActive)} size="lg" />
@@ -358,6 +357,7 @@ export function FactoryDetailPage() {
         open={toDeactivate !== null}
         onClose={() => setToDeactivate(null)}
         title="Eliminar encargado"
+        tone="danger"
         size="sm"
         footer={
           <>

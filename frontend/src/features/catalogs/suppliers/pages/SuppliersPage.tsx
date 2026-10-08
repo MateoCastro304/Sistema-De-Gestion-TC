@@ -276,8 +276,16 @@ export function SuppliersPage() {
           label="Buscar proveedores"
         />
 
-        {/* En modo eliminación las acciones las toma la barra de abajo. */}
-        {!isSelecting && (
+        {/* En modo eliminación las acciones las toma la barra de abajo:
+            acá sólo queda un cartel del modo y el alta deshabilitada. */}
+        {isSelecting ? (
+          <>
+            <span className="toolbar__status">Eliminando proveedores</span>
+            <button type="button" className="btn btn--primary" disabled>
+              + Nuevo proveedor
+            </button>
+          </>
+        ) : (
           <>
             <TrashButton
               label="Eliminar proveedores"
@@ -305,10 +313,6 @@ export function SuppliersPage() {
               />
               Seleccionar todos
             </label>
-
-            {/* El listado no da ninguna pista de que la fila entera es
-                tocable, así que se dice. */}
-            <span className="bulk-bar__hint">Tocá la fila para seleccionar</span>
 
             <span className="bulk-bar__count">
               {selectedCount === 1
@@ -379,6 +383,7 @@ export function SuppliersPage() {
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
         title="Eliminar proveedores"
+        tone="danger"
         size="sm"
         footer={
           <>
@@ -406,7 +411,13 @@ export function SuppliersPage() {
             fuera de la busqueda, y un "vas a eliminar 2" dejaba borrar a ciegas. */}
         <ul className="confirm-list">
           {selectedSuppliers.map((s) => (
-            <li key={s.id}>{s.legalName}</li>
+            <li key={s.id} className="confirm-list__item">
+              <Avatar name={s.legalName} icon={supplierIcon(s.supplierTypes)} />
+              <span className="confirm-list__text">
+                <b>{s.legalName}</b>
+                <span>{s.cuit ?? 'Sin CUIT'}</span>
+              </span>
+            </li>
           ))}
         </ul>
 

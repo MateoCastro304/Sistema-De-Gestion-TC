@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router'
+import { heroPhoto } from '@/shared/lib/heroPhoto'
+import fotoTaller from '@/assets/foto-fresado.png'
 import { Avatar, Badge, Button, IconTrash, Modal, TrashButton } from '@/shared/components/ui'
 import { toneByStatus } from '@/shared/lib/rowTone'
 import { useToast } from '@/app/providers/ToastContext'
@@ -131,17 +133,14 @@ export function CustomerDetailPage() {
       {/* Rediseño: el encabezado es el panel azul de los otros catálogos.
           El "← Volver" pasa a ser el botón redondo de la izquierda, que es
           donde el resto de las pantallas lo tiene. Misma ruta, mismo link. */}
-      <div className="page-header">
+      <div className="page-header page-header--foto" style={heroPhoto(fotoTaller)}>
         <div className="page-header__row">
           <div className="detail-header__left">
-            <Link
-              to="/catalogos/encargados"
-              className="btn btn--icon"
-              aria-label="Volver al listado de encargados"
-            >
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+            <Link to="/catalogos/encargados" className="back-link">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="M10 3 5 8l5 5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
+              Encargados
             </Link>
 
             {/* El cuadrado con las iniciales, en su tamaño grande: el mismo
@@ -241,6 +240,7 @@ export function CustomerDetailPage() {
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
         title="Eliminar encargado"
+        tone="danger"
         size="sm"
         footer={
           <>

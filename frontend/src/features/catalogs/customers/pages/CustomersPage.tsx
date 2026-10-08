@@ -198,6 +198,7 @@ export function CustomersPage() {
         open={toDeactivate !== null}
         onClose={() => setToDeactivate(null)}
         title="Eliminar encargado"
+        tone="danger"
         size="sm"
         footer={
           <>
