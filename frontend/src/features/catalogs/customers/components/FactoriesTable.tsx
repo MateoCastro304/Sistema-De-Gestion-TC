@@ -31,7 +31,7 @@ export function FactoriesTable({
       header: 'Nombre',
       render: (f) => (
         <span className="table__cell--nombre">
-          <Avatar name={f.name} tone={toneByStatus(f.isActive)} />
+          <Avatar name={f.name} icon="fabrica" tone={toneByStatus(f.isActive)} />
           <b>{f.name}</b>
         </span>
       ),
@@ -47,7 +47,7 @@ export function FactoriesTable({
     // a la que asignarles colores. El color de la fila lo da el estado.
     {
       header: 'Rubro',
-      render: (f) => <Badge variant="suave">{categoryName(f.categoryId)}</Badge>,
+      render: (f) => <Badge variant="suave" icon="rubro">{categoryName(f.categoryId)}</Badge>,
     },
     {
       header: 'Encargados',

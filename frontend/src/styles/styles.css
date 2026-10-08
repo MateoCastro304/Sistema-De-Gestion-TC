@@ -33,7 +33,7 @@
   --color-badge-pendiente-text: #6b7280;
 
   /* Typography */
-  --font-base: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-base: 'Montserrat', system-ui, sans-serif;
   --font-mono: 'Roboto Mono', 'SFMono-Regular', Consolas, monospace;
 
   --fs-2xs: 11px;
@@ -653,18 +653,29 @@ table {
    ============================================================ */
 :root {
   /* Colores base */
-  --rp-azul: #2f6fed;          /* acento principal */
-  --rp-azul-osc: #1d54c9;      /* hover y texto sobre blanco */
-  --rp-navy: #16213a;          /* texto fuerte */
-  --rp-fondo: #f5f7fb;         /* fondo de la zona de contenido */
-  --rp-linea: #e8ebf0;         /* bordes de tarjetas y filas */
-  --rp-texto: #4b5563;
-  --rp-texto-sec: #8b93a3;     /* rótulos, encabezados de tabla */
+  --rp-azul: #0f3483;          /* botón principal */
+  --rp-azul-osc: #0b2766;      /* hover y texto sobre blanco */
+  --rp-navy: #172645;          /* menú, cabeceras, títulos */
+  --rp-fondo: #fcfcfc;         /* fondo de la zona de contenido */
+  --rp-linea: #e1e5ec;         /* bordes de tarjetas, filas y campos */
+  --rp-texto: #555b66;
+  --rp-texto-sec: #8a909c;     /* rótulos, encabezados de tabla */
+
+  /* Acento, superficies suaves, peligro y WhatsApp */
+  --rp-acento: #3b5998;        /* línea bajo títulos, ítem activo */
+  --rp-suave: #eef1f7;         /* botones secundarios, etiquetas */
+  --rp-suave-hover: #e1e7f2;
+  --rp-fila-hover: #f6f8fc;
+  --rp-peligro: #b3261e;
+  --rp-peligro-fondo: #fbe9e7;
+  --rp-whatsapp: #1f7a45;
+  --rp-whatsapp-fondo: #e6f4ec;
+  --rp-halo: rgba(15, 52, 131, .12);   /* foco de los campos */
 
   /* Degradados. El del panel se anima; los otros son fijos. */
   --rp-grad-panel: linear-gradient(115deg, #16213a 0%, #1e3a72 42%, #2f6fed 100%);
-  --rp-grad-nav:   linear-gradient(185deg, #2f6fed 0%, #2464e0 55%, #1d54c9 100%);
-  --rp-grad-btn:   linear-gradient(120deg, #2f6fed, #1d54c9);
+  --rp-grad-nav:   linear-gradient(185deg, #1b2d52 0%, #172645 55%, #13203b 100%);
+  --rp-grad-btn:   linear-gradient(var(--rp-azul), var(--rp-azul));   /* liso: el rediseño no usa degradado */
 
   /* Tonos de categoría. Cada catálogo mapea sus valores a estos
      tres; no hace falta inventar colores nuevos por módulo. */
@@ -676,12 +687,15 @@ table {
   --rp-r-card: 22px;
   --rp-r-fila: 18px;
   --rp-r-nav: 16px;
+  --rp-r-control: 6px;         /* botones y campos */
+  --rp-r-tarjeta: 8px;
+  --rp-r-etiqueta: 4px;
   --rp-sombra-card: 0 6px 20px rgba(16, 24, 40, .07);
   --rp-sombra-lift: 0 22px 40px rgba(47, 111, 237, .26);
 
   /* Ancho de la barra lateral. Se usa también para la muesca,
      por eso conviene que sea variable y no un número suelto. */
-  --rp-nav-ancho: 282px;
+  --rp-nav-ancho: 268px;
   --rp-nav-ancho-min: 92px;
   --rp-muesca: 22px;           /* radio del recorte cóncavo */
 }
@@ -696,6 +710,10 @@ table {
    slabIn = una barra que baja al aparecer (la de eliminación).
    dotBlink = el puntito que late, para avisar "esto está vivo". */
 @keyframes rpSlabIn   { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:none; } }
+@keyframes rpFadeIn   { from { opacity:0; } to { opacity:1; } }
+@keyframes rpFadeUp   { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+@keyframes rpLineGrow { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+@keyframes rpSlowZoom { from { transform:scale(1); } to { transform:scale(1.06); } }
 @keyframes rpDotBlink { 0%,100% { opacity:1; } 50% { opacity:.3; } }
 
 
@@ -706,33 +724,35 @@ table {
    porque la muesca del menú se pinta de ese mismo color para
    fundirse con él.
    ============================================================ */
-.app { display: grid; grid-template-columns: auto 1fr; min-height: 100vh; }
-.main { display: flex; flex-direction: column; min-width: 0; }
-.content { flex: 1; background: var(--rp-fondo); padding: 26px 32px; }
+.app { display: grid; grid-template-columns: auto minmax(0, 1fr); min-height: 100vh; }
+.main { display: flex; flex-direction: column; min-width: 0; background: var(--rp-fondo); }
+.content { flex: 1; background: var(--rp-fondo); padding: 28px 40px; }
 
-/* justify-content: flex-start pisa el space-between de la topbar vieja:
-   en celular, con el botón de menú a la izquierda, mandaba el título de
-   la sección contra el borde derecho. */
 .topbar {
-  height: 62px; display: flex; align-items: center; justify-content: flex-start; gap: 16px;
-  padding: 0 32px; background: #fff; border-bottom: 1px solid #eef0f3;
+  height: 72px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 0 40px; background: var(--rp-fondo); border-bottom: 1px solid #eceef3;
 }
-.topbar__breadcrumb-item--current { font-size: 14px; font-weight: 700; color: var(--rp-navy); }
+.topbar__breadcrumb {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--rp-texto-sec);
+}
+.topbar__breadcrumb-item--current { font-weight: 700; color: var(--rp-navy); }
+/* El logo de la topbar es sólo para celular, donde el menú está escondido. */
+.topbar__logo { display: none; height: 42px; }
 
 
 /* ============================================================
    3. BARRA DE NAVEGACIÓN
-   El detalle importante: el ítem activo NO es una pastilla
-   apoyada encima del azul. Es una muesca recortada: llega hasta
-   el borde derecho, se pinta del color del fondo de la página y
-   arriba y abajo el azul se curva hacia adentro. Se lee como un
-   solo plano continuo.
+   Marino con una trama de puntos. El ítem activo NO es una
+   pastilla apoyada encima: es una muesca recortada que llega
+   hasta el borde derecho, se pinta del color del fondo de la
+   página y arriba y abajo el marino se curva hacia adentro.
    ============================================================ */
-/* Pegada arriba (sticky) y del alto de la ventana: sin esto la barra se
-   estiraba con la página y, al bajar en un listado largo, el menú se iba
-   con el scroll. Si el menú no entra en la ventana, scrollea por dentro.
-   overflow-x: hidden recorta el texto de la marca mientras el ancho se
-   anima al expandir; si no, se montaba sobre el botón de tres líneas. */
+/* Pegada arriba (sticky) y del alto de la ventana: si no, la barra se
+   estira con la página y el menú se va con el scroll. Si el menú no entra
+   en la ventana, scrollea por dentro. */
 .sidebar {
   position: sticky; top: 0; align-self: start;
   height: 100vh; height: 100dvh;
@@ -740,115 +760,83 @@ table {
   box-sizing: border-box;
   width: var(--rp-nav-ancho);
   background: var(--rp-grad-nav);
-  padding: 26px 0 26px 18px;      /* sin padding derecho: la muesca lo necesita */
-  display: flex; flex-direction: column; gap: 34px;
+  padding: 28px 0 28px 18px;      /* sin padding derecho: la muesca lo necesita */
+  display: flex; flex-direction: column; gap: 36px;
   transition: width .22s ease;
 }
 
-/* Resplandor decorativo. Va en un ::before para no ensuciar el JSX. */
+/* Trama de puntos. Va en un ::before para no ensuciar el JSX. */
 .sidebar::before {
-  content: ""; position: absolute; top: -70px; left: -50px;
-  width: 240px; height: 240px; border-radius: 999px;
-  background: radial-gradient(circle, rgba(168,255,239,.34), transparent 68%);
-  animation: rpGlow 9s ease-in-out infinite; pointer-events: none;
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(rgba(255,255,255,.07) 1px, transparent 1px);
+  background-size: 22px 22px;
 }
 
-/* padding completo y no sólo el derecho: la regla vieja de .sidebar__brand
-   dejaba 8px a la izquierda que le robaban lugar al nombre (se montaba sobre
-   el botón de tres líneas) y corrían el botón respecto de los íconos cuando
-   la barra está colapsada. */
-.sidebar__brand { position: relative; display: flex; align-items: center; gap: 10px; padding: 0 18px 0 0; }
-.sidebar__logo {
-  width: 44px; height: 44px; flex-shrink: 0; border-radius: 14px;
-  background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.34);
-  color: #fff; display: flex; align-items: center; justify-content: center;
-  font-weight: 800; font-size: 15px;
+.sidebar__brand {
+  position: relative; display: flex; align-items: center;
+  justify-content: space-between; gap: 10px; padding-right: 18px;
 }
-.sidebar__brand-text { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; overflow: hidden; }
-.sidebar__brand-name { font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sidebar__brand-sub  { font-size: 11px; color: #e3ecff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar__logo { height: 46px; width: auto; max-width: none; }
 
-/* Botón de tres líneas. Vive DENTRO de la barra azul, no en la
-   topbar: colapsada ocupa el lugar del logo, expandida va a la
-   derecha del nombre. */
+/* Botón de tres líneas. Vive DENTRO de la barra: colapsada ocupa el
+   lugar del logo, expandida va a su derecha. */
 .sidebar__burger {
-  margin-left: auto; width: 40px; height: 40px; flex-shrink: 0;
+  width: 42px; height: 42px; flex-shrink: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
-  border-radius: 12px; background: rgba(255,255,255,.14);
-  border: 1px solid rgba(255,255,255,.3); cursor: pointer;
-  transition: background .18s ease;
+  border-radius: var(--rp-r-tarjeta); background: rgba(255,255,255,.10);
+  transition: background .2s ease;
 }
-.sidebar__burger:hover { background: rgba(255,255,255,.26); }
-.sidebar__burger span { width: 17px; height: 2.5px; border-radius: 2px; background: #fff; display: block; }
+.sidebar__burger:hover { background: rgba(255,255,255,.2); }
+.sidebar__burger span { width: 18px; height: 2.5px; border-radius: 2px; background: #fff; display: block; }
 
 .sidebar__nav { position: relative; display: flex; flex-direction: column; gap: 14px; }
+.sidebar__section { gap: 14px; }
 .sidebar__section-label {
-  font-size: 11px; font-weight: 700; letter-spacing: .12em;
-  text-transform: uppercase; color: #e3ecff; padding: 0 14px;
+  font-size: 12px; font-weight: 700; letter-spacing: .14em;
+  text-transform: uppercase; color: #9aa7c2; padding: 0 14px;
+}
+/* La línea de acento debajo del rótulo, como en los títulos de sección. */
+.sidebar__section-label::after {
+  content: ""; display: block; width: 40px; height: 3px;
+  margin-top: 14px; background: var(--rp-acento);
 }
 .sidebar__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 
 .sidebar__link {
-  display: flex; align-items: center; gap: 13px;
-  margin-right: 18px; padding: 14px; border-radius: var(--rp-r-nav);
-  font-size: 15px; font-weight: 600; color: #fff; text-decoration: none;
+  display: flex; align-items: center; gap: 14px;
+  margin-right: 18px; padding: 16px; border-radius: var(--rp-r-tarjeta);
+  font-size: 14px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  color: #e6e9f0; text-decoration: none;
   transition: background .2s ease, transform .2s ease;
 }
-.sidebar__link:hover { background: rgba(255,255,255,.18); transform: translateX(4px); color: #fff; }
-.sidebar__link svg { width: 19px; height: 19px; flex-shrink: 0; }
+.sidebar__link:hover { background: rgba(255,255,255,.10); transform: translateX(4px); }
+.sidebar__link svg { width: 20px; height: 20px; flex-shrink: 0; }
 
 /* --- La muesca --- */
 .sidebar__link--active {
   position: relative;
   margin-right: 0;                                  /* pega contra el borde */
-  padding: 17px 18px 17px 14px;
-  border-radius: var(--rp-muesca) 0 0 var(--rp-muesca);
+  padding: 17px 18px 17px 16px;
+  border-radius: 24px 0 0 24px;
   background: var(--rp-fondo);
-  color: var(--rp-azul-osc);
-  font-weight: 700;
-  /* Sin transición a propósito. El ítem normal difumina su fondo en
-     200ms, pero las dos esquinas cóncavas (::before/::after) aparecen
-     de golpe porque no se pueden animar. Al cambiar de sección se veía
-     la muesca dibujada antes que su relleno, como un parpadeo roto.
-     Sin transición, la muesca entera aparece de una. */
+  color: var(--rp-azul);
+  font-weight: 800;
+  /* Sin transición a propósito: las dos esquinas cóncavas aparecen de
+     golpe (no se pueden animar) y con transición se veía la muesca
+     dibujada antes que su relleno. */
   transition: none;
 }
-.sidebar__link--active:hover { background: var(--rp-fondo); transform: none; color: var(--rp-azul-osc); }
+.sidebar__link--active:hover { background: var(--rp-fondo); transform: none; }
 
 /* Las dos esquinas cóncavas: un cuadrado del color del fondo al que le
-   falta un cuarto de círculo, y lo que queda es la curva que "muerde"
-   el azul. Se solapan 1px para que no aparezca una rayita azul en la
-   unión con el ítem.
+   falta un cuarto de círculo. Se dibujan con un <path> de SVG embebido
+   porque es la única forma que sale lisa a cualquier zoom (una máscara o
+   un radial-gradient dejan el borde escalonado). Se solapan 1px con el
+   ítem para que no aparezca una rayita en la unión.
 
-   La curva se dibuja como GEOMETRÍA, con un <path> de SVG embebido
-   como imagen de fondo. Es la tercera forma que se probó acá y la
-   única que sale lisa; las otras dos quedan documentadas porque el
-   error es fácil de repetir:
-
-     1. `mask: radial-gradient(...)` — una máscara se resuelve como
-        recorte de opacidad y varios motores la aplican sin suavizado:
-        el borde queda escalonado, un serrucho.
-     2. `background: radial-gradient(...)` con medio píxel de
-        transición — mejora, pero medio píxel da un solo tono
-        intermedio, y un solo tono no es un degradado suave. Se seguía
-        viendo el serrucho, sobre todo con la pantalla al 125-150%.
-     3. Un <path> de SVG — el borde es una curva de verdad, no un
-        cambio de color, así que lo suaviza el mismo rasterizador que
-        dibuja el resto de las formas. Sale limpio a cualquier zoom y
-        en cualquier escalado de pantalla.
-
-   Va como data URI y no como archivo suelto para que la esquina siga
-   siendo cosa del CSS y no aparezcan dos <svg> decorativos en el JSX
-   del AppLayout.
-
-   OJO: el color va escrito a mano (%23f5f7fb) porque un SVG embebido
-   no puede leer variables CSS. Es el mismo valor que --rp-fondo; si
-   se cambia el fondo de la app, hay que cambiarlo también acá o
-   aparece un escalón de color en las dos esquinas.
-
-   El arco cambia de ancla entre las dos: arriba sale de la esquina
-   superior izquierda y abajo de la inferior, que es donde toca el
-   ítem activo en cada caso. */
+   OJO: el color va escrito a mano (%23fcfcfc) porque un SVG embebido no
+   puede leer variables CSS. Es el mismo valor que --rp-fondo; si cambia
+   uno hay que cambiar el otro. */
 .sidebar__link--active::before,
 .sidebar__link--active::after {
   content: ""; position: absolute; right: 0;
@@ -859,423 +847,305 @@ table {
 }
 .sidebar__link--active::before {
   top: calc(-1 * var(--rp-muesca) + 1px);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22' preserveAspectRatio='none'%3E%3Cpath d='M22 0A22 22 0 0 1 0 22L22 22Z' fill='%23f5f7fb'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22' preserveAspectRatio='none'%3E%3Cpath d='M22 0A22 22 0 0 1 0 22L22 22Z' fill='%23fcfcfc'/%3E%3C/svg%3E");
 }
 .sidebar__link--active::after {
   bottom: calc(-1 * var(--rp-muesca) + 1px);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22' preserveAspectRatio='none'%3E%3Cpath d='M0 0A22 22 0 0 1 22 22L22 0Z' fill='%23f5f7fb'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22' preserveAspectRatio='none'%3E%3Cpath d='M0 0A22 22 0 0 1 22 22L22 0Z' fill='%23fcfcfc'/%3E%3C/svg%3E");
+}
+
+.sidebar__tagline {
+  position: relative; margin-top: auto; padding: 0 18px 0 14px;
+  font-size: 12px; line-height: 1.6; color: #9aa7c2;
 }
 
 /* --- Colapsada: sólo íconos ---
-   Todo el bloque vive adentro de un media query de escritorio. El estado
-   `collapsed` de React sobrevive al achicar la ventana, y antes estas
-   reglas seguían aplicando dentro del cajón de celular: ítems centrados,
-   marca vacía y la pastilla activa pegada al borde. Deshacerlas regla
-   por regla en el bloque de 900px era frágil (varias tenían más
-   especificidad que las del cajón); así directamente no existen ahí. */
+   Todo el bloque vive adentro de un media query de escritorio: el estado
+   `collapsed` de React sobrevive al achicar la ventana, y así estas
+   reglas directamente no existen dentro del cajón de celular. */
 @media (min-width: 901px) {
   .sidebar--collapsed { width: var(--rp-nav-ancho-min); padding-left: 14px; }
-  /* El logo también se esconde: colapsada, el botón de tres líneas
-     ocupa su lugar. */
   .sidebar--collapsed .sidebar__logo,
-  .sidebar--collapsed .sidebar__brand-text,
   .sidebar--collapsed .sidebar__section-label,
-  .sidebar--collapsed .sidebar__link-text { display: none; }
+  .sidebar--collapsed .sidebar__link-text,
+  .sidebar--collapsed .sidebar__tagline { display: none; }
   /* Botón, íconos e ítem activo centrados sobre el mismo eje. El activo
      llega hasta el borde (muesca), así que devuelve con padding los 14px
-     que no tiene de margen; si no, su ícono quedaba corrido a la derecha. */
+     que no tiene de margen. */
   .sidebar--collapsed .sidebar__brand { padding-right: 14px; justify-content: center; }
-  .sidebar--collapsed .sidebar__burger { margin-left: 0; width: 48px; height: 48px; border-radius: 15px; }
-  .sidebar--collapsed .sidebar__link { justify-content: center; margin-right: 14px; height: 52px; padding: 0; }
-  .sidebar--collapsed .sidebar__link--active { margin-right: 0; padding-right: 14px; height: 56px; border-radius: 20px 0 0 20px; }
+  .sidebar--collapsed .sidebar__burger { width: 50px; height: 50px; background: rgba(255,255,255,.12); }
+  .sidebar--collapsed .sidebar__burger span { width: 19px; }
+  .sidebar--collapsed .sidebar__link { justify-content: center; margin-right: 14px; height: 54px; padding: 0; }
+  .sidebar--collapsed .sidebar__link svg { width: 22px; height: 22px; }
+  .sidebar--collapsed .sidebar__link--active { margin-right: 0; padding-right: 14px; height: 58px; border-radius: 22px 0 0 22px; }
 }
 
 
 /* ============================================================
-   4. PANEL DE CABECERA (.page-header)
-   Reemplaza el encabezado plano. El degradado se mueve muy
-   despacio y lleva un halo turquesa flotando: es lo que da la
-   sensación de "vivo" sin distraer.
-   El buscador va adentro, en vidrio.
+   4. PANEL DE CABECERA (.page-header) Y BARRA DE HERRAMIENTAS
+   Panel marino con trama de puntos. En los listados es un
+   "hero" (--hero): lleva una foto del taller a la derecha que
+   se funde hacia el marino, y debajo se le monta la barra de
+   herramientas (.toolbar), una tarjeta blanca con el buscador
+   y las acciones.
    ============================================================ */
 .page-header {
   /* clip y no hidden: con hidden el panel sigue siendo desplazable por
-     código, y como el halo (::after) se sale 30px por la derecha, al
-     enfocar un botón o el buscador el navegador lo corría de lugar y
-     dejaba el contenido cortado contra el borde izquierdo. */
+     código y al enfocar algo de adentro el navegador lo podía correr. */
   position: relative; overflow: clip;
-  border-radius: 24px; padding: 28px 30px;
-  background: var(--rp-grad-panel); background-size: 220% 220%;
-  animation: rpGradient 14s ease-in-out infinite alternate;
-  box-shadow: 0 20px 44px rgba(30, 58, 114, .34);
+  border-radius: var(--rp-r-tarjeta); padding: 28px 40px;
+  background: var(--rp-navy);
   color: #fff;
-  display: flex; flex-direction: column; gap: 22px;
+  display: flex; flex-direction: column; gap: 14px;
+  animation: rpFadeUp .5s ease both;
 }
+/* Capas del fondo, de abajo hacia arriba: foto (::before), degradado +
+   puntos (::after) y recién después el contenido (z-index: 1). */
 .page-header::after {
-  content: ""; position: absolute; top: -70px; right: -30px;
-  width: 260px; height: 260px; border-radius: 999px;
-  background: radial-gradient(circle, rgba(168,255,239,.30), transparent 70%);
-  animation: rpGlow 11s ease-in-out infinite; pointer-events: none;
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(rgba(255,255,255,.07) 1px, transparent 1px);
+  background-size: 22px 22px;
 }
-/* Todo lo que va adentro necesita position:relative para quedar
-   por encima del halo. */
-.page-header > * { position: relative; }
+.page-header > * { position: relative; z-index: 1; }
 
-/* Chip de sección arriba del título ("CATÁLOGO"). El puntito que late
-   va en un ::before para no ensuciar el JSX. */
-.page-header__eyebrow {
-  display: inline-flex; align-self: flex-start; align-items: center; gap: 8px;
-  padding: 6px 13px; border-radius: 999px; background: rgba(255,255,255,.14);
-  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
-  letter-spacing: .12em; text-transform: uppercase; color: #d8e6ff;
+/* --- Hero de los listados --- */
+.page-header--hero { min-height: 230px; justify-content: center; padding: 24px 40px 44px; }
+.page-header--hero::before {
+  content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 60%;
+  background: var(--hero-foto) 65% center / cover no-repeat;
+  animation: rpSlowZoom 18s ease-in-out infinite alternate;
 }
-.page-header__eyebrow::before {
-  content: ""; width: 7px; height: 7px; border-radius: 999px;
-  background: #a8ffef; animation: rpDotBlink 2s ease-in-out infinite;
+.page-header--hero::after {
+  background-image:
+    radial-gradient(rgba(255,255,255,.07) 1px, transparent 1px),
+    linear-gradient(90deg, #15223e 0%, #15223e 40%, rgba(21,34,62,.75) 62%, rgba(21,34,62,.15) 100%);
+  background-size: 22px 22px, 100% 100%;
+}
+
+/* Rótulo arriba del título ("CATÁLOGO DE proveedores"). */
+.page-header__eyebrow {
+  font-size: 14px; font-weight: 700; letter-spacing: .14em;
+  text-transform: uppercase; color: #e6e9f0;
+}
+.page-header__eyebrow-accent { color: #7f9bd6; }
+/* La línea de acento, que crece desde la izquierda al entrar. */
+.page-header__line {
+  width: 90px; height: 3px; background: var(--rp-acento);
+  transform-origin: left; animation: rpLineGrow .7s .2s ease both;
 }
 
 .page-header__row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-/* Columna del lado izquierdo del panel: chip, título y subtítulo. */
+/* Columna del lado izquierdo del panel: rótulo, título y subtítulo. */
 .page-header__heading { display: flex; flex-direction: column; gap: 10px; }
 .page-header__heading .page-header__subtitle { margin: 0; }
-.page-header__title { margin: 0; font-size: 38px; font-weight: 800; letter-spacing: -.03em; color: #fff; }
-.page-header__subtitle { margin: 6px 0 0; font-size: 15px; font-weight: 600; color: #dde7fb; }
+.page-header__title {
+  margin: 0; font-size: 42px; font-weight: 800; line-height: 1.05;
+  text-transform: uppercase; color: #fff;
+}
+.page-header__subtitle { margin: 0; font-size: 16px; font-weight: 400; color: #d4d9e4; }
+.page-header__subtitle strong { color: #fff; }
 /* Subtítulo del detalle: el CUIT y la etiqueta de rubro en la misma
    línea, alineados por el medio. */
 .page-header .detail-header__meta {
   display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap;
 }
 
-.page-header .search-input {
-  max-width: 540px; width: 100%;
-  background: rgba(255,255,255,.13);
-  border: 1px solid rgba(255,255,255,.28);
-  border-radius: 999px; padding: 14px 20px;
-  font-size: 15px; color: #fff; backdrop-filter: blur(8px);
-  transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+/* --- Barra de herramientas ---
+   Se monta 48px sobre la cabecera. El margen negativo suma el gap de
+   .content, porque si no el gap se come la mitad del solapamiento. */
+.toolbar {
+  position: relative; z-index: 2;
+  margin: calc(-48px - var(--space-6)) 24px 0;
+  background: #fff; border-radius: var(--rp-r-tarjeta);
+  box-shadow: 0 14px 36px rgba(23,38,69,.12);
+  padding: 14px 14px 14px 18px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  animation: rpFadeUp .5s .1s ease both;
 }
-.page-header .search-input::placeholder { color: #d0dcf5; }
-.page-header .search-input:focus {
-  outline: none; background: rgba(255,255,255,.2);
-  border-color: #a8ffef; box-shadow: 0 0 0 5px rgba(168,255,239,.16);
-}
+/* Cuando los filtros todavía no cargaron, el botón de alta queda solo:
+   lo mandamos a la derecha para que no salte de lugar al aparecer. */
+.toolbar__cta { margin-left: auto; }
+.toolbar .btn, .toolbar .btn-trash { flex-shrink: 0; }
+.toolbar .select__trigger { flex: 0 0 230px; width: auto; }
 
-/* --- Buscador con lupa adentro ---
-   Cuando el input va acompañado de un ícono, la pastilla de vidrio pasa
-   a ser el <label> que envuelve a los dos, y el input queda desnudo
-   adentro. Si no, se verían dos pastillas, una dentro de la otra.
-   El buscador suelto (sin ícono) sigue funcionando como antes: estas
-   reglas sólo aplican dentro de .search-field. */
-.page-header .search-field {
-  position: relative; max-width: 540px; width: 100%;
+/* --- Buscador con lupa ---
+   El marco es el <label> que envuelve la lupa y el input; el input va
+   desnudo adentro. El anillo de foco lo dibuja el marco. */
+.search-field {
+  flex: 1 1 260px; min-width: 0;
   display: flex; align-items: center; gap: 12px;
-  background: rgba(255,255,255,.13);
-  border: 1px solid rgba(255,255,255,.28);
-  border-radius: 999px; padding: 14px 20px;
-  color: #d0dcf5; backdrop-filter: blur(8px);
-  transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+  border: 1.5px solid var(--rp-linea); border-radius: var(--rp-r-control);
+  padding: 14px 16px; color: var(--rp-texto-sec); background: #fff;
+  transition: border-color .2s ease, box-shadow .2s ease;
 }
-/* El anillo de foco lo dibuja la pastilla, no el input de adentro. */
-.page-header .search-field:focus-within {
-  background: rgba(255,255,255,.2);
-  border-color: #a8ffef; box-shadow: 0 0 0 5px rgba(168,255,239,.16);
-}
-.search-field__icon { width: 18px; height: 18px; flex-shrink: 0; }
-.page-header .search-field .search-input {
+.search-field:hover { border-color: var(--rp-acento); box-shadow: 0 0 0 4px rgba(59,89,152,.10); }
+.search-field:focus-within { border-color: var(--rp-azul); box-shadow: 0 0 0 4px var(--rp-halo); }
+.search-field__icon { width: 19px; height: 19px; flex-shrink: 0; }
+.search-field .search-input {
+  flex: 1; min-width: 0; max-width: none; width: 100%;
+  padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; outline: none;
+  font-size: 15px; font-weight: 500; color: var(--rp-navy);
   /* ellipsis: en celular el placeholder no entra y se cortaba a media letra. */
   text-overflow: ellipsis;
-  max-width: none; padding: 0; border: 0; background: none;
-  box-shadow: none; backdrop-filter: none; border-radius: 0;
 }
-.page-header .search-field .search-input:focus { background: none; box-shadow: none; }
+.search-field .search-input::placeholder { color: var(--rp-texto-sec); }
 
-/* --- Fila de filtros del panel ---
-   Proveedores tenía sólo el buscador, pero Fábricas suma un desplegable
-   de rubro y Encargados una casilla de "incluir eliminados". Van en la
-   misma línea que el buscador, en el mismo vidrio, para que el panel
-   siga siendo el único lugar donde se filtra.
-   El buscador crece y los demás se quedan con su ancho: un desplegable
-   estirado a 500px se ve roto. */
-.page-header__filters {
-  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-}
-.page-header__filters .search-field { flex: 1 1 260px; }
-
-/* Flecha propia en blanco, igual que la de los formularios pero para el
-   vidrio oscuro. background-color (no `background`) en el hover para no
-   borrarla. */
-.page-header .filter-select {
-  flex-shrink: 0;
-  appearance: none; -webkit-appearance: none;
-  background-color: rgba(255,255,255,.13);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23ffffff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 18px center; background-size: 14px 14px;
-  border: 1px solid rgba(255,255,255,.28);
-  border-radius: 999px; padding: 14px 46px 14px 18px;
-  font: inherit; font-size: 15px; font-weight: 600; color: #fff;
-  backdrop-filter: blur(8px); cursor: pointer;
-  transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease;
-}
-.page-header .filter-select:hover { background-color: rgba(255,255,255,.2); }
-.page-header .filter-select:focus {
-  outline: none; border-color: #a8ffef; box-shadow: 0 0 0 5px rgba(168,255,239,.16);
-}
-/* Las opciones las dibuja el sistema operativo, no el CSS del panel: sin
-   esto quedan blancas sobre blanco al desplegarse. */
-.page-header .filter-select option { color: var(--rp-navy); background: #fff; }
-
-/* Casilla de filtro ("Incluir eliminados"). Reusa el cuadro grande de la
-   selección múltiple, pero en versión clara sobre el panel oscuro. */
-.page-header .filter-check {
+/* Casilla de filtro ("Incluir eliminados"). */
+.filter-check {
   flex-shrink: 0; display: inline-flex; align-items: center; gap: 10px;
-  padding: 11px 18px 11px 14px; border-radius: 999px;
-  background: rgba(255,255,255,.13); border: 1px solid rgba(255,255,255,.28);
-  font-size: 14px; font-weight: 600; color: #fff; cursor: pointer;
-  backdrop-filter: blur(8px);
-  transition: background .2s ease, border-color .2s ease;
+  padding: 7px 14px 7px 8px; border-radius: var(--rp-r-control);
+  font-size: 14px; font-weight: 600; color: var(--rp-navy); cursor: pointer;
+  transition: background .2s ease;
 }
-.page-header .filter-check:hover { background: rgba(255,255,255,.2); }
-.page-header .filter-check .check-box {
-  width: 24px; height: 24px; border-radius: 8px; font-size: 14px;
-  background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.5);
-}
-.page-header .filter-check .check-box--on {
-  background: #fff; border-color: #fff; color: var(--rp-azul-osc); box-shadow: none;
-}
+.filter-check:hover { background: var(--rp-fila-hover); }
 
 
 /* ============================================================
    5. BOTONES
-   Pastilla, no rectángulo. Se levantan 2-3px al pasar el mouse:
-   es el gesto que más "moderniza" sin costar nada de código.
-   Dentro del panel oscuro el primario se invierte a blanco.
+   Rectángulo de 6px, en mayúsculas. El principal es azul liso
+   con sombra; el secundario, un relleno suave sin borde. Se
+   levantan 2px al pasar el mouse.
    ============================================================ */
 .btn {
-  border: 0; cursor: pointer;
-  border-radius: 999px; font-size: 15px; font-weight: 700;
-  padding: 14px 24px; min-height: 48px;
+  border: 0; cursor: pointer; text-decoration: none;
+  border-radius: var(--rp-r-control);
+  font-size: 14px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  padding: 15px 24px; min-height: 48px;
   display: inline-flex; align-items: center; justify-content: center; gap: 9px;
-  transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
   position: relative;
 }
 /* Franja invisible de 4px pegada abajo del botón. Como es parte del botón,
-   sube con él cuando se levanta en el hover y tapa los 3px que deja libres.
-   Sin esto, con el cursor en el borde de abajo el botón subía, el cursor
-   quedaba afuera, perdía el hover, bajaba, lo recuperaba... y parpadeaba
-   en bucle. */
+   sube con él cuando se levanta en el hover y tapa los 2px que deja libres.
+   Sin esto, con el cursor en el borde de abajo el botón subía, perdía el
+   hover, bajaba, lo recuperaba... y parpadeaba en bucle. */
 .btn::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 4px; }
-.btn--primary { background: var(--rp-grad-btn); color: #fff; box-shadow: 0 14px 30px rgba(47,111,237,.38); }
-/* El degradado se repite en el hover A PROPÓSITO. Arriba en el archivo
-   sigue viva la regla vieja `.btn--primary:hover { background: <azul
-   liso> }`, y si acá no se pisa, al pasar el mouse el degradado (que es
-   una imagen de fondo) se cambiaba por un color liso: la imagen se va de
-   golpe, pero el color entra con la transición de .2s arrancando desde
-   transparente. Ese instante sin fondo era el "titileo" de los botones
-   azules en Encargados y Fábricas (en Proveedores no se notaba porque sus
-   botones azules están en el panel, donde van en blanco). */
-.btn--primary:hover { background: var(--rp-grad-btn); transform: translateY(-3px); box-shadow: 0 20px 42px rgba(47,111,237,.5); }
 
-.btn--secondary { background: #fff; border: 1px solid var(--rp-linea); color: var(--rp-navy); box-shadow: 0 2px 8px rgba(16,24,40,.06); }
-.btn--secondary:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(16,24,40,.12); }
+.btn--primary { background: var(--rp-azul); color: #fff; box-shadow: 0 6px 16px rgba(15,52,131,.24); }
+.btn--primary:hover { background: var(--rp-azul-osc); color: #fff; transform: translateY(-2px); box-shadow: 0 12px 24px rgba(15,52,131,.32); }
 
-.btn--danger { background: linear-gradient(120deg, #ef4444, #b91c1c); color: #fff; box-shadow: 0 12px 28px rgba(220,38,38,.38); }
-.btn--danger:hover { transform: translateY(-3px); box-shadow: 0 18px 38px rgba(220,38,38,.5); }
+.btn--secondary,
+.btn--outline { background: var(--rp-suave); border: 0; color: var(--rp-navy); box-shadow: none; }
+.btn--secondary:hover,
+.btn--outline:hover { background: var(--rp-suave-hover); transform: translateY(-2px); box-shadow: 0 8px 18px rgba(23,38,69,.10); }
 
+.btn--danger { background: var(--rp-peligro); color: #fff; box-shadow: none; }
+.btn--danger:hover { background: #93201a; transform: translateY(-2px); }
 
-/* Variantes que ya usaban otras pantallas (Materiales, Usuarios,
-   wizard de cotizaciones). Se re-declaran acá para que agarren la
-   misma píldora y el mismo hover que las de arriba; si no, quedaban
-   con la forma nueva y el color plano viejo. Los colores salen de
-   los tokens originales, así que el significado no cambia. */
-.btn--outline {
-  background: #fff; border: 1.5px solid var(--rp-linea); color: var(--rp-navy);
-  box-shadow: 0 2px 8px rgba(16,24,40,.06);
-}
-.btn--outline:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(16,24,40,.12); background: #fff; }
+.btn--success { background: var(--color-btn-success-bg); color: #fff; box-shadow: none; }
+.btn--success:hover { background: #166534; transform: translateY(-2px); }
 
-.btn--success {
-  background: linear-gradient(120deg, #16a34a, var(--color-btn-success-bg));
-  color: #fff; box-shadow: 0 12px 28px rgba(21,128,61,.34);
-}
-/* Mismo motivo que .btn--primary:hover: la regla vieja cambiaba el
-   degradado por un verde liso y el botón titilaba. */
-.btn--success:hover {
-  background: linear-gradient(120deg, #16a34a, var(--color-btn-success-bg));
-  transform: translateY(-3px); box-shadow: 0 18px 38px rgba(21,128,61,.46);
-}
-
-/* --block sigue siendo el de siempre (ancho completo); no necesita
-   color propio, sólo asegurarse de que el ancho gane. */
 .btn--block { width: 100%; }
+.btn:disabled,
+.btn:disabled:hover { opacity: .55; transform: none; box-shadow: none; cursor: not-allowed; }
 
-.btn:disabled { opacity: .55; transform: none; box-shadow: none; cursor: not-allowed; }
-
-/* Inversión dentro del panel */
-.page-header .btn--primary { background: #fff; color: var(--rp-azul-osc); box-shadow: 0 14px 30px rgba(9,20,48,.34); }
-.page-header .btn--primary:hover { box-shadow: 0 20px 42px rgba(9,20,48,.44); }
-/* outline cae acá también: el "Cancelar" de la edición del detalle es
-   outline, y en blanco sólido quedaba igual que "Guardar cambios" (el
-   primario invertido), sin forma de distinguir cuál es cuál. */
-/* Vidrio OSCURO y no blanco. El degradado del panel se mueve y pasa por
-   una fase clara; con el relleno blanco translúcido de antes, ahí el botón
-   quedaba celeste pálido con texto blanco y parecía deshabilitado. Un
-   relleno azul noche se lee igual en las dos fases: sobre el azul claro
-   oscurece el fondo del texto, y sobre el azul noche casi no se nota y el
-   botón queda definido por su borde. */
+/* Dentro del panel marino (encabezado de detalle y formularios) el
+   principal se invierte a blanco y el secundario va translúcido. */
+.page-header .btn--primary { background: #fff; color: var(--rp-azul); box-shadow: 0 8px 20px rgba(9,20,48,.3); }
+.page-header .btn--primary:hover { background: #fff; color: var(--rp-azul-osc); box-shadow: 0 14px 28px rgba(9,20,48,.4); }
 .page-header .btn--secondary,
-.page-header .btn--outline { background: rgba(13,27,62,.34); border-color: rgba(255,255,255,.6); color: #fff; box-shadow: none; }
+.page-header .btn--outline { background: rgba(255,255,255,.12); color: #fff; }
 .page-header .btn--secondary:hover,
-.page-header .btn--outline:hover { background: rgba(255,255,255,.22); border-color: #fff; }
+.page-header .btn--outline:hover { background: rgba(255,255,255,.22); box-shadow: none; }
 
-/* Botón redondo de "volver" */
+/* Botón cuadrado de "volver" */
 .btn--icon {
   width: 44px; height: 44px; padding: 0; min-height: 0;
-  border-radius: 999px; background: rgba(255,255,255,.14);
-  border: 1px solid rgba(255,255,255,.3); color: #fff;
+  border-radius: var(--rp-r-control); background: rgba(255,255,255,.12); color: #fff;
 }
-.btn--icon:hover { background: rgba(255,255,255,.26); transform: translateX(-3px); }
+.btn--icon:hover { background: rgba(255,255,255,.22); transform: translateX(-3px); }
 
 
 /* ============================================================
    6. LISTADO EN FILAS
-   La <table> clásica pasa a filas en grid: cada proveedor es una
-   tarjeta que se levanta al pasar el mouse, con franja de color
-   según su categoría.
-
+   Una sola tarjeta blanca: encabezado gris arriba y una fila por
+   registro, separadas por una línea. Al pasar el mouse la fila
+   se aclara y le aparece una franja de acento a la izquierda.
    El ancho de las columnas lo define cada página con la variable
    --rp-cols (ver Table.tsx, prop gridTemplate). Usar minmax(0,…)
    en las columnas flexibles: si no, el grid se desborda en vez
    de encogerse y el texto se parte feo.
    ============================================================ */
-/* El contenedor lleva también la clase .table-card, que más arriba en
-   este archivo es la tarjeta blanca de la tabla clásica: fondo, borde,
-   sombra y `overflow: hidden`. En la variante de filas eso sobra y
-   además rompe dos cosas:
-     - el marco encierra a los encabezados de columna, que tendrían que
-       flotar sueltos sobre el fondo;
-     - el `overflow: hidden` recorta el resplandor de la última fila al
-       pasar el mouse (por eso era la única que no brillaba).
-   Acá se apaga todo eso. El padding de abajo es para que la sombra de
-   la última fila tenga aire donde dibujarse. */
 .table-card--cards {
-  display: flex; flex-direction: column; gap: 12px;
-  background: none; border: 0; border-radius: 0; box-shadow: none;
-  overflow: visible; padding-bottom: 26px;
+  display: flex; flex-direction: column; gap: 0;
+  background: #fff; border: 0; border-radius: var(--rp-r-tarjeta);
+  box-shadow: 0 4px 18px rgba(23,38,69,.06);
+  overflow: hidden; padding: 0;
 }
-
-/* El padding copia el de la fila MÁS su borde (5px de franja a la
-   izquierda, 1px a la derecha): con 24px parejos cada encabezado quedaba
-   corrido unos píxeles respecto de su columna. */
 .table-card--cards .table__head {
-  display: grid; grid-template-columns: var(--rp-cols); gap: 12px;
-  padding: 0 23px 0 27px;
-  font-size: 11px; font-weight: 800; letter-spacing: .1em;
-  text-transform: uppercase; color: var(--rp-texto-sec);
+  display: grid; grid-template-columns: var(--rp-cols); gap: 14px;
+  padding: 15px 22px; background: #f5f6f9;
+  font-size: 12px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--rp-navy);
 }
-
 .table-card--cards .table__row {
-  display: grid; grid-template-columns: var(--rp-cols); gap: 12px;
+  display: grid; grid-template-columns: var(--rp-cols); gap: 14px;
   align-items: center;
-  background: #fff;
-  border: 1px solid var(--rp-linea);
-  border-left: 5px solid var(--rp-azul);   /* la franja de categoría */
-  border-radius: var(--rp-r-fila); padding: 15px 22px;
-  box-shadow: 0 3px 12px rgba(16,24,40,.05);
-  transition: transform .2s ease, box-shadow .2s ease;
-  /* `backwards` y no `both`. Con `both` la animación conserva su último
-     fotograma para siempre, y ese fotograma dice `transform: none`.
-     Como las animaciones le ganan a las reglas normales, el
-     `translateY(-4px)` del :hover no se aplicaba nunca: las filas
-     brillaban pero no se levantaban.
-     `backwards` mantiene el fotograma inicial durante el retardo del
-     escalonado (que es para lo que hacía falta) y suelta el control
-     al terminar. */
+  padding: 14px 22px; border-top: 1px solid #eef0f3;
+  transition: background .2s ease, box-shadow .2s ease;
+  /* `backwards` y no `both`: mantiene el fotograma inicial durante el
+     retardo del escalonado y suelta el control al terminar, así no pisa
+     ningún estilo posterior de la fila. */
   animation: rpRowIn .45s ease backwards;
 }
-.table-card--cards .table__row:hover { transform: translateY(-4px); box-shadow: var(--rp-sombra-lift); }
-
-/* Franja + resplandor por tono. Mismo nombre en todos los catálogos.
-   Los :hover van calificados con .table-card--cards a propósito: la
-   regla genérica de arriba (`.table-card--cards .table__row:hover`) es
-   de tres clases, así que le ganaba a un `.table__row--ambar:hover` de
-   dos y TODAS las filas brillaban azul, sin importar su tono. Igualando
-   la especificidad, gana la de abajo, que es la del tono. */
-.table-card--cards .table__row--ambar { border-left-color: #d97706; }
-.table-card--cards .table__row--ambar:hover { box-shadow: 0 22px 40px rgba(217,119,6,.24); }
-.table-card--cards .table__row--verde { border-left-color: #16a34a; }
-.table-card--cards .table__row--verde:hover { box-shadow: 0 22px 40px rgba(22,163,74,.24); }
-.table-card--cards .table__row--neutral { border-left-color: #9aa2b1; }
-.table-card--cards .table__row--neutral:hover { box-shadow: 0 22px 40px rgba(107,114,128,.22); }
+.table-card--cards .table__row:hover { background: var(--rp-fila-hover); box-shadow: inset 4px 0 0 var(--rp-acento); }
 
 /* min-width:0 deja que la celda se achique; overflow-wrap es la red de
-   seguridad para cuando aun así el contenido es una sola palabra más
-   ancha que su columna (un email largo, un nombre sin espacios): sin
-   esto se sale y se monta sobre la columna vecina.
-   `break-word` y no `anywhere`: los dos evitan el desborde, pero
-   `anywhere` además deja que la columna se achique por debajo del ancho
-   de la palabra más larga, y ahí el grid parte apellidos normales
-   ("Fernánde / z"). Con `break-word` la columna respeta la palabra y
-   sólo se corta lo que de verdad no entra. */
+   seguridad para cuando el contenido es una sola palabra más ancha que
+   su columna (un email largo, un nombre sin espacios). `break-word` y no
+   `anywhere`: con `anywhere` el grid parte apellidos normales. */
 .table__cell { min-width: 0; overflow-wrap: break-word; }
-/* flex-wrap: cuando la celda lleva un dato más una etiqueta (el teléfono
-   y su "WhatsApp", el nombre y su "Inactivo") y no entran en la misma
-   línea, la etiqueta baja entera en vez de apretar al dato. */
+/* flex-wrap: cuando la celda lleva un dato más una etiqueta (el nombre y
+   su "Inactivo") y no entran en la misma línea, la etiqueta baja entera. */
 .table__cell--nombre { display: flex; align-items: center; gap: 13px; flex-wrap: wrap; }
-/* min-width:0 es imprescindible: como el <b> es un hijo flex, su
-   min-width por defecto es `auto`, o sea "nunca más angosto que mi
-   palabra más larga". Sin esto, una razón social larga empuja la celda
-   fuera de su columna del grid y se monta sobre el CUIT. */
-/* max-width: el ancho de la celda menos el avatar (40px) y el gap (13px).
-   Con flex-wrap, un nombre más largo que el espacio al lado del avatar
-   bajaba ENTERO a la línea de abajo y dejaba el avatar solo arriba. Con
-   el tope, el nombre se queda al lado y parte sus palabras ahí. */
-.table__cell--nombre b { font-size: 16px; font-weight: 700; color: var(--rp-navy); letter-spacing: -.01em; min-width: 0; max-width: calc(100% - 53px); }
+/* min-width:0 porque el <b> es un hijo flex y si no nunca se achica por
+   debajo de su palabra más larga. max-width: el ancho de la celda menos
+   el avatar (40px) y el gap (13px), para que un nombre largo parta sus
+   palabras al lado del avatar en vez de bajar entero. */
+.table__cell--nombre b { font-size: 15px; font-weight: 700; color: var(--rp-navy); min-width: 0; max-width: calc(100% - 53px); }
 /* Un email no tiene dónde cortarse: se recorta con "…" (el title de la
-   celda muestra el completo) en vez de partirse en "compras@edasa.co / m". */
-.table__cell--email { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; color: var(--rp-texto); }
-/* nowrap: un CUIT o un teléfono son un número, y un número partido al
-   medio ("+54 351 / 555-0001") deja de leerse como tal. */
-.table__cell--mono { font-family: 'Roboto Mono', ui-monospace, monospace; font-size: 14px; color: var(--rp-texto); white-space: nowrap; }
-/* Contacto y teléfono: texto normal, no monoespaciado. En el prototipo
-   la monoespaciada es sólo para el CUIT, que es un identificador; los
-   datos de contacto son texto común. */
+   celda muestra el completo). */
+.table__cell--email { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 500; color: var(--rp-texto); }
+/* nowrap: un CUIT o un teléfono partidos al medio dejan de leerse. */
+.table__cell--mono { font-size: 14px; font-weight: 500; color: var(--rp-texto); white-space: nowrap; }
 .table__cell--contacto { font-size: 15px; font-weight: 600; color: var(--rp-navy); }
-.table__cell--tel { font-size: 15px; color: var(--rp-texto); }
-.table__cell--vacio { color: #a2a9b5; }
-/* Varias etiquetas en una celda (los rubros de un proveedor): si no
+.table__cell--tel { font-size: 14px; font-weight: 500; color: var(--rp-texto); white-space: nowrap; }
+.table__cell--vacio { color: #b0b5be; }
+/* Varias etiquetas en una celda (los tipos de un proveedor): si no
    entran en una línea, bajan enteras. */
 .table__cell--tipos, .field__value--badges { display: flex; flex-wrap: wrap; gap: 6px; }
 .table__cell--fin { justify-self: end; }
 
-/* Página de error inesperado (app/router/ErrorPage.tsx). Reusa el recuadro
-   punteado de .empty-state y le suma el detalle técnico y las acciones. */
+/* Página de error inesperado (app/router/ErrorPage.tsx). */
 .error-page { display: flex; flex-direction: column; align-items: center; gap: 14px; }
 .error-page__detail {
-  margin: 0; padding: 8px 12px; border-radius: 10px; background: #f5f7fb;
-  font-family: 'Roboto Mono', ui-monospace, monospace; font-size: 12px;
+  margin: 0; padding: 8px 12px; border-radius: var(--rp-r-control); background: #f5f6f9;
+  font-family: ui-monospace, Consolas, monospace; font-size: 12px;
   color: var(--rp-texto-sec); overflow-wrap: anywhere;
 }
 .error-page__actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: center; }
 
 /* --- Estado vacío / cargando / no encontrado ---
-   El mismo recuadro que .table__empty, para que "Cargando…", "No
-   encontramos…" y una lista vacía se vean como la misma cosa. Antes era
-   un borde punteado suelto sobre el fondo, del diseño anterior. */
+   La misma tarjeta que el listado, para que "Cargando…" y una lista
+   vacía se lean como el mismo lugar. */
 .empty-state {
-  background: #fff; border: 1px dashed #cfd6e2; border-radius: var(--rp-r-fila);
-  padding: 40px; text-align: center;
+  background: #fff; border-radius: var(--rp-r-tarjeta);
+  box-shadow: 0 4px 18px rgba(23,38,69,.06);
+  padding: 48px 24px; text-align: center;
 }
 .empty-state__text { margin: 0; font-size: 15px; color: var(--rp-texto-sec); }
+/* Dentro de la tarjeta del listado, debajo del encabezado gris. */
+.table__empty {
+  padding: 48px 24px; text-align: center;
+  border-top: 1px solid #eef0f3; color: var(--rp-texto-sec); font-size: 15px;
+}
 
-/* --- Paginador (listado de Encargados) ---
-   Centrado bajo la lista y con el "Página 1 de 2" legible: era un texto
-   gris de 13px pegado al borde derecho. */
+/* --- Paginador (listado de Encargados) --- */
 .pagination { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 4px; padding-bottom: 12px; }
 .pagination__status { font-size: 14px; font-weight: 600; color: var(--rp-texto-sec); white-space: nowrap; }
 
-/* --- Casilla con texto sobre fondo claro ("Incluir eliminados" en el
-   detalle de fábrica) --- El texto heredaba el gris chico del diseño
-   anterior y al lado del cuadro grande parecía una nota al pie. */
+/* Casilla con texto sobre fondo claro ("Incluir eliminados" en el
+   detalle de fábrica). */
 .filters__checkbox { gap: 10px; font-size: 14px; font-weight: 600; color: var(--rp-navy); user-select: none; }
 
 /* --- Botones de guardar al pie, sólo en celular ---
@@ -1285,124 +1155,81 @@ table {
    (ver el bloque de 900px). En escritorio no existen. */
 .form-actions--mobile { display: none; }
 
-.table__empty {
-  background: #fff; border: 1px dashed #cfd6e2; border-radius: var(--rp-r-fila);
-  padding: 40px; text-align: center; color: var(--rp-texto-sec); font-size: 15px;
-}
-
-/* Enlace "Ver" de cada fila */
+/* Enlace "Ver" de cada fila: suave en reposo, azul al apuntarlo. */
 .link-btn {
   display: inline-flex; align-items: center; justify-content: center;
-  min-height: 40px; padding: 0 20px; border-radius: 999px;
-  font-size: 14px; font-weight: 800; color: #fff; text-decoration: none;
-  background: var(--rp-grad-btn); box-shadow: 0 8px 18px rgba(47,111,237,.34);
-  transition: transform .18s ease, box-shadow .18s ease;
+  min-height: 40px; padding: 0 18px; border-radius: var(--rp-r-control);
+  font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--rp-azul); text-decoration: none; background: var(--rp-suave);
+  transition: background .2s ease, color .2s ease;
 }
-.link-btn:hover { color: #fff; transform: translateY(-2px); box-shadow: 0 14px 28px rgba(47,111,237,.5); }
+.link-btn:hover { background: var(--rp-azul); color: #fff; }
 
-/* Acción secundaria de la fila: hoy es el tacho de eliminar de Encargados.
-   Va como ícono y no como segundo botón a propósito: borrar no puede
-   pesar lo mismo que ver el detalle. Neutro en reposo, rojo al apuntarlo,
-   que es cuando el usuario ya decidió ir hacia ahí. */
+/* Acción secundaria de la fila en ícono (el lápiz de editar). Neutra en
+   reposo: no puede pesar lo mismo que "Ver". */
 .row-action {
   display: inline-flex; align-items: center; justify-content: center;
   width: 40px; height: 40px; flex-shrink: 0;
-  border: 1px solid var(--rp-linea); border-radius: 999px;
-  background: #fff; color: var(--rp-texto-sec); cursor: pointer;
-  transition: background .18s ease, color .18s ease, border-color .18s ease;
+  border: 0; border-radius: var(--rp-r-control);
+  background: transparent; color: var(--rp-texto-sec); cursor: pointer;
+  transition: background .2s ease, color .2s ease, transform .2s ease;
 }
-.row-action:hover { background: #fdecec; border-color: #f2c9c9; color: #dc2626; }
+.row-action:hover { background: var(--rp-peligro-fondo); color: var(--rp-peligro); transform: translateY(-2px); }
 /* La de editar no es destructiva: se ilumina en azul, no en rojo. */
-.row-action--edit:hover { background: #eaf1ff; border-color: #cddcf9; color: var(--rp-azul-osc); }
-.row-action svg { width: 17px; height: 17px; }
-
+.row-action--edit:hover { background: var(--rp-suave); color: var(--rp-azul); }
+.row-action svg { width: 18px; height: 18px; }
 /* Cuando la fila termina en botón + ícono, los dos van juntos a la
    derecha en vez de estirarse. */
 .table__cell--acciones { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
-/* Acción secundaria en texto dentro de la fila ("Reactivar"): sin esto
-   el <button> sale con la tipografía por defecto y parece texto suelto. */
+/* Acción secundaria en texto dentro de la fila ("Reactivar"). */
 .table-card--cards button.table__action {
-  padding: 0 4px; border: 0; background: none; cursor: pointer;
-  font-size: 14px; font-weight: 700; color: var(--rp-azul-osc);
+  min-height: 40px; padding: 0 14px; border: 0; border-radius: var(--rp-r-control);
+  background: var(--rp-suave); cursor: pointer;
+  font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--rp-azul); transition: background .2s ease, color .2s ease;
 }
+.table-card--cards button.table__action:not(:disabled):hover { background: var(--rp-azul); color: #fff; }
 .table-card--cards button.table__action:disabled { opacity: .5; cursor: default; }
 
 
 /* ============================================================
-   7. AVATAR Y ETIQUETA DE CATEGORÍA
-   Los usan Avatar.tsx y Badge.tsx. Tres tonos, nombres neutros
-   (azul / ámbar / verde) para que cada catálogo los mapee a lo
-   suyo: Proveedores usa material-pintura-repuesto, Fábricas
-   puede usar otra cosa, y el CSS no se entera.
+   7. AVATAR Y ETIQUETAS
+   Los usan Avatar.tsx y Badge.tsx. El avatar es un cuadrado
+   marino con el ícono de la entidad (EntityIcon.tsx). Las
+   etiquetas son todas del mismo relleno suave: el tipo se
+   distingue por su ícono, no por un color.
    ============================================================ */
 .avatar {
-  width: 40px; height: 40px; flex-shrink: 0; border-radius: 13px;
+  width: 40px; height: 40px; flex-shrink: 0; border-radius: var(--rp-r-control);
   display: inline-flex; align-items: center; justify-content: center;
-  font-size: 14px; font-weight: 700; color: #fff;
-  background: linear-gradient(140deg, #4a83ff, #1d54c9);
-  box-shadow: 0 8px 18px rgba(47,111,237,.36);
+  font-size: 14px; font-weight: 700; color: #fff; background: var(--rp-navy);
 }
-.avatar--ambar { background: linear-gradient(140deg,#f0a92c,#b45309); box-shadow: 0 8px 18px rgba(180,83,9,.32); }
-.avatar--verde { background: linear-gradient(140deg,#34c76a,#15803d); box-shadow: 0 8px 18px rgba(21,128,61,.32); }
-.avatar--lg { width: 58px; height: 58px; border-radius: 18px; font-size: 19px; }
+.avatar svg { width: 20px; height: 20px; flex-shrink: 0; }
+.avatar--lg { width: 58px; height: 58px; border-radius: var(--rp-r-tarjeta); font-size: 19px; }
+.avatar--lg svg { width: 28px; height: 28px; }
+/* Dentro del panel marino el avatar va translúcido para despegarse. */
+.page-header .avatar { background: rgba(255,255,255,.12); }
 
-/* Cuarto tono. El bloque venía con tres, pero Proveedores tiene
-   cuatro rubros (Material, Tercerizado, Repuesto, Pintura) y sin
-   esto dos rubros distintos compartían color. Gris como el
-   .badge--neutral que ya existía, para que avatar y etiqueta de
-   una misma fila sigan coincidiendo. */
-.avatar--neutral { background: linear-gradient(140deg,#9aa2b1,#6b7280); box-shadow: 0 8px 18px rgba(107,114,128,.30); }
-
-/* Dentro del panel oscuro el avatar se invierte: blanco con las
-   iniciales en azul. El color de rubro sobre el degradado navy se
-   ensucia y pierde contraste; el rubro igual se lee en la etiqueta de
-   al lado. Pisa a cualquier --ambar/--verde/--neutral por tener más
-   especificidad. */
-.page-header .avatar,
-.page-header .avatar--ambar,
-.page-header .avatar--verde,
-.page-header .avatar--neutral {
-  background: linear-gradient(140deg, #fff, #d8e6ff);
-  color: var(--rp-azul-osc);
-  box-shadow: 0 14px 30px rgba(9,20,48,.30);
-}
-
-/* Color pleno, no pastel: es lo que despega la pantalla del
-   look de planilla. Blanco sobre color saturado pasa contraste. */
 /* OJO: no se redefine .badge a secas. La app ya tiene variantes
    pastel (--pendiente, --si, --cotizado...) con su propio color de
-   texto, y una regla base más abajo en el archivo se las pisaría.
-   Los tonos Rediseño proveedores traen su tipografía y su color propios. */
-.badge--azul, .badge--ambar, .badge--verde, .badge--neutral {
-  display: inline-flex; align-items: center; justify-self: start;
-  padding: 6px 12px; border-radius: 8px;
-  font-size: 11px; font-weight: 800; letter-spacing: .06em;
-  text-transform: uppercase; color: #fff;
+   texto, y una regla base acá se las pisaría. */
+.badge--azul, .badge--ambar, .badge--verde, .badge--neutral, .badge--suave {
+  display: inline-flex; align-items: center; gap: 7px; justify-self: start;
+  padding: 6px 11px; border-radius: var(--rp-r-etiqueta);
+  font-size: 12px; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--rp-navy);
+  background: var(--rp-suave); border: 0; box-shadow: none;
 }
-.badge--azul  { background: var(--rp-tono-azul);  box-shadow: 0 6px 14px rgba(47,111,237,.34); }
-.badge--ambar { background: var(--rp-tono-ambar); box-shadow: 0 6px 14px rgba(180,83,9,.30); }
-.badge--verde { background: var(--rp-tono-verde); box-shadow: 0 6px 14px rgba(21,128,61,.30); }
-.badge--neutral { background: #6b7280; }
-
-/* La suave no entra en la regla de arriba: no lleva texto blanco ni
-   versalitas, porque su contenido es un nombre escrito por el usuario
-   (un rubro) y no una etiqueta de sistema. */
-.badge--suave {
-  display: inline-flex; align-items: center; justify-self: start;
-  padding: 6px 12px; border-radius: 8px;
-  font-size: 13px; font-weight: 600;
-  background: #eef1f6; color: var(--rp-texto); border: 1px solid #e3e7ee;
-}
-
-/* Misma inversión que el avatar: adentro del panel oscuro la etiqueta
-   de rubro va en vidrio, no en color pleno. */
+.badge--azul svg, .badge--ambar svg, .badge--verde svg,
+.badge--neutral svg, .badge--suave svg { width: 14px; height: 14px; flex-shrink: 0; }
+/* "Inactivo" usa esta misma etiqueta: no lleva color propio. */
+/* Dentro del panel marino la etiqueta va translúcida. */
 .page-header .badge--azul,
 .page-header .badge--ambar,
 .page-header .badge--verde,
 .page-header .badge--neutral,
 .page-header .badge--suave {
-  background: rgba(255,255,255,.18); box-shadow: none; color: #fff;
-  border-color: rgba(255,255,255,.28);
+  background: rgba(255,255,255,.14); color: #fff;
 }
 
 
@@ -1821,8 +1648,8 @@ table {
 .btn-trash {
   width: 44px; height: 44px; flex-shrink: 0; padding: 0;
   display: inline-flex; align-items: center; justify-content: center; gap: 9px;
-  border: 1px solid var(--rp-linea); border-radius: 14px;
-  background: #fff; color: var(--rp-texto-sec); cursor: pointer;
+  border: 0; border-radius: var(--rp-r-control);
+  background: var(--rp-suave); color: var(--rp-texto-sec); cursor: pointer;
   font: inherit;
   transition: color .18s ease, background .18s ease, border-color .18s ease,
               transform .18s ease, box-shadow .18s ease;
@@ -1832,15 +1659,14 @@ table {
    de los botones del sistema. */
 .btn-trash--text {
   width: auto; min-height: 48px; padding: 0 20px;
-  border-radius: 999px; font-size: 15px; font-weight: 700;
+  font-size: 14px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--rp-navy);
 }
 
 .btn-trash:hover {
-  color: #b91c1c;
-  background: #fef2f2;
-  border-color: #f2c9c9;
+  color: var(--rp-peligro);
+  background: var(--rp-peligro-fondo);
   transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(220, 38, 38, .18);
 }
 
 /* La tapa se abre al pasar por encima.
@@ -1869,15 +1695,15 @@ table {
 
 /* Foco visible, mismo anillo que los campos del formulario. */
 .btn-trash:focus-visible {
-  outline: none; color: #b91c1c; border-color: #dc2626;
-  box-shadow: 0 0 0 5px rgba(220, 38, 38, .16);
+  outline: none; color: var(--rp-peligro);
+  box-shadow: 0 0 0 4px rgba(179, 38, 30, .18);
 }
 
-.btn-trash:active { transform: translateY(0); box-shadow: 0 4px 12px rgba(220, 38, 38, .18); }
+.btn-trash:active { transform: translateY(0); }
 
 .btn-trash:disabled {
   opacity: .45; cursor: not-allowed; transform: none; box-shadow: none;
-  color: var(--rp-texto-sec); background: #fff; border-color: var(--rp-linea);
+  color: var(--rp-texto-sec); background: var(--rp-suave);
 }
 .btn-trash:disabled svg .lid { transform: none; }
 
@@ -1885,8 +1711,8 @@ table {
    botón "Ver". Mismo tamaño y forma redonda que su vecino, el botón de
    editar (.row-action), para que los dos íconos de la fila se lean como
    un par. */
-.table__row .btn-trash { width: 40px; height: 40px; border-radius: 999px; border-color: transparent; background: transparent; }
-.table__row .btn-trash:hover { border-color: #f2c9c9; background: #fef2f2; }
+.table__row .btn-trash { width: 40px; height: 40px; background: transparent; }
+.table__row .btn-trash:hover { background: var(--rp-peligro-fondo); }
 
 /* Sobre el panel oscuro de cabecera: en vidrio, como .btn--secondary.
    El :not(:disabled) evita que un botón deshabilitado se ponga blanco
@@ -1894,12 +1720,11 @@ table {
 /* Mismo vidrio oscuro que --outline (ver el porqué en "5. BOTONES"). */
 .page-header .btn-trash,
 .page-header .btn-trash:disabled {
-  background: rgba(13, 27, 62, .34);
-  border-color: rgba(255, 255, 255, .6);
+  background: rgba(255, 255, 255, .12);
   color: #fff;
 }
 .page-header .btn-trash:not(:disabled):hover {
-  background: #fff; border-color: #fff; color: #b91c1c;
+  background: #fff; color: var(--rp-peligro);
 }
 
 @media (max-width: 900px) {
@@ -1927,10 +1752,20 @@ table {
    El bloque de 900px repite estas reglas y agrega lo del menú.
    ------------------------------------------------------------ */
 @media (max-width: 1200px) {
+  /* Cada fila pasa a ser una ficha suelta: la tarjeta contenedora se
+     apaga, el encabezado de columnas se esconde y cada fila lleva su
+     propio fondo y sombra. */
+  .table-card--cards { gap: 12px; background: none; box-shadow: none; overflow: visible; }
   .table-card--cards .table__head { display: none; }
   .table-card--cards .table__row {
     grid-template-columns: 1fr; gap: 10px;
-    border-radius: 20px; padding: 16px 18px;
+    background: #fff; border-top: 0; border-radius: var(--rp-r-tarjeta);
+    box-shadow: 0 4px 18px rgba(23,38,69,.06); padding: 16px 18px;
+  }
+  .table-card--cards .table__row:hover { background: #fff; box-shadow: 0 4px 18px rgba(23,38,69,.06); }
+  .table-card--cards .table__empty {
+    background: #fff; border-top: 0; border-radius: var(--rp-r-tarjeta);
+    box-shadow: 0 4px 18px rgba(23,38,69,.06);
   }
   /* En ficha, la acción va al pie y ocupa el ancho: es el objetivo más
      grande de la tarjeta y así se lee como el cierre de la ficha, no
@@ -1956,11 +1791,11 @@ table {
    el media query de abajo lo prende. Tiene que ir ANTES del media query;
    si va después, su `display: none` le gana por orden de cascada. */
 .topbar__burger {
-  display: none; width: 42px; height: 42px; flex-shrink: 0;
+  display: none; width: 50px; height: 50px; flex-shrink: 0;
   flex-direction: column; align-items: center; justify-content: center; gap: 5px;
-  border-radius: 12px; background: #f2f5fa; border: 1px solid #e3e7ee; cursor: pointer;
+  border-radius: var(--rp-r-tarjeta); background: var(--rp-navy);
 }
-.topbar__burger span { width: 18px; height: 2.5px; border-radius: 2px; background: var(--rp-azul-osc); display: block; }
+.topbar__burger span { width: 20px; height: 2.5px; border-radius: 2px; background: #fff; display: block; }
 
 /* El fondo del cajón también arranca apagado. Si se abría el cajón en
    una ventana angosta y después se agrandaba, el <button> seguía en el
@@ -1973,27 +1808,71 @@ table {
 
   .sidebar {
     position: fixed; top: 0; bottom: 0; left: 0; z-index: 60;
-    width: 238px; padding-left: 16px;
-    transform: translateX(-100%); transition: transform .26s ease;
+    width: 272px; padding: 24px 0 24px 16px; gap: 32px;
+    transform: translateX(-100%); transition: transform .28s ease;
   }
   .sidebar--open { transform: none; }
   /* En celular no se colapsa: las reglas de --collapsed están dentro de
      un media query de escritorio, así que acá no hay nada que deshacer. */
   .sidebar__burger { display: none; }                         /* el de adentro; el de la topbar abre */
 
+  .sidebar__link { margin-right: 16px; padding: 17px 16px; font-size: 15px; }
+  .sidebar__link:hover { transform: none; }
   .sidebar__link--active {
-    margin-right: 16px; padding: 16px 14px; border-radius: var(--rp-r-nav);
-    background: #fff; box-shadow: 0 10px 24px rgba(9,26,74,.24);
+    margin-right: 16px; padding: 17px 16px; border-radius: var(--rp-r-tarjeta);
+    box-shadow: 0 10px 24px rgba(0,0,0,.25);
   }
   .sidebar__link--active::before,
   .sidebar__link--active::after { display: none; }
 
-  .app__backdrop { display: block; position: fixed; inset: 0; z-index: 55; background: rgba(9,20,48,.55); border: 0; }
+  /* El fondo oscurecido ocupa toda la pantalla; el padding izquierdo es
+     el ancho del cajón, así la cruz queda centrada en la franja libre. */
+  .app__backdrop {
+    display: flex; align-items: flex-start; justify-content: center;
+    position: fixed; inset: 0; z-index: 55;
+    padding: 24px 0 0 272px; background: rgba(21,34,62,.6); border: 0;
+    animation: rpFadeIn .2s ease both;
+  }
+  .app__backdrop-close {
+    width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;
+    border-radius: var(--rp-r-tarjeta); background: #fff; color: var(--rp-navy);
+    font-size: 24px; font-weight: 600; line-height: 1;
+  }
+
+  /* Topbar de celular: logo a la izquierda y botón del menú a la derecha.
+     El rótulo de sección se esconde porque el panel de cabecera de cada
+     pantalla ya dice dónde estás. */
+  .topbar {
+    height: 74px; padding: 0 18px; background: #fff; border-bottom: 0;
+    box-shadow: 0 2px 12px rgba(23,38,69,.06);
+    position: sticky; top: 0; z-index: 40;
+  }
+  .topbar__logo { display: block; }
+  .topbar__breadcrumb { display: none; }
   .topbar__burger { display: flex; }
 
   .content { padding: 18px 16px; }
-  .page-header { border-radius: 20px; padding: 20px; }
-  .page-header__title { font-size: 29px; }
+  .page-header { padding: 24px 20px; }
+  .page-header__title { font-size: 34px; }
+  /* Hero en celular: la foto ocupa todo el panel, apagada, y el panel
+     deja lugar abajo para la barra que se le monta encima. */
+  .page-header--hero { min-height: 0; padding: 28px 20px 56px; gap: 12px; }
+  .page-header--hero::before { width: 100%; opacity: .35; animation: none; }
+  .page-header--hero::after {
+    background-image: radial-gradient(rgba(255,255,255,.07) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .page-header__eyebrow { font-size: 13px; }
+  .page-header__line { width: 70px; }
+  /* La barra apila todo a lo ancho: buscador, filtros y botones. */
+  .toolbar {
+    margin: calc(-36px - var(--space-6)) 14px 0; padding: 14px;
+    flex-direction: column; align-items: stretch; flex-wrap: nowrap;
+  }
+  .toolbar .search-field { flex: none; }
+  .toolbar .select__trigger { flex: none; width: 100%; }
+  .toolbar__cta { margin-left: 0; }
+  .filter-check { align-self: flex-start; }
   .page-header__row { flex-direction: column; align-items: stretch; }
   /* Los grupos de botones del panel también se apilan. Sin esto siguen
      en fila y, como abajo de 900px cada .btn ocupa el 100%, el segundo
@@ -2006,12 +1885,6 @@ table {
      competir por el ancho. */
   .page-header .detail-header__left { flex-wrap: wrap; }
 
-  .table-card--cards .table__head { display: none; }          /* sin encabezado de columnas */
-  .table-card--cards .table__row {
-    grid-template-columns: 1fr; gap: 10px;
-    border-radius: 20px; padding: 16px 18px;
-  }
-  .table-card--cards .table__row:hover { transform: none; }
   .table__cell--fin { justify-self: stretch; }
   .link-btn { min-height: 48px; }
 

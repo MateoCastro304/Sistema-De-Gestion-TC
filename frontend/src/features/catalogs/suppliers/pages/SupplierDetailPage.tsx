@@ -9,7 +9,7 @@ import type {SupplierFormValues, SupplierType} from '../types/supplier'
 import type { ChangeEvent } from 'react'
 import { useUpdateSupplier } from '../api/useUpdateSupplier'
 import { buildSupplierPatch } from '../utils/buildSupplierPatch'
-import { TYPE_TONES, supplierTone } from '../utils/supplierTone'
+import { TYPE_ICONS, TYPE_TONES, supplierIcon, supplierTone } from '../utils/supplierTone'
 import { useToast } from '@/app/providers/ToastContext'
 import { conflictErrors, supplierErrorMessage, validateSupplierForm } from '../utils/validateSupplierForm'
 import type { SupplierFormErrors } from '../utils/validateSupplierForm'
@@ -39,7 +39,7 @@ function TypeBadges({ types }: { types: SupplierType[] }) {
   return (
     <>
       {types.map((type) => (
-        <Badge key={type} variant={TYPE_TONES[type]}>
+        <Badge key={type} variant={TYPE_TONES[type]} icon={TYPE_ICONS[type]}>
           {SUPPLIER_TYPE_LABELS[type]}
         </Badge>
       ))}
@@ -204,7 +204,12 @@ export function SupplierDetailPage() {
             {/* El cuadrado con las iniciales, en su tamaño grande y con
                 el color del rubro: el mismo que se ve en el listado, así
                 se reconoce que es el mismo proveedor. */}
-            <Avatar name={supplier.legalName} tone={supplierTone(supplier.supplierTypes)} size="lg" />
+            <Avatar
+              name={supplier.legalName}
+              icon={supplierIcon(supplier.supplierTypes)}
+              tone={supplierTone(supplier.supplierTypes)}
+              size="lg"
+            />
 
             <div>
               {/* Sin badge de estado: si el proveedor se ve, esta activo. Los

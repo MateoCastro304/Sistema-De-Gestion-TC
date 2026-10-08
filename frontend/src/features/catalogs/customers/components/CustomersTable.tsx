@@ -38,7 +38,7 @@ export function CustomersTable({
       header: 'Nombre',
       render: (c) => (
         <span className="table__cell--nombre">
-          <Avatar name={customerFullName(c)} tone={toneByStatus(c.isActive)} />
+          <Avatar name={customerFullName(c)} icon="encargado" tone={toneByStatus(c.isActive)} />
           <b>
             {customerFullName(c)}
           </b>
@@ -72,7 +72,7 @@ export function CustomersTable({
       header: 'Rubro',
       render: (c) => {
         const factory = factoryById(c.factoryId)
-        return factory ? <Badge variant="suave">{categoryName(factory.categoryId)}</Badge> : <ValueOrDash />
+        return factory ? <Badge variant="suave" icon="rubro">{categoryName(factory.categoryId)}</Badge> : <ValueOrDash />
       },
     },
     {

@@ -173,7 +173,7 @@ export function FactoryDetailPage() {
       header: 'Nombre',
       render: (c) => (
         <span className="table__cell--nombre">
-          <Avatar name={fullName(c)} tone={toneByStatus(c.isActive)} />
+          <Avatar name={fullName(c)} icon="encargado" tone={toneByStatus(c.isActive)} />
           <b>{fullName(c)}</b>
           {!c.isActive && <Badge variant="neutral">Inactivo</Badge>}
         </span>
@@ -242,7 +242,7 @@ export function FactoryDetailPage() {
               </svg>
             </Link>
 
-            <Avatar name={factory.name} tone={toneByStatus(factory.isActive)} size="lg" />
+            <Avatar name={factory.name} icon="fabrica" tone={toneByStatus(factory.isActive)} size="lg" />
 
             <div>
               <div className="detail-header__title-row">
@@ -250,7 +250,7 @@ export function FactoryDetailPage() {
               </div>
               <p className="page-header__subtitle detail-header__meta">
                 {`CUIT: ${formatCuit(factory.cuit)}`}
-                <Badge variant="suave">{categoryName}</Badge>
+                <Badge variant="suave" icon="rubro">{categoryName}</Badge>
               </p>
             </div>
           </div>

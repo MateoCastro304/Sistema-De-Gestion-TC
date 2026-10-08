@@ -27,7 +27,7 @@ export function CategoriesTable({
       header: 'Nombre',
       render: (c) => (
         <span className="table__cell--nombre">
-          <Avatar name={c.name} />
+          <Avatar name={c.name} icon="rubro" />
           <b>{c.name}</b>
         </span>
       ),

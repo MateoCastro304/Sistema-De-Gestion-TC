@@ -146,7 +146,7 @@ export function CustomerDetailPage() {
 
             {/* El cuadrado con las iniciales, en su tamaño grande: el mismo
                 que se ve en el listado, para reconocer que es el mismo. */}
-            <Avatar name={fullName} tone={toneByStatus(customer.isActive)} size="lg" />
+            <Avatar name={fullName} icon="encargado" tone={toneByStatus(customer.isActive)} size="lg" />
 
             <div>
               <div className="detail-header__title-row">

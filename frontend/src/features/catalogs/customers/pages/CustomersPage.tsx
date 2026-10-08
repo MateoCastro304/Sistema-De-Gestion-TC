@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { Button, CheckBox, IconTrash, Modal } from '@/shared/components/ui'
+import { Button, CheckBox, IconTrash, Modal, PageHero, SearchField } from '@/shared/components/ui'
+import fotoTaller from '@/assets/foto-cnc.png'
 import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
 import type { Customer } from '../types/customer'
@@ -109,53 +110,21 @@ export function CustomersPage() {
 
   return (
     <>
-      {/* Rediseño: el encabezado pasa a ser el panel azul, el mismo de
-          Fábricas y Proveedores. Cambia la envoltura y las clases; los
-          textos, el botón y el link son los de antes. Los filtros se
-          mudan acá adentro (ver más abajo). */}
-      <div className="page-header">
-        <div className="page-header__row">
-          <div className="page-header__heading">
-            <span className="page-header__eyebrow">Catálogo</span>
-            <h1 className="page-header__title">Encargados</h1>
-            <p className="page-header__subtitle">
-              Alta, baja, modificación y consulta de encargados de fábricas.
-            </p>
-          </div>
-          <div className="content__actions">
-            <Link to="/catalogos/encargados/nuevo" className="btn btn--primary content__cta">
-              <span>+</span> Nuevo encargado
-            </Link>
-          </div>
-        </div>
+      <PageHero eyebrow="Contactos de" accent="fábricas" title="Encargados" photo={fotoTaller} />
 
+      {/* Barra de herramientas: buscador, filtro y alta. Los filtros
+          aparecen recién cuando el listado cargó. */}
+      <div className="toolbar">
         {customersQuery.isSuccess && (
-          <div className="page-header__filters">
-            <label className="search-field">
-              <svg
-                className="search-field__icon"
-                viewBox="0 0 20 20"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                aria-hidden="true"
-              >
-                <circle cx="9" cy="9" r="6" />
-                <path d="m14 14 4 4" strokeLinecap="round" />
-              </svg>
-              <input
-                type="search"
-                className="search-input"
-                placeholder="Buscar por nombre o apellido"
-                aria-label="Buscar por nombre o apellido"
-                value={search}
-                onChange={(event) => handleSearchChange(event.target.value)}
-              />
-            </label>
+          <>
+            <SearchField
+              value={search}
+              onChange={handleSearchChange}
+              placeholder="Buscar por nombre o apellido"
+            />
 
             {/* El <label> envuelve al input, así que el texto también
-                alterna la casilla. CheckBox sólo cambia el aspecto: el
-                input nativo sigue adentro con su mismo onChange. */}
+                alterna la casilla. */}
             <label className="filter-check">
               <CheckBox
                 checked={showInactive}
@@ -163,8 +132,11 @@ export function CustomersPage() {
               />
               Incluir eliminados
             </label>
-          </div>
+          </>
         )}
+        <Link to="/catalogos/encargados/nuevo" className="btn btn--primary toolbar__cta">
+          + Nuevo encargado
+        </Link>
       </div>
 
       {customersQuery.isLoading && (

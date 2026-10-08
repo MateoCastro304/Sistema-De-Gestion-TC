@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '@/shared/lib/cn'
+import { EntityIcon } from './EntityIcon'
+import type { EntityIconName } from './EntityIcon'
 
 /**
  * ============================================================
@@ -66,8 +68,15 @@ interface BadgeProps {
   children: ReactNode
   /** Sin variante queda la pastilla base, sin color. */
   variant?: BadgeVariant
+  /** Ícono a la izquierda del texto (tipo de proveedor, rubro). */
+  icon?: EntityIconName
 }
 
-export function Badge({ children, variant }: BadgeProps) {
-  return <span className={cn('badge', variant && `badge--${variant}`)}>{children}</span>
+export function Badge({ children, variant, icon }: BadgeProps) {
+  return (
+    <span className={cn('badge', variant && `badge--${variant}`)}>
+      {icon && <EntityIcon name={icon} />}
+      {children}
+    </span>
+  )
 }

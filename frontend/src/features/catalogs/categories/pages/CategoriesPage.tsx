@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Button, IconTrash, Modal } from '@/shared/components/ui'
+import { Button, IconTrash, Modal, PageHero, SearchField } from '@/shared/components/ui'
+import fotoTaller from '@/assets/foto-disco.png'
 import { normalizeText } from '@/shared/lib/normalizeText'
 import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
@@ -61,45 +62,13 @@ export function CategoriesPage() {
 
   return (
     <>
-      {/* El mismo panel azul de Encargados, Fábricas y Proveedores, con el
-          buscador adentro. */}
-      <div className="page-header">
-        <div className="page-header__row">
-          <div className="page-header__heading">
-            <span className="page-header__eyebrow">Catálogo</span>
-            <h1 className="page-header__title">Rubros</h1>
-            <p className="page-header__subtitle">
-              Alta, baja, modificación y consulta de los rubros de las fábricas.
-            </p>
-          </div>
-          <div className="content__actions">
-            <button type="button" className="btn btn--primary content__cta" onClick={openCreate}>
-              <span>+</span> Nuevo rubro
-            </button>
-          </div>
-        </div>
+      <PageHero eyebrow="Catálogo de" accent="rubros" title="Rubros" photo={fotoTaller} />
 
-        <label className="search-field">
-          <svg
-            className="search-field__icon"
-            viewBox="0 0 20 20"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            aria-hidden="true"
-          >
-            <circle cx="9" cy="9" r="6" />
-            <path d="m14 14 4 4" strokeLinecap="round" />
-          </svg>
-          <input
-            className="search-input"
-            type="search"
-            placeholder="Buscar rubro"
-            aria-label="Buscar rubro"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </label>
+      <div className="toolbar">
+        <SearchField value={search} onChange={setSearch} placeholder="Buscar rubro" />
+        <button type="button" className="btn btn--primary" onClick={openCreate}>
+          + Nuevo rubro
+        </button>
       </div>
 
       {categoriesQuery.isLoading && (

@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { isApiError } from '@/shared/api/ApiError'
-import { Select } from '@/shared/components/ui'
+import { PageHero, SearchField, Select } from '@/shared/components/ui'
+import fotoTaller from '@/assets/foto-ejes.png'
 import {
   useCustomers,
   useFactories,
@@ -52,55 +53,22 @@ export function FactoriesPage() {
 
   return (
     <>
-      {/* Rediseño: el encabezado pasa a ser el panel azul, el mismo que
-          usan Proveedores y el resto de los catálogos. Sólo cambia la
-          envoltura y las clases; los textos, el botón y el link son los
-          de antes. Los filtros se mudan acá adentro (ver más abajo). */}
-      <div className="page-header">
-        <div className="page-header__row">
-          <div className="page-header__heading">
-            <span className="page-header__eyebrow">Catálogo</span>
-            <h1 className="page-header__title">Fábricas</h1>
-            <p className="page-header__subtitle">
-              Alta, modificación y consulta de fábricas. Desde cada fábrica se
-              gestionan sus encargados.
-            </p>
-          </div>
-          <div className="content__actions">
-            <Link to="/catalogos/fabricas/nuevo" className="btn btn--primary content__cta">
-              <span>+</span> Nueva fábrica
-            </Link>
-          </div>
-        </div>
+      <PageHero eyebrow="Empresas" accent="clientes" title="Fábricas" photo={fotoTaller} />
 
+      {/* Barra de herramientas: buscador, filtro por rubro y alta. Los
+          filtros aparecen recién cuando el listado cargó. */}
+      <div className="toolbar">
         {factoriesQuery.isSuccess && (
-          <div className="page-header__filters">
-            <label className="search-field">
-              <svg
-                className="search-field__icon"
-                viewBox="0 0 20 20"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                aria-hidden="true"
-              >
-                <circle cx="9" cy="9" r="6" />
-                <path d="m14 14 4 4" strokeLinecap="round" />
-              </svg>
-              <input
-                type="search"
-                className="search-input"
-                placeholder="Buscar por razón social o CUIT"
-                aria-label="Buscar por razón social o CUIT"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-              />
-            </label>
+          <>
+            <SearchField
+              value={search}
+              onChange={setSearch}
+              placeholder="Buscar por razón social o CUIT"
+            />
 
             {/* "Todos los rubros" es una opción más (valor ''), no un
                 placeholder: volver a elegirla limpia el filtro. */}
             <Select
-              variant="glass"
               aria-label="Filtrar por rubro"
               value={categoryId}
               onChange={setCategoryId}
@@ -109,8 +77,11 @@ export function FactoriesPage() {
                 ...categories.map((category) => ({ value: category.id, label: category.name })),
               ]}
             />
-          </div>
+          </>
         )}
+        <Link to="/catalogos/fabricas/nuevo" className="btn btn--primary toolbar__cta">
+          + Nueva fábrica
+        </Link>
       </div>
 
       {factoriesQuery.isLoading && (

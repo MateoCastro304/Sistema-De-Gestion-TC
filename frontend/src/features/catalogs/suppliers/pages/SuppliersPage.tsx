@@ -7,12 +7,15 @@ import {
   CheckBox,
   IconTrash,
   Modal,
+  PageHero,
+  SearchField,
   Table,
   TrashButton,
   ValueOrDash,
 } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
 import { cn } from '@/shared/lib/cn'
+import fotoTaller from '@/assets/hero-castro.png'
 import { normalizeText } from '@/shared/lib/normalizeText'
 import { isApiError } from '@/shared/api/ApiError'
 import { useToast } from '@/app/providers/ToastContext'
@@ -20,7 +23,7 @@ import { useSuppliers } from '../api/useSuppliers'
 import { useDeleteSuppliers } from '../api/useDeleteSuppliers'
 import { SUPPLIER_TYPE_LABELS } from '../types/supplier'
 import type { Supplier } from '../types/supplier'
-import { TYPE_TONES, supplierTone } from '../utils/supplierTone'
+import { TYPE_ICONS, TYPE_TONES, supplierIcon, supplierTone } from '../utils/supplierTone'
 
 export function SuppliersPage() {
   const { data, isPending, error } = useSuppliers()
@@ -168,7 +171,11 @@ export function SuppliersPage() {
       header: 'Razón social',
       render: (s) => (
         <span className="table__cell--nombre">
-          <Avatar name={s.legalName} tone={supplierTone(s.supplierTypes)} />
+          <Avatar
+            name={s.legalName}
+            icon={supplierIcon(s.supplierTypes)}
+            tone={supplierTone(s.supplierTypes)}
+          />
           <b>{s.legalName}</b>
         </span>
       ),
@@ -183,7 +190,7 @@ export function SuppliersPage() {
       render: (s) => (
         <span className="table__cell--tipos">
           {s.supplierTypes.map((type) => (
-            <Badge key={type} variant={TYPE_TONES[type]}>
+            <Badge key={type} variant={TYPE_TONES[type]} icon={TYPE_ICONS[type]}>
               {SUPPLIER_TYPE_LABELS[type]}
             </Badge>
           ))}
@@ -248,71 +255,42 @@ export function SuppliersPage() {
 
   return (
     <>
-      {/*
-        Rediseño: el título, las acciones y el buscador pasan a vivir
-        adentro del mismo panel azul (.page-header) en vez de estar en
-        tres bloques sueltos. Es sólo envoltura: los mismos textos, los
-        mismos botones y el mismo input controlado de antes.
-      */}
-      <div className="page-header">
-        <div className="page-header__row">
-          <div className="page-header__heading">
-            {/* Chip de sección. El puntito que late lo pone el CSS. */}
-            <span className="page-header__eyebrow">Catálogo</span>
-            <h1 className="page-header__title">Proveedores</h1>
-            <p className="page-header__subtitle">
-              {isPending
-                ? 'Cargando…'
-                : data?.length === 1
-                  ? '1 proveedor registrado'
-                  : `${data?.length ?? 0} proveedores registrados`}
-            </p>
-          </div>
+      <PageHero eyebrow="Catálogo de" accent="proveedores" title="Proveedores" photo={fotoTaller}>
+        {isPending ? (
+          'Cargando…'
+        ) : (
+          <>
+            <strong>{data?.length ?? 0}</strong>{' '}
+            {data?.length === 1 ? 'proveedor registrado' : 'proveedores registrados'}
+          </>
+        )}
+      </PageHero>
 
-          {/* En modo eliminación las acciones las toma la barra de abajo. */}
-          {!isSelecting && (
-            <div className="content__actions">
-              {/* El botón de eliminar con el tacho animado. Adentro del
-                  panel oscuro va en vidrio, igual que el secondary de antes. */}
-              <TrashButton
-                label="Eliminar proveedores"
-                onClick={() => setSelected(new Set())}
-                disabled={(data?.length ?? 0) === 0}
-              >
-                Eliminar proveedores
-              </TrashButton>
-              <Link to="/catalogos/proveedores/nuevo" className="btn btn--primary content__cta">
-                <span>+</span> Nuevo proveedor
-              </Link>
-            </div>
-          )}
-        </div>
+      {/* Barra de herramientas: tarjeta blanca montada sobre la cabecera,
+          con el buscador y las acciones del listado. */}
+      <div className="toolbar">
+        <SearchField
+          value={search}
+          onChange={setSearch}
+          placeholder="Buscar por razón social, CUIT, contacto o tipo"
+          label="Buscar proveedores"
+        />
 
-        {/* Adentro del panel el buscador va en vidrio. La pastilla es el
-            <label>, no el input: así la lupa queda adentro y el anillo de
-            foco rodea a los dos (`:focus-within`). El <label> además hace
-            que tocar la lupa enfoque el campo. */}
-        <label className="search-field">
-          <svg
-            className="search-field__icon"
-            viewBox="0 0 20 20"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            aria-hidden="true"
-          >
-            <circle cx="9" cy="9" r="6" />
-            <path d="m14 14 4 4" strokeLinecap="round" />
-          </svg>
-          <input
-            className="search-input"
-            type="search"
-            placeholder="Buscar por razón social, CUIT, contacto o tipo"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            aria-label="Buscar proveedores"
-          />
-        </label>
+        {/* En modo eliminación las acciones las toma la barra de abajo. */}
+        {!isSelecting && (
+          <>
+            <TrashButton
+              label="Eliminar proveedores"
+              onClick={() => setSelected(new Set())}
+              disabled={(data?.length ?? 0) === 0}
+            >
+              Eliminar proveedores
+            </TrashButton>
+            <Link to="/catalogos/proveedores/nuevo" className="btn btn--primary">
+              + Nuevo proveedor
+            </Link>
+          </>
+        )}
       </div>
 
       {isSelecting && (

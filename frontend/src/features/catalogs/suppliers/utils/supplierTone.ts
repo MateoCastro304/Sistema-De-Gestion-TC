@@ -1,4 +1,4 @@
-import type { AvatarTone } from '@/shared/components/ui'
+import type { AvatarTone, EntityIconName } from '@/shared/components/ui'
 import type { SupplierType } from '../types/supplier'
 
 /**
@@ -37,4 +37,17 @@ export const TYPE_TONES: Record<SupplierType, AvatarTone> = {
  */
 export function supplierTone(supplierTypes: SupplierType[]): AvatarTone {
   return TYPE_TONES[supplierTypes[0]] ?? 'neutral'
+}
+
+/** Ícono de cada tipo: es lo que distingue a un tipo de otro en pantalla. */
+export const TYPE_ICONS: Record<SupplierType, EntityIconName> = {
+  MATERIAL: 'material',
+  PAINT: 'pintura',
+  REPLACEMENT: 'repuesto',
+  PROCESS: 'tercerizado',
+}
+
+/** Ícono del avatar: el del primer tipo del proveedor. */
+export function supplierIcon(supplierTypes: SupplierType[]): EntityIconName {
+  return TYPE_ICONS[supplierTypes[0]] ?? 'proveedor'
 }
