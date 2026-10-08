@@ -1,11 +1,5 @@
 ﻿import { plainToInstance } from 'class-transformer';
-import {
-  IsEnum,
-  IsNumber,
-  IsString,
-  MinLength,
-  validateSync,
-} from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString, MinLength, validateSync } from 'class-validator';
 
 enum Entorno {
   Development = 'development',
@@ -30,6 +24,10 @@ class EnvironmentVariables {
   @IsString()
   @MinLength(32)
   JWT_REFRESH_SECRET!: string;
+
+  @IsOptional()
+  @IsString()
+  ALLOWED_ORIGINS?: string;
 }
 
 export function validate(config: Record<string, unknown>) {
@@ -43,12 +41,7 @@ export function validate(config: Record<string, unknown>) {
 
   if (errors.length > 0) {
     throw new Error(
-      errors
-        .map(
-          (error) =>
-            `${error.property}: ${Object.values(error.constraints ?? {}).join(', ')}`,
-        )
-        .join('\n'),
+      errors.map((error) => `${error.property}: ${Object.values(error.constraints ?? {}).join(', ')}`).join('\n'),
     );
   }
 
