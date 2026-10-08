@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { Customer } from '../domain/customer';
 import { CustomerRepository } from '../domain/port/customer.repository';
 import { UpdateCustomerDto } from '../http/dto/update-customer.dto';
@@ -10,6 +10,10 @@ export class UpdateCustomer {
   constructor(private readonly customersRepository: CustomerRepository) {}
 
   async execute(factoryId: number, id: number, dto: UpdateCustomerDto): Promise<Customer> {
+    if (Object.values(dto).every((value) => value === undefined)) {
+      throw new BadRequestException('At least one field must be provided');
+    }
+
     const customer = await this.customersRepository.findById(factoryId, id);
     if (!customer) {
       throw new NotFoundException(`Customer ${id} not found in factory ${factoryId}`);

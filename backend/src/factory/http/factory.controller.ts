@@ -8,6 +8,7 @@ import {
   HttpCode,
   HttpStatus,
   ParseIntPipe,
+  ParseBoolPipe,
   UsePipes,
   ValidationPipe,
   UseFilters,
@@ -63,8 +64,17 @@ export class FactoryController {
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('categoryId', new ParseIntPipe({ optional: true })) categoryId?: number,
+    @Query('nameContains') nameContains?: string,
+    @Query('active', new ParseBoolPipe({ optional: true })) active?: boolean,
   ) {
-    const { items, total } = await this.listFactories.execute({ page, limit });
+    const { items, total } = await this.listFactories.execute({
+      page,
+      limit,
+      categoryId,
+      nameContains,
+      active,
+    });
     return {
       items: items.map((factory) => FactoryResponseDto.fromDomain(factory)),
       total,

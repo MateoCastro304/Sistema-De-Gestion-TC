@@ -4,6 +4,8 @@ describe('Customer Entity', () => {
   const validName = 'Juan';
   const validLastName = 'Pérez';
   const validPhone = '+54 11 5555-5555';
+  // El teléfono se guarda sin separadores.
+  const normalizedPhone = '+541155555555';
   const validMail = 'Juan.Perez@Example.com';
   const validFactoryId = 1;
 
@@ -21,7 +23,7 @@ describe('Customer Entity', () => {
       expect(customer.getId()).toBeNull(); // Nace sin ID antes de persistir
       expect(customer.getName()).toBe(validName);
       expect(customer.getLastName()).toBe(validLastName);
-      expect(customer.getPhone()).toBe(validPhone);
+      expect(customer.getPhone()).toBe(normalizedPhone);
       expect(customer.getMail()).toBe('juan.perez@example.com');
       expect(customer.getFactoryId()).toBe(validFactoryId);
       expect(customer.isActive()).toBe(true);
@@ -42,13 +44,22 @@ describe('Customer Entity', () => {
       const customer = Customer.create(
         '  Juan  ',
         '  Pérez  ',
-        '  123  ',
+        '  11 5555-1234  ',
         validMail,
         validFactoryId,
       );
       expect(customer.getName()).toBe('Juan');
       expect(customer.getLastName()).toBe('Pérez');
-      expect(customer.getPhone()).toBe('123');
+      expect(customer.getPhone()).toBe('1155551234');
+    });
+
+    it('debería rechazar un teléfono inválido', () => {
+      expect(() =>
+        Customer.create(validName, validLastName, 'abc', validMail, validFactoryId),
+      ).toThrow('Phone must contain only digits and separators');
+      expect(() =>
+        Customer.create(validName, validLastName, '123', validMail, validFactoryId),
+      ).toThrow('Phone must have between 8 and 15 digits');
     });
 
     it('debería lanzar un error si el nombre está vacío', () => {
@@ -75,7 +86,7 @@ describe('Customer Entity', () => {
     it('debería permitir crear un cliente solo con teléfono', () => {
       const customer = Customer.create(validName, validLastName, validPhone, null, validFactoryId);
 
-      expect(customer.getPhone()).toBe(validPhone);
+      expect(customer.getPhone()).toBe(normalizedPhone);
       expect(customer.getMail()).toBeNull();
     });
 
@@ -142,11 +153,11 @@ describe('Customer Entity', () => {
         validFactoryId,
       );
 
-      customer.update('Ana', 'Gómez', '999', 'ana.gomez@example.com', 2);
+      customer.update('Ana', 'Gómez', '11 5555-9999', 'ana.gomez@example.com', 2);
 
       expect(customer.getName()).toBe('Ana');
       expect(customer.getLastName()).toBe('Gómez');
-      expect(customer.getPhone()).toBe('999');
+      expect(customer.getPhone()).toBe('1155559999');
       expect(customer.getMail()).toBe('ana.gomez@example.com');
       expect(customer.getFactoryId()).toBe(2);
     });
@@ -180,7 +191,7 @@ describe('Customer Entity', () => {
         'Customer must have at least one contact: phone or mail',
       );
       expect(customer.getName()).toBe(validName);
-      expect(customer.getPhone()).toBe(validPhone);
+      expect(customer.getPhone()).toBe(normalizedPhone);
     });
 
     it('debería recortar los espacios en blanco en las modificaciones', () => {
@@ -194,11 +205,11 @@ describe('Customer Entity', () => {
 
       customer.setName('   Nombre Nuevo  ');
       customer.setLastName('   Apellido Nuevo  ');
-      customer.setPhone('   555   ');
+      customer.setPhone('   11 5555-0000   ');
 
       expect(customer.getName()).toBe('Nombre Nuevo');
       expect(customer.getLastName()).toBe('Apellido Nuevo');
-      expect(customer.getPhone()).toBe('555');
+      expect(customer.getPhone()).toBe('1155550000');
     });
   });
 

@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { Prisma, Customer as CustomerRow } from '../../generated/prisma/client';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
 import { Customer } from '../domain/customer';
+import { CustomerAlreadyExists } from '../domain/errors/customer-already-exists.error';
 import {
   CustomerRepository,
   CustomerListParams,
@@ -41,6 +42,14 @@ export class CustomerPrismaRepository implements CustomerRepository {
         });
         return this.toDomain(row);
       } catch (error) {
+        // Un mail repetido no es un choque de id: no se reintenta.
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002' &&
+          String(error.meta?.target ?? '').includes('mail')
+        ) {
+          throw new ConflictException(new CustomerAlreadyExists(customer.getMail() ?? '').message);
+        }
         const isIdCollision =
           error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002';
         if (!isIdCollision || attempt >= MAX_ID_ATTEMPTS) {
@@ -85,6 +94,9 @@ export class CustomerPrismaRepository implements CustomerRepository {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
         throw new NotFoundException(`Customer ${id} not found in factory ${factoryId}`);
+      }
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new ConflictException(new CustomerAlreadyExists(customer.getMail() ?? '').message);
       }
       throw error;
     }

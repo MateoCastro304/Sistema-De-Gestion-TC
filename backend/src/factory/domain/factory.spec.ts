@@ -95,9 +95,10 @@ describe('Factory Entity', () => {
     it('debería actualizar todas las propiedades correctamente', () => {
       const factory = Factory.create(validCuit, validName, validAddress, validPaymentDescription, validCategoryId);
 
-      factory.update('30-98765432-1', 'Nueva Fábrica', 'Calle Falsa 123', 'Contando', 2);
+      factory.update('Nueva Fábrica', 'Calle Falsa 123', 'Contando', 2);
 
-      expect(factory.getCuit()).toBe('30987654321');
+      // El CUIT es inmutable: update() no lo toca.
+      expect(factory.getCuit()).toBe(normalizedValidCuit);
       expect(factory.getName()).toBe('Nueva Fábrica');
       expect(factory.getAddress()).toBe('Calle Falsa 123');
       expect(factory.getPaymentDescription()).toBe('Contando');
@@ -107,7 +108,7 @@ describe('Factory Entity', () => {
     it('debería permitir limpiar la dirección y la forma de pago', () => {
       const factory = Factory.create(validCuit, validName, validAddress, validPaymentDescription, validCategoryId);
 
-      factory.update(validCuit, validName, null, null, validCategoryId);
+      factory.update(validName, null, null, validCategoryId);
 
       expect(factory.getAddress()).toBeNull();
       expect(factory.getPaymentDescription()).toBeNull();
@@ -131,12 +132,10 @@ describe('Factory Entity', () => {
     it('debería recortar los espacios en blanco (trim) en las modificaciones', () => {
       const factory = Factory.create(validCuit, validName, validAddress, null, validCategoryId);
 
-      factory.setCuit('  20-11111111-2  ');
       factory.setName('   Nombre Nuevo  ');
       factory.setAdress('   Dirección Nueva  ');
       factory.setPaymentDescription('   Pago Efectivo   ');
 
-      expect(factory.getCuit()).toBe('20111111112');
       expect(factory.getName()).toBe('Nombre Nuevo');
       expect(factory.getAddress()).toBe('Dirección Nueva');
       expect(factory.getPaymentDescription()).toBe('Pago Efectivo');

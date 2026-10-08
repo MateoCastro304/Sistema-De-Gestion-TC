@@ -1,5 +1,6 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { DomainValidationError } from '../../../shared/domain/errors/domain-validation.error';
 
 const STATUS_NAMES: Record<number, string> = {
   400: 'Bad Request',
@@ -11,6 +12,8 @@ const STATUS_NAMES: Record<number, string> = {
 
 @Catch()
 export class FactoryExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(FactoryExceptionFilter.name);
+
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -30,17 +33,18 @@ export class FactoryExceptionFilter implements ExceptionFilter {
         message = (bodyObj.message as string) ?? exception.message;
         details = bodyObj.details as { field: string; message: string }[] | undefined;
       }
-    } else if (exception instanceof Error) {
-      // Errores de validación del dominio (Factory.validate()) llegan como Error simple.
+    } else if (exception instanceof DomainValidationError) {
       statusCode = HttpStatus.BAD_REQUEST;
       message = exception.message;
       const field = message.toLowerCase().includes('cuit')
         ? 'cuit'
-        : message.includes('address')
+        : message.toLowerCase().includes('address')
           ? 'address'
           : 'name';
-
       details = [{ field, message: exception.message }];
+    } else {
+      // Bug o fallo de infraestructura: no se expone el mensaje interno.
+      this.logger.error(exception instanceof Error ? exception.stack : String(exception));
     }
 
     response.status(statusCode).json({

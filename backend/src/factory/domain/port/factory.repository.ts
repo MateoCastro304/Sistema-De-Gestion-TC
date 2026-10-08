@@ -29,6 +29,9 @@ export abstract class FactoryRepository {
   */
   abstract existsByCuit(cuit: string, excludeId?: number): Promise<boolean>;
 
+  /** Whether any ACTIVE factory already uses this name (case-insensitive). */
+  abstract existsByName(name: string, excludeId?: number): Promise<boolean>;
+
 
   abstract list(params: FactoryListParams): Promise<FactoryListResult>;
 }
