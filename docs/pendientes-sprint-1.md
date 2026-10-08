@@ -340,7 +340,7 @@ El frontend pide páginas grandes y filtra en el navegador. Si se superan, falta
 | Proveedores | `DELETE` definido | No implementado |
 
 - El ejemplo de CUIT de proveedores, `30-70987654-3`, no pasa la validación del propio backend: el dígito verificador es inválido.
-- Swagger (`/docs`) muestra ese contrato, así que hoy informa mal.
+- Swagger UI (`localhost:8081`) muestra ese contrato, así que hoy informa mal.
 
 ### D-02 · P1 · `docs/openapi/customers.yaml` quedó huérfano
 
