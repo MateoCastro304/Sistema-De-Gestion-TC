@@ -25,6 +25,8 @@ interface FactoryFormProps {
   formId?: string
   /** Esconde Cancelar/Guardar del pie: el que llama los pone en otro lado. */
   hideActions?: boolean
+  /** El CUIT no se puede modificar: al editar se muestra de solo lectura. */
+  lockCuit?: boolean
 }
 
 /**
@@ -40,6 +42,7 @@ export function FactoryForm({
   submitLabel = 'Guardar',
   formId,
   hideActions = false,
+  lockCuit = false,
 }: FactoryFormProps) {
   const { data: categories = [], isLoading: loadingCategories } = useCategories()
 
@@ -75,8 +78,11 @@ export function FactoryForm({
               // (30-71234567-8) tenía mal el dígito verificador y, copiado
               // tal cual, el formulario lo rechazaba.
               placeholder="30-71234567-1"
-              hint="11 dígitos, con o sin guiones"
+              hint={lockCuit ? 'El CUIT no se puede modificar' : '11 dígitos, con o sin guiones'}
               error={errors.cuit?.message}
+              // readOnly y no disabled: un campo deshabilitado puede salir
+              // como undefined del formulario.
+              readOnly={lockCuit}
               {...register('cuit')}
             />
           </div>

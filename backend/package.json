@@ -20,8 +20,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:int": "jest --config test/jest-integration.config.ts",
-    "test:api": "jest --config test/jest-api.config.ts"
+    "test:int": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config test/jest-integration.config.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.2.3",
@@ -84,8 +83,12 @@
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!generated/**"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"

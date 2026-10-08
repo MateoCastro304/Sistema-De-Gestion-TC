@@ -2,10 +2,12 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { configureApp } from './app.setup';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  configureApp(app);
   // whitelist strips body/query keys that are not declared in the DTO;
   // forbidNonWhitelisted turns that into an explicit 400 so front-end typos
   // and stale clients surface early instead of silently dropping fields.

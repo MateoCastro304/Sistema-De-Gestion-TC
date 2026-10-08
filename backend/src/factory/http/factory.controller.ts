@@ -8,6 +8,7 @@ import {
   HttpCode,
   HttpStatus,
   ParseIntPipe,
+  ParseBoolPipe,
   UsePipes,
   ValidationPipe,
   UseFilters,
@@ -20,7 +21,6 @@ import { GetFactoryById } from '../application/get-factory-by-id.use-case';
 import { ListFactories } from '../application/list-factories.use-case';
 import { UpdateFactory } from '../application/update-factory.use-case';
 import { DeactivateFactory } from '../application/deactivate-factory.use-case';
-import { ActivateFactory } from '../application/activate-factory.use-case';
 import { CreateFactoryDto } from './dto/create-factory.dto';
 import { UpdateFactoryDto } from './dto/update-factory.dto';
 import { FactoryResponseDto } from './dto/factory-response.dto';
@@ -51,7 +51,6 @@ export class FactoryController {
     private readonly listFactories: ListFactories,
     private readonly updateFactory: UpdateFactory,
     private readonly deactivateFactory: DeactivateFactory,
-    private readonly activateFactory: ActivateFactory,
   ) {}
 
   @Post()
@@ -65,8 +64,17 @@ export class FactoryController {
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('categoryId', new ParseIntPipe({ optional: true })) categoryId?: number,
+    @Query('nameContains') nameContains?: string,
+    @Query('active', new ParseBoolPipe({ optional: true })) active?: boolean,
   ) {
-    const { items, total } = await this.listFactories.execute({ page, limit });
+    const { items, total } = await this.listFactories.execute({
+      page,
+      limit,
+      categoryId,
+      nameContains,
+      active,
+    });
     return {
       items: items.map((factory) => FactoryResponseDto.fromDomain(factory)),
       total,
@@ -94,11 +102,5 @@ export class FactoryController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deactivate(@Param('id', ParseIntPipe) id: number) {
     await this.deactivateFactory.execute(id);
-  }
-
-  @Patch(':id/activate')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async activate(@Param('id', ParseIntPipe) id: number) {
-    await this.activateFactory.execute(id);
   }
 }

@@ -18,10 +18,10 @@ import {
 import type { Category as BackendCategory } from '@/features/catalogs/categories'
 import { customerKeys, factoryKeys } from './customers.keys'
 import {
-  activateCustomer,
   createCustomer,
   createFactory,
   deactivateCustomer,
+  deactivateFactory,
   getCustomer,
   listCustomers,
   listFactories,
@@ -96,18 +96,6 @@ export function useDeactivateCustomer() {
   })
 }
 
-/** Reactivación de un encargado dado de baja (CU-04 inverso), por (factoryId, id). */
-export function useActivateCustomer() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ factoryId, id }: CustomerRef) =>
-      activateCustomer(factoryId, id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: customerKeys.all })
-    },
-  })
-}
-
 // Factories (FabricaCliente) ----------------------------------------------
 
 /**
@@ -138,6 +126,17 @@ export function useUpdateFactory(id: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (input: FactoryInput) => updateFactory(id, input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: factoryKeys.all })
+    },
+  })
+}
+
+/** Baja lógica de una fábrica. Falla con 409 si tiene encargados activos. */
+export function useDeactivateFactory() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => deactivateFactory(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: factoryKeys.all })
     },

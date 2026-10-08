@@ -7,7 +7,6 @@ import { isApiError } from '@/shared/api/ApiError'
 import type { Customer, CustomerInput } from '../types/customer'
 import type { Factory } from '../types/factory'
 import {
-  useActivateCustomer,
   useCustomer,
   useDeactivateCustomer,
   useFactories,
@@ -39,7 +38,6 @@ export function CustomerDetailPage() {
   const { data: categories = [] } = useCategories()
   const update = useUpdateCustomer(factoryId, id)
   const deactivate = useDeactivateCustomer()
-  const activate = useActivateCustomer()
 
   // The detail view starts read-only; "Editar" switches to the form.
   const [editing, setEditing] = useState(false)
@@ -111,21 +109,6 @@ export function CustomerDetailPage() {
     )
   }
 
-  const handleActivate = () => {
-    activate.mutate(
-      { factoryId: customer.factoryId, id: customer.id },
-      {
-        onSuccess: () =>
-          showToast('success', `Encargado "${fullName}" reactivado.`),
-        onError: (error) =>
-          showToast(
-            'error',
-            customerErrorMessage(error, 'No se pudo reactivar el encargado.'),
-          ),
-      },
-    )
-  }
-
   return (
     <>
       {/* Rediseño: el encabezado es el panel azul de los otros catálogos.
@@ -185,7 +168,7 @@ export function CustomerDetailPage() {
             ) : (
               <>
                 <Button onClick={() => setEditing(true)}>Editar</Button>
-                {customer.isActive ? (
+                {customer.isActive && (
                   /* El botón de eliminar con el tacho animado. Adentro del
                      panel oscuro va en vidrio y se pone blanco con texto rojo
                      al pasar el mouse. */
@@ -195,10 +178,6 @@ export function CustomerDetailPage() {
                   >
                     Eliminar
                   </TrashButton>
-                ) : (
-                  <Button variant="outline" onClick={handleActivate} disabled={activate.isPending}>
-                    {activate.isPending ? 'Reactivando…' : 'Reactivar'}
-                  </Button>
                 )}
               </>
             )}

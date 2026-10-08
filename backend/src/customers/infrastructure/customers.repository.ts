@@ -54,6 +54,7 @@ export class CustomerInMemoryRepository implements CustomerRepository {
   async existsByMail(mail: string, factoryId: number, excludeId?: number): Promise<boolean> {
     return Array.from(this.customers.values()).some(
       (customer) =>
+        customer.isActive() &&
         customer.getFactoryId() === factoryId &&
         customer.getMail() === mail &&
         customer.getId() !== excludeId,

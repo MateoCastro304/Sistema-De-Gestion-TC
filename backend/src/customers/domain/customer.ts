@@ -1,6 +1,8 @@
 import { CustomerId } from './customer-id';
 import { FactoryId } from '../../factory/domain/factory-id';
 import { Mail } from '../../shared/domain/mail';
+import { Phone } from '../../shared/domain/phone';
+import { DomainValidationError } from '../../shared/domain/errors/domain-validation.error';
 
 export class Customer {
   private constructor(
@@ -26,7 +28,7 @@ export class Customer {
     factoryId: number,
   ): Customer {
     const normalizedName = Customer.requireName(name);
-    const normalizedPhone = Customer.optionalText(phone);
+    const normalizedPhone = Customer.toPhone(phone);
     const normalizedMail = Customer.toMail(mail);
     Customer.assertHasContact(normalizedPhone, normalizedMail);
 
@@ -79,7 +81,7 @@ export class Customer {
   ): void {
     const normalizedName = Customer.requireName(name);
     const normalizedLastName = Customer.optionalText(lastName);
-    const normalizedPhone = Customer.optionalText(phone);
+    const normalizedPhone = Customer.toPhone(phone);
     const normalizedMail = Customer.toMail(mail);
     const normalizedFactoryId = FactoryId.create(factoryId);
     Customer.assertHasContact(normalizedPhone, normalizedMail);
@@ -101,21 +103,12 @@ export class Customer {
     this._updatedAt = new Date();
   }
 
-  // Reactivar (alta logica)
-  activate(): void {
-    if (this._active) {
-      throw new Error('Customer is already active');
-    }
-    this._active = true;
-    this._updatedAt = new Date();
-  }
-
   // VALIDATION HELPERS
 
   private static requireName(name: string): string {
     const normalized = name.trim();
     if (!normalized) {
-      throw new Error('Customer name cannot be empty');
+      throw new DomainValidationError('Customer name cannot be empty');
     }
     return normalized;
   }
@@ -129,10 +122,17 @@ export class Customer {
     return trimmed ? Mail.create(trimmed) : null;
   }
 
+  // El teléfono se valida y se guarda normalizado (sin separadores). Sólo al
+  // crear o modificar: reconstruct() no revalida lo que ya está en la base.
+  private static toPhone(phone: string | null): string | null {
+    const trimmed = phone?.trim();
+    return trimmed ? Phone.create(trimmed).getValue() : null;
+  }
+
   // Regla de negocio: el informe se envía por mail o por teléfono, hace falta al menos uno.
   private static assertHasContact(phone: string | null, mail: Mail | null): void {
     if (!phone && !mail) {
-      throw new Error('Customer must have at least one contact: phone or mail');
+      throw new DomainValidationError('Customer must have at least one contact: phone or mail');
     }
   }
 
@@ -153,7 +153,7 @@ export class Customer {
   }
 
   setPhone(phone: string | null): void {
-    const normalizedPhone = Customer.optionalText(phone);
+    const normalizedPhone = Customer.toPhone(phone);
     Customer.assertHasContact(normalizedPhone, this._mail);
     this._phone = normalizedPhone;
   }

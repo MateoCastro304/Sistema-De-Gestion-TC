@@ -200,23 +200,13 @@ export const customerHandlers = [
   }),
 
   // Must precede the generic ":id" PATCH so the extra path segment is not
-  // mistaken for an id. Both answer 204 No Content, like the backend.
+  // mistaken for an id. Answers 204 No Content, like the backend.
   http.patch(
     '/api/factories/:factoryId/customers/:id/deactivate',
     ({ params }) => {
       const customer = findCustomer(String(params.factoryId), String(params.id))
       if (!customer) return new HttpResponse(null, { status: 404 })
       customer.isActive = false
-      return new HttpResponse(null, { status: 204 })
-    },
-  ),
-
-  http.patch(
-    '/api/factories/:factoryId/customers/:id/activate',
-    ({ params }) => {
-      const customer = findCustomer(String(params.factoryId), String(params.id))
-      if (!customer) return new HttpResponse(null, { status: 404 })
-      customer.isActive = true
       return new HttpResponse(null, { status: 204 })
     },
   ),
@@ -266,12 +256,28 @@ export const customerHandlers = [
     return HttpResponse.json(newFactory, { status: 201 })
   }),
 
+  // Va antes del PATCH genérico ":id", como los de encargados.
+  http.patch('/api/factories/:id/deactivate', ({ params }) => {
+    const factory = findFactory(String(params.id))
+    if (!factory) return new HttpResponse(null, { status: 404 })
+    if (customers.some((c) => c.factoryId === factory.id && c.isActive)) {
+      return HttpResponse.json(
+        {
+          statusCode: 409,
+          message: `Factory with ID ${factory.id} has active customers and cannot be deactivated`,
+        },
+        { status: 409 },
+      )
+    }
+    factory.isActive = false
+    return new HttpResponse(null, { status: 204 })
+  }),
+
   http.patch('/api/factories/:id', async ({ params, request }) => {
     const factory = findFactory(String(params.id))
     if (!factory) return new HttpResponse(null, { status: 404 })
-    const body = (await request.json()) as FactoryInput
-    const conflict = factoryConflict(body, factory.id)
-    if (conflict) return conflict
+    // El CUIT no se modifica: no viaja en el cuerpo y no se chequea.
+    const body = (await request.json()) as Partial<FactoryInput>
     Object.assign(factory, body)
     return HttpResponse.json(factory)
   }),

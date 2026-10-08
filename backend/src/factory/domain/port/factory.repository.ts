@@ -24,10 +24,13 @@ export abstract class FactoryRepository {
   abstract update(factory: Factory): Promise<void>;
 
   /*
-   Whether any factory already uses this cuit. excludeId lets the update
+   Whether any ACTIVE factory already uses this cuit (las dadas de baja se ignoran). excludeId lets the update
    flow skip the record being modified so it does not clash with itself.
   */
   abstract existsByCuit(cuit: string, excludeId?: number): Promise<boolean>;
+
+  /** Whether any ACTIVE factory already uses this name (case-insensitive). */
+  abstract existsByName(name: string, excludeId?: number): Promise<boolean>;
 
 
   abstract list(params: FactoryListParams): Promise<FactoryListResult>;
