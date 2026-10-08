@@ -98,11 +98,14 @@ model Category {
 ///
 /// PENDIENTE: falta `code` (codigo de fabrica, unico, obligatorio, 2-4 caracteres).
 /// Ver docs/decisiones-clientes-fabricas.md, seccion 5.
+/// El CUIT es unico solo entre fabricas ACTIVAS: indice parcial
+/// factory_customer_cuit_active_key, creado a mano en la migracion
+/// 20261008000000_factory_cuit_unique_only_active (Prisma no lo expresa aca).
 model Factory {
   id         Int      @id @default(autoincrement())
   name       String   @db.VarChar(100)
   address    String?  @db.VarChar(255)
-  cuit       String   @unique @db.VarChar(50)
+  cuit       String   @db.VarChar(50)
   payMethod  String?  @map("pay_method") @db.VarChar(255)
   categoryId Int      @map("categorie_id")
   isActive   Boolean  @default(true) @map("is_active")

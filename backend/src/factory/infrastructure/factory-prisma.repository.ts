@@ -67,6 +67,7 @@ export class FactoryPrismaRepository implements FactoryRepository {
     const count = await this.prisma.factory.count({
       where: {
         cuit,
+        isActive: true,
         ...(excludeId !== undefined ? { id: { not: excludeId } } : {}),
       },
     });

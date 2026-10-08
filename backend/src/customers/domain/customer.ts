@@ -101,15 +101,6 @@ export class Customer {
     this._updatedAt = new Date();
   }
 
-  // Reactivar (alta logica)
-  activate(): void {
-    if (this._active) {
-      throw new Error('Customer is already active');
-    }
-    this._active = true;
-    this._updatedAt = new Date();
-  }
-
   // VALIDATION HELPERS
 
   private static requireName(name: string): string {

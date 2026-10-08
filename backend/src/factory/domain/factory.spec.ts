@@ -114,7 +114,7 @@ describe('Factory Entity', () => {
     });
   });
 
-  describe('deactivate() y activate()', () => {
+  describe('deactivate()', () => {
     it('debería desactivar una fábrica activa', () => {
       const factory = Factory.create(validCuit, validName, validAddress, null, validCategoryId);
       factory.deactivate();
@@ -124,17 +124,6 @@ describe('Factory Entity', () => {
     it('debería lanzar un error si se intenta desactivar una fábrica que ya está inactiva', () => {
       const factory = Factory.reconstruct(1, validCuit, validName, validAddress, null, validCategoryId, false);
       expect(() => factory.deactivate()).toThrow('Factory is already inactive');
-    });
-
-    it('debería activar una fábrica inactiva', () => {
-      const factory = Factory.reconstruct(1, validCuit, validName, validAddress, null, validCategoryId, false);
-      factory.activate();
-      expect(factory.isActive()).toBe(true);
-    });
-
-    it('debería lanzar un error si se intenta activar una fábrica que ya está activa', () => {
-      const factory = Factory.create(validCuit, validName, validAddress, null, validCategoryId);
-      expect(() => factory.activate()).toThrow('Factory is already active');
     });
   });
 

@@ -41,7 +41,8 @@ export abstract class CustomerRepository {
   abstract update(customer: Customer): Promise<void>;
 
   /**
-   * Whether any customer of that factory already uses this mail. excludeId
+   * Whether any ACTIVE customer of that factory already uses this mail (los dados de baja
+   * se ignoran). excludeId
    * lets the update flow skip the record being modified.
    */
   abstract existsByMail(mail: string, factoryId: number, excludeId?: number): Promise<boolean>;

@@ -94,6 +94,7 @@ export class CustomerPrismaRepository implements CustomerRepository {
     const count = await this.prisma.customer.count({
       where: {
         factoryId,
+        isActive: true,
         mail: { equals: mail, mode: 'insensitive' },
         ...(excludeId !== undefined ? { id: { not: excludeId } } : {}),
       },

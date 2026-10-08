@@ -202,7 +202,7 @@ describe('Customer Entity', () => {
     });
   });
 
-  describe('deactivate() y activate()', () => {
+  describe('deactivate()', () => {
     it('debería desactivar un cliente activo', () => {
       const customer = Customer.create(
         validName,
@@ -226,31 +226,6 @@ describe('Customer Entity', () => {
         false,
       );
       expect(() => customer.deactivate()).toThrow('Customer is already inactive');
-    });
-
-    it('debería activar un cliente inactivo', () => {
-      const customer = Customer.reconstruct(
-        1,
-        validName,
-        validLastName,
-        validPhone,
-        validMail,
-        validFactoryId,
-        false,
-      );
-      customer.activate();
-      expect(customer.isActive()).toBe(true);
-    });
-
-    it('debería lanzar un error si se intenta activar un cliente ya activo', () => {
-      const customer = Customer.create(
-        validName,
-        validLastName,
-        validPhone,
-        validMail,
-        validFactoryId,
-      );
-      expect(() => customer.activate()).toThrow('Customer is already active');
     });
   });
 });

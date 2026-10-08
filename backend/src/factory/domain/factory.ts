@@ -91,15 +91,6 @@ export class Factory {
     this._updatedAt = new Date();
   }
 
-  // Reactivar (alta logica)
-  activate(): void {
-    if (this._active) {
-      throw new Error('Factory is already active');
-    }
-    this._active = true;
-    this._updatedAt = new Date();
-  }
-
   // VALIDATION
 
   private validate(): void {
