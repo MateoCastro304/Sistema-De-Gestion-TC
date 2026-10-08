@@ -84,5 +84,18 @@ services:
       - SWAGGER_JSON=/spec/openapi.yaml
     volumes:
       - ../../build:/spec:ro
+
+  adminer:
+    image: adminer:latest
+    container_name: causas-adminer
+    restart: unless-stopped
+    ports:
+      - '8080:8080'
+    networks:
+      - causas-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres_dev_data:
