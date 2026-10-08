@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, Factory as FactoryRow } from '@prisma/client';
+import { Prisma, Factory as FactoryRow } from '../../generated/prisma/client';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
 import { Factory } from '../domain/factory';
 import {

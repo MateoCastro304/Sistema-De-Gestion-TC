@@ -3,7 +3,7 @@ import request from 'supertest';
 
 import { startTestApp, stopTestApp, getPrisma } from '../../../shared/harness/test-app';
 import { createSupplier } from '../../../shared/factories/supplier-factory';
-import { SupplierType } from '@prisma/client';
+import { SupplierType } from '../../../../src/generated/prisma/enums';
 
 describe('GET /suppliers', () => {
   let app: INestApplication;
