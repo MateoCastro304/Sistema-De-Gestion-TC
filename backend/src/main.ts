@@ -1,4 +1,5 @@
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
@@ -19,11 +20,13 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger UI is a development-only nicety, wired via the dedicated
-  // swagger.ts module so main.ts stays focused on bootstrap.
-  if (process.env.NODE_ENV === 'development') {
-    const { setupSwagger } = await import('./swagger.js');
-    setupSwagger(app);
+  const config = app.get(ConfigService);
+  const allowedOrigins = config.get<string>('ALLOWED_ORIGINS');
+
+  if (allowedOrigins) {
+    app.enableCors({
+      origin: allowedOrigins.split(',').map((origin) => origin.trim()),
+    });
   }
 
   await app.listen(process.env.PORT ?? 3000);

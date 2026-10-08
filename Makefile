@@ -125,8 +125,9 @@ web-logs: ## Shows only the web logs (nginx)
 
 # ---- Dev Docs Scoped ------------------------------------------------------
 
-openapi-docs-build: ## Rebuild the openapi image only and serve on port 8081
-	$(DC_DEV) build openapi-build openapi-docs
+openapi-docs-build: ## Re-bundle the OpenAPI contract (refresh Swagger with Ctrl+F5)
+	$(DC_DEV) build openapi-build
+	$(DC_DEV) run --rm openapi-build
 
 openapi-docs-logs: ## Shows only the openapi-docs logs
 	$(DC_DEV) logs -f openapi-docs

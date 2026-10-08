@@ -28,11 +28,8 @@ info:
     email: dropouts@gmail.com
 
 servers:
-  - url: http://{host}/api
+  - url: http://localhost:3000
     description: Local development
-    variables:
-      host:
-        default: localhost:3000
   # - url: https://TODO-production-host/api
   #   description: Production
 
