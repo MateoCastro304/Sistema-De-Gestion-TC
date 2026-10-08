@@ -52,6 +52,9 @@ dev-up: ## Starts all services in development mode (detached)
 dev-build: ## Rebuilds images and starts development
 	$(DC_DEV) up -d --build
 
+dev-stop: ## Stops development containers
+	$(DC_DEV) stop
+
 dev-down: ## Stops development containers
 	$(DC_DEV) down
 
@@ -99,7 +102,7 @@ backend-test-int: ## Runs backend integration tests inside the backend container
 backend-test: ## Runs backend integration tests inside the backend container (dev)
 	$(DC_DEV) exec backend npm run test
 
-test-module: ## Runs unit and integration tests for a single module (usage: make test-module name=suppliers)
+backend-test-module: ## Runs unit and integration tests for a single module (usage: make test-module name=suppliers)
 	$(DC_DEV) exec backend sh -c "npm test -- $(name); npm run test:int -- $(name)"
 
 # ---- Frontend Scoped ------------------------------------------------------
