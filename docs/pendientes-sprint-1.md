@@ -4,6 +4,8 @@ Relevamiento del 6 de octubre de 2026 sobre `develop` (commit `9e72345`), para l
 
 **Actualizado el 7 de octubre de 2026:** ya se resolvió lo del frontend que no dependía de una decisión del equipo. El resumen está en "Qué se resolvió y qué queda"; los puntos resueltos siguen en su lugar, marcados como tales.
 
+**Actualizado el 8 de octubre de 2026:** se cerraron las reglas de encargados y fábricas (bajas, unicidad, CUIT inmutable, nombre único; ver `docs/decisiones-clientes-fabricas.md`, sección 5.3). Lo que depende del resto del equipo está en "Para hablar con el grupo".
+
 ## Cómo se hizo
 
 - Se levantaron los contenedores de desarrollo (`make dev-up`) y se probó cada pantalla contra el backend y la base reales, sin mocks.
@@ -15,7 +17,7 @@ Cada punto de abajo dice cómo se comprobó. Lo que no se pudo comprobar está a
 
 ## Estado general
 
-Los cuatro catálogos funcionan de punta a punta contra el backend real: **Encargados, Fábricas, Rubros y Proveedores**. Alta, edición, baja y reactivación andan donde existen.
+Los cuatro catálogos funcionan de punta a punta contra el backend real: **Encargados, Fábricas, Rubros y Proveedores**. Alta, edición y baja andan donde existen. La reactivación se quitó a propósito: una baja es definitiva (ver decisiones, sección 5.3).
 
 | Chequeo | Resultado |
 |---|---|
@@ -42,18 +44,24 @@ Resuelto después del relevamiento, todo en el frontend y probado contra el back
 | F-05 | Pantalla propia para errores inesperados, en vez de la de React Router en inglés. |
 | F-07 | Detalles visuales: botones del panel, guardar en celular, paginador, guiones, estados vacíos. |
 | F-09 (parte) | `styles.css` pasó de 4820 a 2020 líneas; quedó sólo lo que está en uso. |
+| B-10 | El teléfono del encargado se valida con `Phone` (8 a 15 dígitos) y se guarda sin separadores. |
+| B-11 | Obsoleto: se quitó la reactivación de encargados y de fábricas, así que ese estado ya no se puede producir. |
+| B-12 | Los filtros de error de fábricas y encargados solo convierten en 400 los errores de validación del dominio; el resto es 500 sin mensaje interno. |
+| B-13 (parte) | Filtros en `GET /factories`, `PATCH` con cuerpo vacío, mail único con índice, choque simultáneo de CUIT/nombre/mail → 409, id del encargado, nombre de fábrica repetido. Ver B-13. |
+| F-03 | Baja de fábrica desde el detalle (con el 409 si tiene encargados activos). La reactivación se descartó. |
+| Decisiones 7 y 8 | El CUIT es inmutable y el nombre de la fábrica es único (entre activas). |
 
-Quedan **32 puntos** de los 36:
+Quedan **28 puntos** de los 36:
 
 | Área | Bloqueantes (P0) | Importantes (P1) | Menores (P2) |
 |---|---|---|---|
-| Backend | 2 | 11 | 6 |
-| Frontend | 0 | 2 | 3 |
+| Backend | 2 | 8 | 6 |
+| Frontend | 0 | 1 | 3 |
 | Contrato y documentación | 0 | 2 | 1 |
 | Infraestructura y proceso | 0 | 2 | 3 |
 
 - Los **2 bloqueantes** son de proveedores en el backend: se guardan en memoria (B-01) y no se pueden eliminar (B-02).
-- Los **2 importantes del frontend** esperan una decisión: baja y reactivación de fábricas (F-03) y restaurar rubros (F-04).
+- El **importante del frontend** que queda espera una decisión: restaurar rubros (F-04). La baja de fábricas (F-03) ya se resolvió.
 - En el frontend no queda nada que se pueda cerrar sin el backend o sin una decisión del equipo, salvo deuda: tests (F-06) y el tamaño del bundle (F-09).
 
 ## Prioridades
@@ -140,39 +148,41 @@ Historial de git: magali.
 
 - **Cómo se ve:** `nameContains=gomez` no encuentra a "Gómez". En pantalla, buscar "gomez" o "perez" devuelve la lista vacía.
 - **Nota:** el frontend ya ignora acentos en las búsquedas que filtra él (fábricas, rubros, proveedores). Ésta la resuelve el backend.
+- **Qué hacer:** `unaccent()` de Postgres en `CustomerPrismaRepository.list`. Requiere habilitar la extensión `unaccent` en la base: es un cambio compartido, ver "Para hablar con el grupo".
 
-### B-10 · P1 · El backend acepta cualquier texto como teléfono del encargado
+### B-10 · Resuelto · El backend aceptaba cualquier texto como teléfono del encargado
 
 - **Cómo se ve:** `POST /factories/3/customers` con `phone: "abc"` responde 201. El frontend lo valida, pero la API queda abierta.
-- **Qué hacer:** reusar el value object `Phone` de `shared/domain`, que ya usa proveedores.
+- **Resuelto:** `Customer.create`, `update` y `setPhone` validan con `Phone` (8 a 15 dígitos) y guardan el teléfono normalizado, sin separadores. `reconstruct` no revalida lo que ya está en la base, para no romper filas viejas.
 
-### B-11 · P1 · Se puede reactivar un encargado de una fábrica dada de baja
+### B-11 · Obsoleto · Se podía reactivar un encargado de una fábrica dada de baja
 
 Crear un encargado en una fábrica inactiva responde 409. Pero reactivar uno que ya existía responde 204.
 
-- **Cómo se ve:** se dio de baja un encargado y después su fábrica; al reactivar el encargado quedó activo dentro de una fábrica inactiva. Es justo el estado que la baja de fábrica intenta impedir ("has active customers").
+- **Cómo se veía:** se dio de baja un encargado y después su fábrica; al reactivar el encargado quedó activo dentro de una fábrica inactiva. Es justo el estado que la baja de fábrica intenta impedir ("has active customers").
+- **Por qué ya no aplica:** se quitó la reactivación de encargados y de fábricas (decisiones, sección 5.3).
 
-### B-12 · P1 · Los filtros de error convierten cualquier fallo en un 400
+### B-12 · Resuelto · Los filtros de error convertían cualquier fallo en un 400
 
 `CustomerExceptionFilter` y `FactoryExceptionFilter` están declarados con `@Catch()` sin argumentos. Cualquier `Error`, incluido un bug o un error de Prisma, sale como **400** con el mensaje interno tal cual.
 
-- **Cómo se ve:** `PATCH /factories/3/activate` sobre una fábrica ya activa responde 400 con `details: [{ field: "name" }]`, aunque el nombre no tiene nada que ver. El campo se adivina buscando palabras dentro del mensaje.
+- **Cómo se veía:** `PATCH /factories/3/deactivate` sobre una fábrica ya inactiva respondía 400 con `details: [{ field: "name" }]`, aunque el nombre no tiene nada que ver. El campo se adivina buscando palabras dentro del mensaje.
 - **Riesgo:** un fallo de base llega al cliente como error de validación, con el texto de Prisma incluido.
-- **Qué hacer:** atrapar sólo los errores de dominio y dejar que el resto sea 500.
+- **Resuelto:** los dominios de fábrica y encargado lanzan `DomainValidationError` y los filtros solo convierten esos en 400 (el campo se sigue deduciendo del mensaje, pero solo para errores de validación). Todo lo demás es 500 con mensaje genérico y el detalle va al log. Dar de baja algo ya dado de baja responde 409.
 
 ### B-13 · P2 · Detalles de la API
 
 | Tema | Situación |
 |---|---|
-| `GET /factories` sin filtros | El repositorio soporta `nameContains` y `active`, pero el controlador sólo pasa `page` y `limit`. El frontend pide 1000 y filtra en el navegador. |
+| `GET /factories` sin filtros | **Resuelto**: el controlador acepta `categoryId`, `nameContains` y `active`. El frontend todavía pide 1000 y filtra en el navegador. |
 | `active=xx` en `/customers` | No da error: se interpreta como `false`. |
-| `PATCH` con cuerpo vacío | Responde 200. El contrato pide al menos un campo. |
-| `limit` sin tope | `limit=100000` se acepta. |
-| Mail único por fábrica | Lo valida el código; la base no tiene índice `(factory_id, mail)`. |
-| CUIT duplicado simultáneo | Dos altas a la vez darían 500 en vez de 409 (ya anotado en `decisiones-clientes-fabricas.md`). |
-| Id del encargado | Lo calcula el repositorio (`max + 1`). El trigger `fn_gen_id_manager` de la base quedó sin uso. |
-| `Cuit` | `factory` lo importa desde `suppliers/domain/cuit`. Hay una rama que lo mueve a `shared` (ver I-04). |
-| Nombre de fábrica repetido | Se permite: se creó otra "EDASA" con otro CUIT. La historia habla de "nombre único junto con el CUIT"; está sin resolver. |
+| `PATCH` con cuerpo vacío | **Resuelto** en fábricas y encargados: responde 400. |
+| `limit` sin tope | `limit=100000` se acepta. **Pendiente**: tope compartido por todos los módulos, ver "Para hablar con el grupo". |
+| Mail único por fábrica | **Resuelto**: índice único parcial `(factory_id, lower(mail))` entre encargados activos, además del chequeo del código. |
+| CUIT duplicado simultáneo | **Resuelto**: el repositorio captura `P2002` y responde 409 (CUIT o nombre en fábricas, mail en encargados). |
+| Id del encargado | **Resuelto**: se queda con el `max + 1` del repositorio (con reintento ante colisión) y se eliminó el trigger `fn_gen_id_manager` en la migración `20261008000000_customers_factories_rules`. |
+| `Cuit` | `factory` ya importa `Cuit` desde `shared/domain/cuit`. **Falta** que el cambio de proveedores lo mueva ahí (ver I-04); hasta entonces no compila. |
+| Nombre de fábrica repetido | **Resuelto**: el nombre es único entre fábricas activas, sin distinguir mayúsculas (409). |
 
 ### Código de fábrica
 
@@ -259,13 +269,11 @@ La pantalla de Rubros y el selector de rubro de Fábricas guardaban la lista en 
 
 Ahora las dos leen la misma caché: el selector usa la lista de `features/catalogs/categories` y sólo la adapta a la forma de su formulario. Se eliminó la segunda función `listCategories`. Comprobado: un rubro recién creado aparece al instante en "Nueva fábrica", sin un pedido extra al backend.
 
-### F-03 · P1 · No hay forma de dar de baja ni reactivar una fábrica
+### F-03 · Resuelto · No había forma de dar de baja una fábrica
 
-El backend tiene `/factories/:id/deactivate` y `/activate`. El frontend no tiene ningún botón.
+El detalle de la fábrica ahora tiene el botón "Eliminar" con confirmación. Si la fábrica tiene encargados activos, el backend responde 409 y la pantalla lo explica.
 
-Además, una fábrica inactiva es invisible: no está en el listado y entrar por URL dice "No encontramos la fábrica".
-
-- **Cómo se ve:** un encargado activo de una fábrica inactiva aparece con fábrica "—" y, en su detalle, "Sin fábrica asociada".
+La reactivación se descartó: una baja es definitiva y, para volver, se registra de nuevo (decisiones, sección 5.3). Que una fábrica inactiva no aparezca en el listado ni se pueda abrir por URL es el comportamiento esperado. Un encargado activo ya no puede quedar en una fábrica inactiva, porque la baja de la fábrica exige que no los tenga.
 
 ### F-04 · P1 · No se puede restaurar un rubro eliminado
 
@@ -288,7 +296,6 @@ Ni archivos de test ni comando para correrlos. Para empezar, lo más barato de c
 - **Listado de Encargados:** la columna Nombre y la de Fábrica tienen más lugar. A menos de 1350 px un nombre largo todavía ocupa dos renglones, igual que en Proveedores.
 - **Paginador de Encargados:** centrado y con el texto legible.
 - **Datos vacíos:** el guion es el mismo en todas las tablas (componente `ValueOrDash`). En la ficha de celular esos datos se esconden.
-- **"Incluir eliminados"** en el detalle de fábrica dejó de verse chico y gris.
 - **"Nuevo proveedor"** tiene la flecha de volver, como las otras pantallas de alta.
 - **Cargando, no encontrado y listas vacías** usan el mismo recuadro en toda la app.
 
@@ -327,7 +334,7 @@ El frontend pide páginas grandes y filtra en el navegador. Si se superan, falta
 | Encargados | `/factories/{id}/managers` | `/factories/{id}/customers` y `/customers` |
 | Campos del encargado | `name`, `email`, `phone`, `role` | `firstName`, `lastName`, `phone`, `mail` |
 | Campos de la fábrica | `legalName`, `taxId` | `name`, `cuit`, `payMethod`, `isActive` |
-| Baja de fábrica y encargado | `DELETE`, 204 | `PATCH .../deactivate` y `.../activate` |
+| Baja de fábrica y encargado | `DELETE`, 204 | `PATCH .../deactivate` (204). No hay reactivación |
 | Listados | Array | `{ items, total, page, limit }` en fábricas y encargados |
 | Rubro | Sin `active` | Con `active`; alta envuelta en `{ message, category }` |
 | Proveedores | `DELETE` definido | No implementado |
@@ -372,7 +379,7 @@ Ramas sin mergear:
 
 | Rama | Autor y fecha | Situación |
 |---|---|---|
-| `feat/suppliers-prisma-adapter` | mmachuca, 18/9 | Un commit: mueve `Cuit` a `shared/domain`. Mergea sin conflictos. **Incluye un PDF ajeno al proyecto** (`charla-arquitectura-estudio-juridico.pdf`); sacarlo antes de mergear. No tiene todavía el adaptador Prisma. |
+| `feat/suppliers-prisma-adapter` | mmachuca, 18/9 | Un commit: mueve `Cuit` a `shared/domain` (fábricas ya importa de ahí, ver B-13). Mergea sin conflictos. **Incluye un PDF ajeno al proyecto** (`charla-arquitectura-estudio-juridico.pdf`); sacarlo antes de mergear. No tiene todavía el adaptador Prisma. |
 | `feature/tests-clients` | MateoCastro304, 18/9 | Tests de fábricas y encargados, marcados "PENDING REVIEW". Son anteriores al cambio de `/fabricas` a `/factories`: hay que actualizarlos. |
 | `feature/abmc-customers-and-factories` | MAGALI, 5/9 | Vieja; choca con develop en 4 archivos. Probablemente para borrar. |
 | `feature/frontend-backend-alignment` | Facundo Fiorani, 5/10 | **Obsoleta**: adaptaba el frontend en sentido contrario al que se decidió. Borrar. |
@@ -394,20 +401,38 @@ Para resolver el jueves, porque definen el trabajo de arriba.
 3. **¿El login entra en este sprint?** Hoy la API es pública. (B-16)
 4. **¿Cuál es el contrato oficial y quién lo actualiza?** (D-01, D-02)
 5. **¿Formato único de errores, y en qué idioma?** (B-18)
-6. **¿Baja y reactivación de fábricas, y restaurar rubros, tienen pantalla en este sprint?** (F-03, F-04)
-7. **¿El CUIT de una fábrica se puede modificar?** Hoy sí; el contrato dice que no.
-8. **¿El nombre de la fábrica tiene que ser único?** Hoy no.
+6. **¿Restaurar rubros tiene pantalla en este sprint?** (F-04). La baja de fábricas ya tiene pantalla y la reactivación se descartó.
+7. ~~**¿El CUIT de una fábrica se puede modificar?**~~ **Resuelto:** no se puede modificar.
+8. ~~**¿El nombre de la fábrica tiene que ser único?**~~ **Resuelto:** sí, entre fábricas activas.
 9. **¿Se trabaja con PRs revisados o con merge directo?** (I-02)
 
 ## Orden sugerido
 
 1. Tomar las decisiones 1 a 4. Sin eso, B-01, B-04 y D-01 no se pueden cerrar.
 2. **Proveedores en backend:** B-04, B-01, B-02, B-03, y después B-05.
-3. **Reglas de encargados y fábricas:** B-09, B-10, B-11, B-12.
-4. **Frontend:** F-03 y F-04 según la decisión 6. F-01, F-02, F-05 y F-07 ya están resueltos.
+3. **Reglas de encargados y fábricas:** B-09 (falta la extensión `unaccent`). B-10, B-11 y B-12 ya están resueltos.
+4. **Frontend:** F-04 según la decisión 6. F-01, F-02, F-03, F-05 y F-07 ya están resueltos.
 5. **Contrato:** D-01 y D-02, cuando la API quede estable.
 6. **CI y lint:** I-01 y B-17. Conviene dejarlo antes del próximo sprint.
 7. **Limpieza:** ramas (I-04) y documentos (D-03).
+
+## Para hablar con el grupo
+
+Cambios que tocan más que fábricas y encargados, y que no se hicieron por eso:
+
+1. **`Cuit` en `shared`.** Fábricas ya importa `../../shared/domain/cuit`. Hay que mover `suppliers/domain/cuit.ts` (y su spec) a `shared/domain/` y actualizar `suppliers/domain/supplier.ts` y `suppliers/domain/ports/supplier.repository.ts`. Es el cambio de la rama `feat/suppliers-prisma-adapter`. Hasta que se haga, el backend no compila.
+2. **Tope de `limit`.** Hoy se acepta cualquier valor. Propuesta: 1000 como máximo en todos los listados (el frontend pide hasta 1000), validado en los casos de uso de listado de los cuatro módulos.
+3. **Búsqueda sin acentos (B-09).** Se resuelve con la extensión `unaccent` de Postgres, que se habilita para toda la base (`CREATE EXTENSION IF NOT EXISTS unaccent`), así que conviene acordarlo y que la migración la cree una sola persona.
+4. **Contrato OpenAPI (D-01, D-02).** Falta reflejar: `PATCH /factories/{id}` sin `cuit`; los 409 de fábricas (CUIT, nombre y encargados activos); los filtros `active`, `nameContains` y `categoryId` en `GET /factories`; y que no hay endpoints `activate`. También decidir si se borran `docs/openapi/customers.yaml` y `docs/inconsistencias-clientes-fabricas.md`, que todavía mencionan la reactivación.
+
+Otras cosas para tener en cuenta:
+
+- **Migración con índices parciales.** Prisma no los expresa en `schema.prisma`: hay que aplicarla con `prisma migrate deploy`, y `prisma migrate dev` puede proponer borrarlos. Antes de migrar conviene revisar que no haya CUIT, nombres ni mails repetidos entre registros activos (consultas en `decisiones-clientes-fabricas.md`, sección 5.3).
+- **Faltan tests de integración** para las reglas nuevas: crear con el CUIT o el nombre de una fábrica dada de baja anda; con los de una activa da 409; `PATCH` no cambia el CUIT.
+- **`Phone` exige 8 a 15 dígitos.** Si el frontend o los datos existentes tienen teléfonos más cortos, el alta y la edición los van a rechazar.
+- **`factory-module-wiring.spec.ts` no corre** en este entorno: Jest no resuelve el import `./internal/class.js` del cliente de Prisma 7 generado. Ya fallaba antes de estos cambios.
+
+---
 
 ## No verificado
 
