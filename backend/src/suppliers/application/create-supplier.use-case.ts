@@ -3,21 +3,22 @@ import { SupplierRepository } from '../domain/ports/supplier.repository';
 import { Supplier } from '../domain/supplier';
 import { SupplierType } from '../domain/supplier-type';
 import { SupplierAlreadyExists } from '../domain/errors/supplier-already-exists.error';
-import { Cuit } from '../domain/cuit';
+import { Cuit } from '../../shared/domain/cuit';
 
 export type CreateSupplierInput = {
   legalName: string;
-  supplierTypes: SupplierType[];
+  supplierType: SupplierType;
   cuit?: string;
   contactName?: string;
   contactEmail?: string;
   contactPhone?: string;
   address?: string;
+  observation?: string;
 };
 
 /**
- * Registers a new supplier. Enforces the OpenAPI 409 rule for cuit and
- * legalName uniqueness across active and inactive rows before delegating
+ * Registers a new supplier. Enforces the 409 rule for cuit and legalName
+ * uniqueness among the active suppliers before delegating
  * construction to {@link Supplier.create}, whose invariants and value-object
  * validation propagate as 400 errors on invalid input.
  */
@@ -37,12 +38,13 @@ export class CreateSupplier {
       throw new SupplierAlreadyExists('cuit', cuit.getCuitValue());
     }
 
-    const supplier = Supplier.create(legalName, input.supplierTypes, {
+    const supplier = Supplier.create(legalName, input.supplierType, {
       cuit: input.cuit,
       contactName: input.contactName,
       contactEmail: input.contactEmail,
       contactPhone: input.contactPhone,
       address: input.address,
+      observation: input.observation,
     });
 
     return await this.repo.save(supplier);

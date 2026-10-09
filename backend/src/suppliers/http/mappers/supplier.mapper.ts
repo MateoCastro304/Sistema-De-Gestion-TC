@@ -12,14 +12,28 @@ export type SupplierResponse = {
   id: number;
   legalName: string;
   cuit?: string;
-  supplierTypes: SupplierType[];
+  supplierType: SupplierType;
   contactName?: string;
   contactEmail?: string;
   contactPhone?: string;
   address?: string;
+  observation?: string;
   active: boolean;
   createdAt: string;
   updatedAt: string;
+};
+
+/**
+ * Envelope returned by GET /suppliers. Same shape as /factories and
+ * /customers: the page of items plus the total matching the filters, so the
+ * client can render a pager without a second round-trip. page and limit are
+ * echoed back because they are defaulted server-side.
+ */
+export type SupplierListResponse = {
+  items: SupplierResponse[];
+  total: number;
+  page: number;
+  limit: number;
 };
 
 /**
@@ -31,7 +45,7 @@ export function toSupplierResponse(supplier: Supplier): SupplierResponse {
   const response: SupplierResponse = {
     id: supplier.getId()!,
     legalName: supplier.getLegalName(),
-    supplierTypes: supplier.getSupplierTypes(),
+    supplierType: supplier.getSupplierType(),
     active: supplier.getActive(),
     createdAt: supplier.getCreatedAt().toISOString(),
     updatedAt: supplier.getUpdatedAt().toISOString(),
@@ -51,6 +65,9 @@ export function toSupplierResponse(supplier: Supplier): SupplierResponse {
 
   const address = supplier.getAddress();
   if (address !== null) response.address = address;
+
+  const observation = supplier.getObservation();
+  if (observation !== null) response.observation = observation;
 
   return response;
 }

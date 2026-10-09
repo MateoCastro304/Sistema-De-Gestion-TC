@@ -1,4 +1,4 @@
-import { Cuit } from './cuit';
+import { Cuit } from '../../shared/domain/cuit';
 import { Mail } from '../../shared/domain/mail';
 import { Phone } from '../../shared/domain/phone';
 import { DomainValidationError } from '../../shared/domain/errors/domain-validation.error';
@@ -15,12 +15,13 @@ type SupplierOptions = {
   contactEmail?: string;
   contactPhone?: string;
   address?: string;
+  observation?: string;
 };
 
 /**
  * Fields accepted by a partial update. An absent key means "leave unchanged";
- * an explicit null means "clear this field". The supplierTypes are set on
- * creation and cannot be modified, so they are not accepted here.
+ * an explicit null means "clear this field". The supplierType is set on
+ * creation and cannot be modified, so it is not accepted here.
  */
 type SupplierChanges = {
   legalName?: string;
@@ -29,6 +30,7 @@ type SupplierChanges = {
   contactEmail?: string | null;
   contactPhone?: string | null;
   address?: string | null;
+  observation?: string | null;
 };
 
 /**
@@ -38,40 +40,96 @@ type SupplierChanges = {
  */
 type SupplierState = {
   legalName: string;
-  supplierTypes: SupplierType[];
+  supplierType: SupplierType;
   contactName: string | null;
   address: string | null;
+  observation: string | null;
 };
 
-// Required attributes: legalName, supplierTypes, active, createdAt, updatedAt
+/**
+ * A row as it comes out of the database, handed to {@link Supplier.reconstruct}.
+ *
+ * Named instead of positional on purpose: the aggregate carries five
+ * interchangeable `string | null` fields (contactName, contactEmail,
+ * contactPhone, address, observation), and as positional arguments any two of
+ * them could be swapped without TypeScript noticing — the supplier would be
+ * stored with the phone in the address column and nothing would fail.
+ */
+export type SupplierSnapshot = {
+  id: number;
+  legalName: string;
+  cuit: string | null;
+  supplierType: SupplierType;
+  contactName: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  address: string | null;
+  observation: string | null;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+/** The already-validated values the constructor assigns, same naming rationale. */
+type SupplierFields = {
+  id: number | null;
+  legalName: string;
+  cuit: Cuit | null;
+  supplierType: SupplierType;
+  contactName: string | null;
+  contactEmail: Mail | null;
+  contactPhone: Phone | null;
+  address: string | null;
+  observation: string | null;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+// Required attributes: legalName, supplierType, active, createdAt, updatedAt
 
 export class Supplier {
   // -------------------------------------------------------------------------
   // Constants and fields
   // -------------------------------------------------------------------------
 
-  private static readonly MAX_LEGAL_NAME_LENGTH = 120;
-  private static readonly MAX_CONTACT_NAME_LENGTH = 120;
-  private static readonly MAX_ADDRESS_LENGTH = 200;
+  // Mirror the column widths of the `supplier` table, so a payload the API
+  // accepts is always a payload the database can store. Do not widen one
+  // without widening the other. contactEmail and contactPhone are not here:
+  // the Mail and Phone value objects own their own limits, both stricter than
+  // their columns (VARCHAR(255) and VARCHAR(50)).
+  private static readonly MAX_LEGAL_NAME_LENGTH = 80;
+  private static readonly MAX_CONTACT_NAME_LENGTH = 150;
+  private static readonly MAX_ADDRESS_LENGTH = 255;
+  private static readonly MAX_OBSERVATION_LENGTH = 255;
 
-  // Declared apart from the constructor so it can be stored as a defensive
-  // copy: readonly prevents reassigning the field, not mutating the array.
-  private readonly _supplierTypes: SupplierType[];
+  private readonly _id: number | null;
+  private _legalName: string;
+  private _cuit: Cuit | null;
+  private readonly _supplierType: SupplierType;
+  private _contactName: string | null;
+  private _contactEmail: Mail | null;
+  private _contactPhone: Phone | null;
+  private _address: string | null;
+  private _observation: string | null;
+  private _active: boolean;
+  private readonly _createdAt: Date;
+  private _updatedAt: Date;
 
-  private constructor(
-    private readonly _id: number | null,
-    private _legalName: string,
-    private _cuit: Cuit | null,
-    supplierTypes: SupplierType[],
-    private _contactName: string | null,
-    private _contactEmail: Mail | null,
-    private _contactPhone: Phone | null,
-    private _address: string | null,
-    private _active: boolean,
-    private readonly _createdAt: Date,
-    private _updatedAt: Date,
-  ) {
-    this._supplierTypes = [...supplierTypes];
+  private constructor(fields: SupplierFields) {
+    this._id = fields.id;
+    this._legalName = fields.legalName;
+    this._cuit = fields.cuit;
+    this._supplierType = fields.supplierType;
+    this._contactName = fields.contactName;
+    this._contactEmail = fields.contactEmail;
+    this._contactPhone = fields.contactPhone;
+    this._address = fields.address;
+    this._observation = fields.observation;
+    this._active = fields.active;
+    this._createdAt = fields.createdAt;
+    this._updatedAt = fields.updatedAt;
+
     this.validate();
   }
 
@@ -80,62 +138,49 @@ export class Supplier {
   // -------------------------------------------------------------------------
 
   /** Creates a brand new supplier. It starts active. */
-  static create(legalName: string, supplierTypes: SupplierType[], options: SupplierOptions = {}): Supplier {
+  static create(legalName: string, supplierType: SupplierType, options: SupplierOptions = {}): Supplier {
     const cuitInstance = options.cuit ? Cuit.create(options.cuit) : null;
     const contactEmail = options.contactEmail ? Mail.create(options.contactEmail) : null;
     const contactPhone = options.contactPhone ? Phone.create(options.contactPhone) : null;
 
     const contactName = Supplier.normalizeOptional(options.contactName);
     const address = Supplier.normalizeOptional(options.address);
+    const observation = Supplier.normalizeOptional(options.observation);
     const legalNameTrimmed = legalName.trim();
 
     const now = new Date();
-    return new Supplier(
-      null,
-      legalNameTrimmed,
-      cuitInstance,
-      supplierTypes,
+    return new Supplier({
+      id: null,
+      legalName: legalNameTrimmed,
+      cuit: cuitInstance,
+      supplierType,
       contactName,
       contactEmail,
       contactPhone,
       address,
-      true,
-      now,
-      now,
-    );
+      observation,
+      active: true,
+      createdAt: now,
+      updatedAt: now,
+    });
   }
 
   /** Rebuilds a supplier already stored in the database. */
-  static reconstruct(
-    id: number,
-    legalNameTrimmed: string,
-    cuit: string | null,
-    supplierTypes: SupplierType[],
-    contactName: string | null,
-    contactEmail: string | null,
-    contactPhone: string | null,
-    address: string | null,
-    active: boolean,
-    c: Date,
-    u: Date,
-  ): Supplier {
-    const cuitInstance = cuit ? Cuit.create(cuit) : null;
-    const email = contactEmail ? Mail.create(contactEmail) : null;
-    const phone = contactPhone ? Phone.create(contactPhone) : null;
-
-    return new Supplier(
-      id,
-      legalNameTrimmed,
-      cuitInstance,
-      supplierTypes,
-      contactName,
-      email,
-      phone,
-      address,
-      active,
-      c,
-      u,
-    );
+  static reconstruct(row: SupplierSnapshot): Supplier {
+    return new Supplier({
+      id: row.id,
+      legalName: row.legalName,
+      cuit: row.cuit ? Cuit.create(row.cuit) : null,
+      supplierType: row.supplierType,
+      contactName: row.contactName,
+      contactEmail: row.contactEmail ? Mail.create(row.contactEmail) : null,
+      contactPhone: row.contactPhone ? Phone.create(row.contactPhone) : null,
+      address: row.address,
+      observation: row.observation,
+      active: row.active,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    });
   }
 
   // -------------------------------------------------------------------------
@@ -172,11 +217,15 @@ export class Supplier {
 
     const newAddress = changes.address !== undefined ? Supplier.normalizeOptional(changes.address) : undefined;
 
+    const newObservation =
+      changes.observation !== undefined ? Supplier.normalizeOptional(changes.observation) : undefined;
+
     // 2. Validate the state the supplier would end up in.
     const candidate = this.currentState();
     if (newLegalName !== undefined) candidate.legalName = newLegalName;
     if (newContactName !== undefined) candidate.contactName = newContactName;
     if (newAddress !== undefined) candidate.address = newAddress;
+    if (newObservation !== undefined) candidate.observation = newObservation;
 
     Supplier.assertValid(candidate);
 
@@ -187,25 +236,25 @@ export class Supplier {
     if (newEmail !== undefined) this._contactEmail = newEmail;
     if (newPhone !== undefined) this._contactPhone = newPhone;
     if (newAddress !== undefined) this._address = newAddress;
+    if (newObservation !== undefined) this._observation = newObservation;
 
     this.markUpdated();
   }
 
-  /** Logical deletion: the record is kept and only the active flag changes. */
+  /**
+   * Logical deletion: the record is kept and only the active flag changes, so
+   * the materials and orders that already reference this supplier stay valid.
+   *
+   * There is no inverse operation on purpose. Once inactive, the supplier is
+   * invisible to every query and its CUIT and legal name are free for another
+   * supplier to take, so reactivating it could resurrect a duplicate. To work
+   * with that supplier again it is registered anew.
+   */
   deactivate(): void {
     if (!this._active) {
       throw new DomainValidationError('Supplier is already inactive');
     }
     this._active = false;
-    this.markUpdated();
-  }
-
-  /** Brings back a supplier that was logically deleted. */
-  activate(): void {
-    if (this._active) {
-      throw new DomainValidationError('Supplier is already active');
-    }
-    this._active = true;
     this.markUpdated();
   }
 
@@ -226,9 +275,8 @@ export class Supplier {
     return this._cuit;
   }
 
-  // Returns a copy, so the caller cannot mutate the supplier types
-  getSupplierTypes(): SupplierType[] {
-    return [...this._supplierTypes];
+  getSupplierType(): SupplierType {
+    return this._supplierType;
   }
 
   // Returns the Mail instance or null if not set
@@ -247,6 +295,10 @@ export class Supplier {
 
   getAddress() {
     return this._address;
+  }
+
+  getObservation() {
+    return this._observation;
   }
 
   getActive() {
@@ -273,9 +325,10 @@ export class Supplier {
   private currentState(): SupplierState {
     return {
       legalName: this._legalName,
-      supplierTypes: this._supplierTypes,
+      supplierType: this._supplierType,
       contactName: this._contactName,
       address: this._address,
+      observation: this._observation,
     };
   }
 
@@ -301,18 +354,17 @@ export class Supplier {
     if (fields.address !== null && fields.address.length > Supplier.MAX_ADDRESS_LENGTH) {
       throw new DomainValidationError(`Address must not exceed ${Supplier.MAX_ADDRESS_LENGTH} characters`);
     }
-
-    if (fields.supplierTypes.length === 0) {
-      throw new DomainValidationError('At least one supplier type is required');
-    }
-    if (!fields.supplierTypes.every(isSupplierType)) {
-      throw new DomainValidationError(`Invalid supplier type: ${fields.supplierTypes}`);
+    if (fields.observation !== null && fields.observation.length > Supplier.MAX_OBSERVATION_LENGTH) {
+      throw new DomainValidationError(`Observation must not exceed ${Supplier.MAX_OBSERVATION_LENGTH} characters`);
     }
 
-    const uniqueTypes = new Set(fields.supplierTypes);
-
-    if (uniqueTypes.size !== fields.supplierTypes.length) {
-      throw new DomainValidationError('Duplicate supplier types are not allowed');
+    // Widened to string on purpose: the parameter is typed SupplierType, so
+    // the guard would narrow the false branch to never and the message below
+    // would interpolate a never. The runtime check still matters — an unknown
+    // value can reach the aggregate from a caller that cast it.
+    const supplierType: string = fields.supplierType;
+    if (!isSupplierType(supplierType)) {
+      throw new DomainValidationError(`Invalid supplier type: ${supplierType}`);
     }
   }
 

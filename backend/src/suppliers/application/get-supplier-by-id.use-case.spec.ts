@@ -13,7 +13,7 @@ describe('GetSupplierById (use case)', () => {
   });
 
   const seed = async (legalName = 'Aceros del Sur'): Promise<Supplier> => {
-    const draft = Supplier.create(legalName, ['MATERIAL']);
+    const draft = Supplier.create(legalName, 'MATERIAL');
     return await repo.save(draft);
   };
 
@@ -26,15 +26,18 @@ describe('GetSupplierById (use case)', () => {
     expect(result.getLegalName()).toBe('Aceros del Sur');
   });
 
-  it('returns inactive suppliers just like active ones', async () => {
+  it('throws SupplierNotFound for an inactive supplier', async () => {
     const stored = await seed('Aceros del Sur');
     stored.deactivate();
     await repo.save(stored);
 
-    const result = await useCase.execute(stored.getId()!);
+    const call = useCase.execute(stored.getId()!);
 
-    expect(result.getId()).toBe(stored.getId());
-    expect(result.getActive()).toBe(false);
+    // The row is still there, but a supplier dado de baja stopped existing
+    // for every consumer, so it is answered as a 404 and never as
+    // { active: false }.
+    await expect(call).rejects.toBeInstanceOf(SupplierNotFound);
+    expect(repo.count()).toBe(1);
   });
 
   it('throws SupplierNotFound when the id does not exist', async () => {

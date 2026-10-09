@@ -5,16 +5,17 @@ import { IsEmail, IsOptional, IsString, Length, Matches, MaxLength, ValidateIf }
  * of the OpenAPI spec: every property is optional, and the ones whose
  * "absence" is a business action (cuit, contactName, contactEmail,
  * contactPhone, address) can arrive as null to clear the stored value.
- * supplierTypes is deliberately not declared because the aggregate treats
- * it as immutable, and active is out of scope for this sprint; both are
- * rejected as unknown properties by the global ValidationPipe. The domain
+ * supplierType is deliberately not declared because the aggregate treats
+ * it as immutable, and active is not accepted because there is no
+ * reactivation; both are rejected as unknown properties by the global
+ * ValidationPipe. The domain
  * re-validates through its value objects — this DTO is only the outer
  * contract check.
  */
 export class UpdateSupplierDto {
   @IsOptional()
   @IsString()
-  @Length(1, 120)
+  @Length(1, 80)
   legalName?: string;
 
   @ValidateIf((_, value) => value !== null)
@@ -28,7 +29,7 @@ export class UpdateSupplierDto {
   @ValidateIf((_, value) => value !== null)
   @IsOptional()
   @IsString()
-  @MaxLength(120)
+  @MaxLength(150)
   contactName?: string | null;
 
   @ValidateIf((_, value) => value !== null)
@@ -40,12 +41,18 @@ export class UpdateSupplierDto {
   @ValidateIf((_, value) => value !== null)
   @IsOptional()
   @IsString()
-  @MaxLength(40)
+  @MaxLength(50)
   contactPhone?: string | null;
 
   @ValidateIf((_, value) => value !== null)
   @IsOptional()
   @IsString()
-  @MaxLength(200)
+  @MaxLength(255)
   address?: string | null;
+
+  @ValidateIf((_, value) => value !== null)
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  observation?: string | null;
 }

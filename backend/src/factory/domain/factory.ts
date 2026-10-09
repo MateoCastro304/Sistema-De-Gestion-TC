@@ -1,6 +1,6 @@
 import { FactoryId } from "./factory-id";
 import { CategoryId } from '../../categories/domain/category-id';
-import { Cuit } from "../../suppliers/domain/cuit";
+import { Cuit } from "../../shared/domain/cuit";
 
 
 export class Factory {

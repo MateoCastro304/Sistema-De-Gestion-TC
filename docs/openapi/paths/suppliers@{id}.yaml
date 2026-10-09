@@ -3,7 +3,12 @@ parameters:
 
 get:
   summary: Get a supplier by id
-  description: Returns the complete data of a supplier by its identifier.
+  description: |
+    Returns the complete data of a supplier by its identifier.
+
+    Responds 404 for a supplier that was dado de baja: the row is kept, but
+    from the outside that supplier no longer exists, so it is never returned
+    with active:false.
   operationId: getSupplierById
   tags:
     - Suppliers
@@ -23,12 +28,18 @@ patch:
   summary: Update a supplier
   description: |
     Partial update. Only the fields sent are modified.
-    The supplierTypes are set on creation and cannot be modified.
+    The supplierType is set on creation and cannot be modified.
     The optional fields (cuit, contactName, contactEmail, contactPhone,
-    address) can be cleared by sending null.
+    address, observation) can be cleared by sending null.
 
     Responds 409 when the new cuit or legalName already belong to another
-    supplier, active or inactive.
+    **active** supplier; the legalName is compared ignoring case. The supplier
+    being updated never clashes with itself, and the cuit and legal name of a
+    supplier dado de baja are free to be taken.
+
+    Responds 404 when the supplier is inactive. There is no reactivation: the
+    `active` field is not accepted in the body and is rejected as an unknown
+    property with a 400.
   operationId: updateSupplier
   tags:
     - Suppliers
@@ -57,21 +68,30 @@ patch:
 delete:
   summary: Deactivate a supplier
   description: |
-    Logical deletion. The record is kept and its active flag is set to
-    false, so materials and other records that reference the supplier
-    remain valid. Reactivation is done with PATCH { "active": true }.
+    Registra la baja. Logical deletion: the row is kept and its active flag is
+    set to false, so materials and other records that reference the supplier
+    remain valid.
 
-    Responds 409 when the supplier is still assigned to work orders that
-    are not in a final state.
+    There is no reactivation. Once dado de baja the supplier is invisible to
+    every query and releases its cuit and legal name, so bringing it back
+    could duplicate whoever took them. To work with that supplier again it is
+    registered anew.
+
+    Responds 404 when the supplier does not exist **or is already inactive**:
+    in both cases there is nothing to give de baja.
+
+    PENDIENTE: this operation should also answer 409 when the supplier is
+    still assigned to work orders that are not in a final state. That rule is
+    not implemented, because there is no work-order model in the database yet
+    (only the WORK_ORDER value of the entity_type_enum, used by `file` for its
+    polymorphic FK). It has to be added together with the work-orders module.
   operationId: deactivateSupplier
   tags:
     - Suppliers
   responses:
     '204':
-      description: Supplier deactivated successfully.
+      description: Supplier deactivated successfully. No content.
     '401':
       $ref: '../components/responses/Unauthorized.yaml'
     '404':
       $ref: '../components/responses/NotFound.yaml'
-    '409':
-      $ref: '../components/responses/Conflict.yaml'

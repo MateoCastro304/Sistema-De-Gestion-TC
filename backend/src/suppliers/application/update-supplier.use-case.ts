@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Cuit } from '../domain/cuit';
+import { Cuit } from '../../shared/domain/cuit';
 import { SupplierAlreadyExists } from '../domain/errors/supplier-already-exists.error';
 import { SupplierNotFound } from '../domain/errors/supplier-not-found.error';
 import { SupplierRepository } from '../domain/ports/supplier.repository';
@@ -8,9 +8,9 @@ import { Supplier } from '../domain/supplier';
 /**
  * Fields accepted by a partial update. Each optional key has three meaningful
  * states: absent means "leave the field untouched", null (where allowed) means
- * "clear it", and a value means "replace it". supplierTypes is deliberately
- * excluded because it is immutable by design, and active is out of scope for
- * this sprint.
+ * "clear it", and a value means "replace it". supplierType is deliberately
+ * excluded because it is immutable by design, and there is no reactivation, so
+ * active is not accepted either.
  */
 export type UpdateSupplierInput = {
   legalName?: string;
@@ -19,12 +19,13 @@ export type UpdateSupplierInput = {
   contactEmail?: string | null;
   contactPhone?: string | null;
   address?: string | null;
+  observation?: string | null;
 };
 
 /**
- * Applies a partial change set to an existing supplier. Enforces the OpenAPI
- * 409 rule for cuit and legalName across active and inactive rows, excluding
- * the supplier being updated so it does not clash with itself. Every domain
+ * Applies a partial change set to an existing supplier. Enforces the 409 rule
+ * for cuit and legalName among the active suppliers, excluding the supplier
+ * being updated so it does not clash with itself. Every domain
  * invariant is applied inside {@link Supplier.update}, which builds and
  * validates the new state before assigning, so a rejected payload leaves the
  * aggregate untouched.
@@ -34,8 +35,10 @@ export class UpdateSupplier {
   constructor(private readonly repo: SupplierRepository) {}
 
   async execute(id: number, input: UpdateSupplierInput): Promise<Supplier> {
+    // An inactive supplier is a 404, not a 409: it stopped existing for every
+    // consumer, so there is nothing to modify.
     const supplier = await this.repo.findById(id);
-    if (supplier === null) {
+    if (supplier === null || !supplier.getActive()) {
       throw new SupplierNotFound(id);
     }
 

@@ -138,10 +138,30 @@ model Customer {
 // Supplier Management
 // =============================================
 
+/// Proveedor.
+///
+/// La baja es logica (`is_active`) y no hay reactivacion: un proveedor dado de
+/// baja deja de existir para toda consulta. De ahi que la unicidad de `cuit` y
+/// `legal_name` valga solo entre los activos, para que un proveedor inactivo no
+/// bloquee para siempre un CUIT o una razon social.
+///
+/// ATENCION: esa regla vive en dos indices escritos a mano en la migracion
+/// 20261008214800_supplier_snake_case_and_active_unique, porque Prisma no sabe
+/// expresar indices parciales (WHERE) ni funcionales (LOWER) en el schema:
+///
+///   supplier_cuit_active_key        UNIQUE (cuit)          WHERE is_active
+///   supplier_legal_name_active_key  UNIQUE (LOWER(legal_name)) WHERE is_active
+///
+/// Por eso `cuit` no lleva @unique aca. Prisma no los ve al calcular el diff
+/// (comprobado: no figuran en el reporte de drift), asi que no los va a
+/// proponer para borrar; pero tampoco los recrea solo. Si se reescribe esta
+/// migracion a mano y se omiten, la base deja de garantizar la unicidad y las
+/// altas duplicadas quedan libradas al codigo: verificar con
+///   SELECT indexname FROM pg_indexes WHERE tablename = 'supplier';
 model Supplier {
   id           Int          @id @default(autoincrement())
-  supplierType SupplierType
-  cuit         String?      @unique @db.VarChar(50)
+  supplierType SupplierType @map("supplier_type")
+  cuit         String?      @db.VarChar(50)
   legalName    String       @map("legal_name") @db.VarChar(80)
   contactName  String?      @map("contact_name") @db.VarChar(150)
   address      String?      @db.VarChar(255)

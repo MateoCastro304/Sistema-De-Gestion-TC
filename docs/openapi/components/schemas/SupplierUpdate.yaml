@@ -4,11 +4,16 @@ description: |
   fields that should change. At least one property must be present.
 
   The legalName and cuit can be changed as long as they pass their own
-  validations. The supplierTypes are defined on creation and cannot be
-  modified, so they are not accepted here.
+  validations. The supplierType is defined on creation and cannot be
+  modified, so it is not accepted here.
 
   The optional fields (cuit, contactName, contactEmail, contactPhone,
-  address) can be cleared by sending null.
+  address, observation) can be cleared by sending null.
+
+  `active` is not accepted. There is no reactivation: a supplier dado de baja
+  stops existing for every query and releases its CUIT and legal name, so
+  bringing it back could duplicate whoever took them. Any unknown property,
+  `active` included, is rejected with a 400.
 minProperties: 1
 properties:
   legalName:
@@ -18,10 +23,10 @@ properties:
     pattern: "^[0-9]{2}-[0-9]{8}-[0-9]{1}$"
     nullable: true
     description: Argentine CUIT. Format XX-XXXXXXXX-X. Send null to clear it.
-    example: "30-70987654-3"
+    example: "30-71234567-1"
   contactName:
     type: string
-    maxLength: 120
+    maxLength: 150
     nullable: true
     description: |
       Name of the contact person at the supplier. Send null to clear it.
@@ -35,15 +40,19 @@ properties:
     example: sales@acerosdelsur.com
   contactPhone:
     type: string
-    maxLength: 40
+    maxLength: 50
     nullable: true
     description: Send null to clear it.
     example: "+54 9 351 444-5678"
   address:
     type: string
-    maxLength: 200
+    maxLength: 255
     nullable: true
     description: Send null to clear it.
     example: Av. Circunvalacion 4500, Cordoba
-  active:
-    $ref: "./Supplier.yaml#/properties/active"
+  observation:
+    type: string
+    maxLength: 255
+    nullable: true
+    description: Send null to clear it.
+    example: Entrega los martes

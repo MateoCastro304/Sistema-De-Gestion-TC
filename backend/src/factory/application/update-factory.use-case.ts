@@ -3,7 +3,7 @@ import { FactoryRepository } from '../domain/port/factory.repository';
 import { CategoriesRepository } from '../../categories/domain/ports/categories.repository';
 import { UpdateFactoryDto } from '../http/dto/update-factory.dto';
 import { Factory } from '../domain/factory';
-import { Cuit } from '../../suppliers/domain/cuit';
+import { Cuit } from '../../shared/domain/cuit';
 import { FactoryAlreadyExists } from '../domain/errors/factory-already-exists.error';
 
 @Injectable()

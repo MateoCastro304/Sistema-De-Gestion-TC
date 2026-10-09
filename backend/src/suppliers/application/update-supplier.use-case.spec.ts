@@ -17,11 +17,8 @@ describe('UpdateSupplier (use case)', () => {
     useCase = new UpdateSupplier(repo);
   });
 
-  const seed = async (
-    legalName: string,
-    options: { cuit?: string; active?: boolean } = {},
-  ): Promise<Supplier> => {
-    const draft = Supplier.create(legalName, ['MATERIAL'], {
+  const seed = async (legalName: string, options: { cuit?: string; active?: boolean } = {}): Promise<Supplier> => {
+    const draft = Supplier.create(legalName, 'MATERIAL', {
       cuit: options.cuit,
       contactName: 'Diego',
       contactEmail: 'diego@example.com',
@@ -161,22 +158,41 @@ describe('UpdateSupplier (use case)', () => {
       expect(result.getLegalName()).toBe('Aceros del Sur');
     });
 
-    it('detects a duplicate cuit even when the other supplier is inactive', async () => {
+    // Uniqueness ignores inactive rows, so their cuit and legal name are free
+    // to be taken over by an active supplier.
+    it('allows taking the cuit of an inactive supplier', async () => {
       await seed('Otro Proveedor', { cuit: VALID_CUIT, active: false });
       const stored = await seed('Aceros del Sur');
 
-      const call = useCase.execute(stored.getId()!, { cuit: VALID_CUIT });
+      const result = await useCase.execute(stored.getId()!, { cuit: VALID_CUIT });
+
+      expect(result.getCuit()?.getFormatted()).toBe(VALID_CUIT);
+    });
+
+    it('allows taking the legalName of an inactive supplier', async () => {
+      await seed('Otro Proveedor', { active: false });
+      const stored = await seed('Aceros del Sur');
+
+      const result = await useCase.execute(stored.getId()!, { legalName: 'Otro Proveedor' });
+
+      expect(result.getLegalName()).toBe('Otro Proveedor');
+    });
+
+    it('detects a duplicate legalName ignoring case', async () => {
+      await seed('Otro Proveedor');
+      const stored = await seed('Aceros del Sur');
+
+      const call = useCase.execute(stored.getId()!, { legalName: 'OTRO PROVEEDOR' });
 
       await expect(call).rejects.toBeInstanceOf(SupplierAlreadyExists);
     });
 
-    it('detects a duplicate legalName even when the other supplier is inactive', async () => {
-      await seed('Otro Proveedor', { active: false });
-      const stored = await seed('Aceros del Sur');
+    it('throws SupplierNotFound when the supplier is inactive', async () => {
+      const stored = await seed('Aceros del Sur', { active: false });
 
-      const call = useCase.execute(stored.getId()!, { legalName: 'Otro Proveedor' });
+      const call = useCase.execute(stored.getId()!, { legalName: 'Nuevo Nombre' });
 
-      await expect(call).rejects.toBeInstanceOf(SupplierAlreadyExists);
+      await expect(call).rejects.toBeInstanceOf(SupplierNotFound);
     });
 
     it('does not check cuit uniqueness when clearing it with null', async () => {
@@ -195,9 +211,7 @@ describe('UpdateSupplier (use case)', () => {
     it('rejects a malformed cuit and leaves the supplier untouched', async () => {
       const stored = await seed('Aceros del Sur', { cuit: VALID_CUIT });
 
-      await expect(
-        useCase.execute(stored.getId()!, { cuit: '123' }),
-      ).rejects.toThrow(/CUIT/);
+      await expect(useCase.execute(stored.getId()!, { cuit: '123' })).rejects.toThrow(/CUIT/);
 
       const fresh = (await repo.findById(stored.getId()!))!;
       expect(fresh.getCuit()?.getCuitValue()).toBe(VALID_CUIT_NORMALIZED);
@@ -206,9 +220,7 @@ describe('UpdateSupplier (use case)', () => {
     it('rejects an invalid email and leaves the supplier untouched', async () => {
       const stored = await seed('Aceros del Sur');
 
-      await expect(
-        useCase.execute(stored.getId()!, { contactEmail: 'not-an-email' }),
-      ).rejects.toThrow(/email/i);
+      await expect(useCase.execute(stored.getId()!, { contactEmail: 'not-an-email' })).rejects.toThrow(/email/i);
 
       const fresh = (await repo.findById(stored.getId()!))!;
       expect(fresh.getContactEmail()?.getValue()).toBe('diego@example.com');
@@ -217,9 +229,7 @@ describe('UpdateSupplier (use case)', () => {
     it('rejects an invalid phone and leaves the supplier untouched', async () => {
       const stored = await seed('Aceros del Sur');
 
-      await expect(
-        useCase.execute(stored.getId()!, { contactPhone: 'abc' }),
-      ).rejects.toThrow(/Phone/);
+      await expect(useCase.execute(stored.getId()!, { contactPhone: 'abc' })).rejects.toThrow(/Phone/);
 
       const fresh = (await repo.findById(stored.getId()!))!;
       expect(fresh.getContactPhone()?.getValue()).toBe('+5493514445678');
@@ -228,17 +238,15 @@ describe('UpdateSupplier (use case)', () => {
     it('rejects an oversized legal name', async () => {
       const stored = await seed('Aceros del Sur');
 
-      await expect(
-        useCase.execute(stored.getId()!, { legalName: 'a'.repeat(121) }),
-      ).rejects.toThrow(/Legal name must not exceed/);
+      await expect(useCase.execute(stored.getId()!, { legalName: 'a'.repeat(121) })).rejects.toThrow(
+        /Legal name must not exceed/,
+      );
     });
 
     it('rejects a blank legal name', async () => {
       const stored = await seed('Aceros del Sur');
 
-      await expect(
-        useCase.execute(stored.getId()!, { legalName: '   ' }),
-      ).rejects.toThrow('Legal name is required');
+      await expect(useCase.execute(stored.getId()!, { legalName: '   ' })).rejects.toThrow('Legal name is required');
     });
 
     it('does not apply the valid part of a mixed valid + invalid payload', async () => {
