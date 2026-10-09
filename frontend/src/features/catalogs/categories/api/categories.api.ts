@@ -29,13 +29,8 @@ export async function getCategory(id: number): Promise<Category> {
 
 /** CU-41 Registrar Rubro. */
 export async function createCategory(input: CategoryInput): Promise<Category> {
-  // El backend responde el alta envuelta: { message, category }. El resto de
-  // los endpoints devuelve el rubro directo.
-  const { data } = await http.post<{ message: string; category: Category }>(
-    CATEGORIES,
-    input,
-  )
-  return data.category
+  const { data } = await http.post<Category>(CATEGORIES, input)
+  return data
 }
 
 /** CU-42 Modificar Rubro. */

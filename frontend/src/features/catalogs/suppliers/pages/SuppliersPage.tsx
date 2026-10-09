@@ -10,11 +10,12 @@ import {
   PageHero,
   Pagination,
   SearchField,
+  Select,
   Table,
   TrashButton,
   ValueOrDash,
 } from '@/shared/components/ui'
-import type { Column } from '@/shared/components/ui'
+import type { Column, SelectOption } from '@/shared/components/ui'
 import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import { DEFAULT_PAGE_SIZE } from '@/shared/api/pagination'
 import { cn } from '@/shared/lib/cn'
@@ -23,9 +24,18 @@ import { isApiError } from '@/shared/api/ApiError'
 import { useToast } from '@/app/providers/ToastContext'
 import { useSuppliers } from '../api/useSuppliers'
 import { useDeleteSuppliers } from '../api/useDeleteSuppliers'
-import { SUPPLIER_TYPE_LABELS } from '../types/supplier'
-import type { Supplier } from '../types/supplier'
+import { SUPPLIER_TYPES, SUPPLIER_TYPE_LABELS } from '../types/supplier'
+import type { Supplier, SupplierType } from '../types/supplier'
 import { TYPE_ICONS, TYPE_TONES, supplierIcon, supplierTone } from '../utils/supplierTone'
+
+/**
+ * Opciones del filtro por tipo. "Todos los tipos" es una opción más (valor
+ * ''), no un placeholder: volver a elegirla limpia el filtro.
+ */
+const TYPE_FILTER_OPTIONS: SelectOption<SupplierType | ''>[] = [
+  { value: '', label: 'Todos los tipos' },
+  ...SUPPLIER_TYPES.map((type) => ({ value: type, label: SUPPLIER_TYPE_LABELS[type] })),
+]
 
 export function SuppliersPage() {
   // El backend busca y pagina. La búsqueda se debouncea para no pegarle en
@@ -33,6 +43,8 @@ export function SuppliersPage() {
   // lo que viaja.
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  // '' = sin filtro. El backend filtra por un solo tipo (?type=).
+  const [type, setType] = useState<SupplierType | ''>('')
   const [page, setPage] = useState(1)
 
   useEffect(() => {
@@ -42,6 +54,7 @@ export function SuppliersPage() {
 
   const { data, isPending, isPlaceholderData, error, refetch } = useSuppliers({
     search: debouncedSearch || undefined,
+    type: type || undefined,
     page,
     limit: DEFAULT_PAGE_SIZE,
   })
@@ -72,11 +85,21 @@ export function SuppliersPage() {
     setPage(1)
   }
 
-  // "Limpiar búsqueda" no espera al debounce: el botón ya dijo qué quiere.
-  function clearSearch() {
+  // Cambiar el tipo también vuelve a la primera página.
+  function handleTypeChange(value: SupplierType | '') {
+    setType(value)
+    setPage(1)
+  }
+
+  // "Limpiar filtros" no espera al debounce: el botón ya dijo qué quiere.
+  function clearFilters() {
     handleSearchChange('')
     setDebouncedSearch('')
+    setType('')
   }
+
+  // Hay búsqueda o tipo elegido: el total ya no es el del catálogo entero.
+  const isFiltering = debouncedSearch !== '' || type !== ''
 
   function toggleOne(supplier: Supplier) {
     setSelected((current) => {
@@ -288,18 +311,18 @@ export function SuppliersPage() {
         {isApiError(error) ? error.message : 'Revisá la conexión e intentá de nuevo.'}
       </EmptyState>
     )
-  } else if (!isPending && debouncedSearch) {
+  } else if (!isPending && isFiltering) {
     emptyState = (
       <EmptyState
         kind="no-results"
         title="No hay proveedores que coincidan con la búsqueda."
         action={
-          <Button variant="secondary" onClick={clearSearch}>
-            Limpiar búsqueda
+          <Button variant="secondary" onClick={clearFilters}>
+            Limpiar filtros
           </Button>
         }
       >
-        Revisá cómo está escrito o buscá por CUIT.
+        Revisá cómo está escrito, buscá por CUIT o probá con otro tipo.
       </EmptyState>
     )
   } else if (!isPending) {
@@ -327,7 +350,7 @@ export function SuppliersPage() {
             {/* Con una búsqueda activa el total es el de los que coinciden,
                 no el del catálogo entero: el texto lo dice. */}
             <strong>{total}</strong>{' '}
-            {debouncedSearch
+            {isFiltering
               ? total === 1
                 ? 'proveedor coincide con la búsqueda'
                 : 'proveedores coinciden con la búsqueda'
@@ -346,6 +369,13 @@ export function SuppliersPage() {
           onChange={handleSearchChange}
           placeholder="Buscar por razón social, CUIT o contacto"
           label="Buscar proveedores"
+        />
+
+        <Select
+          aria-label="Filtrar por tipo"
+          value={type}
+          onChange={handleTypeChange}
+          options={TYPE_FILTER_OPTIONS}
         />
 
         {/* En modo eliminación las acciones las toma la barra de abajo:

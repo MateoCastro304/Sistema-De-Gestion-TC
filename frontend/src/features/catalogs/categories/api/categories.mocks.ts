@@ -81,11 +81,8 @@ export const categoryHandlers = [
       updatedAt: now,
     }
     categories = [...categories, created]
-    // Envuelto, igual que el backend real.
-    return HttpResponse.json(
-      { message: 'Rubro registrado correctamente', category: created },
-      { status: 201 },
-    )
+    // El rubro directo, igual que el backend real.
+    return HttpResponse.json(created, { status: 201 })
   }),
 
   http.patch('/api/categories/:id', async ({ params, request }) => {
