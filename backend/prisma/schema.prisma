@@ -15,7 +15,9 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
 }
 
 // =============================================
@@ -96,11 +98,16 @@ model Category {
 ///
 /// PENDIENTE: falta `code` (codigo de fabrica, unico, obligatorio, 2-4 caracteres).
 /// Ver docs/decisiones-clientes-fabricas.md, seccion 5.
+/// Unicidad (indices parciales creados a mano en la migracion
+/// 20261008000000_customers_factories_rules; Prisma no los expresa aca):
+///  - cuit: unico entre fabricas ACTIVAS (factory_customer_cuit_active_key)
+///  - name: unico entre fabricas ACTIVAS, sin distinguir mayusculas
+///    (factory_customer_name_active_key)
 model Factory {
   id         Int      @id @default(autoincrement())
   name       String   @db.VarChar(100)
   address    String?  @db.VarChar(255)
-  cuit       String   @unique @db.VarChar(50)
+  cuit       String   @db.VarChar(50)
   payMethod  String?  @map("pay_method") @db.VarChar(255)
   categoryId Int      @map("categorie_id")
   isActive   Boolean  @default(true) @map("is_active")
@@ -115,7 +122,7 @@ model Factory {
 
 /// Encargado / contacto de una fabrica (tabla `manager_customer`)
 model Customer {
-  id        Int     // correlativo por fabrica, generado por trigger fn_gen_id_manager
+  id        Int     // correlativo por fabrica; lo calcula CustomerPrismaRepository (max + 1)
   factoryId Int     @map("factory_id")
   name      String  @db.VarChar(50)
   lastName  String? @map("last_name") @db.VarChar(50)

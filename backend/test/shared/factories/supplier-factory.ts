@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { SupplierType } from '@prisma/client';
+import { SupplierType } from '../../../src/generated/prisma/enums';
 import { getPrisma } from '../harness/test-app';
 
 /**

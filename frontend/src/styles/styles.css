@@ -377,15 +377,6 @@ table { border-collapse: collapse; width: 100%; }
 }
 .search-field .search-input::placeholder { color: var(--rp-texto-sec); }
 
-/* Casilla de filtro ("Incluir eliminados"). */
-.filter-check {
-  flex-shrink: 0; display: inline-flex; align-items: center; gap: 10px;
-  padding: 7px 14px 7px 8px; border-radius: var(--rp-r-control);
-  font-size: 14px; font-weight: 600; color: var(--rp-navy); cursor: pointer;
-  transition: background .2s ease;
-}
-.filter-check:hover { background: var(--rp-fila-hover); }
-
 
 /* ============================================================
    5. BOTONES
@@ -624,14 +615,6 @@ table { border-collapse: collapse; width: 100%; }
   box-shadow: 0 20px 44px rgba(23,38,69,.2);
 }
 
-/* Casilla con texto sobre fondo claro ("Incluir eliminados" en el
-   detalle de fábrica). */
-.filters__checkbox {
-  display: inline-flex; align-items: center; gap: 10px;
-  font-size: 14px; font-weight: 600; color: var(--rp-navy);
-  cursor: pointer; white-space: nowrap; user-select: none;
-}
-
 /* --- Botones de guardar al pie, sólo en celular ---
    En los detalles, Cancelar y Guardar viven en el panel de arriba. En una
    pantalla angosta eso obliga a volver a subir después de completar el
@@ -665,15 +648,6 @@ table { border-collapse: collapse; width: 100%; }
 /* Cuando la fila termina en botón + ícono, los dos van juntos a la
    derecha en vez de estirarse. */
 .table__cell--acciones { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
-/* Acción secundaria en texto dentro de la fila ("Reactivar"). */
-.table-card--cards button.table__action {
-  min-height: 40px; padding: 0 14px; border: 0; border-radius: var(--rp-r-control);
-  background: var(--rp-suave); cursor: pointer;
-  font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
-  color: var(--rp-azul); transition: background .2s ease, color .2s ease;
-}
-.table-card--cards button.table__action:not(:disabled):hover { background: var(--rp-azul); color: #fff; }
-.table-card--cards button.table__action:disabled { opacity: .5; cursor: default; }
 
 
 /* ============================================================
@@ -913,8 +887,7 @@ table { border-collapse: collapse; width: 100%; }
 .form-field .table__add-link:hover { text-decoration: underline; }
 /* Casilleros nativos: la regla de los inputs de arriba los convertía en
    una caja con borde y padding. Acá vuelven a ser un casillero. */
-.form-field input[type="checkbox"],
-.filters__checkbox input[type="checkbox"] {
+.form-field input[type="checkbox"] {
   width: 20px; height: 20px; min-height: 0; flex-shrink: 0;
   padding: 0; border: 0; border-radius: 4px; background: none;
   accent-color: var(--rp-azul); cursor: pointer;
@@ -1398,7 +1371,6 @@ table { border-collapse: collapse; width: 100%; }
   .toolbar .search-field { flex: none; }
   .toolbar .select__trigger { flex: none; width: 100%; }
   .toolbar__cta { margin-left: 0; }
-  .filter-check { align-self: flex-start; }
   .page-header__row { flex-direction: column; align-items: stretch; }
   /* Los grupos de botones del panel también se apilan. Sin esto siguen
      en fila y, como abajo de 900px cada .btn ocupa el 100%, el segundo
@@ -1467,7 +1439,6 @@ table { border-collapse: collapse; width: 100%; }
      subtítulo se partía en tres. */
   .content__heading { flex-direction: column; align-items: stretch; gap: 14px; }
   .content__heading .detail-header__actions { flex-direction: column; align-items: stretch; width: 100%; }
-  .content__heading .filters__checkbox { align-self: flex-start; }
 
   /* Modal: menos aire alrededor para que el formulario use el ancho. */
   .modal-scrim { padding: 12px; }

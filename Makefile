@@ -29,7 +29,7 @@ export
 .PHONY: help \
         dev-up dev-build dev-down dev-down-v dev-logs ps clean \
         backend-restart backend-logs backend-shell backend-build \
-        migrate seed test-int test-api \
+        migrate seed test-int test-module \
         frontend-restart frontend-logs frontend-shell frontend-build \
         shell-db \
 				openapi-docs-build openapi-docs-logs \
@@ -51,6 +51,9 @@ dev-up: ## Starts all services in development mode (detached)
 
 dev-build: ## Rebuilds images and starts development
 	$(DC_DEV) up -d --build
+
+dev-stop: ## Stops development containers
+	$(DC_DEV) stop
 
 dev-down: ## Stops development containers
 	$(DC_DEV) down
@@ -93,11 +96,14 @@ migrate-create: ## Create Prisma migration inside the backend container (dev)
 seed: ## Runs Prisma seed inside the backend container (dev)
 	$(DC_DEV) exec backend npx prisma db seed
 
-test-int: ## Runs backend integration tests inside the backend container (dev)
+backend-test-int: ## Runs backend integration tests inside the backend container (dev)
 	$(DC_DEV) exec backend npm run test:int
 
-test-api: ## Runs backend API tests inside the backend container (dev)
-	$(DC_DEV) exec backend npm run test:api
+backend-test: ## Runs backend integration tests inside the backend container (dev)
+	$(DC_DEV) exec backend npm run test
+
+backend-test-module: ## Runs unit and integration tests for a single module (usage: make test-module name=suppliers)
+	$(DC_DEV) exec backend sh -c "npm test -- $(name); npm run test:int -- $(name)"
 
 # ---- Frontend Scoped ------------------------------------------------------
 
@@ -125,8 +131,9 @@ web-logs: ## Shows only the web logs (nginx)
 
 # ---- Dev Docs Scoped ------------------------------------------------------
 
-openapi-docs-build: ## Rebuild the openapi image only and serve on port 8081
-	$(DC_DEV) build openapi-build openapi-docs
+openapi-docs-build: ## Re-bundle the OpenAPI contract (refresh Swagger with Ctrl+F5)
+	$(DC_DEV) build openapi-build
+	$(DC_DEV) run --rm openapi-build
 
 openapi-docs-logs: ## Shows only the openapi-docs logs
 	$(DC_DEV) logs -f openapi-docs

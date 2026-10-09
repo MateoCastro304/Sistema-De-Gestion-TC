@@ -13,6 +13,7 @@ const config: Config = {
   clearMocks: true,
   verbose: true,
   moduleFileExtensions: ['ts', 'js', 'json'],
+  moduleNameMapper: { '^(\\.{1,2}/.*)\\.js$': '$1' },
   transform: {
     '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: '<rootDir>/test/tsconfig.json' }],
   },

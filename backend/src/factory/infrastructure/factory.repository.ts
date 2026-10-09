@@ -44,7 +44,17 @@ export class FactoryInMemoryRepository implements FactoryRepository {
 
     async existsByCuit(cuit: string, excludeId?: number): Promise<boolean> {
         return Array.from(this.factories.values()).some(
-            (factory) => factory.getCuit() === cuit && factory.getId() !== excludeId,
+            (factory) =>
+                factory.isActive() && factory.getCuit() === cuit && factory.getId() !== excludeId,
+        );
+    }
+
+    async existsByName(name: string, excludeId?: number): Promise<boolean> {
+        return Array.from(this.factories.values()).some(
+            (factory) =>
+                factory.isActive() &&
+                factory.getName().toLowerCase() === name.toLowerCase() &&
+                factory.getId() !== excludeId,
         );
     }
 

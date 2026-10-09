@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
-import { useParams, useLocation, Link } from 'react-router'
+import { useParams, useLocation, useNavigate, Link } from 'react-router'
 import { heroPhoto } from '@/shared/lib/heroPhoto'
 import fotoTaller from '@/assets/foto-prensa.webp'
 import {
   Avatar,
   Badge,
   Button,
-  CheckBox,
   IconTrash,
   Modal,
   Table,
@@ -21,9 +20,9 @@ import type { Customer } from '../types/customer'
 import type { Factory, FactoryInput } from '../types/factory'
 import { formatCuit, toFactoryFormValues } from '../schemas/factory.schema'
 import {
-  useActivateCustomer,
   useCustomers,
   useDeactivateCustomer,
+  useDeactivateFactory,
   useFactories,
   useCategories,
   useUpdateFactory,
@@ -47,16 +46,15 @@ export function FactoryDetailPage() {
 
   const factoriesQuery = useFactories()
   const { data: categories = [] } = useCategories()
-  // Encargados de esta fábrica (GET /customers?factoryId=...). Traemos activos e
-  // inactivos; el filtro de abajo decide cuáles se listan.
-  const customersQuery = useCustomers({ factoryId: id, limit: 200 })
+  // Encargados activos de esta fábrica (GET /customers?factoryId=...).
+  const customersQuery = useCustomers({ factoryId: id, limit: 200, active: true })
   const update = useUpdateFactory(id)
   const deactivate = useDeactivateCustomer()
-  const activate = useActivateCustomer()
+  const navigate = useNavigate()
+  const deactivateFactory = useDeactivateFactory()
+  const [confirmFactoryOpen, setConfirmFactoryOpen] = useState(false)
 
   const [editing, setEditing] = useState(false)
-  // Regla de negocio: los encargados inactivos se muestran solo con este filtro.
-  const [showInactive, setShowInactive] = useState(false)
   // Encargado modal: null closed; { customer } edits; { customer: undefined } adds.
   // Escenario 1 (HU-E1): al llegar recién creada la fábrica se ofrece cargar su
   // primer encargado, así que el modal arranca abierto. Se resuelve en el
@@ -115,14 +113,8 @@ export function FactoryDetailPage() {
 
   const categoryName =
     categories.find((c) => c.id === factory.categoryId)?.name ?? '—'
-  // El backend ya acotó a esta fábrica vía `factoryId`.
-  const factoryContacts = customersQuery.data?.items ?? []
-  // Escenario 3 mira si la fábrica tiene encargados registrados (activos o no);
-  // el filtro solo cambia cuáles se listan.
-  const hasContacts = factoryContacts.length > 0
-  const contacts = showInactive
-    ? factoryContacts
-    : factoryContacts.filter((c) => c.isActive)
+  // El backend ya acotó a esta fábrica vía `factoryId` y solo trae activos.
+  const contacts = customersQuery.data?.items ?? []
   const fullName = (c: Customer) => customerFullName(c)
 
   const handleUpdate = (input: FactoryInput) => {
@@ -139,19 +131,20 @@ export function FactoryDetailPage() {
     })
   }
 
-  const handleActivate = (customer: Customer) => {
-    activate.mutate(
-      { factoryId: customer.factoryId, id: customer.id },
-      {
-        onSuccess: () =>
-          showToast('success', `Encargado "${fullName(customer)}" reactivado.`),
-        onError: (error) =>
-          showToast(
-            'error',
-            customerErrorMessage(error, 'No se pudo reactivar el encargado.'),
-          ),
+  const confirmDeactivateFactory = () => {
+    deactivateFactory.mutate(id, {
+      onSuccess: () => {
+        showToast('info', `Fábrica "${factory.name}" eliminada.`)
+        navigate('/catalogos/fabricas')
       },
-    )
+      onError: (error) => {
+        showToast(
+          'error',
+          factoryErrorMessage(error, 'No se pudo eliminar la fábrica.'),
+        )
+        setConfirmFactoryOpen(false)
+      },
+    })
   }
 
   const confirmDeactivate = () => {
@@ -186,7 +179,6 @@ export function FactoryDetailPage() {
         <span className="table__cell--nombre">
           <Avatar name={fullName(c)} icon="encargado" tone={toneByStatus(c.isActive)} />
           <b>{fullName(c)}</b>
-          {!c.isActive && <Badge variant="neutral">Inactivo</Badge>}
         </span>
       ),
     },
@@ -201,9 +193,8 @@ export function FactoryDetailPage() {
       cellClassName: 'table__cell--acciones',
       // Editar y eliminar como íconos: son dos acciones por fila y con
       // texto compiten con el nombre, que es lo que se viene a leer.
-      render: (c) =>
-        c.isActive ? (
-          <>
+      render: (c) => (
+        <>
             <button
               type="button"
               className="row-action row-action--edit"
@@ -219,19 +210,8 @@ export function FactoryDetailPage() {
               label={`Eliminar a ${fullName(c)}`}
               onClick={() => setToDeactivate(c)}
             />
-          </>
-        ) : (
-          // Un eliminado no se edita ni se vuelve a eliminar: sólo se
-          // reactiva, igual que en el listado general de Encargados.
-          <button
-            type="button"
-            className="table__action"
-            onClick={() => handleActivate(c)}
-            disabled={activate.isPending}
-          >
-            Reactivar
-          </button>
-        ),
+        </>
+      ),
     },
   ]
 
@@ -283,7 +263,15 @@ export function FactoryDetailPage() {
                 </Button>
               </>
             ) : (
-              <Button onClick={() => setEditing(true)}>Editar</Button>
+              <>
+                <Button onClick={() => setEditing(true)}>Editar</Button>
+                <TrashButton
+                  label={`Eliminar a ${factory.name}`}
+                  onClick={() => setConfirmFactoryOpen(true)}
+                >
+                  Eliminar
+                </TrashButton>
+              </>
             )}
           </div>
         </div>
@@ -292,6 +280,7 @@ export function FactoryDetailPage() {
       {editing ? (
         <>
           <FactoryForm
+            lockCuit
             defaultValues={toFactoryFormValues(factory)}
             onSubmit={handleUpdate}
             submitting={update.isPending}
@@ -322,17 +311,6 @@ export function FactoryDetailPage() {
           </p>
         </div>
         <div className="detail-header__actions">
-          {hasContacts && (
-            /* Este filtro vive sobre fondo claro, no dentro del panel
-               azul, así que usa el cuadro en su versión normal. */
-            <label className="filters__checkbox">
-              <CheckBox
-                checked={showInactive}
-                onChange={() => setShowInactive(!showInactive)}
-              />
-              Incluir eliminados
-            </label>
-          )}
           <Button onClick={() => setContactModal({ customer: undefined })}>
             + Agregar encargado
           </Button>
@@ -348,12 +326,40 @@ export function FactoryDetailPage() {
         columns={contactColumns}
         data={contacts}
         rowKey={(c) => `${c.factoryId}-${c.id}`}
-        emptyMessage={
-          hasContacts
-            ? 'No hay encargados que coincidan con el filtro.'
-            : 'Esta fábrica no tiene encargados registrados; no será posible enviar informes de cotización.'
-        }
+        emptyMessage="Esta fábrica no tiene encargados registrados; no será posible enviar informes de cotización."
       />
+
+      <Modal
+        open={confirmFactoryOpen}
+        onClose={() => setConfirmFactoryOpen(false)}
+        title="Eliminar fábrica"
+        tone="danger"
+        size="sm"
+        footer={
+          <>
+            <Button
+              variant="outline"
+              onClick={() => setConfirmFactoryOpen(false)}
+              disabled={deactivateFactory.isPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="danger"
+              onClick={confirmDeactivateFactory}
+              disabled={deactivateFactory.isPending}
+            >
+              <IconTrash />
+              {deactivateFactory.isPending ? 'Eliminando…' : 'Eliminar'}
+            </Button>
+          </>
+        }
+      >
+        <p>
+          ¿Seguro que querés eliminar la fábrica <strong>{factory.name}</strong>?
+          Sólo se puede si no tiene encargados activos. Se conserva su historial.
+        </p>
+      </Modal>
 
       <CustomerFormModal
         open={contactModal !== null}

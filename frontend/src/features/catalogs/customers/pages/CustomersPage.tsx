@@ -1,21 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import {
-  Button,
-  CheckBox,
-  IconTrash,
-  Modal,
-  PageHero,
-  Pagination,
-  SearchField,
-} from '@/shared/components/ui'
+import { Button, IconTrash, Modal, PageHero, Pagination, SearchField } from '@/shared/components/ui'
 import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import fotoTaller from '@/assets/foto-cnc.webp'
 import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
 import type { Customer } from '../types/customer'
 import {
-  useActivateCustomer,
   useCustomers,
   useDeactivateCustomer,
   useFactories,
@@ -33,7 +24,6 @@ export function CustomersPage() {
   const { data: factories = [] } = useFactories()
   const { data: categories = [] } = useCategories()
   const deactivate = useDeactivateCustomer()
-  const activate = useActivateCustomer()
 
   // Customer pending confirmation for baja lógica; null when the modal is closed.
   const [toDeactivate, setToDeactivate] = useState<Customer | null>(null)
@@ -42,8 +32,6 @@ export function CustomersPage() {
   // backend hace la búsqueda; se debouncea para no pegarle en cada tecla.
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
-  // Regla de negocio: los inactivos se muestran solo si se activa este filtro.
-  const [showInactive, setShowInactive] = useState(false)
   const [page, setPage] = useState(1)
 
   useEffect(() => {
@@ -51,7 +39,7 @@ export function CustomersPage() {
     return () => clearTimeout(timer)
   }, [search])
 
-  // Al cambiar la búsqueda o el filtro de inactivos volvemos a la primera página;
+  // Al cambiar la búsqueda volvemos a la primera página;
   // se hace en los handlers (no en un effect) para no encadenar renders.
   const handleSearchChange = (value: string) => {
     setSearch(value)
@@ -64,15 +52,10 @@ export function CustomersPage() {
     setDebouncedSearch('')
   }
 
-  const handleShowInactiveChange = (checked: boolean) => {
-    setShowInactive(checked)
-    setPage(1)
-  }
-
-  // El backend filtra y pagina; sin `active` trae activos + inactivos.
+  // El backend filtra y pagina; los eliminados nunca se listan.
   const customersQuery = useCustomers({
     nameContains: debouncedSearch || undefined,
-    active: showInactive ? undefined : true,
+    active: true,
     page,
     limit: PAGE_SIZE,
   })
@@ -81,21 +64,6 @@ export function CustomersPage() {
   const total = customersQuery.data?.total ?? 0
 
   const fullName = (c: Customer) => customerFullName(c)
-
-  const handleActivate = (customer: Customer) => {
-    activate.mutate(
-      { factoryId: customer.factoryId, id: customer.id },
-      {
-        onSuccess: () =>
-          showToast('success', `Encargado "${fullName(customer)}" reactivado.`),
-        onError: (error) =>
-          showToast(
-            'error',
-            customerErrorMessage(error, 'No se pudo reactivar el encargado.'),
-          ),
-      },
-    )
-  }
 
   const confirmDeactivate = () => {
     if (!toDeactivate) return
@@ -126,27 +94,15 @@ export function CustomersPage() {
     <>
       <PageHero eyebrow="Contactos de" accent="fábricas" title="Encargados" photo={fotoTaller} />
 
-      {/* Barra de herramientas: buscador, filtro y alta. Los filtros
-          aparecen recién cuando el listado cargó. */}
+      {/* Barra de herramientas: buscador y alta. El buscador aparece
+          recién cuando el listado cargó. */}
       <div className="toolbar">
         {customersQuery.isSuccess && (
-          <>
-            <SearchField
-              value={search}
-              onChange={handleSearchChange}
-              placeholder="Buscar por nombre o apellido"
-            />
-
-            {/* El <label> envuelve al input, así que el texto también
-                alterna la casilla. */}
-            <label className="filter-check">
-              <CheckBox
-                checked={showInactive}
-                onChange={() => handleShowInactiveChange(!showInactive)}
-              />
-              Incluir eliminados
-            </label>
-          </>
+          <SearchField
+            value={search}
+            onChange={handleSearchChange}
+            placeholder="Buscar por nombre o apellido"
+          />
         )}
         <Link to="/catalogos/encargados/nuevo" className="btn btn--primary toolbar__cta">
           + Nuevo encargado
@@ -188,7 +144,6 @@ export function CustomersPage() {
           factories={factories}
           categories={categories}
           onDeactivate={setToDeactivate}
-          onActivate={handleActivate}
           emptyState={
             debouncedSearch !== '' ? (
               <EmptyState

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Category as CategoryRow } from '@prisma/client';
+import { Category as CategoryRow } from '../../generated/prisma/client';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
 import { Category } from '../domain/category';
 import {

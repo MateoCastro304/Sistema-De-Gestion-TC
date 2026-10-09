@@ -1,12 +1,13 @@
 import { FactoryId } from "./factory-id";
 import { CategoryId } from '../../categories/domain/category-id';
-import { Cuit } from "../../suppliers/domain/cuit";
+import { Cuit } from "../../shared/domain/cuit";
+import { DomainValidationError } from "../../shared/domain/errors/domain-validation.error";
 
 
 export class Factory {
   private constructor(
     private readonly _id: FactoryId | null,
-    private _cuit: Cuit,
+    private readonly _cuit: Cuit, // inmutable: el CUIT no se modifica
     private _name: string,
     private _address: string | null,
     private _paymentDescription: string | null,
@@ -67,15 +68,13 @@ export class Factory {
     );
   }
 
-  // UPDATE
+  // UPDATE (el CUIT no se modifica)
   update(
-    cuit: string,
     name: string,
     address: string | null,
     paymentDescription: string | null,
     categoryId: number,
   ): void {
-    this.setCuit(cuit);
     this.setName(name);
     this.setAdress(address);
     this.setPaymentDescription(paymentDescription);
@@ -91,20 +90,11 @@ export class Factory {
     this._updatedAt = new Date();
   }
 
-  // Reactivar (alta logica)
-  activate(): void {
-    if (this._active) {
-      throw new Error('Factory is already active');
-    }
-    this._active = true;
-    this._updatedAt = new Date();
-  }
-
   // VALIDATION
 
   private validate(): void {
     if (!this._name || this._name.trim().length === 0) {
-      throw new Error('Factory name cannot be empty');
+      throw new DomainValidationError('Factory name cannot be empty');
     }
   }
 
@@ -125,10 +115,6 @@ export class Factory {
 
   setCategoryId(categoryId: number): void {
     this._categoryId = CategoryId.create(categoryId);
-  }
-
-  setCuit(cuit: string): void {
-    this._cuit = Cuit.create(cuit);
   }
 
   // GETTERS

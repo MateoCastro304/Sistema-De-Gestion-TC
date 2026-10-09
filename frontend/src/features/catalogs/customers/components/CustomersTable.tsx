@@ -15,8 +15,6 @@ interface CustomersTableProps {
   categories: Category[]
   /** Called when the user confirms the baja lógica of a customer. */
   onDeactivate: (customer: Customer) => void
-  /** Called to reactivar (CU-04 inverso) a customer dado de baja. */
-  onActivate?: (customer: Customer) => void
   /** Qué mostrar si no hay filas: sin registros, sin resultados o error. */
   emptyState?: ReactNode
   /** Pie del listado (la paginación). */
@@ -29,7 +27,6 @@ export function CustomersTable({
   factories,
   categories,
   onDeactivate,
-  onActivate,
   emptyState,
   footer,
 }: CustomersTableProps) {
@@ -89,21 +86,12 @@ export function CustomersTable({
             Ver
           </Link>
           {/* Eliminar va como ícono y no como segundo botón: borrar no
-              puede pesar visualmente lo mismo que ver el detalle. Sólo
-              aparece si el encargado está activo, igual que antes. */}
-          {c.isActive ? (
+              puede pesar visualmente lo mismo que ver el detalle. */}
+          {c.isActive && (
             <TrashButton
               label={`Eliminar a ${customerFullName(c)}`}
               onClick={() => onDeactivate(c)}
             />
-          ) : (
-            // Un eliminado no se puede volver a eliminar: en ese lugar va
-            // la acción inversa (CU-04), sólo si el que llama la habilita.
-            onActivate && (
-              <button type="button" className="table__action" onClick={() => onActivate(c)}>
-                Reactivar
-              </button>
-            )
           )}
         </>
       ),
