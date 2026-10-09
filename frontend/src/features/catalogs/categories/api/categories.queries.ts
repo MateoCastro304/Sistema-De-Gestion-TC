@@ -3,7 +3,7 @@ import type { CategoryInput } from '../types/category'
 import { categoryKeys } from './categories.keys'
 import {
   createCategory,
-  deleteCategory,
+  deactivateCategory,
   getCategory,
   listCategories,
   updateCategory,
@@ -50,13 +50,17 @@ export function useUpdateCategory() {
   })
 }
 
-/** Delete a rubro (CU-44 Baja de Rubro). */
-export function useDeleteCategory() {
+/**
+ * Baja lógica de un rubro (CU-44). Dado de baja, el rubro no se vuelve a ver
+ * ni a modificar desde el frontend.
+ */
+export function useDeactivateCategory() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: deleteCategory,
+    mutationFn: deactivateCategory,
     onSuccess: (_, id) => {
       queryClient.removeQueries({ queryKey: categoryKeys.detail(id) })
+      // También refresca el selector de rubro de Fábricas (misma clave).
       queryClient.invalidateQueries({ queryKey: categoryKeys.lists() })
     },
   })

@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { Button, IconTrash, Modal } from '@/shared/components/ui'
 import { normalizeText } from '@/shared/lib/normalizeText'
-import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
+import { useToast } from '@/app/providers/ToastContext'
 import type { Category } from '../types/category'
-import { useCategories, useDeleteCategory } from '../api/categories.queries'
+import { useCategories, useDeactivateCategory } from '../api/categories.queries'
 import { CategoriesTable } from '../components/CategoriesTable'
 import { CategoryFormModal } from '../components/CategoryFormModal'
 import { categoryErrorMessage } from '../utils/errorMessages'
@@ -12,18 +12,21 @@ import { categoryErrorMessage } from '../utils/errorMessages'
 /**
  * Rubros catalog: CU-43 Consultar Rubro, plus CU-41 Registrar and CU-42
  * Modificar through a modal, and CU-44 Baja de Rubro with confirmation.
+ *
+ * La baja es lógica y definitiva para el usuario: el rubro queda en la base
+ * sólo como registro, pero no se vuelve a listar, editar ni reactivar.
  */
 export function CategoriesPage() {
   const showToast = useToast()
   const categoriesQuery = useCategories()
-  const remove = useDeleteCategory()
+  const deactivate = useDeactivateCategory()
 
   const [search, setSearch] = useState('')
   // Form modal state: closed, create (`null` rubro) or edit (the rubro).
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Category | null>(null)
-  // Rubro pending delete confirmation; null when the modal is closed.
-  const [toDelete, setToDelete] = useState<Category | null>(null)
+  // Rubro pending baja confirmation; null when the modal is closed.
+  const [toDeactivate, setToDeactivate] = useState<Category | null>(null)
 
   const openCreate = () => {
     setEditing(null)
@@ -35,20 +38,19 @@ export function CategoriesPage() {
     setFormOpen(true)
   }
 
-  const confirmDelete = () => {
-    if (!toDelete) return
-    remove.mutate(toDelete.id, {
+  const confirmDeactivate = () => {
+    if (!toDeactivate) return
+    const category = toDeactivate
+    deactivate.mutate(category.id, {
       onSuccess: () => {
         // 'info' y no 'success', igual que en los otros catálogos.
-        showToast('info', `Rubro "${toDelete.name}" eliminado.`)
-        setToDelete(null)
+        showToast('info', `Rubro "${category.name}" dado de baja.`)
+        setToDeactivate(null)
       },
       onError: (error) => {
-        showToast(
-          'error',
-          categoryErrorMessage(error, 'No se pudo eliminar el rubro.'),
-        )
-        setToDelete(null)
+        // El 409 del backend explica la causa (fábricas activas asociadas).
+        showToast('error', categoryErrorMessage(error, 'No se pudo dar de baja el rubro.'))
+        setToDeactivate(null)
       },
     })
   }
@@ -122,7 +124,7 @@ export function CategoriesPage() {
         <CategoriesTable
           categories={visible}
           onEdit={openEdit}
-          onDelete={setToDelete}
+          onDeactivate={setToDeactivate}
           emptyMessage={
             term
               ? `No hay rubros que coincidan con "${search.trim()}".`
@@ -138,31 +140,31 @@ export function CategoriesPage() {
       />
 
       <Modal
-        open={toDelete !== null}
-        onClose={() => setToDelete(null)}
-        title="Eliminar rubro"
+        open={toDeactivate !== null}
+        onClose={() => setToDeactivate(null)}
+        title="Dar de baja rubro"
         size="sm"
         footer={
           <>
             <Button
               variant="outline"
-              onClick={() => setToDelete(null)}
-              disabled={remove.isPending}
+              onClick={() => setToDeactivate(null)}
+              disabled={deactivate.isPending}
             >
               Cancelar
             </Button>
-            {/* danger: confirmar un borrado va en rojo, como en el resto. */}
-            <Button variant="danger" onClick={confirmDelete} disabled={remove.isPending}>
+            {/* danger: confirmar una baja va en rojo, como en el resto. */}
+            <Button variant="danger" onClick={confirmDeactivate} disabled={deactivate.isPending}>
               <IconTrash />
-              {remove.isPending ? 'Eliminando…' : 'Eliminar'}
+              {deactivate.isPending ? 'Dando de baja…' : 'Dar de baja'}
             </Button>
           </>
         }
       >
         <p>
-          ¿Seguro que querés eliminar el rubro{' '}
-          <strong>{toDelete?.name}</strong>? No se puede eliminar si alguna
-          fábrica lo tiene asignado.
+          ¿Dar de baja el rubro <strong>{toDeactivate?.name}</strong>? Deja de
+          aparecer en el sistema y no se puede modificar ni reactivar. No se
+          puede dar de baja si alguna fábrica activa lo tiene asignado.
         </p>
       </Modal>
     </>

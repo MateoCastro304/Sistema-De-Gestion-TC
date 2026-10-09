@@ -14,6 +14,7 @@ let nextId = 1
 const seed = (name: string): Category => ({
   id: nextId++,
   name,
+  active: true,
   createdAt: SEED_DATE,
   updatedAt: SEED_DATE,
 })
@@ -26,8 +27,11 @@ let categories: Category[] = [
   seed('Petróleo y gas'),
 ]
 
-/** Ids of rubros a factory uses, so deleting them answers 409 as the real API. */
-const IN_USE_IDS = new Set([3, 5])
+/**
+ * Rubros que usa alguna fábrica activa del mock de Fábricas (Autopartes y
+ * Petróleo y gas): darlos de baja responde 409, como el backend.
+ */
+const IN_USE_BY_ACTIVE_FACTORIES = new Set([3, 5])
 
 function findCategory(id: number): Category | undefined {
   return categories.find((c) => c.id === id)
@@ -59,7 +63,9 @@ export const categoryHandlers = [
     const page = Number(url.searchParams.get('page') ?? 1)
     const limit = Number(url.searchParams.get('limit') ?? 20)
     const start = (page - 1) * limit
-    return HttpResponse.json(categories.slice(start, start + limit))
+    // Como el backend: sólo los activos.
+    const active = categories.filter((c) => c.active !== false)
+    return HttpResponse.json(active.slice(start, start + limit))
   }),
 
   http.get('/api/categories/:id', ({ params }) => {
@@ -77,15 +83,12 @@ export const categoryHandlers = [
     const created: Category = {
       id: nextId++,
       name: body.name,
+      active: true,
       createdAt: now,
       updatedAt: now,
     }
     categories = [...categories, created]
-    // Envuelto, igual que el backend real.
-    return HttpResponse.json(
-      { message: 'Rubro registrado correctamente', category: created },
-      { status: 201 },
-    )
+    return HttpResponse.json(created, { status: 201 })
   }),
 
   http.patch('/api/categories/:id', async ({ params, request }) => {
@@ -103,16 +106,18 @@ export const categoryHandlers = [
     return HttpResponse.json(category)
   }),
 
+  // Baja lógica: el rubro queda, con active: false, y deja de listarse.
   http.delete('/api/categories/:id', ({ params }) => {
     const id = Number(params.id)
-    if (!findCategory(id)) return new HttpResponse(null, { status: 404 })
-    if (IN_USE_IDS.has(id)) {
+    const category = findCategory(id)
+    if (!category) return new HttpResponse(null, { status: 404 })
+    if (IN_USE_BY_ACTIVE_FACTORIES.has(id)) {
       return conflict(
-        'No se puede eliminar el rubro porque tiene fábricas asociadas.',
+        'No es posible dar de baja el rubro: existen 1 fábricas activas asociadas. Reasignelas antes de continuar',
         `/api/categories/${id}`,
       )
     }
-    categories = categories.filter((c) => c.id !== id)
+    Object.assign(category, { active: false, updatedAt: new Date().toISOString() })
     return new HttpResponse(null, { status: 204 })
   }),
 ]
