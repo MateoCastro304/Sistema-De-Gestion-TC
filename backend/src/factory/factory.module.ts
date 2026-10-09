@@ -15,7 +15,6 @@ import { GetFactoryById } from './application/get-factory-by-id.use-case';
 import { ListFactories } from './application/list-factories.use-case';
 import { UpdateFactory } from './application/update-factory.use-case';
 import { DeactivateFactory } from './application/deactivate-factory.use-case';
-import { ActivateFactory } from './application/activate-factory.use-case';
 
 @Module({
     imports: [forwardRef(() => CategoriesModule), forwardRef(() => CustomersModule)],
@@ -26,7 +25,6 @@ import { ActivateFactory } from './application/activate-factory.use-case';
     ListFactories,
     UpdateFactory,
     DeactivateFactory,
-    ActivateFactory,
     {
       provide: FactoryRepository,
       useClass: FactoryPrismaRepository,

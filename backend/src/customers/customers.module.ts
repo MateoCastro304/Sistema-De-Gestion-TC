@@ -10,7 +10,6 @@ import { GetCustomerById } from './application/get-customer-by-id.use-case';
 import { ListCustomers } from './application/list-customers.use-case';
 import { UpdateCustomer } from './application/update-customer.use-case';
 import { DeactivateCustomer } from './application/deactivate-customer.use-case';
-import { ActivateCustomer } from './application/activate-customer.use-case';
 
 
 @Module({
@@ -22,7 +21,6 @@ import { ActivateCustomer } from './application/activate-customer.use-case';
     ListCustomers,
     UpdateCustomer,
     DeactivateCustomer,
-    ActivateCustomer,
     // Vincular la abstracción (puerto) con la implementación en memoria (adaptador)
     {
       provide: CustomerRepository,

@@ -1,0 +1,15 @@
+name: Torneria CI
+
+on:
+  push:
+    branches: [develop, feature/CI]
+  pull_request:
+    branches: [main]
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: ls
+      - run: node -v

@@ -4,6 +4,7 @@ import { CategoriesRepository } from '../../categories/domain/ports/categories.r
 import { CreateFactoryDto } from '../http/dto/create-factory.dto';
 import { Factory } from '../domain/factory';
 import { FactoryAlreadyExists } from '../domain/errors/factory-already-exists.error';
+import { FactoryNameAlreadyExists } from '../domain/errors/factory-name-already-exists.error';
 
 @Injectable()
 export class CreateFactory {
@@ -29,6 +30,11 @@ export class CreateFactory {
     const cuitTaken = await this.factoryRepository.existsByCuit(factory.getCuit());
     if (cuitTaken) {
       throw new ConflictException(new FactoryAlreadyExists(factory.getCuit()).message);
+    }
+
+    const nameTaken = await this.factoryRepository.existsByName(factory.getName());
+    if (nameTaken) {
+      throw new ConflictException(new FactoryNameAlreadyExists(factory.getName()).message);
     }
 
     return await this.factoryRepository.save(factory);

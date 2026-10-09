@@ -5,7 +5,7 @@ const config: Config = {
   rootDir: process.cwd(),
   preset: 'ts-jest',
   testEnvironment: 'node',
-  testMatch: ['<rootDir>/test/modules/**/int/**/*.int.spec.ts'],
+  testMatch: ['<rootDir>/test/modules/**/*.int.spec.ts'],
   testTimeout: 30000,
   maxWorkers: 1,
   globalSetup: '<rootDir>/test/shared/harness/global-setup.ts',
@@ -17,7 +17,11 @@ const config: Config = {
   transform: {
     '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: '<rootDir>/test/tsconfig.json' }],
   },
-  transformIgnorePatterns: ['node_modules/(?!(@faker-js/faker)/)'],
+  // No se transforma nada de node_modules. La excepcion anterior para
+  // @faker-js/faker lo convertia a CJS, y como el paquete es ESM puro y estos
+  // configs corren con --experimental-vm-modules (lo exige el compilador WASM
+  // de Prisma 7), al cargarlo fallaba con "exports is not defined".
+  transformIgnorePatterns: ['/node_modules/'],
 };
 
 export default config;

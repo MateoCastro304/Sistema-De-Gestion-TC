@@ -20,8 +20,18 @@ export function factoryErrorMessage(error: unknown, fallback: string): string {
   const transport = transportMessage(error)
   if (transport) return transport
   if (isApiError(error)) {
-    // El único 409 de alta y edición de fábrica es el CUIT repetido.
-    if (error.isConflict) return 'Ya existe una fábrica registrada con ese CUIT.'
+    if (error.isConflict) {
+      // 409 posibles: baja con encargados activos, ya dada de baja, nombre
+      // repetido o CUIT repetido.
+      if (error.message.includes('active customers')) {
+        return 'No se puede eliminar: la fábrica tiene encargados activos. Eliminá primero a sus encargados.'
+      }
+      if (error.message.includes('already inactive')) return 'La fábrica ya estaba eliminada.'
+      if (error.message.startsWith('Factory with name')) {
+        return 'Ya existe una fábrica con ese nombre.'
+      }
+      return 'Ya existe una fábrica registrada con ese CUIT.'
+    }
     if (error.isNotFound) return 'La fábrica ya no existe.'
   }
   return fallback

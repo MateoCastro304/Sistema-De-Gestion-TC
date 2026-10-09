@@ -24,7 +24,6 @@ import { GetCustomerById } from "../application/get-customer-by-id.use-case";
 import { ListCustomers } from "../application/list-customers.use-case";
 import { UpdateCustomer } from "../application/update-customer.use-case";
 import { DeactivateCustomer } from "../application/deactivate-customer.use-case";
-import { ActivateCustomer } from "../application/activate-customer.use-case";
 import { CustomerResponseDto } from "./dto/customer-response.dto";
 import { CustomerExceptionFilter } from "./filters/customers-exception.filter";
 import { ValidationError } from 'class-validator';
@@ -53,7 +52,6 @@ export class CustomersController {
     private readonly listCustomers: ListCustomers,
     private readonly updateCustomer: UpdateCustomer,
     private readonly deactivateCustomer: DeactivateCustomer,
-    private readonly activateCustomer: ActivateCustomer,
   ) {}
 
     @Get('customers')
@@ -116,14 +114,5 @@ export class CustomersController {
     @Param('id', ParseIntPipe) id: number,
   ) {
     await this.deactivateCustomer.execute(factoryId, id);
-  }
-
-  @Patch('factories/:factoryId/customers/:id/activate')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async activate(
-    @Param('factoryId', ParseIntPipe) factoryId: number,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
-    await this.activateCustomer.execute(factoryId, id);
   }
 }

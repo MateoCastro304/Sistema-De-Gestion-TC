@@ -3,8 +3,7 @@ import { FactoryRepository } from '../domain/port/factory.repository';
 import { CategoriesRepository } from '../../categories/domain/ports/categories.repository';
 import { UpdateFactoryDto } from '../http/dto/update-factory.dto';
 import { Factory } from '../domain/factory';
-import { Cuit } from '../../shared/domain/cuit';
-import { FactoryAlreadyExists } from '../domain/errors/factory-already-exists.error';
+import { FactoryNameAlreadyExists } from '../domain/errors/factory-name-already-exists.error';
 
 @Injectable()
 export class UpdateFactory {
@@ -14,6 +13,10 @@ export class UpdateFactory {
   ) {}
 
   async execute(id: number, dto: UpdateFactoryDto): Promise<Factory> {
+    if (Object.values(dto).every((value) => value === undefined)) {
+      throw new BadRequestException('At least one field must be provided');
+    }
+
     const factory = await this.factoryRepository.findById(id);
     if (!factory) {
       throw new NotFoundException(`Factory with ID ${id} not found`);
@@ -26,17 +29,15 @@ export class UpdateFactory {
       }
     }
 
-    let cuit = factory.getCuit();
-    if (dto.cuit) {
-      cuit = Cuit.create(dto.cuit).getCuitValue();
-      const cuitTaken = await this.factoryRepository.existsByCuit(cuit, factory.getId() ?? undefined);
-      if (cuitTaken) {
-        throw new ConflictException(new FactoryAlreadyExists(cuit).message);
+    if (dto.name !== undefined) {
+      const nameTaken = await this.factoryRepository.existsByName(dto.name.trim(), id);
+      if (nameTaken) {
+        throw new ConflictException(new FactoryNameAlreadyExists(dto.name.trim()).message);
       }
     }
 
+    // El CUIT no se modifica.
     factory.update(
-      cuit,
       dto.name ?? factory.getName(),
       dto.address === undefined ? factory.getAddress() : dto.address,
       dto.payMethod === undefined ? factory.getPaymentDescription() : dto.payMethod,

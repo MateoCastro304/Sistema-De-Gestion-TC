@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { CustomerRepository } from '../domain/port/customer.repository';
 
 @Injectable()
@@ -9,6 +9,9 @@ export class DeactivateCustomer {
     const customer = await this.customersRepository.findById(factoryId, id);
     if (!customer) {
       throw new NotFoundException(`Customer ${id} not found in factory ${factoryId}`);
+    }
+    if (!customer.isActive()) {
+      throw new ConflictException(`Customer ${id} in factory ${factoryId} is already inactive`);
     }
     customer.deactivate();
     await this.customersRepository.update(customer);
