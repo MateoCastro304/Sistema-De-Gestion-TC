@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router'
 import { heroPhoto } from '@/shared/lib/heroPhoto'
-import fotoTaller from '@/assets/foto-fresado.png'
+import fotoTaller from '@/assets/foto-fresado.webp'
 import { Avatar, Badge, Button, IconTrash, Modal, TrashButton } from '@/shared/components/ui'
+import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import { toneByStatus } from '@/shared/lib/rowTone'
 import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
@@ -60,16 +61,22 @@ export function CustomerDetailPage() {
     const notFound =
       isApiError(customerQuery.error) && customerQuery.error.isNotFound
     return (
-      <div className="empty-state">
-        <p className="empty-state__text">
-          {notFound
+      <EmptyState
+        card
+        kind={notFound ? 'no-results' : 'error'}
+        title={
+          notFound
             ? 'No encontramos el encargado que buscabas.'
-            : 'No se pudo cargar el encargado.'}{' '}
-          <Link className="table__action" to="/catalogos/encargados">
+            : 'No se pudo cargar el encargado.'
+        }
+        action={
+          <Link className="btn btn--secondary" to="/catalogos/encargados">
             Volver al listado
           </Link>
-        </p>
-      </div>
+        }
+      >
+        {notFound ? 'Puede que lo hayan eliminado.' : 'Revisá la conexión e intentá de nuevo.'}
+      </EmptyState>
     )
   }
 

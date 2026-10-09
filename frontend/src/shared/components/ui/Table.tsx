@@ -87,6 +87,14 @@ interface TableProps<T> {
   rowKey: (row: T) => string | number
   /** Texto cuando `data` viene vacío. */
   emptyMessage?: string
+  /**
+   * Lo que se muestra en lugar de las filas cuando `data` viene vacío
+   * (un `<EmptyState />`: sin registros, sin resultados o error de
+   * carga). Si está, reemplaza a `emptyMessage`.
+   */
+  emptyState?: ReactNode
+  /** Pie de la tarjeta, debajo de las filas (un `<Pagination />`). */
+  footer?: ReactNode
 
   /* ---- Agregados por el rediseño. Todos opcionales: sin ellos el
      componente se comporta EXACTAMENTE como antes. ---- */
@@ -114,6 +122,8 @@ export function Table<T>({
   data,
   rowKey,
   emptyMessage = 'No hay registros',
+  emptyState,
+  footer,
   variant = 'table',
   gridTemplate,
   rowClassName,
@@ -136,7 +146,7 @@ export function Table<T>({
         </div>
 
         {data.length === 0 ? (
-          <div className="table__empty">{emptyMessage}</div>
+          (emptyState ?? <div className="table__empty">{emptyMessage}</div>)
         ) : (
           data.map((row, index) => (
             <div
@@ -169,6 +179,8 @@ export function Table<T>({
             </div>
           ))
         )}
+
+        {footer}
       </div>
     )
   }
@@ -191,7 +203,7 @@ export function Table<T>({
             {data.length === 0 ? (
               <tr className="table__row">
                 <td className="table__td table__td--muted table__td--center" colSpan={columns.length}>
-                  {emptyMessage}
+                  {emptyState ?? emptyMessage}
                 </td>
               </tr>
             ) : (
@@ -215,6 +227,7 @@ export function Table<T>({
           </tbody>
         </table>
       </div>
+      {footer}
     </div>
   )
 }

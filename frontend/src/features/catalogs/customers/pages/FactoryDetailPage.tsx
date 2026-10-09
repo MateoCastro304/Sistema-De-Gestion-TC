@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useLocation, Link } from 'react-router'
 import { heroPhoto } from '@/shared/lib/heroPhoto'
-import fotoTaller from '@/assets/foto-prensa.png'
+import fotoTaller from '@/assets/foto-prensa.webp'
 import {
   Avatar,
   Badge,
@@ -15,6 +15,7 @@ import {
 } from '@/shared/components/ui'
 import { toneByStatus } from '@/shared/lib/rowTone'
 import type { Column } from '@/shared/components/ui'
+import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import { useToast } from '@/app/providers/ToastContext'
 import type { Customer } from '../types/customer'
 import type { Factory, FactoryInput } from '../types/factory'
@@ -91,16 +92,24 @@ export function FactoryDetailPage() {
 
   if (factoriesQuery.isError || !factory) {
     return (
-      <div className="empty-state">
-        <p className="empty-state__text">
-          {factoriesQuery.isError
+      <EmptyState
+        card
+        kind={factoriesQuery.isError ? 'error' : 'no-results'}
+        title={
+          factoriesQuery.isError
             ? 'No se pudo cargar la fábrica.'
-            : 'No encontramos la fábrica que buscabas.'}{' '}
-          <Link className="table__action" to="/catalogos/fabricas">
+            : 'No encontramos la fábrica que buscabas.'
+        }
+        action={
+          <Link className="btn btn--secondary" to="/catalogos/fabricas">
             Volver al listado
           </Link>
-        </p>
-      </div>
+        }
+      >
+        {factoriesQuery.isError
+          ? 'Revisá la conexión e intentá de nuevo.'
+          : 'Puede que la hayan eliminado.'}
+      </EmptyState>
     )
   }
 

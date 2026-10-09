@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Avatar, Badge, Table, TrashButton, ValueOrDash } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
@@ -16,8 +17,10 @@ interface CustomersTableProps {
   onDeactivate: (customer: Customer) => void
   /** Called to reactivar (CU-04 inverso) a customer dado de baja. */
   onActivate?: (customer: Customer) => void
-  /** Message shown when there are no rows (e.g. no matches for the search). */
-  emptyMessage?: string
+  /** Qué mostrar si no hay filas: sin registros, sin resultados o error. */
+  emptyState?: ReactNode
+  /** Pie del listado (la paginación). */
+  footer?: ReactNode
 }
 
 /** Read-only listing of customers/contacts (CU-03), with links to detail and baja. */
@@ -27,7 +30,8 @@ export function CustomersTable({
   categories,
   onDeactivate,
   onActivate,
-  emptyMessage = 'No hay encargados registrados.',
+  emptyState,
+  footer,
 }: CustomersTableProps) {
   const factoryById = (id: string) => factories.find((f) => f.id === id)
   const categoryName = (id: string) =>
@@ -118,7 +122,8 @@ export function CustomersTable({
       columns={columns}
       data={customers}
       rowKey={(c) => `${c.factoryId}-${c.id}`}
-      emptyMessage={emptyMessage}
+      emptyState={emptyState}
+      footer={footer}
     />
   )
 }

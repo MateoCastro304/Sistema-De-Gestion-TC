@@ -1,6 +1,6 @@
 import { useNavigate, Link } from 'react-router'
 import { heroPhoto } from '@/shared/lib/heroPhoto'
-import fotoTaller from '@/assets/foto-dispositivo.png'
+import fotoTaller from '@/assets/foto-dispositivo.webp'
 import { useToast } from '@/app/providers/ToastContext'
 import type { FactoryInput } from '../types/factory'
 import { useCreateFactory } from '../api/customers.queries'

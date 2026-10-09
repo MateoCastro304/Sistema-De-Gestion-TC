@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Avatar, Table, TrashButton } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
 import type { Category } from '../types/category'
@@ -6,7 +7,10 @@ interface CategoriesTableProps {
   categories: Category[]
   onEdit: (category: Category) => void
   onDelete: (category: Category) => void
-  emptyMessage?: string
+  /** Qué mostrar si no hay filas: sin registros, sin resultados o error. */
+  emptyState?: ReactNode
+  /** Pie del listado (la paginación). */
+  footer?: ReactNode
 }
 
 const dateFormatter = new Intl.DateTimeFormat('es-AR', {
@@ -20,7 +24,8 @@ export function CategoriesTable({
   categories,
   onEdit,
   onDelete,
-  emptyMessage = 'No hay rubros registrados.',
+  emptyState,
+  footer,
 }: CategoriesTableProps) {
   const columns: Column<Category>[] = [
     {
@@ -71,7 +76,8 @@ export function CategoriesTable({
       columns={columns}
       data={categories}
       rowKey={(c) => c.id}
-      emptyMessage={emptyMessage}
+      emptyState={emptyState}
+      footer={footer}
     />
   )
 }

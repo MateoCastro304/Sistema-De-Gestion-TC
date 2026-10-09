@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { Button, IconTrash, Modal, PageHero, SearchField } from '@/shared/components/ui'
-import fotoTaller from '@/assets/foto-disco.png'
+import { Button, IconTrash, Modal, PageHero, Pagination, SearchField } from '@/shared/components/ui'
+import { EmptyState } from '@/shared/components/feedback/EmptyState'
+import { usePagedList } from '@/shared/hooks/usePagedList'
+import fotoTaller from '@/assets/foto-disco.webp'
 import { normalizeText } from '@/shared/lib/normalizeText'
 import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
@@ -60,12 +62,21 @@ export function CategoriesPage() {
     .filter((c) => normalizeText(c.name).includes(term))
     .sort((a, b) => a.name.localeCompare(b.name, 'es'))
 
+  // La lista llega entera y se filtra acá, así que también se pagina acá.
+  const { pageItems, page, setPage, pageSize, total } = usePagedList(visible)
+
+  // Buscar vuelve a la primera página.
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+    setPage(1)
+  }
+
   return (
     <>
       <PageHero eyebrow="Catálogo de" accent="rubros" title="Rubros" photo={fotoTaller} />
 
       <div className="toolbar">
-        <SearchField value={search} onChange={setSearch} placeholder="Buscar rubro" />
+        <SearchField value={search} onChange={handleSearchChange} placeholder="Buscar rubro" />
         <button type="button" className="btn btn--primary" onClick={openCreate}>
           + Nuevo rubro
         </button>
@@ -77,25 +88,56 @@ export function CategoriesPage() {
         </div>
       )}
 
+      {/* El error va dentro de la tarjeta del listado, con el encabezado
+          de columnas a la vista. */}
       {categoriesQuery.isError && (
-        <div className="callout callout--warning">
-          <span>
-            {isApiError(categoriesQuery.error)
-              ? categoriesQuery.error.message
-              : 'No se pudieron cargar los rubros.'}
-          </span>
-        </div>
+        <CategoriesTable
+          categories={[]}
+          onEdit={openEdit}
+          onDelete={setToDelete}
+          emptyState={
+            <EmptyState
+              kind="error"
+              title="No se pudieron cargar los rubros."
+              action={<Button onClick={() => categoriesQuery.refetch()}>Reintentar</Button>}
+            >
+              {isApiError(categoriesQuery.error)
+                ? categoriesQuery.error.message
+                : 'Revisá la conexión e intentá de nuevo.'}
+            </EmptyState>
+          }
+        />
       )}
 
       {categoriesQuery.isSuccess && (
         <CategoriesTable
-          categories={visible}
+          categories={pageItems}
           onEdit={openEdit}
           onDelete={setToDelete}
-          emptyMessage={
-            term
-              ? `No hay rubros que coincidan con "${search.trim()}".`
-              : 'No hay rubros registrados.'
+          emptyState={
+            term ? (
+              <EmptyState
+                kind="no-results"
+                title="No hay rubros que coincidan con la búsqueda."
+                action={
+                  <Button variant="secondary" onClick={() => handleSearchChange('')}>
+                    Limpiar búsqueda
+                  </Button>
+                }
+              >
+                Revisá cómo está escrito.
+              </EmptyState>
+            ) : (
+              <EmptyState
+                title="Todavía no hay rubros registrados."
+                action={<Button onClick={openCreate}>+ Nuevo rubro</Button>}
+              >
+                Cuando cargues el primero va a aparecer acá.
+              </EmptyState>
+            )
+          }
+          footer={
+            <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} />
           }
         />
       )}

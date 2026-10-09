@@ -83,7 +83,7 @@ export function Modal({
         <div className="modal__body">{children}</div>
 
         {footer && (
-          <footer className="modal__footer modal__footer--end">{footer}</footer>
+          <footer className="modal__footer">{footer}</footer>
         )}
       </div>
     </div>,

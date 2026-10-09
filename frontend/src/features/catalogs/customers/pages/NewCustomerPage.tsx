@@ -1,6 +1,6 @@
 import { useNavigate, Link } from 'react-router'
 import { heroPhoto } from '@/shared/lib/heroPhoto'
-import fotoTaller from '@/assets/foto-cono.png'
+import fotoTaller from '@/assets/foto-cono.webp'
 import { useToast } from '@/app/providers/ToastContext'
 import type { CustomerInput } from '../types/customer'
 import { useCreateCustomer } from '../api/customers.queries'

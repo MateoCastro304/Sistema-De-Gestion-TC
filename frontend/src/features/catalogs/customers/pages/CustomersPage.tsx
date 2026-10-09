@@ -1,7 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { Button, CheckBox, IconTrash, Modal, PageHero, SearchField } from '@/shared/components/ui'
-import fotoTaller from '@/assets/foto-cnc.png'
+import {
+  Button,
+  CheckBox,
+  IconTrash,
+  Modal,
+  PageHero,
+  Pagination,
+  SearchField,
+} from '@/shared/components/ui'
+import { EmptyState } from '@/shared/components/feedback/EmptyState'
+import fotoTaller from '@/assets/foto-cnc.webp'
 import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
 import type { Customer } from '../types/customer'
@@ -49,6 +58,12 @@ export function CustomersPage() {
     setPage(1)
   }
 
+  // "Limpiar búsqueda" no espera al debounce: el botón ya dijo qué quiere.
+  const clearSearch = () => {
+    handleSearchChange('')
+    setDebouncedSearch('')
+  }
+
   const handleShowInactiveChange = (checked: boolean) => {
     setShowInactive(checked)
     setPage(1)
@@ -64,7 +79,6 @@ export function CustomersPage() {
 
   const customers = customersQuery.data?.items ?? []
   const total = customersQuery.data?.total ?? 0
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   const fullName = (c: Customer) => customerFullName(c)
 
@@ -145,53 +159,74 @@ export function CustomersPage() {
         </div>
       )}
 
+      {/* El error va dentro de la misma tarjeta del listado, con el
+          encabezado de columnas a la vista: se lee como "acá iba la
+          lista", no como un cartel suelto. */}
       {customersQuery.isError && (
-        <div className="callout callout--warning">
-          <span>
-            {isApiError(customersQuery.error)
-              ? customersQuery.error.message
-              : 'No se pudieron cargar los encargados.'}
-          </span>
-        </div>
+        <CustomersTable
+          customers={[]}
+          factories={factories}
+          categories={categories}
+          onDeactivate={setToDeactivate}
+          emptyState={
+            <EmptyState
+              kind="error"
+              title="No se pudieron cargar los encargados."
+              action={<Button onClick={() => customersQuery.refetch()}>Reintentar</Button>}
+            >
+              {isApiError(customersQuery.error)
+                ? customersQuery.error.message
+                : 'Revisá la conexión e intentá de nuevo.'}
+            </EmptyState>
+          }
+        />
       )}
 
       {customersQuery.isSuccess && (
-        <>
-          <CustomersTable
-            customers={customers}
-            factories={factories}
-            categories={categories}
-            onDeactivate={setToDeactivate}
-            onActivate={handleActivate}
-            emptyMessage={
-              debouncedSearch !== ''
-                ? 'No hay encargados que coincidan con la búsqueda.'
-                : 'No hay encargados registrados.'
-            }
-          />
-
-          {totalPages > 1 && (
-            <div className="pagination">
-              <Button
-                variant="outline"
-                disabled={page <= 1 || customersQuery.isFetching}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+        <CustomersTable
+          customers={customers}
+          factories={factories}
+          categories={categories}
+          onDeactivate={setToDeactivate}
+          onActivate={handleActivate}
+          emptyState={
+            debouncedSearch !== '' ? (
+              <EmptyState
+                kind="no-results"
+                title="No hay encargados que coincidan con la búsqueda."
+                action={
+                  <Button variant="secondary" onClick={clearSearch}>
+                    Limpiar búsqueda
+                  </Button>
+                }
               >
-                Anterior
-              </Button>
-              <span className="pagination__status">
-                Página {page} de {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                disabled={page >= totalPages || customersQuery.isFetching}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                Revisá cómo está escrito o probá con el apellido.
+              </EmptyState>
+            ) : (
+              <EmptyState
+                title="Todavía no hay encargados registrados."
+                action={
+                  <Link to="/catalogos/encargados/nuevo" className="btn btn--primary">
+                    + Nuevo encargado
+                  </Link>
+                }
               >
-                Siguiente
-              </Button>
-            </div>
-          )}
-        </>
+                Cuando cargues el primero va a aparecer acá.
+              </EmptyState>
+            )
+          }
+          footer={
+            <Pagination
+              page={page}
+              pageSize={PAGE_SIZE}
+              total={total}
+              onPageChange={setPage}
+              // Con keepPreviousData la página vieja sigue a la vista
+              // mientras llega la nueva: se bloquea para no encolar saltos.
+              disabled={customersQuery.isFetching}
+            />
+          }
+        />
       )}
 
       <Modal

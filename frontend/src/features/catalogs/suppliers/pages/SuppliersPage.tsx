@@ -8,14 +8,17 @@ import {
   IconTrash,
   Modal,
   PageHero,
+  Pagination,
   SearchField,
   Table,
   TrashButton,
   ValueOrDash,
 } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
+import { EmptyState } from '@/shared/components/feedback/EmptyState'
+import { usePagedList } from '@/shared/hooks/usePagedList'
 import { cn } from '@/shared/lib/cn'
-import fotoTaller from '@/assets/hero-castro.png'
+import fotoTaller from '@/assets/hero-castro.webp'
 import { normalizeText } from '@/shared/lib/normalizeText'
 import { isApiError } from '@/shared/api/ApiError'
 import { useToast } from '@/app/providers/ToastContext'
@@ -26,7 +29,7 @@ import type { Supplier } from '../types/supplier'
 import { TYPE_ICONS, TYPE_TONES, supplierIcon, supplierTone } from '../utils/supplierTone'
 
 export function SuppliersPage() {
-  const { data, isPending, error } = useSuppliers()
+  const { data, isPending, error, refetch } = useSuppliers()
   const [search, setSearch] = useState('')
 
   // null = mirando la lista. Un Set, aunque este vacio = modo eliminacion.
@@ -56,6 +59,17 @@ export function SuppliersPage() {
     )
   }, [data, search])
 
+  // La lista llega entera y el filtro corre acá, así que la paginación
+  // también: `rows` es el tramo de `filtered` que toca mostrar.
+  const { pageItems: rows, page, setPage, pageSize, total, totalPages } = usePagedList(filtered)
+
+  // Buscar vuelve a la primera página: los resultados nuevos no tienen
+  // por qué empezar donde había quedado la lista anterior.
+  function handleSearchChange(value: string) {
+    setSearch(value)
+    setPage(1)
+  }
+
   function toggleOne(id: number) {
     setSelected((current) => {
       if (!current) return current
@@ -68,27 +82,29 @@ export function SuppliersPage() {
     })
   }
 
-  // Opera sobre lo filtrado: con una busqueda activa, "todos" son esos.
+  // Opera sobre la pagina que se ve: "todos" son los que el usuario tiene
+  // delante, no los de las paginas que no abrio.
   // El length > 0 evita que una lista vacia cuente como toda seleccionada.
   const allVisibleSelected =
-    selected !== null && filtered.length > 0 && filtered.every((s) => selected.has(s.id))
+    selected !== null && rows.length > 0 && rows.every((s) => selected.has(s.id))
 
-  // Sale de `data` y no de `filtered`: la seleccion sobrevive a la busqueda,
-  // asi que puede incluir proveedores que el filtro actual no muestra.
+  // Sale de `data` y no de `rows`: la seleccion sobrevive a la busqueda y
+  // al cambio de pagina, asi que puede incluir proveedores que no se ven.
   const selectedSuppliers = (data ?? []).filter((s) => selected?.has(s.id))
 
-  // Tildados que quedaron fuera de la busqueda. Si hay, se avisa en la barra:
-  // sin eso el usuario borraria cosas que no tiene delante.
+  // Tildados que no estan a la vista: en otra pagina o fuera de la busqueda.
+  // Si hay, se avisa en la barra: sin eso el usuario borraria cosas que no
+  // tiene delante.
   const hiddenSelectedCount = selectedSuppliers.filter(
-    (s) => !filtered.some((f) => f.id === s.id),
+    (s) => !rows.some((r) => r.id === s.id),
   ).length
 
   function toggleAllVisible() {
     setSelected((current) => {
       if (!current) return current
       const next = new Set(current)
-      if (allVisibleSelected) filtered.forEach((s) => next.delete(s.id))
-      else filtered.forEach((s) => next.add(s.id))
+      if (allVisibleSelected) rows.forEach((s) => next.delete(s.id))
+      else rows.forEach((s) => next.add(s.id))
       return next
     })
   }
@@ -240,7 +256,7 @@ export function SuppliersPage() {
     algo más anchos que los del prototipo: con aquellos el teléfono
     quedaba justo y el contacto se partía en dos líneas.
 
-    Abajo de 1200px esto deja de usarse: el CSS pasa la fila a ficha
+    Abajo de 1080px de ventana esto deja de usarse: el CSS pasa la fila a ficha
     apilada de una sola columna, que es donde seis columnas ya no
     entran de ninguna forma.
   */
@@ -248,10 +264,48 @@ export function SuppliersPage() {
     ? '44px minmax(0,2fr) 124px 120px minmax(0,1.3fr) 150px'
     : 'minmax(0,2fr) 124px 120px minmax(0,1.3fr) 150px 72px'
 
-  // El mensaje del cuerpo vacío cambia según por qué está vacío.
-  let emptyMessage = 'Todavía no hay proveedores registrados.'
-  if (isPending) emptyMessage = 'Cargando proveedores…'
-  else if (search.trim()) emptyMessage = `No encontramos proveedores para "${search.trim()}".`
+  // Qué va en el cuerpo de la tabla cuando no hay filas, según por qué
+  // no las hay. Mientras carga queda `undefined` y la tabla muestra el
+  // texto de `emptyMessage`.
+  let emptyState
+  if (error) {
+    emptyState = (
+      <EmptyState
+        kind="error"
+        title="No se pudieron cargar los proveedores."
+        action={<Button onClick={() => refetch()}>Reintentar</Button>}
+      >
+        {isApiError(error) ? error.message : 'Revisá la conexión e intentá de nuevo.'}
+      </EmptyState>
+    )
+  } else if (!isPending && search.trim()) {
+    emptyState = (
+      <EmptyState
+        kind="no-results"
+        title="No hay proveedores que coincidan con la búsqueda."
+        action={
+          <Button variant="secondary" onClick={() => handleSearchChange('')}>
+            Limpiar búsqueda
+          </Button>
+        }
+      >
+        Revisá cómo está escrito o buscá por CUIT.
+      </EmptyState>
+    )
+  } else if (!isPending) {
+    emptyState = (
+      <EmptyState
+        title="Todavía no hay proveedores registrados."
+        action={
+          <Link to="/catalogos/proveedores/nuevo" className="btn btn--primary">
+            + Nuevo proveedor
+          </Link>
+        }
+      >
+        Cuando cargues el primero va a aparecer acá.
+      </EmptyState>
+    )
+  }
 
   return (
     <>
@@ -271,7 +325,7 @@ export function SuppliersPage() {
       <div className="toolbar">
         <SearchField
           value={search}
-          onChange={setSearch}
+          onChange={handleSearchChange}
           placeholder="Buscar por razón social, CUIT, contacto o tipo"
           label="Buscar proveedores"
         />
@@ -309,9 +363,14 @@ export function SuppliersPage() {
               <CheckBox
                 checked={allVisibleSelected}
                 onChange={toggleAllVisible}
-                disabled={filtered.length === 0}
+                disabled={rows.length === 0}
               />
-              Seleccionar todos
+              <span className="bulk-bar__select-all-text">
+                Seleccionar todos
+                {/* Sólo si hay más de una página: con una sola, "todos"
+                    ya es todos y la aclaración confunde. */}
+                {totalPages > 1 && <span className="bulk-bar__hint">sólo esta página</span>}
+              </span>
             </label>
 
             <span className="bulk-bar__count">
@@ -320,12 +379,14 @@ export function SuppliersPage() {
                 : `${selectedCount} proveedores seleccionados`}
             </span>
 
-            {/* Avisa que hay tildados que el filtro actual no muestra.
-                Va con --warn en vez de --hint: es una advertencia, y el
-                rediseño la muestra como pastilla roja. */}
+            {/* Avisa que hay tildados que no están a la vista (otra página
+                o fuera de la búsqueda). Va con --warn en vez de --hint: es
+                una advertencia, y el rediseño la muestra como pastilla roja. */}
             {hiddenSelectedCount > 0 && (
               <span className="bulk-bar__warn">
-                ({hiddenSelectedCount} fuera de la búsqueda)
+                {hiddenSelectedCount === 1
+                  ? '1 no está a la vista'
+                  : `${hiddenSelectedCount} no están a la vista`}
               </span>
             )}
           </div>
@@ -346,38 +407,36 @@ export function SuppliersPage() {
         </div>
       )}
 
-      {error ? (
-        <div className="callout callout--warning">
-          <span>{isApiError(error) ? error.message : 'Ocurrió un error inesperado.'}</span>
-        </div>
-      ) : (
-        <Table
-          /* Rediseño: filas-tarjeta en vez de <table>. Los datos, el
-             filtro y el rowKey son los mismos; lo único nuevo son las
-             props de presentación. */
-          variant="cards"
-          gridTemplate={gridTemplate}
-          /* Tocar cualquier parte de la fila tilda, no sólo el casillero
-             (era el pedido del diseño: en celular es la diferencia entre
-             acertarle y no). Sólo en modo eliminación: fuera de él la
-             fila no tiene por qué reaccionar al click.
-             Es el mismo toggleOne de siempre, así que la lógica de
-             selección no cambia. */
-          onRowClick={isSelecting ? (s) => toggleOne(s.id) : undefined}
-          rowClassName={(s) =>
-            cn(
-              `table__row--${supplierTone(s.supplierTypes)}`,
-              // Resalta la fila tildada. Es el mismo `selected` que ya
-              // usaba el casillero: no hay estado nuevo.
-              selected?.has(s.id) && 'table__row--selected',
-            )
-          }
-          columns={columns}
-          data={filtered}
-          rowKey={(s) => s.id}
-          emptyMessage={emptyMessage}
-        />
-      )}
+      <Table
+        /* Rediseño: filas-tarjeta en vez de <table>. Los datos, el
+           filtro y el rowKey son los mismos; lo único nuevo son las
+           props de presentación. */
+        variant="cards"
+        gridTemplate={gridTemplate}
+        /* Tocar cualquier parte de la fila tilda, no sólo el casillero
+           (era el pedido del diseño: en celular es la diferencia entre
+           acertarle y no). Sólo en modo eliminación: fuera de él la
+           fila no tiene por qué reaccionar al click.
+           Es el mismo toggleOne de siempre, así que la lógica de
+           selección no cambia. */
+        onRowClick={isSelecting ? (s) => toggleOne(s.id) : undefined}
+        rowClassName={(s) =>
+          cn(
+            `table__row--${supplierTone(s.supplierTypes)}`,
+            // Resalta la fila tildada. Es el mismo `selected` que ya
+            // usaba el casillero: no hay estado nuevo.
+            selected?.has(s.id) && 'table__row--selected',
+          )
+        }
+        columns={columns}
+        data={rows}
+        rowKey={(s) => s.id}
+        emptyMessage="Cargando proveedores…"
+        emptyState={emptyState}
+        footer={
+          <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} />
+        }
+      />
 
       <Modal
         open={confirmOpen}

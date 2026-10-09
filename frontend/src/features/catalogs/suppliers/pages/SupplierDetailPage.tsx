@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { heroPhoto } from '@/shared/lib/heroPhoto'
-import fotoTaller from '@/assets/foto-piezas-bronce.png'
+import fotoTaller from '@/assets/foto-piezas-bronce.webp'
 import { Avatar, Badge, Button } from '@/shared/components/ui'
+import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import { isApiError } from '@/shared/api/ApiError'
 import { cn } from '@/shared/lib/cn'
 import { useSupplier } from '../api/useDetailSupplier'
@@ -119,22 +120,35 @@ export function SupplierDetailPage() {
   }
   if (notFound) {
     return (
-      <div className="empty-state">
-        <p className="empty-state__text">
-          No encontramos el proveedor que buscabas.{' '}
-          <Link className="table__action" to="/catalogos/proveedores">
+      <EmptyState
+        card
+        kind="no-results"
+        title="No encontramos el proveedor que buscabas."
+        action={
+          <Link className="btn btn--secondary" to="/catalogos/proveedores">
             Volver al listado
           </Link>
-        </p>
-      </div>
+        }
+      >
+        Puede que lo hayan eliminado.
+      </EmptyState>
     )
   }
 
   if (error) {
     return (
-      <div className="callout callout--warning">
-        <span>{isApiError(error) ? error.message : 'Ocurrió un error inesperado.'}</span>
-      </div>
+      <EmptyState
+        card
+        kind="error"
+        title="No se pudo cargar el proveedor."
+        action={
+          <Link className="btn btn--secondary" to="/catalogos/proveedores">
+            Volver al listado
+          </Link>
+        }
+      >
+        {isApiError(error) ? error.message : 'Revisá la conexión e intentá de nuevo.'}
+      </EmptyState>
     )
   }
 

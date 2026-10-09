@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Avatar, Badge, Table } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
@@ -12,8 +13,10 @@ interface FactoriesTableProps {
   categories: Category[]
   /** How many encargados each factory has, keyed by factory id. */
   contactsByFactory: Record<string, number>
-  /** Message shown when there are no rows (e.g. no factories vs. no matches). */
-  emptyMessage?: string
+  /** Qué mostrar si no hay filas: sin registros, sin resultados o error. */
+  emptyState?: ReactNode
+  /** Pie del listado (la paginación). */
+  footer?: ReactNode
 }
 
 /** Read-only listing of factories (CU-60), with a link to the detail. */
@@ -21,7 +24,8 @@ export function FactoriesTable({
   factories,
   categories,
   contactsByFactory,
-  emptyMessage = 'No hay fábricas registradas.',
+  emptyState,
+  footer,
 }: FactoriesTableProps) {
   const categoryName = (id: string) =>
     categories.find((c) => c.id === id)?.name ?? '—'
@@ -76,7 +80,8 @@ export function FactoriesTable({
       columns={columns}
       data={factories}
       rowKey={(f) => f.id}
-      emptyMessage={emptyMessage}
+      emptyState={emptyState}
+      footer={footer}
     />
   )
 }

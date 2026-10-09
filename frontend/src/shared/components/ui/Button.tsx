@@ -9,7 +9,7 @@ import { cn } from '@/shared/lib/cn'
  * claro). Sobre fondo blanco se ve casi igual que `outline`; la
  * diferencia se nota adentro del panel, que es donde se usa.
  */
-export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'success' | 'danger'
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant
@@ -37,4 +37,4 @@ export function Button({
   )
 }
 
-/** Remember that the idea of cn is to avoid rewriting the same structure many times. With <Button variant="success" block> it would look like → "btn btn--success btn--block". */
+/** Remember that the idea of cn is to avoid rewriting the same structure many times. With <Button variant="danger" block> it would look like → "btn btn--danger btn--block". */

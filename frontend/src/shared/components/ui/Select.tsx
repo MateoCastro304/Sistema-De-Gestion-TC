@@ -90,13 +90,24 @@ const GAP = 6 // separación entre el botón y la lista
 /** Dónde dibujar la lista: debajo del botón, o arriba si abajo no entra. */
 function measureList(trigger: HTMLElement | null, optionCount: number): ListPosition | null {
   if (!trigger) return null
+  // La página se escala en escritorio (`zoom` en <html>, ver --rp-zoom en
+  // styles.css). El rect viene en píxeles reales de pantalla, pero el
+  // top/left que se le pone a la lista se vuelve a escalar: se pasa todo
+  // a la escala de la página dividiendo por el zoom.
+  const zoom = trigger.currentCSSZoom || 1
   const rect = trigger.getBoundingClientRect()
+  const top = rect.top / zoom
+  const bottom = rect.bottom / zoom
+  const viewportHeight = window.innerHeight / zoom
+
   const listHeight = Math.min(optionCount * OPTION_HEIGHT + 12, LIST_MAX_HEIGHT)
-  const spaceBelow = window.innerHeight - rect.bottom
-  const openUp = spaceBelow < listHeight + GAP * 2 && rect.top > spaceBelow
+  const spaceBelow = viewportHeight - bottom
+  const openUp = spaceBelow < listHeight + GAP * 2 && top > spaceBelow
+  const left = rect.left / zoom
+  const minWidth = rect.width / zoom
   return openUp
-    ? { left: rect.left, minWidth: rect.width, bottom: window.innerHeight - rect.top + GAP }
-    : { left: rect.left, minWidth: rect.width, top: rect.bottom + GAP }
+    ? { left, minWidth, bottom: viewportHeight - top + GAP }
+    : { left, minWidth, top: bottom + GAP }
 }
 
 /** Asigna el elemento a un ref que puede ser función u objeto. */

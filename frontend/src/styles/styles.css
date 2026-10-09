@@ -1,657 +1,11 @@
-/* ==========================================================================
-   1. TOKENS
-   ========================================================================== */
-:root {
-  /* Color — sidebar */
-  --color-sidebar-text: #ffffff;
-
-  /* Color — surfaces */
-  --color-bg-page: #f4f5f7;
-  --color-surface: #ffffff;
-  --color-surface-muted: #e7e9ed;
-  --color-border: #e6e8ec;
-  --color-border-strong: #d7dae0;
-
-  /* Color — text */
-  --color-text-primary: #16213a;
-  --color-text-secondary: #6b7280;
-  --color-text-muted: #9aa1ac;
-
-  /* Color — accents */
-  --color-accent-blue: #2f6fed;
-  --color-accent-orange: #d97706;
-  --color-accent-red: #dc2626;
-
-  /* Color — badges */
-  --color-badge-cotizado-bg: #e2edfd;
-  --color-badge-cotizado-text: #2f6fed;
-  --color-badge-adjudicado-bg: #dcf5e3;
-  --color-badge-adjudicado-text: #17a34a;
-  --color-badge-vencido-bg: #fbe1e1;
-  --color-badge-vencido-text: #dc2626;
-  --color-badge-pendiente-bg: #eef0f3;
-  --color-badge-pendiente-text: #6b7280;
-
-  /* Typography */
-  --font-base: 'Montserrat', system-ui, sans-serif;
-  --font-mono: 'Roboto Mono', 'SFMono-Regular', Consolas, monospace;
-
-  --fs-2xs: 11px;
-  --fs-xs: 12px;
-  --fs-sm: 13px;
-  --fs-lg: 16px;
-
-  --fw-regular: 400;
-  --fw-medium: 500;
-  --fw-semibold: 600;
-
-  /* Spacing (base unit 8px) */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-
-  /* Radius */
-  --radius-md: 8px;
-  --radius-lg: 10px;
-  --radius-pill: 999px;
-
-  /* Shadow */
-  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.05);
-
-  /* Color — botones */
-  --color-btn-success-bg: #15803d;
-
-  /* Color — stepper */
-
-  /* Color — superficies wizard */
-  --color-highlight-bg: #eaf1ff;
-  --color-highlight-border: #cddcf9;
-
-  /* Color — aviso (warning) */
-  --color-warning-bg: #fdf1de;
-  --color-warning-border: #f5dfb0;
-
-  /* Color — vista previa de impresión */
-
-  /* Layout */
-}
-
-/* ==========================================================================
-   2. RESET MÍNIMO
-   ========================================================================== */
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: var(--font-base);
-  color: var(--color-text-primary);
-  background: var(--color-bg-page);
-  -webkit-font-smoothing: antialiased;
-}
-
-img {
-  max-width: 100%;
-  display: block;
-}
-
-button,
-input {
-  font-family: inherit;
-  font-size: inherit;
-  color: inherit;
-}
-
-button {
-  cursor: pointer;
-  background: none;
-  border: none;
-}
-
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
-ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-h1 {
-  margin: 0;
-}
-
-table {
-  border-collapse: collapse;
-  width: 100%;
-}
-
-/* ==========================================================================
-   3. LAYOUT / CONTENEDORES
-   ========================================================================== */
-
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-}
-
-/* ==========================================================================
-   4. COMPONENTES
-   ========================================================================== */
-
-/* --- Sidebar --- */
-.sidebar {
-  color: var(--color-sidebar-text);
-}
-
-.sidebar__section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.topbar__breadcrumb {
-  font-size: var(--fs-sm);
-  color: var(--color-text-secondary);
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  white-space: nowrap;
-}
-
-/* --- Buttons --- */
-.btn {
-  white-space: nowrap;
-}
-
-.btn--danger:hover {
-  filter: brightness(0.92);
-}
-
-.btn--block {
-  justify-content: center;
-}
-
-/* --- Content heading --- */
-.content__heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-4);
-}
-
-.content__subtitle {
-  margin: var(--space-1) 0 0;
-  font-size: var(--fs-sm);
-  color: var(--color-text-secondary);
-}
-
-/* --- Filters --- */
-.filters {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.filters__checkbox {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--fs-sm);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-/* Paginación server-side del listado (Anterior / Página X de Y / Siguiente). */
-.pagination {
-  justify-content: flex-end;
-  margin-top: var(--space-3);
-}
-
-.pagination__status {
-  font-size: var(--fs-sm);
-  color: var(--color-text-secondary);
-}
-
-/* --- Table card --- */
-.table-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
-}
-
-.table-card__scroll {
-  overflow-x: auto;
-}
-
-.table {
-  min-width: 980px;
-}
-
-.table__th {
-  text-align: left;
-  font-size: var(--fs-2xs);
-  font-weight: var(--fw-semibold);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-  padding: var(--space-3) var(--space-5);
-  border-bottom: 1px solid var(--color-border);
-  white-space: nowrap;
-}
-
-.table__th--center {
-  text-align: center;
-}
-
-.table__row {
-  border-bottom: 1px solid var(--color-border);
-}
-
-.table__row:last-child {
-  border-bottom: none;
-}
-
-.table__row:hover {
-  background: var(--color-bg-page);
-}
-
-.table__row--delayed {
-  box-shadow: inset 3px 0 0 var(--color-accent-red);
-}
-
-.table__td {
-  padding: var(--space-4) var(--space-5);
-  font-size: var(--fs-sm);
-  color: var(--color-text-primary);
-  white-space: nowrap;
-}
-
-.table__td--center {
-  text-align: center;
-}
-
-.table__td--muted {
-  color: var(--color-text-muted);
-}
-
-.table__row--group {
-  background: var(--color-surface-muted);
-}
-
-.table__row--group .table__td {
-  font-weight: var(--fw-semibold);
-}
-
-.table__row--sub .table__td {
-  padding-left: var(--space-8);
-  color: var(--color-text-secondary);
-  font-weight: var(--fw-regular);
-}
-
-.table__action:hover {
-  text-decoration: underline;
-}
-
-/* --- Badges --- */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-pill);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  white-space: nowrap;
-}
-
-.badge--cotizado {
-  background: var(--color-badge-cotizado-bg);
-  color: var(--color-badge-cotizado-text);
-}
-
-.badge--adjudicado {
-  background: var(--color-badge-adjudicado-bg);
-  color: var(--color-badge-adjudicado-text);
-}
-
-.badge--vencido {
-  background: var(--color-badge-vencido-bg);
-  color: var(--color-badge-vencido-text);
-}
-
-.badge--pendiente {
-  background: var(--color-badge-pendiente-bg);
-  color: var(--color-badge-pendiente-text);
-}
-
-.badge--compra-material {
-  background: var(--color-surface-muted);
-  color: var(--color-text-secondary);
-}
-
-.badge--demorado {
-  background: var(--color-badge-vencido-bg);
-  color: var(--color-badge-vencido-text);
-}
-
-.pagination {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.detail-header__left {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-}
-
-.detail-header__title-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-}
-
-.detail-header__meta {
-  font-size: var(--fs-sm);
-  color: var(--color-text-secondary);
-}
-
-.detail-header__actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-}
-
-/* --- Detail layout --- */
-.detail-layout {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: var(--space-6);
-  align-items: start;
-}
-
-.detail-main {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-}
-
-.card-stack {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-}
-
-.detail-aside {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-}
-
-/* --- Acciones de formulario --- */
-.form-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-3);
-  max-width: 1080px;
-}
-
-/* --- Badges adicionales (wizard) --- */
-.badge--si {
-  background: var(--color-badge-adjudicado-bg);
-  color: var(--color-badge-adjudicado-text);
-}
-
-.badge--conjunto {
-  background: var(--color-badge-adjudicado-bg);
-  color: var(--color-badge-adjudicado-text);
-}
-
-.badge--simple {
-  background: var(--color-surface-muted);
-  color: var(--color-text-secondary);
-}
-
-/* --- Wizard: layout general --- */
-.wizard {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--color-bg-page);
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  row-gap: var(--space-5);
-  column-gap: var(--space-6);
-}
-
-.form-field--full {
-  grid-column: 1 / -1;
-}
-
-.form-field__input--disabled {
-  background: var(--color-bg-page);
-}
-
-.form-field__textarea {
-  font-family: inherit;
-}
-
-.empty-state {
-  border: 1.5px dashed var(--color-border-strong);
-  border-radius: var(--radius-md);
-  padding: var(--space-6);
-  text-align: center;
-}
-
-.empty-state__text {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: var(--fs-sm);
-}
-
-.table__add-link {
-  color: var(--color-accent-blue);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-}
-
-.table__add-link:hover {
-  text-decoration: underline;
-}
-
-.badge--tercerizado {
-  background: var(--color-warning-bg);
-  color: var(--color-accent-orange);
-}
-
-.modal-scrim {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-6);
-}
-
-.modal {
-  background: var(--color-surface);
-  width: 100%;
-  max-width: 560px;
-  max-height: 85vh;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-}
-
-.modal--lg {
-  max-width: 720px;
-}
-
-.modal--sm {
-  max-width: 480px;
-}
-
-.modal__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.modal__title {
-  margin: 0;
-}
-
-.modal__close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-}
-
-.modal__footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.modal__footer--end {
-  justify-content: flex-end;
-}
-
-/* --- Callout --- */
-.callout {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  background: var(--color-highlight-bg);
-  border: 1px solid var(--color-highlight-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-3) var(--space-4);
-  margin-top: var(--space-4);
-  font-size: var(--fs-xs);
-  color: var(--color-text-secondary);
-}
-
-.callout strong {
-  color: var(--color-text-primary);
-}
-
-.callout--warning {
-  justify-content: flex-start;
-  background: var(--color-warning-bg);
-  border-color: var(--color-warning-border);
-}
-
-/* ==========================================================================
-   5. UTILIDADES
-   ========================================================================== */
-.content__cta span {
-  font-size: var(--fs-lg);
-  line-height: 1;
-}
-
-/* Grupo de botones a la derecha del encabezado. */
-.content__actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-/* ==========================================================================
-   6. MEDIA QUERIES
-   ========================================================================== */
-@media (max-width: 768px) {
-
-  .filters {
-    flex-wrap: wrap;
-  }
-
-  .detail-header__actions {
-    width: 100%;
-  }
-
-  .detail-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ==========================================================================
-   7. CATALOGS — SUPPLIERS
-   Seleccion multiple en el listado y modal de confirmacion de borrado.
-   ========================================================================== */
-
-.bulk-bar__left {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  flex-wrap: wrap;
-}
-
-.bulk-bar__select-all {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  cursor: pointer;
-  user-select: none;
-}
-
-/* Lista de lo que se va a borrar, dentro del modal de confirmacion. */
-.confirm-list {
-  margin: var(--space-3) 0;
-  padding-left: var(--space-5);
-  max-height: 180px;
-  overflow-y: auto;
-  font-size: var(--fs-sm);
-  color: var(--color-text-primary);
-}
-
-.confirm-list li {
-  margin-bottom: var(--space-1);
-}
-
-.confirm-warning {
-  margin: 0;
-  font-size: var(--fs-sm);
-  color: var(--color-accent-red);
-}
-
-.bulk-bar__actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
 /* ============================================================
    1. TOKENS
-   Van dentro del :root que ya existe en styles.css.
    Todo el resto del archivo sale de acá: si mañana cambia el
    azul de la marca, se cambia en un solo lugar.
    ============================================================ */
 :root {
+  --font-base: 'Montserrat', system-ui, sans-serif;
+
   /* Colores base */
   --rp-azul: #0f3483;          /* botón principal */
   --rp-azul-osc: #0b2766;      /* hover y texto sobre blanco */
@@ -672,38 +26,50 @@ table {
   --rp-whatsapp-fondo: #e6f4ec;
   --rp-halo: rgba(15, 52, 131, .12);   /* foco de los campos */
 
-  /* Degradados. El del panel se anima; los otros son fijos. */
-  --rp-grad-panel: linear-gradient(115deg, #16213a 0%, #1e3a72 42%, #2f6fed 100%);
+  /* Degradado del menú lateral. */
   --rp-grad-nav:   linear-gradient(185deg, #1b2d52 0%, #172645 55%, #13203b 100%);
-  --rp-grad-btn:   linear-gradient(var(--rp-azul), var(--rp-azul));   /* liso: el rediseño no usa degradado */
-
-  /* Tonos de categoría. Cada catálogo mapea sus valores a estos
-     tres; no hace falta inventar colores nuevos por módulo. */
-  --rp-tono-azul:  #2f6fed;
-  --rp-tono-ambar: #b45309;
-  --rp-tono-verde: #15803d;
 
   /* Geometría y sombras */
-  --rp-r-card: 22px;
-  --rp-r-fila: 18px;
-  --rp-r-nav: 16px;
   --rp-r-control: 6px;         /* botones y campos */
   --rp-r-tarjeta: 8px;
   --rp-r-etiqueta: 4px;
-  --rp-sombra-card: 0 6px 20px rgba(16, 24, 40, .07);
-  --rp-sombra-lift: 0 22px 40px rgba(47, 111, 237, .26);
 
   /* Ancho de la barra lateral. Se usa también para la muesca,
      por eso conviene que sea variable y no un número suelto. */
   --rp-nav-ancho: 268px;
   --rp-nav-ancho-min: 92px;
   --rp-muesca: 22px;           /* radio del recorte cóncavo */
+  --rp-gap: 24px;              /* separación entre los bloques de .content */
+
+  /* Escala de toda la interfaz. 1 = los tamaños del prototipo. En
+     escritorio se achica (ver abajo); en celular queda en 1. */
+  --rp-zoom: 1;
+}
+
+/* ------------------------------------------------------------
+   Escala de escritorio.
+   Con los tamaños del prototipo tal cual, en un monitor todo se veía
+   grande; al 90% queda como se quiere. En vez de reescribir cada
+   medida, se escala la página entera con `zoom`. En celular no: ahí
+   los 48px de los botones son el mínimo para el dedo.
+
+   Tres cosas a tener en cuenta al tocar esto:
+   1. `zoom` también achica las unidades de ventana: 100vh pasa a
+      medir el 90% del alto. Todo lo que use vh/vw tiene que dividir
+      por --rp-zoom (ver .app, .sidebar, .modal, .select__list).
+   2. Los media queries NO se enteran del zoom: siguen midiendo la
+      ventana real. Por eso el corte de las fichas no es 1200px sino
+      1080px (1080 / 0.9 = 1200 de ancho útil).
+   3. getBoundingClientRect() devuelve píxeles reales de pantalla,
+      pero un top/left puesto por estilo se vuelve a escalar. Lo que
+      se posicione a mano tiene que dividir por el zoom (Select.tsx).
+   ------------------------------------------------------------ */
+@media (min-width: 901px) {
+  :root { --rp-zoom: .8; }
+  html { zoom: var(--rp-zoom); }
 }
 
 /* Animaciones. Prefijo rp- para no chocar con las que ya existan. */
-@keyframes rpGradient { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
-@keyframes rpGlow     { 0%,100% { opacity:.55; transform:translate3d(0,0,0) scale(1); }
-                         50%     { opacity:.9;  transform:translate3d(0,-8px,0) scale(1.06); } }
 @keyframes rpRowIn    { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
 @keyframes rpToastIn  { from { opacity:0; transform:translateX(20px) scale(.96); } to { opacity:1; transform:none; } }
 /* Las dos que faltaban respecto del prototipo:
@@ -717,6 +83,26 @@ table {
 @keyframes rpPopIn    { from { opacity:0; transform:translateY(14px) scale(.97); } to { opacity:1; transform:none; } }
 @keyframes rpDotBlink { 0%,100% { opacity:1; } 50% { opacity:.3; } }
 
+/* ============================================================
+   1b. BASE
+   Reset mínimo. Todo lo demás del archivo da por hecho esto:
+   cajas con border-box, botones y enlaces sin el aspecto del
+   navegador y listas sin viñetas.
+   ============================================================ */
+* { box-sizing: border-box; }
+body {
+  margin: 0; font-family: var(--font-base);
+  color: var(--rp-navy); background: var(--rp-fondo);
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; display: block; }
+button, input { font-family: inherit; font-size: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: none; }
+a { text-decoration: none; color: inherit; }
+ul { list-style: none; margin: 0; padding: 0; }
+h1 { margin: 0; }
+table { border-collapse: collapse; width: 100%; }
+
 
 /* ============================================================
    2. ESQUELETO
@@ -725,9 +111,12 @@ table {
    porque la muesca del menú se pinta de ese mismo color para
    fundirse con él.
    ============================================================ */
-.app { display: grid; grid-template-columns: auto minmax(0, 1fr); min-height: 100vh; }
+.app { display: grid; grid-template-columns: auto minmax(0, 1fr); min-height: calc(100vh / var(--rp-zoom)); }
 .main { display: flex; flex-direction: column; min-width: 0; background: var(--rp-fondo); }
-.content { flex: 1; background: var(--rp-fondo); padding: 28px 40px; }
+.content {
+  flex: 1; background: var(--rp-fondo); padding: 28px 40px;
+  display: flex; flex-direction: column; gap: var(--rp-gap);
+}
 
 .topbar {
   height: 72px; flex-shrink: 0;
@@ -737,7 +126,7 @@ table {
 .topbar__breadcrumb {
   display: flex; align-items: center; gap: 6px;
   font-size: 13px; font-weight: 600; letter-spacing: .06em;
-  text-transform: uppercase; color: var(--rp-texto-sec);
+  text-transform: uppercase; color: var(--rp-texto-sec); white-space: nowrap;
 }
 .topbar__breadcrumb-item--current { font-weight: 700; color: var(--rp-navy); }
 /* El logo de la topbar es sólo para celular, donde el menú está escondido. */
@@ -756,11 +145,11 @@ table {
    en la ventana, scrollea por dentro. */
 .sidebar {
   position: sticky; top: 0; align-self: start;
-  height: 100vh; height: 100dvh;
+  height: calc(100vh / var(--rp-zoom)); height: calc(100dvh / var(--rp-zoom));
   overflow-x: hidden; overflow-y: auto; scrollbar-width: none;
   box-sizing: border-box;
   width: var(--rp-nav-ancho);
-  background: var(--rp-grad-nav);
+  background: var(--rp-grad-nav); color: #fff;
   padding: 28px 0 28px 18px;      /* sin padding derecho: la muesca lo necesita */
   display: flex; flex-direction: column; gap: 36px;
   transition: width .22s ease;
@@ -791,7 +180,7 @@ table {
 .sidebar__burger span { width: 18px; height: 2.5px; border-radius: 2px; background: #fff; display: block; }
 
 .sidebar__nav { position: relative; display: flex; flex-direction: column; gap: 14px; }
-.sidebar__section { gap: 14px; }
+.sidebar__section { display: flex; flex-direction: column; gap: 14px; }
 .sidebar__section-label {
   font-size: 12px; font-weight: 700; letter-spacing: .14em;
   text-transform: uppercase; color: #9aa7c2; padding: 0 14px;
@@ -936,9 +325,6 @@ table {
 }
 
 .page-header__row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-/* Columna del lado izquierdo del panel: rótulo, título y subtítulo. */
-.page-header__heading { display: flex; flex-direction: column; gap: 10px; }
-.page-header__heading .page-header__subtitle { margin: 0; }
 .page-header__title {
   margin: 0; font-size: 42px; font-weight: 800; line-height: 1.05;
   text-transform: uppercase; color: #fff;
@@ -956,7 +342,7 @@ table {
    .content, porque si no el gap se come la mitad del solapamiento. */
 .toolbar {
   position: relative; z-index: 2;
-  margin: calc(-48px - var(--space-6)) 24px 0;
+  margin: calc(-48px - var(--rp-gap)) 24px 0;
   background: #fff; border-radius: var(--rp-r-tarjeta);
   box-shadow: 0 14px 36px rgba(23,38,69,.12);
   padding: 14px 14px 14px 18px;
@@ -1008,7 +394,7 @@ table {
    levantan 2px al pasar el mouse.
    ============================================================ */
 .btn {
-  border: 0; cursor: pointer; text-decoration: none;
+  border: 0; cursor: pointer; text-decoration: none; white-space: nowrap;
   border-radius: var(--rp-r-control);
   font-size: 14px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
   padding: 15px 24px; min-height: 48px;
@@ -1033,9 +419,6 @@ table {
 .btn--danger { background: var(--rp-peligro); color: #fff; box-shadow: none; }
 .btn--danger:hover { background: #93201a; transform: translateY(-2px); }
 
-.btn--success { background: var(--color-btn-success-bg); color: #fff; box-shadow: none; }
-.btn--success:hover { background: #166534; transform: translateY(-2px); }
-
 .btn--block { width: 100%; }
 .btn:disabled,
 .btn:disabled:hover { opacity: .55; transform: none; box-shadow: none; cursor: not-allowed; }
@@ -1048,13 +431,6 @@ table {
 .page-header .btn--outline { background: rgba(255,255,255,.12); color: #fff; }
 .page-header .btn--secondary:hover,
 .page-header .btn--outline:hover { background: rgba(255,255,255,.22); box-shadow: none; }
-
-/* Botón cuadrado de "volver" */
-.btn--icon {
-  width: 44px; height: 44px; padding: 0; min-height: 0;
-  border-radius: var(--rp-r-control); background: rgba(255,255,255,.12); color: #fff;
-}
-.btn--icon:hover { background: rgba(255,255,255,.22); transform: translateX(-3px); }
 
 
 /* ============================================================
@@ -1117,37 +493,144 @@ table {
 .table__cell--tipos, .field__value--badges { display: flex; flex-wrap: wrap; gap: 6px; }
 .table__cell--fin { justify-self: end; }
 
-/* Página de error inesperado (app/router/ErrorPage.tsx). */
-.error-page { display: flex; flex-direction: column; align-items: center; gap: 14px; }
-.error-page__detail {
-  margin: 0; padding: 8px 12px; border-radius: var(--rp-r-control); background: #f5f6f9;
-  font-family: ui-monospace, Consolas, monospace; font-size: 12px;
-  color: var(--rp-texto-sec); overflow-wrap: anywhere;
+/* --- Variante clásica (Table.tsx, variant="table") ---
+   Un <table> de verdad con scroll horizontal. Hoy todos los listados
+   usan las filas en grid de arriba; esto queda para que la variante
+   no salga desnuda si alguien la vuelve a usar. */
+.table-card { background: #fff; border-radius: var(--rp-r-tarjeta); box-shadow: 0 4px 18px rgba(23,38,69,.06); overflow: hidden; }
+.table-card__scroll { overflow-x: auto; }
+.table__th {
+  padding: 15px 22px; background: #f5f6f9; text-align: left; white-space: nowrap;
+  font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--rp-navy);
 }
-.error-page__actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: center; }
+.table__td { padding: 14px 22px; border-top: 1px solid #eef0f3; font-size: 14px; color: var(--rp-texto); }
+.table__th--center, .table__td--center { text-align: center; }
+.table__td--muted { color: var(--rp-texto-sec); }
 
-/* --- Estado vacío / cargando / no encontrado ---
-   La misma tarjeta que el listado, para que "Cargando…" y una lista
-   vacía se lean como el mismo lugar. */
+/* --- "Cargando…" ---
+   La misma tarjeta que el listado, para que la espera y la lista se
+   lean como el mismo lugar. */
 .empty-state {
   background: #fff; border-radius: var(--rp-r-tarjeta);
   box-shadow: 0 4px 18px rgba(23,38,69,.06);
   padding: 48px 24px; text-align: center;
 }
 .empty-state__text { margin: 0; font-size: 15px; color: var(--rp-texto-sec); }
-/* Dentro de la tarjeta del listado, debajo del encabezado gris. */
+/* Lo mismo dentro de la tarjeta del listado, debajo del encabezado gris. */
 .table__empty {
   padding: 48px 24px; text-align: center;
   border-top: 1px solid #eef0f3; color: var(--rp-texto-sec); font-size: 15px;
 }
 
-/* --- Paginador (listado de Encargados) --- */
-.pagination { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 4px; padding-bottom: 12px; }
-.pagination__status { font-size: 14px; font-weight: 600; color: var(--rp-texto-sec); white-space: nowrap; }
+/* --- Estados del listado (EmptyState.tsx) ---
+   Vacío, búsqueda sin resultados y error de carga: ícono en un cuadro,
+   título, una línea de ayuda y la acción para salir del estado. Van
+   dentro de la tarjeta del listado, debajo del encabezado de columnas;
+   con --card se sostienen solos (el "no encontrado" de un detalle). */
+.state {
+  min-height: 300px; padding: 40px 24px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  text-align: center; animation: rpFadeUp .5s ease both;
+}
+.table-card--cards > .state { border-top: 1px solid #eef0f3; }
+.state--card { background: #fff; border-radius: var(--rp-r-tarjeta); box-shadow: 0 4px 18px rgba(23,38,69,.06); }
+.state__icon {
+  width: 64px; height: 64px; flex-shrink: 0; border-radius: 12px;
+  background: var(--rp-suave); color: var(--rp-acento);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.state__icon svg { width: 30px; height: 30px; }
+/* El error es el único que lleva color: es el único que pide atención. */
+.state--error .state__icon { background: var(--rp-peligro-fondo); color: var(--rp-peligro); }
+.state__title { margin: 0; max-width: 420px; font-size: 18px; font-weight: 800; color: var(--rp-navy); text-wrap: pretty; }
+.state__text { margin: 0; max-width: 400px; font-size: 15px; line-height: 1.6; color: var(--rp-texto); }
+
+/* --- Paginación al pie del listado (Pagination.tsx) ---
+   A la izquierda cuántos registros se están viendo; a la derecha las
+   flechas y los números de página. En celular los números se cambian
+   por "2 de 5" y las flechas pasan a ser dos botones con texto (ver el
+   bloque de 900px): un número de 40px no es un blanco para el dedo. */
+.pagination {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  padding: 14px 22px; border-top: 1px solid #eef0f3; background: #fcfdfe;
+}
+.pagination__summary { font-size: 14px; color: var(--rp-texto); }
+.pagination__summary strong { font-weight: 700; color: var(--rp-navy); }
+.pagination__nav, .pagination__pages { display: flex; align-items: center; gap: 6px; }
+.pagination__page {
+  min-width: 40px; height: 40px; padding: 0 8px; border-radius: var(--rp-r-control);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 600; color: var(--rp-navy);
+  transition: background .2s ease, color .2s ease;
+}
+.pagination__page:not(:disabled):hover { background: var(--rp-suave); }
+.pagination__page--current,
+.pagination__page--current:not(:disabled):hover {
+  background: var(--rp-azul); color: #fff; font-weight: 700; cursor: default;
+  box-shadow: 0 4px 12px rgba(15,52,131,.25);
+}
+.pagination__gap { width: 28px; text-align: center; font-size: 14px; font-weight: 700; color: var(--rp-texto-sec); }
+.pagination__arrow {
+  width: 40px; height: 40px; flex-shrink: 0; border-radius: var(--rp-r-control);
+  background: var(--rp-suave); color: var(--rp-azul);
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  font-size: 14px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  transition: background .2s ease, color .2s ease;
+}
+.pagination__arrow svg { width: 18px; height: 18px; flex-shrink: 0; }
+.pagination__arrow:not(:disabled):hover { background: var(--rp-azul); color: #fff; }
+.pagination button:disabled { cursor: not-allowed; }
+.pagination__arrow:disabled { opacity: .4; }
+.pagination button:focus-visible { outline: none; box-shadow: 0 0 0 4px var(--rp-halo); }
+/* Sólo en celular. */
+.pagination__arrow-text, .pagination__status { display: none; }
+
+/* --- Pantallas de sistema: 404 y error (app/router) ---
+   Texto a la izquierda y una foto del taller a la derecha, centrados
+   en el alto que deja libre la topbar. */
+.system-page {
+  flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 48px;
+  align-items: center; padding: 12px 16px;
+}
+/* Cuando lo que falló es el layout no hay menú ni topbar: la pantalla
+   se para sola en el medio de la ventana. */
+.system-page--standalone { min-height: calc(100vh / var(--rp-zoom)); min-height: calc(100dvh / var(--rp-zoom)); max-width: 1180px; margin: 0 auto; padding: 40px 56px; }
+.system-page__body {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 16px;
+  animation: rpFadeUp .5s ease both;
+}
+.system-page__code { font-size: 96px; font-weight: 800; line-height: 1; letter-spacing: -.02em; color: var(--rp-navy); }
+.system-page__icon {
+  width: 72px; height: 72px; flex-shrink: 0; border-radius: 10px;
+  background: var(--rp-peligro-fondo); color: var(--rp-peligro);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.system-page__icon svg { width: 33px; height: 33px; }
+.system-page__line { width: 80px; height: 3px; background: var(--rp-acento); }
+.system-page--error .system-page__line { background: var(--rp-peligro); }
+.system-page__title { margin: 0; font-size: 34px; font-weight: 800; text-transform: uppercase; color: var(--rp-navy); }
+.system-page__text { margin: 0; max-width: 460px; font-size: 17px; line-height: 1.7; color: var(--rp-texto); }
+/* El mensaje técnico del error; sólo se muestra en desarrollo. */
+.system-page__detail {
+  margin: 0; padding: 8px 12px; border-radius: var(--rp-r-control); background: #f5f6f9;
+  font-family: ui-monospace, Consolas, monospace; font-size: 12px;
+  color: var(--rp-texto-sec); overflow-wrap: anywhere;
+}
+.system-page__actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+.system-page__actions .btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+.system-page__photo {
+  height: 420px; border-radius: var(--rp-r-tarjeta);
+  background: var(--hero-foto) center 40% / cover no-repeat;
+  box-shadow: 0 20px 44px rgba(23,38,69,.2);
+}
 
 /* Casilla con texto sobre fondo claro ("Incluir eliminados" en el
    detalle de fábrica). */
-.filters__checkbox { gap: 10px; font-size: 14px; font-weight: 600; color: var(--rp-navy); user-select: none; }
+.filters__checkbox {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 14px; font-weight: 600; color: var(--rp-navy);
+  cursor: pointer; white-space: nowrap; user-select: none;
+}
 
 /* --- Botones de guardar al pie, sólo en celular ---
    En los detalles, Cancelar y Guardar viven en el panel de arriba. En una
@@ -1209,18 +692,14 @@ table {
 .avatar--lg { width: 58px; height: 58px; border-radius: var(--rp-r-tarjeta); font-size: 19px; }
 .avatar--lg svg { width: 28px; height: 28px; }
 
-/* OJO: no se redefine .badge a secas. La app ya tiene variantes
-   pastel (--pendiente, --si, --cotizado...) con su propio color de
-   texto, y una regla base acá se las pisaría. */
-.badge--azul, .badge--ambar, .badge--verde, .badge--neutral, .badge--suave {
+.badge {
   display: inline-flex; align-items: center; gap: 7px; justify-self: start;
   padding: 6px 11px; border-radius: var(--rp-r-etiqueta);
   font-size: 12px; font-weight: 700; letter-spacing: .06em;
   text-transform: uppercase; color: var(--rp-navy);
-  background: var(--rp-suave); border: 0; box-shadow: none;
+  background: var(--rp-suave); white-space: nowrap;
 }
-.badge--azul svg, .badge--ambar svg, .badge--verde svg,
-.badge--neutral svg, .badge--suave svg { width: 14px; height: 14px; flex-shrink: 0; }
+.badge svg { width: 14px; height: 14px; flex-shrink: 0; }
 /* "Inactivo" usa esta misma etiqueta: no lleva color propio. */
 
 
@@ -1274,14 +753,16 @@ table {
   box-shadow: 0 12px 30px rgba(179,38,30,.10);
   animation: rpSlabIn .35s ease both;
 }
-.bulk-bar__left { gap: 24px; flex-wrap: wrap; }
-.bulk-bar__actions { gap: 12px; }
+.bulk-bar__left { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+.bulk-bar__actions { display: flex; align-items: center; gap: 12px; }
 .bulk-bar__select-all {
-  display: inline-flex; align-items: center; gap: 12px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 12px; cursor: pointer; user-select: none;
   font-size: 16px; font-weight: 700; color: var(--rp-navy);
 }
+/* "Seleccionar todos" con su aclaración debajo ("sólo esta página"). */
+.bulk-bar__select-all-text { display: flex; flex-direction: column; line-height: 1.25; }
 .bulk-bar__count { font-size: 17px; font-weight: 700; color: var(--rp-navy); }
-.bulk-bar__hint { font-size: 13px; font-weight: 600; color: var(--rp-texto-sec); }
+.bulk-bar__hint { font-size: 12px; font-weight: 600; color: var(--rp-texto-sec); }
 .bulk-bar__warn {
   display: inline-flex; align-items: center; gap: 7px;
   padding: 5px 12px; border-radius: var(--rp-r-etiqueta); background: var(--rp-peligro-fondo);
@@ -1373,6 +854,7 @@ table {
 /* Campo editable */
 .form-field,
 .form-field--full { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.form-field--full { grid-column: 1 / -1; }
 .form-field label,
 .form-field__label {
   font-size: 13px; font-weight: 700; letter-spacing: .04em;
@@ -1428,6 +910,7 @@ table {
   font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
   color: var(--rp-azul);
 }
+.form-field .table__add-link:hover { text-decoration: underline; }
 /* Casilleros nativos: la regla de los inputs de arriba los convertía en
    una caja con borde y padding. Acá vuelven a ser un casillero. */
 .form-field input[type="checkbox"],
@@ -1459,12 +942,27 @@ table {
   font-size: 12px; font-weight: 800;
 }
 /* Botones al pie de un formulario. */
-.form-actions { max-width: none; gap: 12px; }
+.form-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+
+/* Formulario de varias tarjetas apiladas (alta de proveedor). */
+.card-stack { display: flex; flex-direction: column; gap: var(--rp-gap); }
+
+/* Detalle en dos columnas: los datos a la izquierda y la tarjeta de
+   registro a la derecha. Abajo de 768px se apilan. */
+.detail-layout { display: grid; grid-template-columns: 2fr 1fr; gap: var(--rp-gap); align-items: start; }
+.detail-main, .detail-aside { display: flex; flex-direction: column; gap: var(--rp-gap); }
+
+/* Encabezado de sección sobre fondo claro (los Encargados dentro del
+   detalle de fábrica): título a la izquierda, acciones a la derecha. */
+.content__heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.content__subtitle { margin: 4px 0 0; font-size: 13px; color: var(--rp-texto-sec); }
 
 /* --- Encabezado de detalle y de formulario ---
    El enlace de volver ocupa un renglón entero arriba del título
    (flex-basis: 100% dentro de un contenedor que envuelve). */
-.detail-header__left { flex-wrap: wrap; gap: 18px; }
+.detail-header__left { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; }
+.detail-header__title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.detail-header__actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .back-link {
   flex-basis: 100%; display: inline-flex; align-items: center; gap: 8px;
   font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
@@ -1500,11 +998,7 @@ table {
 .page-header .avatar { background: #fff; color: var(--rp-azul); }
 .page-header .avatar--lg { width: 64px; height: 64px; }
 .page-header .avatar--lg svg { width: 30px; height: 30px; }
-.page-header .badge--azul,
-.page-header .badge--ambar,
-.page-header .badge--verde,
-.page-header .badge--neutral,
-.page-header .badge--suave { background: var(--rp-acento); color: #fff; padding: 5px 11px; }
+.page-header .badge { background: var(--rp-acento); color: #fff; padding: 5px 11px; }
 
 
 /* ============================================================
@@ -1537,12 +1031,19 @@ table {
 /* Sin backdrop-filter a propósito: con el blur, Chrome recompone el
    fondo cada vez que un botón de adentro anima su hover y el modal
    titila. */
-.modal-scrim { z-index: 80; background: rgba(21,34,62,.55); animation: rpFadeIn .2s ease both; }
+.modal-scrim {
+  position: fixed; inset: 0; z-index: 80; padding: 24px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(21,34,62,.55); animation: rpFadeIn .2s ease both;
+}
 .modal {
+  width: 100%; max-width: 560px; max-height: calc(85vh / var(--rp-zoom)); overflow: auto;
+  display: flex; flex-direction: column; background: #fff;
   border-radius: 10px; box-shadow: 0 30px 70px rgba(0,0,0,.3);
   animation: rpPopIn .3s ease both;
 }
 .modal--sm { max-width: 540px; }
+.modal--lg { max-width: 720px; }
 /* Adentro del modal los botones no se levantan: subir 2px bajo el cursor
    los hacía entrar y salir del hover en bucle. */
 .modal .btn:hover { transform: none; }
@@ -1557,15 +1058,16 @@ table {
   display: inline-flex; align-items: center; justify-content: center;
 }
 .modal__icon svg { width: 26px; height: 26px; }
-.modal__header { padding: 32px 32px 0; border-bottom: 0; align-items: flex-start; gap: 16px; }
+.modal__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 32px 32px 0; }
 .modal__icon + .modal__header { padding-top: 18px; }
 .modal__title {
-  display: flex; flex-direction: column; gap: 10px;
+  margin: 0; display: flex; flex-direction: column; gap: 10px;
   font-size: 22px; font-weight: 800; text-transform: uppercase; color: var(--rp-navy);
 }
 .modal__title::after { content: ""; width: 50px; height: 3px; background: var(--rp-acento); }
 .modal--danger .modal__title::after { background: var(--rp-peligro); }
 .modal__close {
+  display: flex; align-items: center; justify-content: center; line-height: 1;
   width: 36px; height: 36px; flex-shrink: 0; border-radius: var(--rp-r-control);
   background: var(--rp-suave); color: var(--rp-texto-sec); font-size: 20px;
   transition: background .2s ease, color .2s ease;
@@ -1574,7 +1076,7 @@ table {
 .modal__body { padding: 18px 32px 8px; font-size: 16px; line-height: 1.6; color: var(--rp-texto); }
 .modal__body p { margin: 0 0 8px; }
 .modal__body strong { color: var(--rp-navy); }
-.modal__footer { padding: 18px 32px 32px; background: #fff; border-top: 0; gap: 12px; }
+.modal__footer { display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 18px 32px 32px; }
 
 /* Lista de lo que se va a borrar: una fila por registro, con su ícono. */
 .modal .confirm-list {
@@ -1642,7 +1144,7 @@ table {
   position: fixed; z-index: 90;
   margin: 0; padding: 6px; list-style: none;
   max-height: 280px; overflow-y: auto; overscroll-behavior: contain;
-  max-width: calc(100vw - 24px);
+  max-width: calc(100vw / var(--rp-zoom) - 24px);
   background: #fff; border: 1px solid var(--rp-linea); border-radius: var(--rp-r-control);
   box-shadow: 0 20px 44px rgba(16,24,40,.18), 0 2px 6px rgba(16,24,40,.06);
   font-family: var(--font-base);
@@ -1768,8 +1270,9 @@ table {
 }
 /* ------------------------------------------------------------
    Dónde deja de entrar la fila de seis columnas.
-   Con la barra lateral de 282px, abajo de ~1200px de ventana quedan
-   menos de 810px útiles y las seis columnas ya no entran en una
+   Con la barra lateral de 282px, abajo de ~1200px de ancho útil (1080px
+   de ventana, por la escala de escritorio: ver --rp-zoom) quedan
+   menos de 810px y las seis columnas ya no entran en una
    línea: el grid empieza a apretar la razón social hasta partir
    palabras y a empujar el botón "Ver".
    En vez de inventar un acomodo intermedio (lo probamos y quedaba
@@ -1779,7 +1282,7 @@ table {
    estados y ninguno es accidental: fila de tabla, o ficha.
    El bloque de 900px repite estas reglas y agrega lo del menú.
    ------------------------------------------------------------ */
-@media (max-width: 1200px) {
+@media (max-width: 1080px) {
   /* Cada fila pasa a ser una ficha suelta: la tarjeta contenedora se
      apaga, el encabezado de columnas se esconde y cada fila lleva su
      propio fondo y sombra. */
@@ -1791,7 +1294,9 @@ table {
     box-shadow: 0 4px 18px rgba(23,38,69,.06); padding: 16px 18px;
   }
   .table-card--cards .table__row:hover { background: #fff; box-shadow: 0 4px 18px rgba(23,38,69,.06); }
-  .table-card--cards .table__empty {
+  .table-card--cards .table__empty,
+  .table-card--cards > .state,
+  .table-card--cards .pagination {
     background: #fff; border-top: 0; border-radius: var(--rp-r-tarjeta);
     box-shadow: 0 4px 18px rgba(23,38,69,.06);
   }
@@ -1887,7 +1392,7 @@ table {
   .page-header__line { width: 70px; }
   /* La barra apila todo a lo ancho: buscador, filtros y botones. */
   .toolbar {
-    margin: calc(-36px - var(--space-6)) 14px 0; padding: 14px;
+    margin: calc(-36px - var(--rp-gap)) 14px 0; padding: 14px;
     flex-direction: column; align-items: stretch; flex-wrap: nowrap;
   }
   .toolbar .search-field { flex: none; }
@@ -1898,7 +1403,6 @@ table {
   /* Los grupos de botones del panel también se apilan. Sin esto siguen
      en fila y, como abajo de 900px cada .btn ocupa el 100%, el segundo
      botón se sale del panel y queda cortado. */
-  .page-header .content__actions,
   .page-header .detail-header__actions {
     flex-direction: column; align-items: stretch; width: 100%;
   }
@@ -1910,16 +1414,40 @@ table {
   .link-btn { min-height: 48px; }
 
   .btn { width: 100%; }
-  /* ...menos el redondo de volver. Es un ícono de 44px, no una acción
-     con texto: estirado al 100% deja de ser un botón y se come el
-     encabezado entero. Va después de la regla de arriba para ganarle
-     por orden (las dos son de una clase). */
-  .btn--icon { width: 44px; flex-shrink: 0; }
   .form-actions--mobile { display: flex; }
   .page-header .detail-header__actions--editing { display: none; }
-  /* Los dos botones del paginador se reparten el ancho; el estado queda
-     en el medio sin partirse. */
-  .pagination .btn { width: auto; flex: 1; }
+  /* Paginación de celular: el resumen arriba y, debajo, Anterior y
+     Siguiente repartiéndose el ancho con "2 de 5" en el medio. Va suelta,
+     sin tarjeta, como cierre de la lista de fichas. */
+  .pagination,
+  .table-card--cards .pagination {
+    flex-direction: column; align-items: stretch; gap: 12px;
+    padding: 6px 0 4px; background: none; box-shadow: none;
+  }
+  .pagination__summary { text-align: center; }
+  .pagination__nav { gap: 10px; }
+  .pagination__pages { display: none; }
+  .pagination__status {
+    display: block; min-width: 72px; text-align: center;
+    font-size: 14px; font-weight: 700; color: var(--rp-navy); white-space: nowrap;
+  }
+  .pagination__arrow { flex: 1; width: auto; height: auto; min-height: 50px; }
+  .pagination__arrow svg { width: 16px; height: 16px; }
+  .pagination__arrow-text { display: inline; }
+  /* Siguiente es la acción principal: avanzar es lo que más se hace. */
+  .pagination__arrow--next:not(:disabled) { background: var(--rp-azul); color: #fff; }
+
+  /* Estados: menos alto, que en celular empujan todo hacia abajo. */
+  .state { min-height: 240px; padding: 32px 20px; }
+
+  /* 404 y error: una sola columna, con la foto arriba como una franja. */
+  .system-page { grid-template-columns: 1fr; gap: 24px; padding: 0; align-items: start; align-content: start; }
+  .system-page--standalone { padding: 18px 16px; }
+  .system-page__photo { order: -1; height: 180px; }
+  .system-page__code { font-size: 72px; }
+  .system-page__title { font-size: 26px; }
+  .system-page__text { font-size: 16px; }
+  .system-page__actions { flex-direction: column; align-self: stretch; }
   .card { padding: 22px 20px; }
   .page-header:not(.page-header--hero) { padding: 24px 20px; }
   .page-header:not(.page-header--hero) .page-header__title { font-size: 26px; }
@@ -1948,18 +1476,16 @@ table {
   .modal__body { padding: 14px 20px 6px; }
   .modal__footer { padding: 14px 20px 20px; }
   .toolbar__status { width: 100%; }
-  .modal__footer { padding: 14px 20px 20px; }
 }
 
-/* Este bloque quedó vacío a propósito: la definición de .topbar__burger
-   se movió ARRIBA del media query de 900px. Estaba acá abajo, y como su
-   `display: none` venía después del `display: flex` del media query y
-   tiene la misma especificidad, ganaba siempre: el botón de menú no
-   aparecía nunca en celular y el cajón no había forma de abrirlo. */
+@media (max-width: 768px) {
+  .detail-header__actions { width: 100%; }
+  .detail-layout { grid-template-columns: 1fr; }
+}
 
 /* Respeta a quien pidió menos movimiento en su sistema. */
 @media (prefers-reduced-motion: reduce) {
   .sidebar::before, .page-header, .page-header::after,
-  .table-card--cards .table__row, .toast { animation: none; }
+  .table-card--cards .table__row, .toast, .state, .system-page__body { animation: none; }
   .btn:hover, .table-card--cards .table__row:hover { transform: none; }
 }
