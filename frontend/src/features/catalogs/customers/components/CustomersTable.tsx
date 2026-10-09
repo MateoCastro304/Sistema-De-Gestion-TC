@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Avatar, Badge, Table, TrashButton, ValueOrDash } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
@@ -14,8 +15,10 @@ interface CustomersTableProps {
   categories: Category[]
   /** Called when the user confirms the baja lógica of a customer. */
   onDeactivate: (customer: Customer) => void
-  /** Message shown when there are no rows (e.g. no matches for the search). */
-  emptyMessage?: string
+  /** Qué mostrar si no hay filas: sin registros, sin resultados o error. */
+  emptyState?: ReactNode
+  /** Pie del listado (la paginación). */
+  footer?: ReactNode
 }
 
 /** Read-only listing of customers/contacts (CU-03), with links to detail and baja. */
@@ -24,7 +27,8 @@ export function CustomersTable({
   factories,
   categories,
   onDeactivate,
-  emptyMessage = 'No hay encargados registrados.',
+  emptyState,
+  footer,
 }: CustomersTableProps) {
   const factoryById = (id: string) => factories.find((f) => f.id === id)
   const categoryName = (id: string) =>
@@ -35,7 +39,7 @@ export function CustomersTable({
       header: 'Nombre',
       render: (c) => (
         <span className="table__cell--nombre">
-          <Avatar name={customerFullName(c)} tone={toneByStatus(c.isActive)} />
+          <Avatar name={customerFullName(c)} icon="encargado" tone={toneByStatus(c.isActive)} />
           <b>
             {customerFullName(c)}
           </b>
@@ -69,7 +73,7 @@ export function CustomersTable({
       header: 'Rubro',
       render: (c) => {
         const factory = factoryById(c.factoryId)
-        return factory ? <Badge variant="suave">{categoryName(factory.categoryId)}</Badge> : <ValueOrDash />
+        return factory ? <Badge variant="suave" icon="rubro">{categoryName(factory.categoryId)}</Badge> : <ValueOrDash />
       },
     },
     {
@@ -106,7 +110,8 @@ export function CustomersTable({
       columns={columns}
       data={customers}
       rowKey={(c) => `${c.factoryId}-${c.id}`}
-      emptyMessage={emptyMessage}
+      emptyState={emptyState}
+      footer={footer}
     />
   )
 }

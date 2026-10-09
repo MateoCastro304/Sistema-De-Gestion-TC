@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import type { ChangeEvent, SubmitEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { Button, CheckBox, Input } from '@/shared/components/ui'
+import { heroPhoto } from '@/shared/lib/heroPhoto'
+import fotoTaller from '@/assets/foto-brida.webp'
+import { Button, CheckBox, EntityIcon, Input } from '@/shared/components/ui'
+import { TYPE_ICONS } from '../utils/supplierTone'
 import { cn } from '@/shared/lib/cn'
 import { useToast } from '@/app/providers/ToastContext'
 import { useCreateSupplier } from '../api/useCreateSupplier'
@@ -83,19 +86,16 @@ export function NewSupplierPage() {
     <form onSubmit={handleSubmit} noValidate className="card-stack">
       {/* Rediseño: el mismo panel azul del listado y del detalle, para
           que las tres pantallas de Proveedores se lean como una sola. */}
-      <div className="page-header">
+      <div className="page-header page-header--foto" style={heroPhoto(fotoTaller)}>
         <div className="page-header__row">
           {/* La flecha redonda de volver, igual que en "Nuevo encargado" y
               "Nueva fábrica": era la única pantalla de alta sin ella. */}
           <div className="detail-header__left">
-            <Link
-              to="/catalogos/proveedores"
-              className="btn btn--icon"
-              aria-label="Volver al listado de proveedores"
-            >
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+            <Link to="/catalogos/proveedores" className="back-link">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="M10 3 5 8l5 5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
+              Proveedores
             </Link>
             <div>
               <h1 className="page-header__title">Nuevo proveedor</h1>
@@ -155,6 +155,7 @@ export function NewSupplierPage() {
                     checked={form.supplierTypes.includes(type)}
                     onChange={() => toggleType(type)}
                   />
+                  <EntityIcon name={TYPE_ICONS[type]} />
                   {SUPPLIER_TYPE_LABELS[type]}
                 </label>
               ))}

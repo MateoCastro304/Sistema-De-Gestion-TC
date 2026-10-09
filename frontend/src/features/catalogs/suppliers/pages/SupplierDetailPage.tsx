@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { heroPhoto } from '@/shared/lib/heroPhoto'
+import fotoTaller from '@/assets/foto-piezas-bronce.webp'
 import { Avatar, Badge, Button } from '@/shared/components/ui'
+import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import { isApiError } from '@/shared/api/ApiError'
 import { cn } from '@/shared/lib/cn'
 import { useSupplier } from '../api/useDetailSupplier'
@@ -9,7 +12,7 @@ import type {SupplierFormValues, SupplierType} from '../types/supplier'
 import type { ChangeEvent } from 'react'
 import { useUpdateSupplier } from '../api/useUpdateSupplier'
 import { buildSupplierPatch } from '../utils/buildSupplierPatch'
-import { TYPE_TONES, supplierTone } from '../utils/supplierTone'
+import { TYPE_ICONS, TYPE_TONES, supplierIcon, supplierTone } from '../utils/supplierTone'
 import { useToast } from '@/app/providers/ToastContext'
 import { conflictErrors, supplierErrorMessage, validateSupplierForm } from '../utils/validateSupplierForm'
 import type { SupplierFormErrors } from '../utils/validateSupplierForm'
@@ -39,7 +42,7 @@ function TypeBadges({ types }: { types: SupplierType[] }) {
   return (
     <>
       {types.map((type) => (
-        <Badge key={type} variant={TYPE_TONES[type]}>
+        <Badge key={type} variant={TYPE_TONES[type]} icon={TYPE_ICONS[type]}>
           {SUPPLIER_TYPE_LABELS[type]}
         </Badge>
       ))}
@@ -117,22 +120,35 @@ export function SupplierDetailPage() {
   }
   if (notFound) {
     return (
-      <div className="empty-state">
-        <p className="empty-state__text">
-          No encontramos el proveedor que buscabas.{' '}
-          <Link className="table__action" to="/catalogos/proveedores">
+      <EmptyState
+        card
+        kind="no-results"
+        title="No encontramos el proveedor que buscabas."
+        action={
+          <Link className="btn btn--secondary" to="/catalogos/proveedores">
             Volver al listado
           </Link>
-        </p>
-      </div>
+        }
+      >
+        Puede que lo hayan eliminado.
+      </EmptyState>
     )
   }
 
   if (error) {
     return (
-      <div className="callout callout--warning">
-        <span>{isApiError(error) ? error.message : 'Ocurrió un error inesperado.'}</span>
-      </div>
+      <EmptyState
+        card
+        kind="error"
+        title="No se pudo cargar el proveedor."
+        action={
+          <Link className="btn btn--secondary" to="/catalogos/proveedores">
+            Volver al listado
+          </Link>
+        }
+      >
+        {isApiError(error) ? error.message : 'Revisá la conexión e intentá de nuevo.'}
+      </EmptyState>
     )
   }
 
@@ -186,25 +202,25 @@ export function SupplierDetailPage() {
       {/* Rediseño: el encabezado del detalle es el mismo panel azul del
           listado. Cambia la envoltura y las clases; los datos, el botón
           de volver y las acciones son los de antes. */}
-      <div className="page-header">
+      <div className="page-header page-header--foto" style={heroPhoto(fotoTaller)}>
         <div className="page-header__row">
           <div className="detail-header__left">
-            <Link
-              to="/catalogos/proveedores"
-              /* --icon es el botón redondo del panel: mismo link, misma
-                 ruta, sólo cambia cómo se ve sobre el fondo oscuro. */
-              className="btn btn--icon"
-              aria-label="Volver al listado de proveedores"
-            >
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+            <Link to="/catalogos/proveedores" className="back-link">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="M10 3 5 8l5 5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
+              Proveedores
             </Link>
 
             {/* El cuadrado con las iniciales, en su tamaño grande y con
                 el color del rubro: el mismo que se ve en el listado, así
                 se reconoce que es el mismo proveedor. */}
-            <Avatar name={supplier.legalName} tone={supplierTone(supplier.supplierTypes)} size="lg" />
+            <Avatar
+              name={supplier.legalName}
+              icon={supplierIcon(supplier.supplierTypes)}
+              tone={supplierTone(supplier.supplierTypes)}
+              size="lg"
+            />
 
             <div>
               {/* Sin badge de estado: si el proveedor se ve, esta activo. Los

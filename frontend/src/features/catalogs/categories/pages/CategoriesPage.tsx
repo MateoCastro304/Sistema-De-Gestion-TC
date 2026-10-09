@@ -1,5 +1,8 @@
 import { useState } from 'react'
-import { Button, IconTrash, Modal } from '@/shared/components/ui'
+import { Button, IconTrash, Modal, PageHero, Pagination, SearchField } from '@/shared/components/ui'
+import { EmptyState } from '@/shared/components/feedback/EmptyState'
+import { usePagedList } from '@/shared/hooks/usePagedList'
+import fotoTaller from '@/assets/foto-disco.webp'
 import { normalizeText } from '@/shared/lib/normalizeText'
 import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
@@ -59,47 +62,24 @@ export function CategoriesPage() {
     .filter((c) => normalizeText(c.name).includes(term))
     .sort((a, b) => a.name.localeCompare(b.name, 'es'))
 
+  // La lista llega entera y se filtra acá, así que también se pagina acá.
+  const { pageItems, page, setPage, pageSize, total } = usePagedList(visible)
+
+  // Buscar vuelve a la primera página.
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+    setPage(1)
+  }
+
   return (
     <>
-      {/* El mismo panel azul de Encargados, Fábricas y Proveedores, con el
-          buscador adentro. */}
-      <div className="page-header">
-        <div className="page-header__row">
-          <div className="page-header__heading">
-            <span className="page-header__eyebrow">Catálogo</span>
-            <h1 className="page-header__title">Rubros</h1>
-            <p className="page-header__subtitle">
-              Alta, baja, modificación y consulta de los rubros de las fábricas.
-            </p>
-          </div>
-          <div className="content__actions">
-            <button type="button" className="btn btn--primary content__cta" onClick={openCreate}>
-              <span>+</span> Nuevo rubro
-            </button>
-          </div>
-        </div>
+      <PageHero eyebrow="Catálogo de" accent="rubros" title="Rubros" photo={fotoTaller} />
 
-        <label className="search-field">
-          <svg
-            className="search-field__icon"
-            viewBox="0 0 20 20"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            aria-hidden="true"
-          >
-            <circle cx="9" cy="9" r="6" />
-            <path d="m14 14 4 4" strokeLinecap="round" />
-          </svg>
-          <input
-            className="search-input"
-            type="search"
-            placeholder="Buscar rubro"
-            aria-label="Buscar rubro"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </label>
+      <div className="toolbar">
+        <SearchField value={search} onChange={handleSearchChange} placeholder="Buscar rubro" />
+        <button type="button" className="btn btn--primary" onClick={openCreate}>
+          + Nuevo rubro
+        </button>
       </div>
 
       {categoriesQuery.isLoading && (
@@ -108,25 +88,56 @@ export function CategoriesPage() {
         </div>
       )}
 
+      {/* El error va dentro de la tarjeta del listado, con el encabezado
+          de columnas a la vista. */}
       {categoriesQuery.isError && (
-        <div className="callout callout--warning">
-          <span>
-            {isApiError(categoriesQuery.error)
-              ? categoriesQuery.error.message
-              : 'No se pudieron cargar los rubros.'}
-          </span>
-        </div>
+        <CategoriesTable
+          categories={[]}
+          onEdit={openEdit}
+          onDelete={setToDelete}
+          emptyState={
+            <EmptyState
+              kind="error"
+              title="No se pudieron cargar los rubros."
+              action={<Button onClick={() => categoriesQuery.refetch()}>Reintentar</Button>}
+            >
+              {isApiError(categoriesQuery.error)
+                ? categoriesQuery.error.message
+                : 'Revisá la conexión e intentá de nuevo.'}
+            </EmptyState>
+          }
+        />
       )}
 
       {categoriesQuery.isSuccess && (
         <CategoriesTable
-          categories={visible}
+          categories={pageItems}
           onEdit={openEdit}
           onDelete={setToDelete}
-          emptyMessage={
-            term
-              ? `No hay rubros que coincidan con "${search.trim()}".`
-              : 'No hay rubros registrados.'
+          emptyState={
+            term ? (
+              <EmptyState
+                kind="no-results"
+                title="No hay rubros que coincidan con la búsqueda."
+                action={
+                  <Button variant="secondary" onClick={() => handleSearchChange('')}>
+                    Limpiar búsqueda
+                  </Button>
+                }
+              >
+                Revisá cómo está escrito.
+              </EmptyState>
+            ) : (
+              <EmptyState
+                title="Todavía no hay rubros registrados."
+                action={<Button onClick={openCreate}>+ Nuevo rubro</Button>}
+              >
+                Cuando cargues el primero va a aparecer acá.
+              </EmptyState>
+            )
+          }
+          footer={
+            <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} />
           }
         />
       )}
@@ -141,6 +152,7 @@ export function CategoriesPage() {
         open={toDelete !== null}
         onClose={() => setToDelete(null)}
         title="Eliminar rubro"
+        tone="danger"
         size="sm"
         footer={
           <>

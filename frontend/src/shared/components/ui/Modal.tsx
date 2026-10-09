@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '@/shared/lib/cn'
+import { IconTrash } from './IconTrash'
 
 type ModalSize = 'sm' | 'md' | 'lg'
 
@@ -10,6 +11,8 @@ interface ModalProps {
   onClose: () => void
   title: string
   size?: ModalSize
+  /** `danger` es la confirmación de un borrado: suma el ícono y el rojo. */
+  tone?: 'default' | 'danger'
   children: ReactNode
   /** Optional footer, typically the action buttons. */
   footer?: ReactNode
@@ -24,6 +27,7 @@ export function Modal({
   onClose,
   title,
   size = 'md',
+  tone = 'default',
   children,
   footer,
 }: ModalProps) {
@@ -52,19 +56,25 @@ export function Modal({
           'modal',
           size === 'sm' && 'modal--sm',
           size === 'lg' && 'modal--lg',
+          tone === 'danger' && 'modal--danger',
         )}
         role="dialog"
         aria-modal="true"
         aria-label={title}
         onClick={(event) => event.stopPropagation()}
       >
+        {tone === 'danger' && (
+          <span className="modal__icon" aria-hidden="true">
+            <IconTrash />
+          </span>
+        )}
         <header className="modal__header">
           <h2 className="modal__title">{title}</h2>
           <button
             type="button"
             className="modal__close"
             onClick={onClose}
-            aria-label="Close"
+            aria-label="Cerrar"
           >
             &times;
           </button>
@@ -73,7 +83,7 @@ export function Modal({
         <div className="modal__body">{children}</div>
 
         {footer && (
-          <footer className="modal__footer modal__footer--end">{footer}</footer>
+          <footer className="modal__footer">{footer}</footer>
         )}
       </div>
     </div>,

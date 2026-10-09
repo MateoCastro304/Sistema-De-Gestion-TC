@@ -13,3 +13,6 @@ export interface Page<T> {
   /** Page size requested. */
   limit: number
 }
+
+/** Filas por página de los listados (coincide con el default del backend). */
+export const DEFAULT_PAGE_SIZE = 20

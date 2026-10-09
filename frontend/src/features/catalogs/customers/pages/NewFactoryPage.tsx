@@ -1,4 +1,6 @@
 import { useNavigate, Link } from 'react-router'
+import { heroPhoto } from '@/shared/lib/heroPhoto'
+import fotoTaller from '@/assets/foto-dispositivo.webp'
 import { useToast } from '@/app/providers/ToastContext'
 import type { FactoryInput } from '../types/factory'
 import { useCreateFactory } from '../api/customers.queries'
@@ -34,17 +36,14 @@ export function NewFactoryPage() {
     <>
       {/* Rediseño: mismo panel azul que el listado y el detalle. El
           "← Volver" pasa al botón redondo de la izquierda. */}
-      <div className="page-header">
+      <div className="page-header page-header--foto" style={heroPhoto(fotoTaller)}>
         <div className="page-header__row">
           <div className="detail-header__left">
-            <Link
-              to="/catalogos/fabricas"
-              className="btn btn--icon"
-              aria-label="Volver al listado de fábricas"
-            >
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+            <Link to="/catalogos/fabricas" className="back-link">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="M10 3 5 8l5 5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
+              Fábricas
             </Link>
             <div>
               <h1 className="page-header__title">Nueva fábrica</h1>
