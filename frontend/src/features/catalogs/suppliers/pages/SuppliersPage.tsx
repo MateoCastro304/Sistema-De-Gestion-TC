@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import {
   Avatar,
@@ -16,10 +16,9 @@ import {
 } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
 import { EmptyState } from '@/shared/components/feedback/EmptyState'
-import { usePagedList } from '@/shared/hooks/usePagedList'
+import { DEFAULT_PAGE_SIZE } from '@/shared/api/pagination'
 import { cn } from '@/shared/lib/cn'
 import fotoTaller from '@/assets/hero-castro.webp'
-import { normalizeText } from '@/shared/lib/normalizeText'
 import { isApiError } from '@/shared/api/ApiError'
 import { useToast } from '@/app/providers/ToastContext'
 import { useSuppliers } from '../api/useSuppliers'
@@ -29,39 +28,42 @@ import type { Supplier } from '../types/supplier'
 import { TYPE_ICONS, TYPE_TONES, supplierIcon, supplierTone } from '../utils/supplierTone'
 
 export function SuppliersPage() {
-  const { data, isPending, error, refetch } = useSuppliers()
+  // El backend busca y pagina. La búsqueda se debouncea para no pegarle en
+  // cada tecla; `search` es lo que se ve en el cuadro y `debouncedSearch`
+  // lo que viaja.
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [page, setPage] = useState(1)
 
-  // null = mirando la lista. Un Set, aunque este vacio = modo eliminacion.
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  const { data, isPending, isPlaceholderData, error, refetch } = useSuppliers({
+    search: debouncedSearch || undefined,
+    page,
+    limit: DEFAULT_PAGE_SIZE,
+  })
+
+  // `rows` es la página que mandó el backend; `total`, todos los que
+  // coinciden con la búsqueda sumando las demás páginas.
+  const rows = data?.items ?? []
+  const total = data?.total ?? 0
+  const totalPages = Math.max(1, Math.ceil(total / DEFAULT_PAGE_SIZE))
+
+  // null = mirando la lista. Un Map, aunque este vacio = modo eliminacion.
   // En un solo estado para que no exista "modo activo sin seleccion".
-  const [selected, setSelected] = useState<Set<number> | null>(null)
+  // Guarda el proveedor entero y no sólo el id: la selección sobrevive al
+  // cambio de página y a la búsqueda, y los que quedan fuera de la página
+  // actual ya no están en `rows` para listarlos en la confirmación.
+  const [selected, setSelected] = useState<Map<number, Supplier> | null>(null)
   const isSelecting = selected !== null
   const selectedCount = selected?.size ?? 0
 
   const [confirmOpen, setConfirmOpen] = useState(false)
   const { mutate: deleteSuppliers, isPending: isDeleting } = useDeleteSuppliers()
   const showToast = useToast()
-
-  const filtered = useMemo(() => {
-    const list = data ?? []
-    const term = normalizeText(search.trim())
-    if (!term) return list
-    return list.filter((s) =>
-      [
-        s.legalName,
-        s.cuit ?? '',
-        s.cuit?.replace(/-/g, '') ?? '', // Para buscar sin los guiones
-        // Se busca por el texto que se ve ("Pintura"), no por el valor
-        // del contrato ("PAINT").
-        ...s.supplierTypes.map((type) => SUPPLIER_TYPE_LABELS[type]),
-        s.contactName ?? '',
-      ].some((field) => normalizeText(field).includes(term)),
-    )
-  }, [data, search])
-
-  // La lista llega entera y el filtro corre acá, así que la paginación
-  // también: `rows` es el tramo de `filtered` que toca mostrar.
-  const { pageItems: rows, page, setPage, pageSize, total, totalPages } = usePagedList(filtered)
 
   // Buscar vuelve a la primera página: los resultados nuevos no tienen
   // por qué empezar donde había quedado la lista anterior.
@@ -70,14 +72,20 @@ export function SuppliersPage() {
     setPage(1)
   }
 
-  function toggleOne(id: number) {
+  // "Limpiar búsqueda" no espera al debounce: el botón ya dijo qué quiere.
+  function clearSearch() {
+    handleSearchChange('')
+    setDebouncedSearch('')
+  }
+
+  function toggleOne(supplier: Supplier) {
     setSelected((current) => {
       if (!current) return current
-      // Copia obligatoria: mutar el Set del estado no dispara re-render,
+      // Copia obligatoria: mutar el Map del estado no dispara re-render,
       // porque React compara por referencia y seria el mismo objeto.
-      const next = new Set(current)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      const next = new Map(current)
+      if (next.has(supplier.id)) next.delete(supplier.id)
+      else next.set(supplier.id, supplier)
       return next
     })
   }
@@ -88,9 +96,9 @@ export function SuppliersPage() {
   const allVisibleSelected =
     selected !== null && rows.length > 0 && rows.every((s) => selected.has(s.id))
 
-  // Sale de `data` y no de `rows`: la seleccion sobrevive a la busqueda y
-  // al cambio de pagina, asi que puede incluir proveedores que no se ven.
-  const selectedSuppliers = (data ?? []).filter((s) => selected?.has(s.id))
+  // Sale de `selected` y no de `rows`: la seleccion sobrevive a la busqueda
+  // y al cambio de pagina, asi que puede incluir proveedores que no se ven.
+  const selectedSuppliers = [...(selected?.values() ?? [])]
 
   // Tildados que no estan a la vista: en otra pagina o fuera de la busqueda.
   // Si hay, se avisa en la barra: sin eso el usuario borraria cosas que no
@@ -102,20 +110,25 @@ export function SuppliersPage() {
   function toggleAllVisible() {
     setSelected((current) => {
       if (!current) return current
-      const next = new Set(current)
+      const next = new Map(current)
       if (allVisibleSelected) rows.forEach((s) => next.delete(s.id))
-      else rows.forEach((s) => next.add(s.id))
+      else rows.forEach((s) => next.set(s.id, s))
       return next
     })
   }
 
   function handleDelete() {
-    // El spread convierte el Set en el number[] que espera la mutacion.
-    const ids = [...(selected ?? [])]
+    // El spread convierte las claves del Map en el number[] que espera la mutacion.
+    const ids = [...(selected?.keys() ?? [])]
 
     deleteSuppliers(ids, {
       onSuccess: ({ deleted, failed }) => {
         setConfirmOpen(false)
+
+        // Si se borró todo lo que había en esta página, el backend la
+        // devolvería vacía: se retrocede una para no quedar mirando nada.
+        const pageEmptied = rows.length > 0 && rows.every((s) => deleted.includes(s.id))
+        if (pageEmptied && page > 1) setPage(page - 1)
 
         if (failed.length === 0) {
           // Salio todo: cerramos el modo eliminacion.
@@ -132,8 +145,8 @@ export function SuppliersPage() {
         }
 
         // Seguimos en modo eliminacion con los fallidos tildados: se ve
-        // cuales estan en uso y se reintenta sin volver a buscarlos.
-        setSelected(new Set(failed))
+        // cuales quedaron y se reintenta sin volver a buscarlos.
+        setSelected(new Map(selectedSuppliers.filter((s) => failed.includes(s.id)).map((s) => [s.id, s])))
 
         if (deleted.length === 0) {
           showToast(
@@ -173,7 +186,7 @@ export function SuppliersPage() {
     render: (s) => (
       <CheckBox
         checked={selected?.has(s.id) ?? false}
-        onChange={() => toggleOne(s.id)}
+        onChange={() => toggleOne(s)}
         label={`Seleccionar ${s.legalName}`}
       />
     ),
@@ -189,8 +202,8 @@ export function SuppliersPage() {
         <span className="table__cell--nombre">
           <Avatar
             name={s.legalName}
-            icon={supplierIcon(s.supplierTypes)}
-            tone={supplierTone(s.supplierTypes)}
+            icon={supplierIcon(s.supplierType)}
+            tone={supplierTone(s.supplierType)}
           />
           <b>{s.legalName}</b>
         </span>
@@ -201,15 +214,12 @@ export function SuppliersPage() {
     { header: 'CUIT', render: (s) => <ValueOrDash value={s.cuit} className="table__cell--mono" /> },
     {
       header: 'Tipo',
-      // Una etiqueta por rubro, cada una con su color. Si no entran en
-      // una línea bajan enteras (flex-wrap en --tipos).
+      // La etiqueta del tipo, con su color.
       render: (s) => (
         <span className="table__cell--tipos">
-          {s.supplierTypes.map((type) => (
-            <Badge key={type} variant={TYPE_TONES[type]} icon={TYPE_ICONS[type]}>
-              {SUPPLIER_TYPE_LABELS[type]}
-            </Badge>
-          ))}
+          <Badge variant={TYPE_TONES[s.supplierType]} icon={TYPE_ICONS[s.supplierType]}>
+            {SUPPLIER_TYPE_LABELS[s.supplierType]}
+          </Badge>
         </span>
       ),
     },
@@ -278,13 +288,13 @@ export function SuppliersPage() {
         {isApiError(error) ? error.message : 'Revisá la conexión e intentá de nuevo.'}
       </EmptyState>
     )
-  } else if (!isPending && search.trim()) {
+  } else if (!isPending && debouncedSearch) {
     emptyState = (
       <EmptyState
         kind="no-results"
         title="No hay proveedores que coincidan con la búsqueda."
         action={
-          <Button variant="secondary" onClick={() => handleSearchChange('')}>
+          <Button variant="secondary" onClick={clearSearch}>
             Limpiar búsqueda
           </Button>
         }
@@ -314,8 +324,16 @@ export function SuppliersPage() {
           'Cargando…'
         ) : (
           <>
-            <strong>{data?.length ?? 0}</strong>{' '}
-            {data?.length === 1 ? 'proveedor registrado' : 'proveedores registrados'}
+            {/* Con una búsqueda activa el total es el de los que coinciden,
+                no el del catálogo entero: el texto lo dice. */}
+            <strong>{total}</strong>{' '}
+            {debouncedSearch
+              ? total === 1
+                ? 'proveedor coincide con la búsqueda'
+                : 'proveedores coinciden con la búsqueda'
+              : total === 1
+                ? 'proveedor registrado'
+                : 'proveedores registrados'}
           </>
         )}
       </PageHero>
@@ -326,7 +344,7 @@ export function SuppliersPage() {
         <SearchField
           value={search}
           onChange={handleSearchChange}
-          placeholder="Buscar por razón social, CUIT, contacto o tipo"
+          placeholder="Buscar por razón social, CUIT o contacto"
           label="Buscar proveedores"
         />
 
@@ -343,8 +361,8 @@ export function SuppliersPage() {
           <>
             <TrashButton
               label="Eliminar proveedores"
-              onClick={() => setSelected(new Set())}
-              disabled={(data?.length ?? 0) === 0}
+              onClick={() => setSelected(new Map())}
+              disabled={total === 0}
             >
               Eliminar proveedores
             </TrashButton>
@@ -419,10 +437,10 @@ export function SuppliersPage() {
            fila no tiene por qué reaccionar al click.
            Es el mismo toggleOne de siempre, así que la lógica de
            selección no cambia. */
-        onRowClick={isSelecting ? (s) => toggleOne(s.id) : undefined}
+        onRowClick={isSelecting ? (s) => toggleOne(s) : undefined}
         rowClassName={(s) =>
           cn(
-            `table__row--${supplierTone(s.supplierTypes)}`,
+            `table__row--${supplierTone(s.supplierType)}`,
             // Resalta la fila tildada. Es el mismo `selected` que ya
             // usaba el casillero: no hay estado nuevo.
             selected?.has(s.id) && 'table__row--selected',
@@ -434,7 +452,14 @@ export function SuppliersPage() {
         emptyMessage="Cargando proveedores…"
         emptyState={emptyState}
         footer={
-          <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} />
+          <Pagination
+            page={page}
+            pageSize={DEFAULT_PAGE_SIZE}
+            total={total}
+            onPageChange={setPage}
+            // Mientras llega la página pedida se sigue viendo la anterior.
+            disabled={isPlaceholderData}
+          />
         }
       />
 
@@ -471,7 +496,7 @@ export function SuppliersPage() {
         <ul className="confirm-list">
           {selectedSuppliers.map((s) => (
             <li key={s.id} className="confirm-list__item">
-              <Avatar name={s.legalName} icon={supplierIcon(s.supplierTypes)} />
+              <Avatar name={s.legalName} icon={supplierIcon(s.supplierType)} />
               <span className="confirm-list__text">
                 <b>{s.legalName}</b>
                 <span>{s.cuit ?? 'Sin CUIT'}</span>

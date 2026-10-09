@@ -87,12 +87,12 @@ services:
 
   adminer:
     image: adminer:latest
-    container_name: causas-adminer
+    container_name: torneria-adminer
     restart: unless-stopped
     ports:
       - '8080:8080'
     networks:
-      - causas-network
+      - torneria-network
     depends_on:
       postgres:
         condition: service_healthy

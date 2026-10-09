@@ -8,7 +8,7 @@ import { TYPE_ICONS } from '../utils/supplierTone'
 import { cn } from '@/shared/lib/cn'
 import { useToast } from '@/app/providers/ToastContext'
 import { useCreateSupplier } from '../api/useCreateSupplier'
-import { SUPPLIER_TYPES, SUPPLIER_TYPE_LABELS } from '../types/supplier'
+import { SUPPLIER_MAX_LENGTH, SUPPLIER_TYPES, SUPPLIER_TYPE_LABELS } from '../types/supplier'
 import type { SupplierFormValues, SupplierType } from '../types/supplier'
 import {
   conflictErrors,
@@ -24,11 +24,12 @@ const EMPTY_FORM: SupplierFormValues = {
   cuit: '',
   // Vacio a proposito: el tipo no se puede cambiar despues, asi que no se
   // preselecciona ninguno y el usuario lo elige a conciencia.
-  supplierTypes: [],
+  supplierType: '',
   contactName: '',
   contactEmail: '',
   contactPhone: '',
   address: '',
+  observation: '',
 }
 
 export function NewSupplierPage() {
@@ -43,16 +44,9 @@ export function NewSupplierPage() {
     setForm((current) => ({ ...current, [name]: value }))
   }
 
-  /** Agrega o saca un tipo, manteniendo el orden de SUPPLIER_TYPES. */
-  function toggleType(type: SupplierType) {
-    setForm((current) => ({
-      ...current,
-      supplierTypes: SUPPLIER_TYPES.filter((option) =>
-        option === type
-          ? !current.supplierTypes.includes(option)
-          : current.supplierTypes.includes(option),
-      ),
-    }))
+  /** Elige el tipo. Es uno solo: marcar otro reemplaza al anterior. */
+  function selectType(type: SupplierType) {
+    setForm((current) => ({ ...current, supplierType: type }))
   }
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
@@ -65,7 +59,7 @@ export function NewSupplierPage() {
     mutate(toSupplierCreate(form), {
       onSuccess: (created) => {
         showToast('success', 'Proveedor creado exitosamente.')
-        navigate(`/catalogos/proveedores/${created.id}`)
+        void navigate(`/catalogos/proveedores/${created.id}`)
       },
       onError: (error) => {
         // CUIT o razón social repetidos: el mensaje pertenece al campo,
@@ -114,7 +108,7 @@ export function NewSupplierPage() {
             name="legalName"
             label="Razón social"
             full
-            maxLength={120}
+            maxLength={SUPPLIER_MAX_LENGTH.legalName}
             value={form.legalName}
             onChange={handleChange}
             error={errors.legalName}
@@ -131,15 +125,15 @@ export function NewSupplierPage() {
             hint="Formato XX-XXXXXXXX-X"
           />
 
-          {/* Un proveedor puede tener varios tipos, así que son casillas y
-              no un desplegable. El <label> envuelve la casilla: tocar el
-              texto también la alterna. */}
+          {/* Un proveedor tiene un solo tipo: las casillas se comportan
+              como opciones excluyentes. El <label> envuelve la casilla:
+              tocar el texto también la elige. */}
           <div
-            className={cn('form-field', 'card__full', errors.supplierTypes && 'form-field--error')}
+            className={cn('form-field', 'card__full', errors.supplierType && 'form-field--error')}
             role="group"
-            aria-labelledby="supplierTypes-label"
+            aria-labelledby="supplierType-label"
           >
-            <span className="form-field__label" id="supplierTypes-label">
+            <span className="form-field__label" id="supplierType-label">
               Tipo
             </span>
             <div className="check-group">
@@ -148,23 +142,23 @@ export function NewSupplierPage() {
                   key={type}
                   className={cn(
                     'check-option',
-                    form.supplierTypes.includes(type) && 'check-option--on',
+                    form.supplierType === type && 'check-option--on',
                   )}
                 >
                   <CheckBox
-                    checked={form.supplierTypes.includes(type)}
-                    onChange={() => toggleType(type)}
+                    checked={form.supplierType === type}
+                    onChange={() => selectType(type)}
                   />
                   <EntityIcon name={TYPE_ICONS[type]} />
                   {SUPPLIER_TYPE_LABELS[type]}
                 </label>
               ))}
             </div>
-            {errors.supplierTypes ? (
-              <span className="form-field__error">{errors.supplierTypes}</span>
+            {errors.supplierType ? (
+              <span className="form-field__error">{errors.supplierType}</span>
             ) : (
               <span className="form-field__hint">
-                Elegí uno o más. Después del alta no se puede cambiar.
+                Elegí uno. Después del alta no se puede cambiar.
               </span>
             )}
           </div>
@@ -174,10 +168,21 @@ export function NewSupplierPage() {
             name="address"
             label="Dirección"
             full
-            maxLength={200}
+            maxLength={SUPPLIER_MAX_LENGTH.address}
             value={form.address}
             onChange={handleChange}
             error={errors.address}
+          />
+
+          <Input
+            id="observation"
+            name="observation"
+            label="Observación"
+            full
+            maxLength={SUPPLIER_MAX_LENGTH.observation}
+            value={form.observation}
+            onChange={handleChange}
+            error={errors.observation}
           />
         </div>
       </section>
@@ -190,7 +195,7 @@ export function NewSupplierPage() {
             id="contactName"
             name="contactName"
             label="Persona de contacto"
-            maxLength={120}
+            maxLength={SUPPLIER_MAX_LENGTH.contactName}
             value={form.contactName}
             onChange={handleChange}
             error={errors.contactName}
@@ -201,7 +206,7 @@ export function NewSupplierPage() {
             name="contactPhone"
             type="tel"
             label="Teléfono"
-            maxLength={40}
+            maxLength={SUPPLIER_MAX_LENGTH.contactPhone}
             value={form.contactPhone}
             onChange={handleChange}
             error={errors.contactPhone}
@@ -213,7 +218,7 @@ export function NewSupplierPage() {
             type="email"
             label="Email"
             full
-            maxLength={120}
+            maxLength={SUPPLIER_MAX_LENGTH.contactEmail}
             value={form.contactEmail}
             onChange={handleChange}
             error={errors.contactEmail}

@@ -105,7 +105,7 @@ export function CustomerDetailPage() {
         onSuccess: () => {
           // 'info' y no 'success': un borrado no es un logro.
           showToast('info', `Encargado "${fullName}" eliminado.`)
-          navigate('/catalogos/encargados')
+          void navigate('/catalogos/encargados')
         },
         onError: (error) => {
           setConfirmOpen(false)

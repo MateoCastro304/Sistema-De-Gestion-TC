@@ -1,5 +1,11 @@
 import { http } from '@/shared/api/http'
-import type { Supplier, SupplierCreate, SupplierUpdate } from '../types/supplier'
+import type { Page } from '@/shared/api/pagination'
+import type {
+  Supplier,
+  SupplierCreate,
+  SupplierListParams,
+  SupplierUpdate,
+} from '../types/supplier'
 
 /**
  * Una función por endpoint del contrato. Devuelven el dato pelado: ni los
@@ -7,17 +13,12 @@ import type { Supplier, SupplierCreate, SupplierUpdate } from '../types/supplier
  */
 
 /**
- * El backend pagina de a 20 y devuelve la lista sin el total, así que no hay
- * forma de saber si quedaron proveedores afuera ni de armar un paginado. Hasta
- * que responda `{ items, total, page, limit }` (como fábricas y encargados),
- * se pide una página grande y el listado busca y filtra en el navegador.
+ * El backend busca y pagina, y responde `{ items, total, page, limit }`
+ * igual que fábricas y encargados. Todos los params son opcionales; axios
+ * saca de la query los que quedan en undefined.
  */
-const WHOLE_CATALOG = 1000
-
-export async function listSuppliers(): Promise<Supplier[]> {
-  const { data } = await http.get<Supplier[]>('/suppliers', {
-    params: { page: 1, limit: WHOLE_CATALOG },
-  })
+export async function listSuppliers(params?: SupplierListParams): Promise<Page<Supplier>> {
+  const { data } = await http.get<Page<Supplier>>('/suppliers', { params })
   return data
 }
 
@@ -38,7 +39,7 @@ export async function updateSupplier(id: number, payload: SupplierUpdate): Promi
 
 /**
  * Elimina un proveedor. Abajo el back hace baja logica, pero para el frontend
- * deja de existir. Devuelve void (204 sin cuerpo); da 409 si esta en uso.
+ * deja de existir. Devuelve void (204 sin cuerpo); da 404 si ya no existe.
  */
 export async function deleteSupplier(id: number): Promise<void> {
     await http.delete(`/suppliers/${id}`)

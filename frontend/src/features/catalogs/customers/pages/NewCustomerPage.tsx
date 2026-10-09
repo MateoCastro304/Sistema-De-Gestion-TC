@@ -20,7 +20,7 @@ export function NewCustomerPage() {
           'success',
           `Encargado "${customerFullName(customer)}" registrado.`,
         )
-        navigate('/catalogos/encargados')
+        void navigate('/catalogos/encargados')
       },
       onError: (error) => {
         showToast(

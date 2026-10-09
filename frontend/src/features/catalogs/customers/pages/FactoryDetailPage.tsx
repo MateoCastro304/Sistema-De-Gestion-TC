@@ -135,7 +135,7 @@ export function FactoryDetailPage() {
     deactivateFactory.mutate(id, {
       onSuccess: () => {
         showToast('info', `Fábrica "${factory.name}" eliminada.`)
-        navigate('/catalogos/fabricas')
+        void navigate('/catalogos/fabricas')
       },
       onError: (error) => {
         showToast(

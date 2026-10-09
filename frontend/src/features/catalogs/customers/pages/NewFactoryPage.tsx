@@ -19,7 +19,7 @@ export function NewFactoryPage() {
         showToast('success', 'Fábrica registrada correctamente.')
         // Escenario 1: ofrecer continuar con el alta de sus encargados (HU-E1)
         // abriendo el modal de "Agregar encargado" al llegar al detalle.
-        navigate(`/catalogos/fabricas/${factory.id}`, {
+        void navigate(`/catalogos/fabricas/${factory.id}`, {
           state: { addContact: true },
         })
       },

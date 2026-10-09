@@ -1,5 +1,5 @@
 /**
- * Rubros de un proveedor, con los valores del contrato
+ * Tipos de proveedor, con los valores del contrato
  * (docs/openapi/components/schemas/Supplier.yaml). Viajan así por la red;
  * en pantalla se muestran con SUPPLIER_TYPE_LABELS.
  */
@@ -20,26 +20,39 @@ export const SUPPLIER_TYPE_LABELS: Record<SupplierType, string> = {
     PAINT: 'Pintura',
 }
 
-/** Lo que devuelve el backend en GET /suppliers y GET /suppliers/:id. */
+/** Lo que devuelve el backend en GET /suppliers/:id y en cada item del listado. */
 export interface Supplier {
     id: number
     legalName: string
     cuit?: string
     /**
-     * Rubros del proveedor. Siempre al menos uno, y puede haber varios: es
-     * común que el mismo proveedor venda material y además tercerice.
-     * Se definen en el alta y después no se pueden cambiar.
+     * Tipo del proveedor. Exactamente uno: se define en el alta y después
+     * no se puede cambiar.
      */
-    supplierTypes: SupplierType[]
+    supplierType: SupplierType
     contactName?: string
     contactEmail?: string
     contactPhone?: string
     address?: string
+    observation?: string
     active: boolean
     /** ISO 8601. Llega como string: JSON no tiene tipo fecha. */
     createdAt: string
     updatedAt: string
 }
+
+/**
+ * Filtros de GET /suppliers. El backend busca y pagina; `search` es el
+ * único cuadro de texto y matchea razón social, contacto o CUIT.
+ */
+export interface SupplierListParams {
+    page?: number
+    /** Máximo 100: el backend rechaza con 400 un valor más grande. */
+    limit?: number
+    type?: SupplierType
+    search?: string
+}
+
 /**
  * Lo que se manda en POST /suppliers.
  * Sin id ni fechas: los genera el backend.
@@ -47,16 +60,17 @@ export interface Supplier {
 export interface SupplierCreate {
     legalName: string
     cuit?: string
-    supplierTypes: SupplierType[]
+    supplierType: SupplierType
     contactName?: string
     contactEmail?: string
     contactPhone?: string
     address?: string
+    observation?: string
 }
 /**
  * Lo que se manda en PATCH /suppliers/:id. Sólo los campos que cambian.
- * `null` en un opcional significa "borrar el dato". Sin supplierTypes: el
- * backend los rechaza porque son inmutables.
+ * `null` en un opcional significa "borrar el dato". Sin supplierType: el
+ * backend lo rechaza porque es inmutable.
  */
 export interface SupplierUpdate {
     legalName?: string
@@ -65,6 +79,7 @@ export interface SupplierUpdate {
     contactEmail?: string | null
     contactPhone?: string | null
     address?: string | null
+    observation?: string | null
 }
 
 /**
@@ -74,9 +89,24 @@ export interface SupplierUpdate {
 export interface SupplierFormValues {
     cuit: string
     legalName: string
-    supplierTypes: SupplierType[]
+    /** '' = todavía no eligió ninguno (sólo pasa en el alta). */
+    supplierType: SupplierType | ''
     contactName: string
     contactEmail: string
     contactPhone: string
     address: string
+    observation: string
 }
+
+/**
+ * Largos máximos del contrato (components/schemas/Supplier.yaml). Los inputs
+ * los usan como maxLength para que el backend no devuelva un 400 por largo.
+ */
+export const SUPPLIER_MAX_LENGTH = {
+    legalName: 80,
+    contactName: 150,
+    contactEmail: 120,
+    contactPhone: 50,
+    address: 255,
+    observation: 255,
+} as const

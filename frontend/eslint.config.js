@@ -66,7 +66,8 @@ export default defineConfig([
   // --- Limites entre capas --------------------------------------------------
   // app/      -> composicion (router, providers, layout). Puede usar todo.
   // features/ -> un modulo por caso de negocio. Usa shared/ y domain/, y otros
-  //              features solo por su index.ts.
+  //              features solo por su index.ts. De app/ solo puede usar
+  //              app/providers (contextos: notificaciones, usuario).
   // shared/   -> reutilizable y sin negocio. No conoce features ni app.
   // domain/   -> tipos/reglas del negocio compartidos. No conoce nada mas.
   // Para salir de tu carpeta se usa el alias @/, nunca ../../
@@ -91,6 +92,25 @@ export default defineConfig([
     },
   },
   {
+    // app/mocks junta los *.mocks.ts de cada feature y es la unica excepcion a
+    // "entrar por el index.ts": si los mocks se exportaran desde el index, MSW
+    // y los datos falsos terminarian en el bundle de produccion.
+    files: ['src/app/mocks/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['../../*'],
+              message: 'Para salir de tu carpeta usa el alias @/ (asi las reglas de capas pueden verlo).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['src/features/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
@@ -103,8 +123,11 @@ export default defineConfig([
               message: 'Importa el feature por su index.ts (@/features/...), no sus archivos internos.',
             },
             {
-              group: ['@/app/*'],
-              message: 'Un feature no puede depender de app/. Si lo necesitan varios features, va en shared/.',
+              // La negacion deja pasar app/providers: son los contextos
+              // (notificaciones, usuario) que los features consumen por hook.
+              group: ['@/app/*', '!@/app/providers'],
+              message:
+                'Un feature solo puede usar app/providers. Si lo necesitan varios features, va en shared/.',
             },
           ],
         },

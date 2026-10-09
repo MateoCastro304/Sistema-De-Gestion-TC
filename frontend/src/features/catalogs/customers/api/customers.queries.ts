@@ -64,7 +64,7 @@ export function useCreateCustomer() {
   return useMutation({
     mutationFn: createCustomer,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: customerKeys.all })
+      void queryClient.invalidateQueries({ queryKey: customerKeys.all })
     },
   })
 }
@@ -76,7 +76,7 @@ export function useUpdateCustomer(factoryId: string, id: string) {
     mutationFn: (input: CustomerInput) => updateCustomer(factoryId, id, input),
     onSuccess: (updated) => {
       queryClient.setQueryData(customerKeys.detail(factoryId, id), updated)
-      queryClient.invalidateQueries({ queryKey: customerKeys.lists() })
+      void queryClient.invalidateQueries({ queryKey: customerKeys.lists() })
     },
   })
 }
@@ -91,7 +91,7 @@ export function useDeactivateCustomer() {
     mutationFn: ({ factoryId, id }: CustomerRef) =>
       deactivateCustomer(factoryId, id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: customerKeys.all })
+      void queryClient.invalidateQueries({ queryKey: customerKeys.all })
     },
   })
 }
@@ -116,7 +116,7 @@ export function useCreateFactory() {
   return useMutation({
     mutationFn: createFactory,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: factoryKeys.all })
+      void queryClient.invalidateQueries({ queryKey: factoryKeys.all })
     },
   })
 }
@@ -127,7 +127,7 @@ export function useUpdateFactory(id: string) {
   return useMutation({
     mutationFn: (input: FactoryInput) => updateFactory(id, input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: factoryKeys.all })
+      void queryClient.invalidateQueries({ queryKey: factoryKeys.all })
     },
   })
 }
@@ -138,7 +138,7 @@ export function useDeactivateFactory() {
   return useMutation({
     mutationFn: (id: string) => deactivateFactory(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: factoryKeys.all })
+      void queryClient.invalidateQueries({ queryKey: factoryKeys.all })
     },
   })
 }
