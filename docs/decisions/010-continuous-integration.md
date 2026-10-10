@@ -25,23 +25,33 @@ A single workflow (`.github/workflows/ci.yaml`) with **two tiers of checks**.
 
 ### Tier 1 — Fast checks: every push to `develop` and every PR to `main`
 
-Each app runs in its own job, in parallel, on `ubuntu-latest` with Node 22.
+Each job runs in parallel, on `ubuntu-latest` with Node 22.
 
-| Job        | Steps                                                                                                                                  |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `frontend` | `npm ci` → `npm run lint` → `npm run build` (includes `tsc -b`, the only type check of the frontend)                                    |
-| `backend`  | `npm ci` → `npx prisma generate` → `npm run lint` → `npm run format:check` → `npm run build` → `npm test` (unit tests, `src/**/*.spec.ts`) |
+| Job                | Steps                                                                                                                                  |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `frontend`         | `npm ci` → `npm run lint` → `npm run build` (includes `tsc -b`, the only type check of the frontend)                                    |
+| `backend`          | `npm ci` → `npx prisma generate` → `npm run lint` → `npm run format:check` → `npm run build` → `npm test` (unit tests, `src/**/*.spec.ts`) |
+| `openapi-contract` | In `tooling/openapi`: `npm ci` → `npm run validate` (Redocly lint + Spectral lint of `docs/openapi/openapi.yaml`)                       |
+
+The contract job checks that the OpenAPI spec is **well formed** (valid schema, no broken `$ref`, required fields present). It does not check that the backend implements it: that is the job of the integration tests (Tier 2).
 
 ### Tier 2 — Gate checks: only on PRs to `main`
 
-| Job                 | What it checks                                                                                         |
-| ------------------- | ------------------------------------------------------------------------------------------------------ |
-| Backend integration | `npm run test:int`: HTTP → use case → Prisma → real PostgreSQL, against the OpenAPI contract            |
-| Docker build        | The production images build from their Dockerfiles (catches broken Dockerfiles / `.dockerignore`)        |
+| Job                   | What it checks                                                                                         |
+| --------------------- | ------------------------------------------------------------------------------------------------------ |
+| `backend-integration` | `npm run test:int`: HTTP → use case → Prisma → real PostgreSQL, against the OpenAPI contract            |
+| Docker build          | The production images build from their Dockerfiles (catches broken Dockerfiles / `.dockerignore`)        |
+
+`backend-integration` declares `needs: backend`: it only runs if the fast backend job passed. There is no point spending minutes on the integration suite when the code does not lint or build. When `backend` fails, this job shows as **skipped**, not as passed.
 
 ### Rules that apply to every job
 
-- **Linting is binary.** Lint scripts run with `--max-warnings 0` and every rule is configured as `error` or `off`. A warning nobody reads is not a check.
+- **Linting is binary.** A warning nobody reads is not a check, so every rule is either `error` or `off`:
+  - ESLint: scripts run with `--max-warnings 0`.
+  - Redocly: extends `recommended-strict` (preset warnings become errors).
+  - Spectral: runs with `--fail-severity=warn`.
+
+  Turning a rule off requires a comment in the config explaining why (e.g. `no-server-example.com` in `tooling/openapi/redocly.yaml`: the only server is the local backend used by Swagger UI until a production host exists).
 - **CI never fixes code.** `lint` has no `--fix`; fixing is done locally with `lint:fix` / `format`.
 - **Formatting is Prettier's job, not ESLint's** (backend: `format:check`).
 - **Same install as production:** `npm ci` from the committed `package-lock.json`, never `npm install`.
@@ -66,6 +76,13 @@ Each app runs in its own job, in parallel, on `ubuntu-latest` with Node 22.
 | `docker build` on every push              | Rejected      | Slower, duplicates `npm ci` / build, and needs extra cache setup to be usable                   |
 | **npm on every push + `docker build` on PRs to `main`** | **Selected** | Fast feedback on `develop`, and the real artifact is validated before reaching `main` |
 
+### When to lint the OpenAPI contract
+
+| Option                                                    | Decision     | Reason                                                                                                                                       |
+| --------------------------------------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Job in `ci.yaml`, on every push**                       | **Selected** | Runs in parallel, so it does not add wait time; same pattern as the other jobs                                                                 |
+| Separate workflow, only when `docs/openapi/**` changes    | Rejected     | Saves a few runner minutes, but a path-filtered check that is required on `main` stays pending forever on PRs that do not touch the contract    |
+
 ## Consequences
 
 ### Positive
@@ -87,14 +104,14 @@ Each app runs in its own job, in parallel, on `ubuntu-latest` with Node 22.
 | Item                                                        | Status      |
 | ----------------------------------------------------------- | ----------- |
 | `frontend` job (Tier 1)                                     | Implemented |
-| `backend` job (Tier 1)                                      | In progress |
-| Backend integration tests on PRs to `main` (Tier 2)         | Pending     |
+| `backend` job (Tier 1)                                      | Implemented |
+| `openapi-contract` job (Tier 1)                             | Implemented |
+| `backend-integration` job on PRs to `main` (Tier 2)         | Implemented |
 | Docker build on PRs to `main` (Tier 2)                      | Pending     |
 | Branch protection on `main` requiring the CI checks to pass | Pending     |
 
 ## Future evolution
 
-- Lint the OpenAPI contract in CI (e.g. Spectral). The contract is the source of truth for the API.
 - Add frontend tests and include them in Tier 1.
 - Continuous deployment (ADR-009, step 4): publish the images validated by Tier 2 and deploy them to EC2.
 - Revisit the split if Tier 2 failures become frequent; moving the integration tests to every push to `develop` is the first option.
