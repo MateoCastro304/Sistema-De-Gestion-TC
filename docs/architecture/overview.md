@@ -140,3 +140,4 @@ The SPA is organized into the following main sections:
 | Mail integration            | [ADR-007](../decisions/007-mail-integration.md)      | Architectural direction approved; provider pending budget |
 | WhatsApp integration        | [ADR-008](../decisions/008-whatsapp-integration.md)  | Architectural direction approved; provider pending budget |
 | Deployment infrastructure and file storage  | [ADR-009](../decisions/009-deploy-infrastructure.md) | Approved                 |
+| Continuous integration pipeline | [ADR-010](../decisions/010-continuous-integration.md) | Accepted (partially implemented) |
