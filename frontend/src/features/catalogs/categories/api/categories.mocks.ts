@@ -6,6 +6,9 @@ import type { Category, CategoryInput } from '../types/category'
  * not wired up. They implement `docs/openapi/paths/categories*.yaml`, including
  * the 409 answers the screen has to surface. Data lives in memory and resets on
  * every page reload.
+ *
+ * Donde el contrato y el backend difieren, copian al backend (baja lógica,
+ * `active`, mensajes de los 409). Ver `docs/rubros-desvios-contrato.md`.
  */
 
 const SEED_DATE = '2026-08-01T12:00:00Z'

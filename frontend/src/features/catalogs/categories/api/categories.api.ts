@@ -4,6 +4,10 @@ import type { Category, CategoryInput } from '../types/category'
 /**
  * HTTP calls for the Rubros (Categories) catalog. Paths are relative to the
  * axios `baseURL` (`/api`) and follow `docs/openapi/paths/categories*.yaml`.
+ *
+ * OJO: donde el contrato y el backend no coinciden (baja lógica, `active`,
+ * mínimo de 3 caracteres, 409s), esto sigue al backend para que la pantalla
+ * funcione. Ver `docs/rubros-desvios-contrato.md`.
  */
 
 const CATEGORIES = '/categories'
