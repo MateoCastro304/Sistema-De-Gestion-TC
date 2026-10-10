@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { heroPhoto } from '@/shared/lib/heroPhoto'
+import fotoTaller from '@/assets/foto-piezas-bronce.webp'
 import { Avatar, Badge, Button } from '@/shared/components/ui'
+import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import { isApiError } from '@/shared/api/ApiError'
 import { cn } from '@/shared/lib/cn'
 import { useSupplier } from '../api/useDetailSupplier'
-import { SUPPLIER_TYPE_LABELS } from '../types/supplier'
+import { SUPPLIER_MAX_LENGTH, SUPPLIER_TYPE_LABELS } from '../types/supplier'
 import type {SupplierFormValues, SupplierType} from '../types/supplier'
 import type { ChangeEvent } from 'react'
 import { useUpdateSupplier } from '../api/useUpdateSupplier'
 import { buildSupplierPatch } from '../utils/buildSupplierPatch'
-import { TYPE_TONES, supplierTone } from '../utils/supplierTone'
+import { TYPE_ICONS, TYPE_TONES, supplierIcon, supplierTone } from '../utils/supplierTone'
 import { useToast } from '@/app/providers/ToastContext'
 import { conflictErrors, supplierErrorMessage, validateSupplierForm } from '../utils/validateSupplierForm'
 import type { SupplierFormErrors } from '../utils/validateSupplierForm'
@@ -34,16 +37,12 @@ interface FieldProps {
   maxLength?: number
 }
 
-/** Las etiquetas de rubro, una por tipo y cada una con su color. */
-function TypeBadges({ types }: { types: SupplierType[] }) {
+/** La etiqueta del tipo, con su color. */
+function TypeBadge({ type }: { type: SupplierType }) {
   return (
-    <>
-      {types.map((type) => (
-        <Badge key={type} variant={TYPE_TONES[type]}>
-          {SUPPLIER_TYPE_LABELS[type]}
-        </Badge>
-      ))}
-    </>
+    <Badge variant={TYPE_TONES[type]} icon={TYPE_ICONS[type]}>
+      {SUPPLIER_TYPE_LABELS[type]}
+    </Badge>
   )
 }
 
@@ -117,22 +116,35 @@ export function SupplierDetailPage() {
   }
   if (notFound) {
     return (
-      <div className="empty-state">
-        <p className="empty-state__text">
-          No encontramos el proveedor que buscabas.{' '}
-          <Link className="table__action" to="/catalogos/proveedores">
+      <EmptyState
+        card
+        kind="no-results"
+        title="No encontramos el proveedor que buscabas."
+        action={
+          <Link className="btn btn--secondary" to="/catalogos/proveedores">
             Volver al listado
           </Link>
-        </p>
-      </div>
+        }
+      >
+        Puede que lo hayan eliminado.
+      </EmptyState>
     )
   }
 
   if (error) {
     return (
-      <div className="callout callout--warning">
-        <span>{isApiError(error) ? error.message : 'Ocurrió un error inesperado.'}</span>
-      </div>
+      <EmptyState
+        card
+        kind="error"
+        title="No se pudo cargar el proveedor."
+        action={
+          <Link className="btn btn--secondary" to="/catalogos/proveedores">
+            Volver al listado
+          </Link>
+        }
+      >
+        {isApiError(error) ? error.message : 'Revisá la conexión e intentá de nuevo.'}
+      </EmptyState>
     )
   }
 
@@ -186,25 +198,25 @@ export function SupplierDetailPage() {
       {/* Rediseño: el encabezado del detalle es el mismo panel azul del
           listado. Cambia la envoltura y las clases; los datos, el botón
           de volver y las acciones son los de antes. */}
-      <div className="page-header">
+      <div className="page-header page-header--foto" style={heroPhoto(fotoTaller)}>
         <div className="page-header__row">
           <div className="detail-header__left">
-            <Link
-              to="/catalogos/proveedores"
-              /* --icon es el botón redondo del panel: mismo link, misma
-                 ruta, sólo cambia cómo se ve sobre el fondo oscuro. */
-              className="btn btn--icon"
-              aria-label="Volver al listado de proveedores"
-            >
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+            <Link to="/catalogos/proveedores" className="back-link">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="M10 3 5 8l5 5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
+              Proveedores
             </Link>
 
             {/* El cuadrado con las iniciales, en su tamaño grande y con
                 el color del rubro: el mismo que se ve en el listado, así
                 se reconoce que es el mismo proveedor. */}
-            <Avatar name={supplier.legalName} tone={supplierTone(supplier.supplierTypes)} size="lg" />
+            <Avatar
+              name={supplier.legalName}
+              icon={supplierIcon(supplier.supplierType)}
+              tone={supplierTone(supplier.supplierType)}
+              size="lg"
+            />
 
             <div>
               {/* Sin badge de estado: si el proveedor se ve, esta activo. Los
@@ -217,7 +229,7 @@ export function SupplierDetailPage() {
                   vistazo igual que en el listado. */}
               <span className="page-header__subtitle detail-header__meta">
                 {supplier.cuit ? `CUIT: ${supplier.cuit}` : null}
-                <TypeBadges types={supplier.supplierTypes} />
+                <TypeBadge type={supplier.supplierType} />
               </span>
             </div>
           </div>
@@ -238,11 +250,12 @@ export function SupplierDetailPage() {
             <Button variant="primary" onClick={() => setForm({
               cuit: supplier.cuit ?? '',
               legalName: supplier.legalName,
-              supplierTypes: supplier.supplierTypes,
+              supplierType: supplier.supplierType,
               contactName: supplier.contactName ?? '',
               contactEmail: supplier.contactEmail ?? '',
               contactPhone: supplier.contactPhone ?? '',
               address: supplier.address ?? '',
+              observation: supplier.observation ?? '',
             })}>
               Editar
             </Button>
@@ -262,7 +275,7 @@ export function SupplierDetailPage() {
                 value={form?.legalName ?? supplier.legalName}
                 editing={isEditing}
                 onChange={handleChange}
-                maxLength={120}
+                maxLength={SUPPLIER_MAX_LENGTH.legalName}
                 error={errors.legalName}
               />
               <Field
@@ -282,7 +295,7 @@ export function SupplierDetailPage() {
               <div className="field">
                 <span className="field__label">Tipo</span>
                 <span className="field__value field__value--badges">
-                  <TypeBadges types={supplier.supplierTypes} />
+                  <TypeBadge type={supplier.supplierType} />
                 </span>
                 {isEditing && (
                   <span className="form-field__hint">No se puede modificar.</span>
@@ -299,13 +312,34 @@ export function SupplierDetailPage() {
                   <input
                     id="address"
                     name="address"
-                    maxLength={200}
+                    maxLength={SUPPLIER_MAX_LENGTH.address}
                     value={form?.address ?? supplier.address ?? ''}
                     onChange={handleChange}
                   />
                 ) : (
                   <p className="field__value">
                     {supplier.address?.trim() ? supplier.address : '—'}
+                  </p>
+                )}
+              </div>
+
+              <div className={cn(isEditing ? 'form-field' : 'field', 'card__full')}>
+                {isEditing ? (
+                  <label htmlFor="observation">Observación</label>
+                ) : (
+                  <span className="field__label">Observación</span>
+                )}
+                {isEditing ? (
+                  <input
+                    id="observation"
+                    name="observation"
+                    maxLength={SUPPLIER_MAX_LENGTH.observation}
+                    value={form?.observation ?? supplier.observation ?? ''}
+                    onChange={handleChange}
+                  />
+                ) : (
+                  <p className="field__value">
+                    {supplier.observation?.trim() ? supplier.observation : '—'}
                   </p>
                 )}
               </div>
@@ -321,7 +355,7 @@ export function SupplierDetailPage() {
                 value={form?.contactName ?? supplier.contactName ?? ''}
                 editing={isEditing}
                 onChange={handleChange}
-                maxLength={120}
+                maxLength={SUPPLIER_MAX_LENGTH.contactName}
                 error={errors.contactName}
               />
               <Field
@@ -330,7 +364,7 @@ export function SupplierDetailPage() {
                 value={form?.contactEmail ?? supplier.contactEmail ?? ''}
                 editing={isEditing}
                 onChange={handleChange}
-                maxLength={120}
+                maxLength={SUPPLIER_MAX_LENGTH.contactEmail}
                 error={errors.contactEmail}
               />
               <Field
@@ -339,7 +373,7 @@ export function SupplierDetailPage() {
                 value={form?.contactPhone ?? supplier.contactPhone ?? ''}
                 editing={isEditing}
                 onChange={handleChange}
-                maxLength={40}
+                maxLength={SUPPLIER_MAX_LENGTH.contactPhone}
                 error={errors.contactPhone}
               />
             </div>

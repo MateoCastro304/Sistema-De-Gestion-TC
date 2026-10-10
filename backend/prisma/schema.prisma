@@ -98,11 +98,16 @@ model Category {
 ///
 /// PENDIENTE: falta `code` (codigo de fabrica, unico, obligatorio, 2-4 caracteres).
 /// Ver docs/decisiones-clientes-fabricas.md, seccion 5.
+/// Unicidad (indices parciales creados a mano en la migracion
+/// 20261008000000_customers_factories_rules; Prisma no los expresa aca):
+///  - cuit: unico entre fabricas ACTIVAS (factory_customer_cuit_active_key)
+///  - name: unico entre fabricas ACTIVAS, sin distinguir mayusculas
+///    (factory_customer_name_active_key)
 model Factory {
   id         Int      @id @default(autoincrement())
   name       String   @db.VarChar(100)
   address    String?  @db.VarChar(255)
-  cuit       String   @unique @db.VarChar(50)
+  cuit       String   @db.VarChar(50)
   payMethod  String?  @map("pay_method") @db.VarChar(255)
   categoryId Int      @map("categorie_id")
   isActive   Boolean  @default(true) @map("is_active")
@@ -117,7 +122,7 @@ model Factory {
 
 /// Encargado / contacto de una fabrica (tabla `manager_customer`)
 model Customer {
-  id        Int     // correlativo por fabrica, generado por trigger fn_gen_id_manager
+  id        Int     // correlativo por fabrica; lo calcula CustomerPrismaRepository (max + 1)
   factoryId Int     @map("factory_id")
   name      String  @db.VarChar(50)
   lastName  String? @map("last_name") @db.VarChar(50)
@@ -138,10 +143,30 @@ model Customer {
 // Supplier Management
 // =============================================
 
+/// Proveedor.
+///
+/// La baja es logica (`is_active`) y no hay reactivacion: un proveedor dado de
+/// baja deja de existir para toda consulta. De ahi que la unicidad de `cuit` y
+/// `legal_name` valga solo entre los activos, para que un proveedor inactivo no
+/// bloquee para siempre un CUIT o una razon social.
+///
+/// ATENCION: esa regla vive en dos indices escritos a mano en la migracion
+/// 20261008214800_supplier_snake_case_and_active_unique, porque Prisma no sabe
+/// expresar indices parciales (WHERE) ni funcionales (LOWER) en el schema:
+///
+///   supplier_cuit_active_key        UNIQUE (cuit)          WHERE is_active
+///   supplier_legal_name_active_key  UNIQUE (LOWER(legal_name)) WHERE is_active
+///
+/// Por eso `cuit` no lleva @unique aca. Prisma no los ve al calcular el diff
+/// (comprobado: no figuran en el reporte de drift), asi que no los va a
+/// proponer para borrar; pero tampoco los recrea solo. Si se reescribe esta
+/// migracion a mano y se omiten, la base deja de garantizar la unicidad y las
+/// altas duplicadas quedan libradas al codigo: verificar con
+///   SELECT indexname FROM pg_indexes WHERE tablename = 'supplier';
 model Supplier {
   id           Int          @id @default(autoincrement())
-  supplierType SupplierType
-  cuit         String?      @unique @db.VarChar(50)
+  supplierType SupplierType @map("supplier_type")
+  cuit         String?      @db.VarChar(50)
   legalName    String       @map("legal_name") @db.VarChar(80)
   contactName  String?      @map("contact_name") @db.VarChar(150)
   address      String?      @db.VarChar(255)

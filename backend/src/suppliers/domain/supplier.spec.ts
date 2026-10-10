@@ -13,11 +13,11 @@ describe('Supplier (domain)', () => {
   // ---------------------------------------------------------------------------
   describe('create', () => {
     it('creates a supplier with only the required fields', () => {
-      const s = Supplier.create('Aceros del Sur S.A.', ['MATERIAL']);
+      const s = Supplier.create('Aceros del Sur S.A.', 'MATERIAL');
 
       expect(s.getId()).toBeNull();
       expect(s.getLegalName()).toBe('Aceros del Sur S.A.');
-      expect(s.getSupplierTypes()).toEqual(['MATERIAL']);
+      expect(s.getSupplierType()).toBe('MATERIAL');
       expect(s.getCuit()).toBeNull();
       expect(s.getContactName()).toBeNull();
       expect(s.getContactEmail()).toBeNull();
@@ -27,7 +27,7 @@ describe('Supplier (domain)', () => {
     });
 
     it('accepts and stores every optional field', () => {
-      const s = Supplier.create('Aceros del Sur S.A.', ['MATERIAL', 'PROCESS'], {
+      const s = Supplier.create('Aceros del Sur S.A.', 'MATERIAL', {
         cuit: VALID_CUIT,
         contactName: 'Diego Fernandez',
         contactEmail: VALID_EMAIL,
@@ -40,16 +40,16 @@ describe('Supplier (domain)', () => {
       expect(s.getContactEmail()?.getValue()).toBe(VALID_EMAIL);
       expect(s.getContactPhone()?.getValue()).toBe(VALID_PHONE_NORMALIZED);
       expect(s.getAddress()).toBe('Av. Circunvalacion 4500');
-      expect(s.getSupplierTypes()).toEqual(['MATERIAL', 'PROCESS']);
+      expect(s.getSupplierType()).toBe('MATERIAL');
     });
 
     it('trims the legal name', () => {
-      const s = Supplier.create('  Aceros del Sur  ', ['MATERIAL']);
+      const s = Supplier.create('  Aceros del Sur  ', 'MATERIAL');
       expect(s.getLegalName()).toBe('Aceros del Sur');
     });
 
     it('turns blank optional strings into null', () => {
-      const s = Supplier.create('Aceros del Sur', ['MATERIAL'], {
+      const s = Supplier.create('Aceros del Sur', 'MATERIAL', {
         contactName: '   ',
         address: '',
       });
@@ -58,77 +58,58 @@ describe('Supplier (domain)', () => {
     });
 
     it('starts active', () => {
-      expect(Supplier.create('X', ['MATERIAL']).getActive()).toBe(true);
+      expect(Supplier.create('X', 'MATERIAL').getActive()).toBe(true);
     });
 
     describe('invariants', () => {
       it('rejects an empty legal name', () => {
-        expect(() => Supplier.create('', ['MATERIAL'])).toThrow('Legal name is required');
+        expect(() => Supplier.create('', 'MATERIAL')).toThrow('Legal name is required');
       });
 
       it('rejects a blank legal name', () => {
-        expect(() => Supplier.create('    ', ['MATERIAL'])).toThrow('Legal name is required');
+        expect(() => Supplier.create('    ', 'MATERIAL')).toThrow('Legal name is required');
       });
 
-      it('rejects a legal name over 120 characters', () => {
-        expect(() => Supplier.create('a'.repeat(121), ['MATERIAL'])).toThrow(/Legal name must not exceed/);
+      // The limits below mirror the column widths of the `supplier` table.
+      it('accepts a legal name of exactly 80 characters', () => {
+        expect(Supplier.create('a'.repeat(80), 'MATERIAL').getLegalName()).toHaveLength(80);
       });
 
-      it('rejects a contact name over 120 characters', () => {
-        expect(() => Supplier.create('X', ['MATERIAL'], { contactName: 'a'.repeat(121) })).toThrow(
+      it('rejects a legal name over 80 characters', () => {
+        expect(() => Supplier.create('a'.repeat(81), 'MATERIAL')).toThrow(/Legal name must not exceed/);
+      });
+
+      it('rejects a contact name over 150 characters', () => {
+        expect(() => Supplier.create('X', 'MATERIAL', { contactName: 'a'.repeat(151) })).toThrow(
           /Contact name must not exceed/,
         );
       });
 
-      it('rejects an address over 200 characters', () => {
-        expect(() => Supplier.create('X', ['MATERIAL'], { address: 'a'.repeat(201) })).toThrow(
-          /Address must not exceed/,
+      it('rejects an address over 255 characters', () => {
+        expect(() => Supplier.create('X', 'MATERIAL', { address: 'a'.repeat(256) })).toThrow(/Address must not exceed/);
+      });
+
+      it('rejects an observation over 255 characters', () => {
+        expect(() => Supplier.create('X', 'MATERIAL', { observation: 'a'.repeat(256) })).toThrow(
+          /Observation must not exceed/,
         );
       });
 
-      it('rejects when no supplier types are provided', () => {
-        expect(() => Supplier.create('X', [])).toThrow('At least one supplier type is required');
-      });
-
-      it('rejects duplicate supplier types', () => {
-        expect(() => Supplier.create('X', ['MATERIAL', 'MATERIAL'])).toThrow(
-          'Duplicate supplier types are not allowed',
-        );
-      });
-
-      it('rejects unknown supplier types', () => {
-        expect(() => Supplier.create('X', ['UNKNOWN' as SupplierType])).toThrow(/Invalid supplier type/);
+      it('rejects an unknown supplier type', () => {
+        expect(() => Supplier.create('X', 'UNKNOWN' as SupplierType)).toThrow(/Invalid supplier type/);
       });
 
       it('propagates value-object errors (invalid CUIT)', () => {
-        expect(() => Supplier.create('X', ['MATERIAL'], { cuit: '123' })).toThrow(/CUIT/);
+        expect(() => Supplier.create('X', 'MATERIAL', { cuit: '123' })).toThrow(/CUIT/);
       });
 
       it('propagates value-object errors (invalid email)', () => {
-        expect(() => Supplier.create('X', ['MATERIAL'], { contactEmail: 'not-an-email' })).toThrow(/email/i);
+        expect(() => Supplier.create('X', 'MATERIAL', { contactEmail: 'not-an-email' })).toThrow(/email/i);
       });
 
       it('propagates value-object errors (invalid phone)', () => {
-        expect(() => Supplier.create('X', ['MATERIAL'], { contactPhone: 'abc' })).toThrow(/Phone/);
+        expect(() => Supplier.create('X', 'MATERIAL', { contactPhone: 'abc' })).toThrow(/Phone/);
       });
-    });
-
-    it('does not share the supplierTypes array with the caller', () => {
-      const input: SupplierType[] = ['MATERIAL'];
-      const s = Supplier.create('X', input);
-
-      input.push('PAINT');
-
-      expect(s.getSupplierTypes()).toEqual(['MATERIAL']);
-    });
-
-    it('returns a copy from getSupplierTypes so callers cannot mutate state', () => {
-      const s = Supplier.create('X', ['MATERIAL']);
-      const list = s.getSupplierTypes();
-
-      list.push('PAINT');
-
-      expect(s.getSupplierTypes()).toEqual(['MATERIAL']);
     });
   });
 
@@ -140,27 +121,30 @@ describe('Supplier (domain)', () => {
       const createdAt = new Date('2026-01-01T10:00:00Z');
       const updatedAt = new Date('2026-02-01T10:00:00Z');
 
-      const s = Supplier.reconstruct(
-        42,
-        'Aceros del Sur',
-        VALID_CUIT,
-        ['MATERIAL'],
-        'Diego',
-        VALID_EMAIL,
-        VALID_PHONE,
-        'Av. Falsa 123',
-        false,
+      const s = Supplier.reconstruct({
+        id: 42,
+        legalName: 'Aceros del Sur',
+        cuit: VALID_CUIT,
+        supplierType: 'MATERIAL',
+        contactName: 'Diego',
+        contactEmail: VALID_EMAIL,
+        contactPhone: VALID_PHONE,
+        address: 'Av. Falsa 123',
+        observation: 'Entrega los martes',
+        active: false,
         createdAt,
         updatedAt,
-      );
+      });
 
       expect(s.getId()).toBe(42);
       expect(s.getLegalName()).toBe('Aceros del Sur');
       expect(s.getCuit()?.getCuitValue()).toBe(VALID_CUIT_NORMALIZED);
+      expect(s.getSupplierType()).toBe('MATERIAL');
       expect(s.getContactName()).toBe('Diego');
       expect(s.getContactEmail()?.getValue()).toBe(VALID_EMAIL);
       expect(s.getContactPhone()?.getValue()).toBe(VALID_PHONE_NORMALIZED);
       expect(s.getAddress()).toBe('Av. Falsa 123');
+      expect(s.getObservation()).toBe('Entrega los martes');
       expect(s.getActive()).toBe(false);
       expect(s.getCreatedAt()).toEqual(createdAt);
       expect(s.getUpdatedAt()).toEqual(updatedAt);
@@ -168,13 +152,27 @@ describe('Supplier (domain)', () => {
 
     it('accepts null in all optional fields', () => {
       const now = new Date('2026-01-01T10:00:00Z');
-      const s = Supplier.reconstruct(1, 'X', null, ['MATERIAL'], null, null, null, null, true, now, now);
+      const s = Supplier.reconstruct({
+        id: 1,
+        legalName: 'X',
+        cuit: null,
+        supplierType: 'MATERIAL',
+        contactName: null,
+        contactEmail: null,
+        contactPhone: null,
+        address: null,
+        observation: null,
+        active: true,
+        createdAt: now,
+        updatedAt: now,
+      });
 
       expect(s.getCuit()).toBeNull();
       expect(s.getContactName()).toBeNull();
       expect(s.getContactEmail()).toBeNull();
       expect(s.getContactPhone()).toBeNull();
       expect(s.getAddress()).toBeNull();
+      expect(s.getObservation()).toBeNull();
     });
   });
 
@@ -183,12 +181,13 @@ describe('Supplier (domain)', () => {
   // ---------------------------------------------------------------------------
   describe('update', () => {
     const build = () =>
-      Supplier.create('Aceros del Sur', ['MATERIAL'], {
+      Supplier.create('Aceros del Sur', 'MATERIAL', {
         cuit: VALID_CUIT,
         contactName: 'Diego',
         contactEmail: VALID_EMAIL,
         contactPhone: VALID_PHONE,
         address: 'Av. Falsa 123',
+        observation: 'Entrega los martes',
       });
 
     it('leaves absent fields untouched', () => {
@@ -211,6 +210,7 @@ describe('Supplier (domain)', () => {
         contactEmail: null,
         contactPhone: null,
         address: null,
+        observation: null,
       });
 
       expect(s.getCuit()).toBeNull();
@@ -218,6 +218,13 @@ describe('Supplier (domain)', () => {
       expect(s.getContactEmail()).toBeNull();
       expect(s.getContactPhone()).toBeNull();
       expect(s.getAddress()).toBeNull();
+      expect(s.getObservation()).toBeNull();
+    });
+
+    it('replaces the observation', () => {
+      const s = build();
+      s.update({ observation: 'Solo entregas pactadas' });
+      expect(s.getObservation()).toBe('Solo entregas pactadas');
     });
 
     it('trims the legal name', () => {
@@ -228,15 +235,16 @@ describe('Supplier (domain)', () => {
 
     it('normalizes blank optional strings to null', () => {
       const s = build();
-      s.update({ contactName: '   ', address: '' });
+      s.update({ contactName: '   ', address: '', observation: '  ' });
       expect(s.getContactName()).toBeNull();
       expect(s.getAddress()).toBeNull();
+      expect(s.getObservation()).toBeNull();
     });
 
-    it('keeps supplierTypes unchanged after an update', () => {
+    it('keeps the supplierType unchanged after an update', () => {
       const s = build();
       s.update({ legalName: 'Nuevo Nombre' });
-      expect(s.getSupplierTypes()).toEqual(['MATERIAL']);
+      expect(s.getSupplierType()).toEqual('MATERIAL');
     });
 
     describe('rejects invalid input and leaves the supplier untouched', () => {
@@ -246,22 +254,28 @@ describe('Supplier (domain)', () => {
         expect(s.getLegalName()).toBe('Aceros del Sur');
       });
 
-      it('legal name over 120 characters', () => {
+      it('legal name over 80 characters', () => {
         const s = build();
-        expect(() => s.update({ legalName: 'a'.repeat(121) })).toThrow(/Legal name must not exceed/);
+        expect(() => s.update({ legalName: 'a'.repeat(81) })).toThrow(/Legal name must not exceed/);
         expect(s.getLegalName()).toBe('Aceros del Sur');
       });
 
-      it('contact name over 120 characters', () => {
+      it('contact name over 150 characters', () => {
         const s = build();
-        expect(() => s.update({ contactName: 'a'.repeat(121) })).toThrow(/Contact name must not exceed/);
+        expect(() => s.update({ contactName: 'a'.repeat(151) })).toThrow(/Contact name must not exceed/);
         expect(s.getContactName()).toBe('Diego');
       });
 
-      it('address over 200 characters', () => {
+      it('address over 255 characters', () => {
         const s = build();
-        expect(() => s.update({ address: 'a'.repeat(201) })).toThrow(/Address must not exceed/);
+        expect(() => s.update({ address: 'a'.repeat(256) })).toThrow(/Address must not exceed/);
         expect(s.getAddress()).toBe('Av. Falsa 123');
+      });
+
+      it('observation over 255 characters', () => {
+        const s = build();
+        expect(() => s.update({ observation: 'a'.repeat(256) })).toThrow(/Observation must not exceed/);
+        expect(s.getObservation()).toBe('Entrega los martes');
       });
 
       it('invalid CUIT keeps the previous CUIT', () => {
@@ -294,29 +308,28 @@ describe('Supplier (domain)', () => {
   // ---------------------------------------------------------------------------
   // deactivate / activate
   // ---------------------------------------------------------------------------
-  describe('deactivate / activate', () => {
+  describe('deactivate', () => {
     it('deactivates an active supplier', () => {
-      const s = Supplier.create('X', ['MATERIAL']);
+      const s = Supplier.create('X', 'MATERIAL');
       s.deactivate();
       expect(s.getActive()).toBe(false);
     });
 
     it('throws when deactivating an already inactive supplier', () => {
-      const s = Supplier.create('X', ['MATERIAL']);
+      const s = Supplier.create('X', 'MATERIAL');
       s.deactivate();
       expect(() => s.deactivate()).toThrow('Supplier is already inactive');
     });
 
-    it('activates an inactive supplier', () => {
-      const s = Supplier.create('X', ['MATERIAL']);
+    it('has no way back: the aggregate exposes no activate()', () => {
+      const s = Supplier.create('X', 'MATERIAL');
       s.deactivate();
-      s.activate();
-      expect(s.getActive()).toBe(true);
-    });
 
-    it('throws when activating an already active supplier', () => {
-      const s = Supplier.create('X', ['MATERIAL']);
-      expect(() => s.activate()).toThrow('Supplier is already active');
+      // There is no reactivation by design — an inactive supplier releases its
+      // CUIT and legal name, so bringing it back could duplicate whoever took
+      // them. Asserted here so reintroducing activate() breaks a test.
+      expect('activate' in s).toBe(false);
+      expect(s.getActive()).toBe(false);
     });
   });
 
@@ -334,13 +347,13 @@ describe('Supplier (domain)', () => {
 
     it('sets createdAt equal to updatedAt on creation', () => {
       jest.setSystemTime(new Date('2026-01-01T10:00:00Z'));
-      const s = Supplier.create('X', ['MATERIAL']);
+      const s = Supplier.create('X', 'MATERIAL');
       expect(s.getCreatedAt()).toEqual(s.getUpdatedAt());
     });
 
     it('updates updatedAt on update but keeps createdAt', () => {
       jest.setSystemTime(new Date('2026-01-01T10:00:00Z'));
-      const s = Supplier.create('X', ['MATERIAL']);
+      const s = Supplier.create('X', 'MATERIAL');
       const createdAt = s.getCreatedAt();
 
       jest.setSystemTime(new Date('2026-06-01T10:00:00Z'));
@@ -352,28 +365,17 @@ describe('Supplier (domain)', () => {
 
     it('updates updatedAt on deactivate', () => {
       jest.setSystemTime(new Date('2026-01-01T10:00:00Z'));
-      const s = Supplier.create('X', ['MATERIAL']);
+      const s = Supplier.create('X', 'MATERIAL');
 
       jest.setSystemTime(new Date('2026-06-01T10:00:00Z'));
       s.deactivate();
-
-      expect(s.getUpdatedAt()).toEqual(new Date('2026-06-01T10:00:00Z'));
-    });
-
-    it('updates updatedAt on activate', () => {
-      jest.setSystemTime(new Date('2026-01-01T10:00:00Z'));
-      const s = Supplier.create('X', ['MATERIAL']);
-      s.deactivate();
-
-      jest.setSystemTime(new Date('2026-06-01T10:00:00Z'));
-      s.activate();
 
       expect(s.getUpdatedAt()).toEqual(new Date('2026-06-01T10:00:00Z'));
     });
 
     it('does not update updatedAt when update is rejected', () => {
       jest.setSystemTime(new Date('2026-01-01T10:00:00Z'));
-      const s = Supplier.create('X', ['MATERIAL']);
+      const s = Supplier.create('X', 'MATERIAL');
       const before = s.getUpdatedAt();
 
       jest.setSystemTime(new Date('2026-06-01T10:00:00Z'));

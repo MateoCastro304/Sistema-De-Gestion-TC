@@ -2,9 +2,11 @@ import { createBrowserRouter, Navigate } from 'react-router'
 import { AppLayout } from '@/app/layouts/AppLayout'
 import { ErrorPage } from '@/app/router/ErrorPage'
 import { NotFoundPage } from '@/app/router/NotFoundPage'
-import { SuppliersPage } from '@/features/catalogs/suppliers/pages/SuppliersPage'
-import { NewSupplierPage } from '@/features/catalogs/suppliers/pages/NewSupplierPage'
-import { SupplierDetailPage } from '@/features/catalogs/suppliers/pages/SupplierDetailPage'
+import {
+  SuppliersPage,
+  NewSupplierPage,
+  SupplierDetailPage,
+} from '@/features/catalogs/suppliers'
 import {
   CustomersPage,
   NewCustomerPage,

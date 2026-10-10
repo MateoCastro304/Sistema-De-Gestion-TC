@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router'
+import { heroPhoto } from '@/shared/lib/heroPhoto'
+import fotoTaller from '@/assets/foto-fresado.webp'
 import { Avatar, Badge, Button, IconTrash, Modal, TrashButton } from '@/shared/components/ui'
+import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import { toneByStatus } from '@/shared/lib/rowTone'
 import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
 import type { Customer, CustomerInput } from '../types/customer'
 import type { Factory } from '../types/factory'
 import {
-  useActivateCustomer,
   useCustomer,
   useDeactivateCustomer,
   useFactories,
@@ -39,7 +41,6 @@ export function CustomerDetailPage() {
   const { data: categories = [] } = useCategories()
   const update = useUpdateCustomer(factoryId, id)
   const deactivate = useDeactivateCustomer()
-  const activate = useActivateCustomer()
 
   // The detail view starts read-only; "Editar" switches to the form.
   const [editing, setEditing] = useState(false)
@@ -58,16 +59,22 @@ export function CustomerDetailPage() {
     const notFound =
       isApiError(customerQuery.error) && customerQuery.error.isNotFound
     return (
-      <div className="empty-state">
-        <p className="empty-state__text">
-          {notFound
+      <EmptyState
+        card
+        kind={notFound ? 'no-results' : 'error'}
+        title={
+          notFound
             ? 'No encontramos el encargado que buscabas.'
-            : 'No se pudo cargar el encargado.'}{' '}
-          <Link className="table__action" to="/catalogos/encargados">
+            : 'No se pudo cargar el encargado.'
+        }
+        action={
+          <Link className="btn btn--secondary" to="/catalogos/encargados">
             Volver al listado
           </Link>
-        </p>
-      </div>
+        }
+      >
+        {notFound ? 'Puede que lo hayan eliminado.' : 'Revisá la conexión e intentá de nuevo.'}
+      </EmptyState>
     )
   }
 
@@ -98,7 +105,7 @@ export function CustomerDetailPage() {
         onSuccess: () => {
           // 'info' y no 'success': un borrado no es un logro.
           showToast('info', `Encargado "${fullName}" eliminado.`)
-          navigate('/catalogos/encargados')
+          void navigate('/catalogos/encargados')
         },
         onError: (error) => {
           setConfirmOpen(false)
@@ -111,48 +118,30 @@ export function CustomerDetailPage() {
     )
   }
 
-  const handleActivate = () => {
-    activate.mutate(
-      { factoryId: customer.factoryId, id: customer.id },
-      {
-        onSuccess: () =>
-          showToast('success', `Encargado "${fullName}" reactivado.`),
-        onError: (error) =>
-          showToast(
-            'error',
-            customerErrorMessage(error, 'No se pudo reactivar el encargado.'),
-          ),
-      },
-    )
-  }
-
   return (
     <>
       {/* Rediseño: el encabezado es el panel azul de los otros catálogos.
           El "← Volver" pasa a ser el botón redondo de la izquierda, que es
           donde el resto de las pantallas lo tiene. Misma ruta, mismo link. */}
-      <div className="page-header">
+      <div className="page-header page-header--foto" style={heroPhoto(fotoTaller)}>
         <div className="page-header__row">
           <div className="detail-header__left">
-            <Link
-              to="/catalogos/encargados"
-              className="btn btn--icon"
-              aria-label="Volver al listado de encargados"
-            >
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+            <Link to="/catalogos/encargados" className="back-link">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="M10 3 5 8l5 5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
+              Encargados
             </Link>
 
             {/* El cuadrado con las iniciales, en su tamaño grande: el mismo
                 que se ve en el listado, para reconocer que es el mismo. */}
-            <Avatar name={fullName} tone={toneByStatus(customer.isActive)} size="lg" />
+            <Avatar name={fullName} icon="encargado" tone={toneByStatus(customer.isActive)} size="lg" />
 
             <div>
               <div className="detail-header__title-row">
                 <h1 className="page-header__title">{fullName}</h1>
                 {/* Mismo aviso que en el listado: sin la etiqueta, un
-                    eliminado sólo se distinguía por el botón Reactivar. */}
+                    eliminado no se distinguía de uno activo. */}
                 {!customer.isActive && <Badge variant="neutral">Inactivo</Badge>}
               </div>
               <p className="page-header__subtitle">
@@ -185,7 +174,7 @@ export function CustomerDetailPage() {
             ) : (
               <>
                 <Button onClick={() => setEditing(true)}>Editar</Button>
-                {customer.isActive ? (
+                {customer.isActive && (
                   /* El botón de eliminar con el tacho animado. Adentro del
                      panel oscuro va en vidrio y se pone blanco con texto rojo
                      al pasar el mouse. */
@@ -195,10 +184,6 @@ export function CustomerDetailPage() {
                   >
                     Eliminar
                   </TrashButton>
-                ) : (
-                  <Button variant="outline" onClick={handleActivate} disabled={activate.isPending}>
-                    {activate.isPending ? 'Reactivando…' : 'Reactivar'}
-                  </Button>
                 )}
               </>
             )}
@@ -241,6 +226,7 @@ export function CustomerDetailPage() {
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
         title="Eliminar encargado"
+        tone="danger"
         size="sm"
         footer={
           <>

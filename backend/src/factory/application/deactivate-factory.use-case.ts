@@ -16,6 +16,10 @@ export class DeactivateFactory {
       throw new NotFoundException(`Factory with ID ${id} not found`);
     }
 
+    if (!factory.isActive()) {
+      throw new ConflictException(`Factory with ID ${id} is already inactive`);
+    }
+
     if (this.customerQuery) {
       const hasActiveCustomers = await this.customerQuery.hasActiveCustomersForFactory(id);
       if (hasActiveCustomers) {

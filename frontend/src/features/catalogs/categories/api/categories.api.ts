@@ -51,6 +51,6 @@ export async function updateCategory(
  * registro y deja de listarse. El backend responde 409 si alguna fábrica
  * activa lo usa.
  */
-export async function deactivateCategory(id: number): Promise<void> {
+export async function deleteCategory(id: number): Promise<void> {
   await http.delete(`${CATEGORIES}/${id}`)
 }

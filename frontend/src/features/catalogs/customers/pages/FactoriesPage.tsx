@@ -1,7 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { isApiError } from '@/shared/api/ApiError'
-import { Select } from '@/shared/components/ui'
+import { Button, PageHero, Pagination, SearchField, Select } from '@/shared/components/ui'
+import { EmptyState } from '@/shared/components/feedback/EmptyState'
+import { usePagedList } from '@/shared/hooks/usePagedList'
+import fotoTaller from '@/assets/foto-ejes.webp'
 import {
   useCustomers,
   useFactories,
@@ -50,67 +53,56 @@ export function FactoriesPage() {
 
   const isFiltering = search.trim() !== '' || categoryId !== ''
 
+  // La lista llega entera y se filtra acá, así que también se pagina acá.
+  const { pageItems, page, setPage, pageSize, total } = usePagedList(filteredFactories)
+
+  // Cambiar un filtro vuelve a la primera página.
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+    setPage(1)
+  }
+
+  const handleCategoryChange = (value: string) => {
+    setCategoryId(value)
+    setPage(1)
+  }
+
+  const clearFilters = () => {
+    handleSearchChange('')
+    setCategoryId('')
+  }
+
   return (
     <>
-      {/* Rediseño: el encabezado pasa a ser el panel azul, el mismo que
-          usan Proveedores y el resto de los catálogos. Sólo cambia la
-          envoltura y las clases; los textos, el botón y el link son los
-          de antes. Los filtros se mudan acá adentro (ver más abajo). */}
-      <div className="page-header">
-        <div className="page-header__row">
-          <div className="page-header__heading">
-            <span className="page-header__eyebrow">Catálogo</span>
-            <h1 className="page-header__title">Fábricas</h1>
-            <p className="page-header__subtitle">
-              Alta, modificación y consulta de fábricas. Desde cada fábrica se
-              gestionan sus encargados.
-            </p>
-          </div>
-          <div className="content__actions">
-            <Link to="/catalogos/fabricas/nuevo" className="btn btn--primary content__cta">
-              <span>+</span> Nueva fábrica
-            </Link>
-          </div>
-        </div>
+      <PageHero eyebrow="Empresas" accent="clientes" title="Fábricas" photo={fotoTaller} />
 
+      {/* Barra de herramientas: buscador, filtro por rubro y alta. Los
+          filtros aparecen recién cuando el listado cargó. */}
+      <div className="toolbar">
         {factoriesQuery.isSuccess && (
-          <div className="page-header__filters">
-            <label className="search-field">
-              <svg
-                className="search-field__icon"
-                viewBox="0 0 20 20"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                aria-hidden="true"
-              >
-                <circle cx="9" cy="9" r="6" />
-                <path d="m14 14 4 4" strokeLinecap="round" />
-              </svg>
-              <input
-                type="search"
-                className="search-input"
-                placeholder="Buscar por razón social o CUIT"
-                aria-label="Buscar por razón social o CUIT"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-              />
-            </label>
+          <>
+            <SearchField
+              value={search}
+              onChange={handleSearchChange}
+              placeholder="Buscar por razón social o CUIT"
+            />
 
             {/* "Todos los rubros" es una opción más (valor ''), no un
                 placeholder: volver a elegirla limpia el filtro. */}
             <Select
-              variant="glass"
               aria-label="Filtrar por rubro"
               value={categoryId}
-              onChange={setCategoryId}
+              onChange={handleCategoryChange}
               options={[
                 { value: '', label: 'Todos los rubros' },
                 ...categories.map((category) => ({ value: category.id, label: category.name })),
               ]}
             />
-          </div>
+          </>
         )}
+        <Link to="/catalogos/fabricas/nuevo" className="btn btn--primary toolbar__cta">
+          + Nueva fábrica
+        </Link>
       </div>
 
       {factoriesQuery.isLoading && (
@@ -119,29 +111,62 @@ export function FactoriesPage() {
         </div>
       )}
 
+      {/* El error va dentro de la tarjeta del listado, con el encabezado
+          de columnas a la vista. */}
       {factoriesQuery.isError && (
-        <div className="callout callout--warning">
-          <span>
-            {isApiError(factoriesQuery.error)
-              ? factoriesQuery.error.message
-              : 'No se pudieron cargar las fábricas.'}
-          </span>
-        </div>
+        <FactoriesTable
+          factories={[]}
+          categories={categories}
+          contactsByFactory={contactsByFactory}
+          emptyState={
+            <EmptyState
+              kind="error"
+              title="No se pudieron cargar las fábricas."
+              action={<Button onClick={() => factoriesQuery.refetch()}>Reintentar</Button>}
+            >
+              {isApiError(factoriesQuery.error)
+                ? factoriesQuery.error.message
+                : 'Revisá la conexión e intentá de nuevo.'}
+            </EmptyState>
+          }
+        />
       )}
 
       {factoriesQuery.isSuccess && (
-        <>
-          <FactoriesTable
-            factories={filteredFactories}
-            categories={categories}
-            contactsByFactory={contactsByFactory}
-            emptyMessage={
-              isFiltering
-                ? 'No hay fábricas que coincidan con la búsqueda.'
-                : 'No hay fábricas registradas.'
-            }
-          />
-        </>
+        <FactoriesTable
+          factories={pageItems}
+          categories={categories}
+          contactsByFactory={contactsByFactory}
+          emptyState={
+            isFiltering ? (
+              <EmptyState
+                kind="no-results"
+                title="No hay fábricas que coincidan con la búsqueda."
+                action={
+                  <Button variant="secondary" onClick={clearFilters}>
+                    Limpiar búsqueda
+                  </Button>
+                }
+              >
+                Revisá cómo está escrito, buscá por CUIT o probá con otro rubro.
+              </EmptyState>
+            ) : (
+              <EmptyState
+                title="Todavía no hay fábricas registradas."
+                action={
+                  <Link to="/catalogos/fabricas/nuevo" className="btn btn--primary">
+                    + Nueva fábrica
+                  </Link>
+                }
+              >
+                Cuando cargues la primera va a aparecer acá.
+              </EmptyState>
+            )
+          }
+          footer={
+            <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} />
+          }
+        />
       )}
     </>
   )

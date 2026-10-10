@@ -5,16 +5,22 @@ import { SupplierType } from '../domain/supplier-type';
 export type ListSuppliersInput = {
   page: number;
   limit: number;
-  types?: SupplierType[];
-  legalNameContains?: string;
+  type?: SupplierType;
+  search?: string;
 };
 
 /**
- * Returns a paginated list of suppliers, optionally filtered by supplier type
- * and legal-name substring. The use case is a thin adapter over
- * {@link SupplierRepository.list}; it exists as the seam where controllers
- * plug in, tests mock, and future application-level rules (e.g. per-user
- * scoping) will land.
+ * Returns a paginated list of active suppliers, optionally narrowed by type
+ * and by a free-text search. The type filter is exclusive: a supplier carries
+ * a single type, so asking for MATERIAL returns only those. The search matches
+ * legalName, contactName or cuit.
+ *
+ * Returns the total alongside the page so the client can paginate without
+ * guessing: the whole result set is never shipped at once.
+ *
+ * The use case is a thin adapter over {@link SupplierRepository.list}; it
+ * exists as the seam where controllers plug in, tests mock, and future
+ * application-level rules (e.g. per-user scoping) will land.
  */
 @Injectable()
 export class ListSuppliers {

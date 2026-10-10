@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Outlet, NavLink, useLocation } from 'react-router'
+import logoBlanco from '@/assets/logo-castro-white.png'
+import logoMarino from '@/assets/logo-castro-navy.png'
 
 /**
  * ============================================================
@@ -90,22 +92,18 @@ export function AppLayout() {
   return (
     <div className="app">
       <aside className={sidebarClass}>
-        {/* Marca. Colapsada, el CSS esconde el logo y el texto y el
-            botón de tres líneas ocupa su lugar. Se renderiza siempre (y
-            no con `!collapsed &&`) porque `collapsed` sobrevive al achicar
-            la ventana: en el cajón de celular, que nunca se colapsa, la
+        {/* Marca. Colapsada, el CSS esconde el logo y el botón de tres
+            líneas ocupa su lugar. Se renderiza siempre (y no con
+            `!collapsed &&`) porque `collapsed` sobrevive al achicar la
+            ventana: en el cajón de celular, que nunca se colapsa, la
             marca desaparecía. */}
         <div className="sidebar__brand">
-          <div className="sidebar__logo">TC</div>
-          <div className="sidebar__brand-text">
-            <span className="sidebar__brand-name">Tornería Castro</span>
-            <span className="sidebar__brand-sub">Sistema de gestión</span>
-          </div>
+          <img className="sidebar__logo" src={logoBlanco} alt="Castro Tornería S.R.L." />
           <button
             type="button"
             className="sidebar__burger"
             onClick={() => setCollapsed((v) => !v)}
-            aria-label={collapsed ? 'Abrir el menú' : 'Cerrar el menú'}
+            aria-label={collapsed ? 'Abrir el menú' : 'Achicar el menú'}
             aria-expanded={!collapsed}
           >
             <span />
@@ -116,7 +114,7 @@ export function AppLayout() {
 
         <nav className="sidebar__nav">
           <div className="sidebar__section">
-            <span className="sidebar__section-label">Administración</span>
+            <span className="sidebar__section-label">Catálogos</span>
             <ul className="sidebar__list">
               {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
                 <li key={to}>
@@ -143,6 +141,10 @@ export function AppLayout() {
             </ul>
           </div>
         </nav>
+
+        <span className="sidebar__tagline">
+          Transformando metales con precisión desde 1977.
+        </span>
       </aside>
 
       {/* Fondo oscurecido del cajón. Sólo existe en celular y sólo
@@ -159,8 +161,16 @@ export function AppLayout() {
 
       <div className="main">
         <header className="topbar">
+          {/* Escritorio: dónde estás. Celular: el CSS lo esconde y muestra
+              el logo, porque ahí el menú (y su logo) está guardado. */}
+          <div className="topbar__breadcrumb">
+            <span>Catálogos</span>
+            <span aria-hidden="true">/</span>
+            <span className="topbar__breadcrumb-item--current">{sectionLabel(pathname)}</span>
+          </div>
+          <img className="topbar__logo" src={logoMarino} alt="Castro Tornería S.R.L." />
           {/* Este botón sólo se ve en celular (display:none arriba de
-              900px). El de escritorio vive dentro de la barra azul. */}
+              900px). El de escritorio vive dentro de la barra lateral. */}
           <button
             type="button"
             className="topbar__burger"
@@ -171,9 +181,6 @@ export function AppLayout() {
             <span />
             <span />
           </button>
-          <div className="topbar__breadcrumb">
-            <span className="topbar__breadcrumb-item--current">{sectionLabel(pathname)}</span>
-          </div>
         </header>
 
         <div className="content">
@@ -186,7 +193,7 @@ export function AppLayout() {
 
 /* ---- Íconos ----
    Inline y con stroke="currentColor" para que tomen el color del
-   estado (blanco normal, azul en el activo) sin CSS extra. Están
+   estado (claro normal, azul en el activo) sin CSS extra. Están
    declarados con `function` (no const) para poder referenciarlos
    desde NAV_ITEMS, que está más arriba en el archivo. */
 

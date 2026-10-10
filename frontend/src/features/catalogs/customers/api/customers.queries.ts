@@ -18,10 +18,10 @@ import {
 import type { Category as BackendCategory } from '@/features/catalogs/categories'
 import { customerKeys, factoryKeys } from './customers.keys'
 import {
-  activateCustomer,
   createCustomer,
   createFactory,
   deactivateCustomer,
+  deactivateFactory,
   getCustomer,
   listCustomers,
   listFactories,
@@ -64,7 +64,7 @@ export function useCreateCustomer() {
   return useMutation({
     mutationFn: createCustomer,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: customerKeys.all })
+      void queryClient.invalidateQueries({ queryKey: customerKeys.all })
     },
   })
 }
@@ -76,7 +76,7 @@ export function useUpdateCustomer(factoryId: string, id: string) {
     mutationFn: (input: CustomerInput) => updateCustomer(factoryId, id, input),
     onSuccess: (updated) => {
       queryClient.setQueryData(customerKeys.detail(factoryId, id), updated)
-      queryClient.invalidateQueries({ queryKey: customerKeys.lists() })
+      void queryClient.invalidateQueries({ queryKey: customerKeys.lists() })
     },
   })
 }
@@ -91,19 +91,7 @@ export function useDeactivateCustomer() {
     mutationFn: ({ factoryId, id }: CustomerRef) =>
       deactivateCustomer(factoryId, id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: customerKeys.all })
-    },
-  })
-}
-
-/** Reactivación de un encargado dado de baja (CU-04 inverso), por (factoryId, id). */
-export function useActivateCustomer() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ factoryId, id }: CustomerRef) =>
-      activateCustomer(factoryId, id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: customerKeys.all })
+      void queryClient.invalidateQueries({ queryKey: customerKeys.all })
     },
   })
 }
@@ -128,7 +116,7 @@ export function useCreateFactory() {
   return useMutation({
     mutationFn: createFactory,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: factoryKeys.all })
+      void queryClient.invalidateQueries({ queryKey: factoryKeys.all })
     },
   })
 }
@@ -139,7 +127,18 @@ export function useUpdateFactory(id: string) {
   return useMutation({
     mutationFn: (input: FactoryInput) => updateFactory(id, input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: factoryKeys.all })
+      void queryClient.invalidateQueries({ queryKey: factoryKeys.all })
+    },
+  })
+}
+
+/** Baja lógica de una fábrica. Falla con 409 si tiene encargados activos. */
+export function useDeactivateFactory() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => deactivateFactory(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: factoryKeys.all })
     },
   })
 }

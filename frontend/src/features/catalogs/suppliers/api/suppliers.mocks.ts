@@ -3,6 +3,7 @@ import { db } from './suppliers.db'
 import { SUPPLIER_TYPES } from '../types/supplier'
 import type {
     SupplierCreate,
+    SupplierType,
     SupplierUpdate,
 } from '../types/supplier'
 
@@ -34,10 +35,13 @@ function conflict(field: 'cuit' | 'legalName', value: string) {
 }
 
 /** Las únicas claves que acepta el PATCH; cualquier otra es un 400. */
-const UPDATABLE_FIELDS = ['legalName', 'cuit', 'contactName', 'contactEmail', 'contactPhone', 'address']
+const UPDATABLE_FIELDS = ['legalName', 'cuit', 'contactName', 'contactEmail', 'contactPhone', 'address', 'observation']
 
 /** Los opcionales que el PATCH deja borrar mandando null. */
-const CLEARABLE_FIELDS = ['cuit', 'contactName', 'contactEmail', 'contactPhone', 'address'] as const
+const CLEARABLE_FIELDS = ['cuit', 'contactName', 'contactEmail', 'contactPhone', 'address', 'observation'] as const
+
+/** Tope de `limit`, igual al de ListSuppliersQueryDto. */
+const MAX_LIMIT = 100
 
 /**
  * El CUIT es opcional: "no vino" y "vino vacio" significan lo mismo y se
@@ -53,25 +57,61 @@ function normalizeCuit(value: string | null | undefined): string | undefined {
  * Unicidad del CUIT. `exceptId` deja afuera al propio proveedor: sin eso,
  * guardar una edicion sin tocar el CUIT chocaria consigo mismo.
  *
- * Mira todas las filas, incluidas las dadas de baja: un indice UNIQUE de la
- * base tampoco distingue, y el registro dado de baja sigue ocupando su CUIT.
+ * Mira sólo los activos: en el backend el indice es parcial, asi que un
+ * proveedor dado de baja libera su CUIT y su razon social.
  */
 function isCuitTaken(cuit: string, exceptId?: number) {
-  return db.suppliers.some((s) => s.cuit === cuit && s.id !== exceptId)
+  return db.suppliers.some((s) => s.active && s.cuit === cuit && s.id !== exceptId)
 }
 
 /** Unicidad de la razón social, con las mismas reglas que la del CUIT. */
 function isLegalNameTaken(legalName: string, exceptId?: number) {
   const name = legalName.trim().toLowerCase()
-  return db.suppliers.some((s) => s.legalName.toLowerCase() === name && s.id !== exceptId)
+  return db.suppliers.some((s) => s.active && s.legalName.toLowerCase() === name && s.id !== exceptId)
 }
 
 export const supplierHandlers = [
   // La baja es logica, pero el eliminado no se lista ni se puede pedir por id:
   // el registro sobrevive en la base solo para no romper el historial.
-  http.get(BASE, async () => {
+  // Misma respuesta que el backend: busca, filtra por tipo, pagina y
+  // devuelve { items, total, page, limit }.
+  http.get(BASE, async ({ request }) => {
     await delay(400) // para ver el estado de carga de verdad
-    return HttpResponse.json(db.suppliers.filter((s) => s.active))
+    const query = new URL(request.url).searchParams
+    const page = Number(query.get('page') ?? 1)
+    const limit = Number(query.get('limit') ?? 20)
+    const type = query.get('type') as SupplierType | null
+
+    if (!Number.isInteger(page) || page < 1) {
+      return apiError(400, 'Bad Request', 'page must not be less than 1', BASE)
+    }
+    if (!Number.isInteger(limit) || limit < 1 || limit > MAX_LIMIT) {
+      return apiError(400, 'Bad Request', `limit must not be greater than ${MAX_LIMIT}`, BASE)
+    }
+    if (type && !SUPPLIER_TYPES.includes(type)) {
+      return apiError(400, 'Bad Request', 'type must be one of the supplier types', BASE)
+    }
+
+    // search matchea razon social, contacto o CUIT (este, sin separadores).
+    const search = query.get('search')?.trim().toLowerCase() ?? ''
+    const digits = search.replace(/[\s\-.]/g, '')
+    const matches = db.suppliers.filter((s) => {
+      if (!s.active) return false
+      if (type && s.supplierType !== type) return false
+      if (!search) return true
+      return (
+        s.legalName.toLowerCase().includes(search) ||
+        (s.contactName ?? '').toLowerCase().includes(search) ||
+        (digits !== '' && (s.cuit ?? '').replace(/-/g, '').includes(digits))
+      )
+    })
+
+    return HttpResponse.json({
+      items: matches.slice((page - 1) * limit, page * limit),
+      total: matches.length,
+      page,
+      limit,
+    })
   }),
 
   http.get(`${BASE}/:id`, async ({ params }) => {
@@ -91,18 +131,11 @@ export const supplierHandlers = [
 
     // El `?.` aunque el tipo diga que vienen siempre: el body llega de la red
     // y el tipo es una promesa, no una garantia de runtime.
-    const types = body.supplierTypes
-    if (
-      !body.legalName?.trim() ||
-      !Array.isArray(types) ||
-      types.length === 0 ||
-      new Set(types).size !== types.length ||
-      types.some((type) => !SUPPLIER_TYPES.includes(type))
-    ) {
+    if (!body.legalName?.trim() || !SUPPLIER_TYPES.includes(body.supplierType)) {
       return apiError(
         400,
         'Bad Request',
-        'legalName y supplierTypes son obligatorios.',
+        'legalName y supplierType son obligatorios.',
         BASE,
       )
     }
@@ -141,7 +174,7 @@ export const supplierHandlers = [
     const body = (await request.json()) as SupplierUpdate
 
     // El backend corre con forbidNonWhitelisted: una clave que no conoce
-    // (supplierTypes, active) rechaza el PATCH entero en vez de ignorarla.
+    // (supplierType, active) rechaza el PATCH entero en vez de ignorarla.
     const unknown = Object.keys(body).find((key) => !UPDATABLE_FIELDS.includes(key))
     if (unknown) {
       return apiError(400, 'Bad Request', `property ${unknown} should not exist`, `${BASE}/${id}`)

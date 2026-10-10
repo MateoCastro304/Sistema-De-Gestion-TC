@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#172645"></rect><text x="50" y="62" text-anchor="middle" font-family="Montserrat,Arial,sans-serif" font-size="34" font-weight="800" fill="#ffffff">CT</text><rect x="36" y="70" width="28" height="3" fill="#3b5998"></rect></svg></template>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--pad:28px 40px 56px;--hero-h:220px;--h1:42px;--h2:32px;--bar-mx:24px;--card-pad:34px;--sec-pad:28px;--hero-pad:30px 36px 34px}
+@media (max-width:760px){:root{--pad:16px 14px 48px;--hero-h:190px;--h1:30px;--h2:24px;--bar-mx:8px;--card-pad:20px;--sec-pad:20px;--hero-pad:22px 18px 24px}}
+body{margin:0;background:#fcfcfc;font-family:'Montserrat',system-ui,sans-serif;color:#555b66}
+a{color:#0f3483;text-decoration:none}
+a:hover{color:#3b5998}
+input,button,textarea,select{font-family:'Montserrat',system-ui,sans-serif}
+button{cursor:pointer}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes lineGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
+@keyframes toastIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+@keyframes popIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes shimmer{from{background-position:-400px 0}to{background-position:400px 0}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slowZoom{from{transform:scale(1)}to{transform:scale(1.06)}}
+.btn-trash svg .lid{transform-box:view-box;transform-origin:3.4px 5.6px;transition:transform .3s cubic-bezier(.34,1.45,.64,1)}
+.btn-trash:hover svg .lid{transform:rotate(-22deg) translate(.3px,-1px)}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:#fcfcfc;color:#555b66">
+
+<div style="display:flex;align-items:center;gap:10px 18px;flex-wrap:wrap;padding:8px 20px;background:#0e1729;color:#9aa7c2;font-size:12px;font-weight:600">
+  <span style="font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#e6e9f0">Prototipo</span>
+  <span style="display:flex;align-items:center;gap:8px">Listados
+    <span style="display:flex;background:rgba(255,255,255,.08);border-radius:6px;padding:2px">
+      <sc-for list="{{ demos }}" as="o" hint-placeholder-count="4"><button type="button" onClick="{{ o.go }}" style="{{ o.css }}">{{ o.label }}</button></sc-for>
+    </span>
+  </span>
+  <span style="display:flex;align-items:center;gap:8px">Sistema
+    <span style="display:flex;gap:4px">
+      <button type="button" onClick="{{ ir404 }}" style="border:none;border-radius:4px;padding:5px 10px;font-size:11.5px;font-weight:700;background:rgba(255,255,255,.08);color:#e6e9f0" style-hover="background:rgba(255,255,255,.18)">404</button>
+      <button type="button" onClick="{{ irError }}" style="border:none;border-radius:4px;padding:5px 10px;font-size:11.5px;font-weight:700;background:rgba(255,255,255,.08);color:#e6e9f0" style-hover="background:rgba(255,255,255,.18)">Error</button>
+    </span>
+  </span>
+  <button type="button" onClick="{{ reiniciar }}" style="border:none;border-radius:4px;padding:5px 10px;font-size:11.5px;font-weight:700;background:transparent;color:#9aa7c2;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)" style-hover="color:#ffffff">Reiniciar datos</button>
+  <span style="margin-left:auto;font-size:11px;opacity:.8">jueves 08 · 10 · 2026</span>
+</div>
+
+<div style="display:flex;align-items:stretch;min-height:calc(100vh - 40px)">
+
+  <sc-if value="{{ railAbierto }}" hint-placeholder-val="{{ true }}">
+  <aside style="box-sizing:border-box;width:268px;flex-shrink:0;position:sticky;top:0;height:100vh;align-self:flex-start;background:linear-gradient(185deg,#1b2d52 0%,#172645 55%,#13203b 100%);padding:28px 0 28px 18px;display:flex;flex-direction:column;gap:36px">
+    <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1px);background-size:22px 22px;pointer-events:none"></div>
+    <div style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;padding-right:18px">
+      <img src="assets/logo-castro-white.png" alt="Castro Tornería S.R.L." style="height:48px;max-width:170px;object-fit:contain;object-position:left">
+      <button type="button" onClick="{{ toggleMenu }}" title="Achicar el menú" style="width:42px;height:42px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border-radius:8px;background:rgba(255,255,255,.10);border:none;transition:background .2s ease" style-hover="background:rgba(255,255,255,.2)">
+        <span style="width:18px;height:2.5px;border-radius:2px;background:#ffffff;display:block"></span>
+        <span style="width:18px;height:2.5px;border-radius:2px;background:#ffffff;display:block"></span>
+        <span style="width:18px;height:2.5px;border-radius:2px;background:#ffffff;display:block"></span>
+      </button>
+    </div>
+    <nav style="position:relative;display:flex;flex-direction:column;gap:14px">
+      <span style="padding:0 14px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#9aa7c2">Catálogos</span>
+      <span style="margin:0 0 4px 14px;width:40px;height:3px;background:#3b5998"></span>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{ nav }}" as="it" hint-placeholder-count="4">
+          <sc-if value="{{ it.on }}">
+          <button type="button" onClick="{{ it.go }}" style="position:relative;display:flex;align-items:center;gap:14px;padding:17px 18px 17px 16px;border:none;border-radius:24px 0 0 24px;background:#fcfcfc;font-size:14px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#0f3483;text-align:left">
+            <svg viewBox="0 0 22 22" preserveAspectRatio="none" style="position:absolute;right:0;top:-21px;width:22px;height:22px;pointer-events:none"><path d="M22 0Q22 22 0 22L22 22Z" fill="#fcfcfc"></path></svg>
+            <svg viewBox="0 0 22 22" preserveAspectRatio="none" style="position:absolute;right:0;bottom:-21px;width:22px;height:22px;pointer-events:none"><path d="M22 22Q22 0 0 0L22 0Z" fill="#fcfcfc"></path></svg>
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="{{ it.d }}"></path></svg>{{ it.label }}
+          </button>
+          </sc-if>
+          <sc-if value="{{ it.off }}">
+          <button type="button" onClick="{{ it.go }}" style="display:flex;align-items:center;gap:14px;margin-right:18px;padding:16px;border:none;border-radius:8px;background:transparent;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#e6e9f0;text-align:left;transition:background .2s ease,transform .2s ease" style-hover="background:rgba(255,255,255,.10);transform:translateX(4px)">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="{{ it.d }}"></path></svg>{{ it.label }}
+          </button>
+          </sc-if>
+        </sc-for>
+      </div>
+    </nav>
+    <span style="position:relative;margin-top:auto;padding:0 18px 0 14px;font-size:12px;line-height:1.6;color:#9aa7c2">Transformando metales con precisión desde 1977.</span>
+  </aside>
+  </sc-if>
+
+  <sc-if value="{{ railCerrado }}">
+  <aside style="box-sizing:border-box;width:92px;flex-shrink:0;position:sticky;top:0;height:100vh;align-self:flex-start;background:linear-gradient(185deg,#1b2d52 0%,#172645 55%,#13203b 100%);padding:28px 0 28px 14px;display:flex;flex-direction:column;gap:36px">
+    <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1px);background-size:22px 22px;pointer-events:none"></div>
+    <button type="button" onClick="{{ toggleMenu }}" title="Abrir el menú" style="position:relative;width:50px;height:50px;margin-right:14px;align-self:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border-radius:8px;background:rgba(255,255,255,.12);border:none;transition:background .2s ease" style-hover="background:rgba(255,255,255,.22)">
+      <span style="width:19px;height:2.5px;border-radius:2px;background:#ffffff;display:block"></span>
+      <span style="width:19px;height:2.5px;border-radius:2px;background:#ffffff;display:block"></span>
+      <span style="width:19px;height:2.5px;border-radius:2px;background:#ffffff;display:block"></span>
+    </button>
+    <nav style="position:relative;display:flex;flex-direction:column;gap:8px">
+      <sc-for list="{{ nav }}" as="it" hint-placeholder-count="4">
+        <sc-if value="{{ it.on }}">
+        <button type="button" onClick="{{ it.go }}" title="{{ it.label }}" style="position:relative;height:58px;display:flex;align-items:center;justify-content:center;border:none;border-radius:22px 0 0 22px;background:#fcfcfc;color:#0f3483">
+          <svg viewBox="0 0 20 20" preserveAspectRatio="none" style="position:absolute;right:0;top:-19px;width:20px;height:20px;pointer-events:none"><path d="M20 0Q20 20 0 20L20 20Z" fill="#fcfcfc"></path></svg>
+          <svg viewBox="0 0 20 20" preserveAspectRatio="none" style="position:absolute;right:0;bottom:-19px;width:20px;height:20px;pointer-events:none"><path d="M20 20Q20 0 0 0L20 0Z" fill="#fcfcfc"></path></svg>
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="{{ it.d }}"></path></svg>
+        </button>
+        </sc-if>
+        <sc-if value="{{ it.off }}">
+        <button type="button" onClick="{{ it.go }}" title="{{ it.label }}" style="height:54px;margin-right:14px;display:flex;align-items:center;justify-content:center;border:none;border-radius:8px;background:transparent;color:#e6e9f0;transition:background .2s ease" style-hover="background:rgba(255,255,255,.10)">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="{{ it.d }}"></path></svg>
+        </button>
+        </sc-if>
+      </sc-for>
+    </nav>
+  </aside>
+  </sc-if>
+
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+
+    <sc-if value="{{ escritorio }}" hint-placeholder-val="{{ true }}">
+    <header style="height:72px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 40px;border-bottom:1px solid #eceef3">
+      <span style="display:flex;align-items:center;gap:8px;min-width:0;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8a909c;white-space:nowrap;overflow:hidden">
+        <span>Catálogos</span><span>/</span>
+        <sc-if value="{{ crumb2 }}">
+          <button type="button" onClick="{{ crumbGo }}" style="border:none;background:none;padding:0;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8a909c" style-hover="color:#0f3483">{{ crumbSec }}</button><span>/</span>
+          <strong style="color:#172645;overflow:hidden;text-overflow:ellipsis">{{ crumbAct }}</strong>
+        </sc-if>
+        <sc-if value="{{ crumb1 }}" hint-placeholder-val="{{ true }}"><strong style="color:#172645">{{ crumbSec }}</strong></sc-if>
+      </span>
+      <span style="display:flex;align-items:center;gap:10px;flex-shrink:0"><span style="width:38px;height:38px;border-radius:6px;background:#eef1f7;color:#172645;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">WC</span><span style="font-size:14px;font-weight:600;color:#172645">Walter Castro</span></span>
+    </header>
+    </sc-if>
+
+    <sc-if value="{{ movil }}">
+    <header style="height:70px;flex-shrink:0;position:sticky;top:0;z-index:20;background:#ffffff;box-shadow:0 2px 12px rgba(23,38,69,.06);display:flex;align-items:center;justify-content:space-between;padding:0 16px">
+      <img src="assets/logo-castro-navy.png" alt="Castro Tornería S.R.L." style="height:40px">
+      <button type="button" onClick="{{ abrirDrawer }}" title="Abrir el menú" style="width:50px;height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:none;border-radius:8px;background:#172645">
+        <span style="width:20px;height:2.5px;border-radius:2px;background:#ffffff;display:block"></span>
+        <span style="width:20px;height:2.5px;border-radius:2px;background:#ffffff;display:block"></span>
+        <span style="width:20px;height:2.5px;border-radius:2px;background:#ffffff;display:block"></span>
+      </button>
+    </header>
+    </sc-if>
+
+    <main style="flex:1;min-width:0;padding:var(--pad);display:flex;flex-direction:column">
+
+      <!-- ══════ LISTADOS ══════ -->
+      <sc-if value="{{ esLista }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:22px;min-width:0">
+        <div style="position:relative;overflow:hidden;flex-shrink:0;height:var(--hero-h);border-radius:8px;background:#172645;animation:fadeUp .5s ease both">
+          <div style="position:absolute;top:0;right:0;bottom:0;width:60%;background:{{ lista.foto }};animation:slowZoom 18s ease-in-out infinite alternate"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(90deg,#15223e 0%,#15223e 40%,rgba(21,34,62,.75) 62%,rgba(21,34,62,.15) 100%)"></div>
+          <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1px);background-size:22px 22px"></div>
+          <div style="position:relative;height:100%;box-sizing:border-box;padding:0 clamp(20px,4vw,40px) 26px;display:flex;flex-direction:column;justify-content:center;gap:14px">
+            <span style="font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#e6e9f0">{{ lista.ey1 }} <span style="color:#7f9bd6">{{ lista.ey2 }}</span></span>
+            <span style="width:90px;height:3px;background:#3b5998;transform-origin:left;animation:lineGrow .7s .2s ease both"></span>
+            <h1 style="margin:0;font-size:var(--h1);font-weight:800;line-height:1.05;text-transform:uppercase;color:#ffffff">{{ lista.titulo }}</h1>
+            <p style="margin:0;font-size:16px;color:#d4d9e4"><strong style="color:#ffffff">{{ lista.total }}</strong> {{ lista.totalTxt }}</p>
+          </div>
+        </div>
+
+        <div style="margin:-48px var(--bar-mx) 0;position:relative;background:#ffffff;border-radius:8px;box-shadow:0 14px 36px rgba(23,38,69,.12);padding:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;animation:fadeUp .5s .1s ease both">
+          <label style="flex:1 1 260px;min-width:0;display:flex;align-items:center;gap:12px;border:1.5px solid #e1e5ec;border-radius:6px;padding:0 16px;color:#8a909c;transition:border-color .2s ease,box-shadow .2s ease" style-hover="border-color:#3b5998;box-shadow:0 0 0 4px rgba(59,89,152,.10)">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" style="width:19px;height:19px;flex-shrink:0"><circle cx="9" cy="9" r="6"></circle><path d="m14 14 4 4" stroke-linecap="round"></path></svg>
+            <input type="search" value="{{ q }}" onChange="{{ setQ }}" placeholder="{{ lista.ph }}" aria-label="Buscar" style="flex:1;min-width:0;border:none;outline:none;background:transparent;padding:14px 0;font-size:15px;font-weight:500;color:#172645">
+          </label>
+          <sc-if value="{{ esEnc }}">
+          <button type="button" onClick="{{ toggleIncEnc }}" style="flex-shrink:0;display:inline-flex;align-items:center;gap:10px;border:none;background:none;padding:6px 4px;font-size:15px;font-weight:600;color:#172645">
+            <span style="width:34px;height:34px;box-sizing:border-box;border-radius:6px;border:2px solid {{ incEnc.boxBd }};background:{{ incEnc.boxBg }};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;transition:background .15s ease">{{ incEnc.mark }}</span>
+            Incluir eliminados
+          </button>
+          </sc-if>
+          <sc-if value="{{ esFab }}">
+          <select value="{{ fRubro }}" onChange="{{ setFRubro }}" aria-label="Filtrar por rubro" style="flex:0 1 220px;min-width:180px;box-sizing:border-box;border:1.5px solid #e1e5ec;border-radius:6px;padding:14px 16px;font-size:15px;font-weight:600;color:#172645;background:#ffffff;outline:none">
+            <option value="">Todos los rubros</option>
+            <sc-for list="{{ rubroOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for>
+          </select>
+          </sc-if>
+          <sc-if value="{{ provNormal }}">
+          <button type="button" onClick="{{ entrarBorrado }}" style="flex-shrink:0;border:none;border-radius:6px;padding:15px 20px;background:#eef1f7;color:#172645;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease,transform .2s ease" style-hover="background:#e1e7f2;transform:translateY(-2px)">Eliminar proveedores</button>
+          </sc-if>
+          <sc-if value="{{ borrando }}">
+          <button type="button" onClick="{{ salirBorrado }}" style="flex-shrink:0;border:none;border-radius:6px;padding:15px 20px;background:#fbe9e7;color:#b3261e;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;box-shadow:inset 0 0 0 2px #b3261e">Eliminando proveedores</button>
+          </sc-if>
+          <button type="button" onClick="{{ lista.nuevo }}" disabled="{{ borrando }}" style="flex-shrink:0;border:none;border-radius:6px;padding:15px 24px;background:#0f3483;color:#ffffff;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;box-shadow:0 6px 16px rgba(15,52,131,.24);opacity:{{ nuevoOp }};transition:background .2s ease,transform .2s ease,box-shadow .2s ease" style-hover="background:#0b2766;transform:translateY(-2px);box-shadow:0 12px 24px rgba(15,52,131,.32)">{{ lista.nuevoLabel }}</button>
+        </div>
+
+        <sc-if value="{{ borrando }}">
+        <div style="background:#ffffff;border-radius:8px;border-top:3px solid #b3261e;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;box-shadow:0 12px 30px rgba(179,38,30,.10);animation:toastIn .35s ease both">
+          <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+            <button type="button" onClick="{{ toggleTodos }}" style="display:inline-flex;align-items:center;gap:12px;border:none;background:none;padding:0;font-size:16px;font-weight:700;color:#172645">
+              <span style="width:34px;height:34px;box-sizing:border-box;border-radius:6px;border:2px solid {{ todos.boxBd }};background:{{ todos.boxBg }};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700">{{ todos.mark }}</span>
+              <span style="display:flex;flex-direction:column;align-items:flex-start;line-height:1.25">Seleccionar todos<span style="font-size:12px;font-weight:600;color:#8a909c">solo esta página</span></span>
+            </button>
+            <span style="font-size:17px;font-weight:700;color:#172645">{{ selLabel }}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <button type="button" onClick="{{ salirBorrado }}" style="border:none;border-radius:6px;padding:15px 22px;background:#eef1f7;color:#172645;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease" style-hover="background:#e1e7f2">Cancelar</button>
+            <button type="button" onClick="{{ confirmarBorrado }}" style="border:none;border-radius:6px;padding:15px 28px;background:#b3261e;color:#fff;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;box-shadow:0 6px 16px rgba(179,38,30,.25);opacity:{{ confirmOp }};transition:background .2s ease" style-hover="background:#93201a">Confirmar</button>
+          </div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ verTabla }}" hint-placeholder-val="{{ true }}">
+        <div style="background:#ffffff;border-radius:8px;box-shadow:0 4px 18px rgba(23,38,69,.06);overflow:hidden;animation:fadeUp .5s .15s ease both">
+          <div style="overflow-x:auto">
+
+          <sc-if value="{{ esProv }}" hint-placeholder-val="{{ true }}">
+          <div style="min-width:860px">
+            <div style="display:grid;grid-template-columns:{{ provCols }};gap:14px;padding:15px 22px;background:#f5f6f9;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#172645">
+              <sc-if value="{{ borrando }}"><span></span></sc-if><span>Razón social</span><span>CUIT</span><span>Tipo</span><span>Contacto</span><sc-if value="{{ noBorrando }}" hint-placeholder-val="{{ true }}"><span></span></sc-if>
+            </div>
+            <sc-for list="{{ provRows }}" as="p" hint-placeholder-count="6">
+            <div onClick="{{ p.click }}" style="display:grid;grid-template-columns:{{ provCols }};gap:14px;align-items:center;padding:14px 22px;border-top:1px solid #eef0f3;cursor:pointer;background:{{ p.bg }};box-shadow:{{ p.sh }};transition:background .2s ease,box-shadow .2s ease" style-hover="background:#f6f8fc;box-shadow:inset 4px 0 0 #3b5998">
+              <sc-if value="{{ borrando }}"><span style="width:34px;height:34px;box-sizing:border-box;border-radius:6px;border:2px solid {{ p.boxBd }};background:{{ p.boxBg }};color:#ffffff;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;transition:background .15s ease">{{ p.mark }}</span></sc-if>
+              <span style="display:flex;align-items:center;gap:13px;min-width:0">
+                <span style="width:40px;height:40px;flex-shrink:0;border-radius:6px;background:#172645;color:#ffffff;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="{{ p.icon }}"></path></svg></span>
+                <span style="font-size:15px;font-weight:700;color:#172645">{{ p.razon }}</span>
+              </span>
+              <span style="font-size:14px;font-weight:500;color:{{ p.cuitFg }}">{{ p.cuitTxt }}</span>
+              <span style="display:flex;flex-wrap:wrap;gap:6px;justify-self:start"><sc-for list="{{ p.tipos }}" as="t" hint-placeholder-count="1"><span style="display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#172645;background:#eef1f7"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="{{ t.icon }}"></path></svg>{{ t.name }}</span></sc-for></span>
+              <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:15px;font-weight:600;color:{{ p.contFg }}">{{ p.contTxt }}</span><span style="font-size:13px;font-weight:500;color:{{ p.telFg }};white-space:nowrap">{{ p.telTxt }}</span></span>
+              <sc-if value="{{ noBorrando }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ p.ver }}" style="justify-self:end;border:none;display:inline-flex;align-items:center;min-height:40px;padding:0 18px;border-radius:6px;background:#eef1f7;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#0f3483;transition:background .2s ease,color .2s ease" style-hover="background:#0f3483;color:#ffffff">Ver</button></sc-if>
+            </div>
+            </sc-for>
+          </div>
+          </sc-if>
+
+          <sc-if value="{{ esEnc }}">
+          <div style="min-width:1000px">
+            <div style="display:grid;grid-template-columns:minmax(0,1.4fr) 220px minmax(0,1.3fr) 150px 140px 190px;gap:14px;padding:15px 22px;background:#f5f6f9;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#172645">
+              <span>Nombre</span><span>Teléfono</span><span>Email</span><span>Fábrica</span><span>Rubro</span><span></span>
+            </div>
+            <sc-for list="{{ encRows }}" as="c" hint-placeholder-count="5">
+            <div style="display:grid;grid-template-columns:minmax(0,1.4fr) 220px minmax(0,1.3fr) 150px 140px 190px;gap:14px;align-items:center;padding:14px 22px;border-top:1px solid #eef0f3;opacity:{{ c.op }};transition:background .2s ease,box-shadow .2s ease" style-hover="background:#f6f8fc;box-shadow:inset 4px 0 0 #3b5998">
+              <span style="display:flex;align-items:center;gap:12px;min-width:0">
+                <span style="width:40px;height:40px;flex-shrink:0;border-radius:999px;background:#eef1f7;color:#172645;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="M13.2 7a3.2 3.2 0 1 1-6.4 0a3.2 3.2 0 1 1 6.4 0M4 16.5c.9-2.8 3.2-4.2 6-4.2s5.1 1.4 6 4.2"></path></svg></span>
+                <span style="font-size:15px;font-weight:700;color:#172645">{{ c.nombreCompleto }}</span>
+                <sc-if value="{{ c.inactivo }}"><span style="padding:4px 9px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6b7280;background:#f1f2f4">Inactivo</span></sc-if>
+              </span>
+              <span style="display:flex;align-items:center;gap:10px;font-size:14px;font-weight:500;color:#555b66;white-space:nowrap">{{ c.telTxt }}<sc-if value="{{ c.wa }}"><span style="display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:4px;font-size:11px;font-weight:700;color:#1f7a45;background:#e6f4ec"><span style="width:6px;height:6px;border-radius:99px;background:#25a35a"></span>WhatsApp</span></sc-if></span>
+              <span style="font-size:14px;font-weight:500;color:#555b66;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.mail }}</span>
+              <span style="display:flex;align-items:center;gap:8px;min-width:0;font-size:15px;font-weight:600;color:#172645"><span style="color:#3b5998;display:inline-flex"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M3 17V8.5l4.5 3V8.5l4.5 3V5h5v12z"></path></svg></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.fab }}</span></span>
+              <span style="display:flex;align-items:center;gap:7px;font-size:14px;color:#555b66"><span style="color:#8a909c;display:inline-flex"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="M3 3.5h6.5l7.5 7.5-6 6-7.5-7.5zM6.8 7.2h.01"></path></svg></span>{{ c.rubro }}</span>
+              <span style="justify-self:end;display:flex;align-items:center;gap:8px">
+                <button type="button" onClick="{{ c.ver }}" style="border:none;display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border-radius:6px;background:#eef1f7;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#0f3483;transition:background .2s ease,color .2s ease" style-hover="background:#0f3483;color:#ffffff">Ver</button>
+                <sc-if value="{{ c.activo }}">
+                <button type="button" class="btn-trash" onClick="{{ c.borrar }}" title="Eliminar a {{ c.nombreCompleto }}" style="width:40px;height:40px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:none;border-radius:6px;background:#f3f4f7;color:#8a909c;transition:color .18s ease,background .18s ease,transform .18s ease" style-hover="color:#b3261e;background:#fbe9e7;transform:translateY(-2px)"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;overflow:visible"><g class="lid"><path d="M3 5.6h14"></path><path d="M7.8 5.6V4.3a1.3 1.3 0 0 1 1.3-1.3h1.8a1.3 1.3 0 0 1 1.3 1.3v1.3"></path></g><path d="M5.1 5.6h9.8l-.7 9.6a1.6 1.6 0 0 1-1.6 1.5H7.4a1.6 1.6 0 0 1-1.6-1.5z"></path><path d="M8.4 8.8v4.6M11.6 8.8v4.6"></path></svg></button>
+                </sc-if>
+                <sc-if value="{{ c.inactivo }}"><button type="button" onClick="{{ c.reactivar }}" style="border:none;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:6px;background:#e6f4ec;color:#1f7a45;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease,color .2s ease" style-hover="background:#1f7a45;color:#ffffff"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M16 10a6 6 0 1 1-1.8-4.3M16 3v3.2h-3.2"></path></svg>Reactivar</button></sc-if>
+              </span>
+            </div>
+            </sc-for>
+          </div>
+          </sc-if>
+
+          <sc-if value="{{ esFab }}">
+          <div style="min-width:900px">
+            <div style="display:grid;grid-template-columns:minmax(0,2fr) 160px 150px minmax(0,1fr) 120px 80px;gap:14px;padding:15px 22px;background:#f5f6f9;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#172645">
+              <span>Nombre</span><span style="display:flex;align-items:center;gap:6px">Código <span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></span><span>CUIT</span><span>Rubro</span><span style="text-align:center">Encargados</span><span></span>
+            </div>
+            <sc-for list="{{ fabRows }}" as="f" hint-placeholder-count="5">
+            <div onClick="{{ f.ver }}" style="display:grid;grid-template-columns:minmax(0,2fr) 160px 150px minmax(0,1fr) 120px 80px;gap:14px;align-items:center;padding:14px 22px;border-top:1px solid #eef0f3;cursor:pointer;transition:background .2s ease,box-shadow .2s ease" style-hover="background:#f6f8fc;box-shadow:inset 4px 0 0 #3b5998">
+              <span style="display:flex;align-items:center;gap:13px;min-width:0">
+                <span style="width:40px;height:40px;flex-shrink:0;border-radius:6px;background:#172645;color:#ffffff;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="M3 17V8.5l4.5 3V8.5l4.5 3V5h5v12z"></path></svg></span>
+                <span style="font-size:15px;font-weight:700;color:#172645">{{ f.nombre }}</span>
+              </span>
+              <span style="font-size:14px;font-weight:700;letter-spacing:.06em;color:#3b5998">{{ f.codigoTxt }}</span>
+              <span style="font-size:14px;font-weight:500;color:{{ f.cuitFg }}">{{ f.cuitTxt }}</span>
+              <span style="justify-self:start;display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:4px;font-size:12px;font-weight:700;letter-spacing:.04em;color:#172645;background:#eef1f7"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="M3 3.5h6.5l7.5 7.5-6 6-7.5-7.5zM6.8 7.2h.01"></path></svg>{{ f.rubro }}</span>
+              <span style="justify-self:center;min-width:34px;height:34px;box-sizing:border-box;padding:0 10px;border-radius:999px;background:{{ f.cntBg }};color:{{ f.cntFg }};display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:800">{{ f.cant }}</span>
+              <button type="button" onClick="{{ f.ver }}" style="justify-self:end;border:none;display:inline-flex;align-items:center;min-height:40px;padding:0 18px;border-radius:6px;background:#eef1f7;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#0f3483;transition:background .2s ease,color .2s ease" style-hover="background:#0f3483;color:#ffffff">Ver</button>
+            </div>
+            </sc-for>
+          </div>
+          </sc-if>
+
+          <sc-if value="{{ esRub }}">
+          <div style="min-width:620px">
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) 220px 120px;gap:14px;padding:15px 22px;background:#f5f6f9;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#172645">
+              <span>Nombre</span><span>Última modificación</span><span></span>
+            </div>
+            <sc-for list="{{ rubRows }}" as="r" hint-placeholder-count="5">
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) 220px 120px;gap:14px;align-items:center;padding:14px 22px;border-top:1px solid #eef0f3;transition:background .2s ease,box-shadow .2s ease" style-hover="background:#f6f8fc;box-shadow:inset 4px 0 0 #3b5998">
+              <span style="display:flex;align-items:center;gap:13px;min-width:0">
+                <span style="width:40px;height:40px;flex-shrink:0;border-radius:6px;background:#eef1f7;color:#3b5998;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="M3 3.5h6.5l7.5 7.5-6 6-7.5-7.5zM6.8 7.2h.01"></path></svg></span>
+                <span style="font-size:15px;font-weight:700;color:#172645">{{ r.nombre }}</span>
+              </span>
+              <span style="font-size:14px;font-weight:500;color:#555b66">{{ r.fecha }}</span>
+              <span style="justify-self:end;display:flex;align-items:center;gap:8px">
+                <button type="button" onClick="{{ r.editar }}" title="Editar {{ r.nombre }}" style="width:40px;height:40px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:none;border-radius:6px;background:#eef1f7;color:#0f3483;transition:background .18s ease,color .18s ease,transform .18s ease" style-hover="background:#0f3483;color:#ffffff;transform:translateY(-2px)"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0"><path d="M13.5 3.5l3 3L7 16H4v-3zM11.5 5.5l3 3"></path></svg></button>
+                <button type="button" class="btn-trash" onClick="{{ r.borrar }}" title="Eliminar {{ r.nombre }}" style="width:40px;height:40px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:none;border-radius:6px;background:#f3f4f7;color:#8a909c;transition:color .18s ease,background .18s ease,transform .18s ease" style-hover="color:#b3261e;background:#fbe9e7;transform:translateY(-2px)"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;overflow:visible"><g class="lid"><path d="M3 5.6h14"></path><path d="M7.8 5.6V4.3a1.3 1.3 0 0 1 1.3-1.3h1.8a1.3 1.3 0 0 1 1.3 1.3v1.3"></path></g><path d="M5.1 5.6h9.8l-.7 9.6a1.6 1.6 0 0 1-1.6 1.5H7.4a1.6 1.6 0 0 1-1.6-1.5z"></path><path d="M8.4 8.8v4.6M11.6 8.8v4.6"></path></svg></button>
+              </span>
+            </div>
+            </sc-for>
+          </div>
+          </sc-if>
+
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 22px;border-top:1px solid #eef0f3;background:#fcfdfe">
+            <span style="font-size:14px;color:#555b66">Mostrando <strong style="color:#172645;font-weight:700">{{ pag.rango }}</strong> de <strong style="color:#172645;font-weight:700">{{ pag.total }}</strong></span>
+            <nav style="display:flex;align-items:center;gap:6px">
+              <button type="button" title="Página anterior" onClick="{{ pag.prev }}" disabled="{{ pag.prevDis }}" style="width:40px;height:40px;padding:0;border:none;border-radius:6px;background:#eef1f7;color:#0f3483;display:inline-flex;align-items:center;justify-content:center;opacity:{{ pag.prevOp }};transition:background .2s ease,color .2s ease"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0"><path d="M12 4 6 10l6 6"></path></svg></button>
+              <sc-for list="{{ pag.nums }}" as="n" hint-placeholder-count="2"><button type="button" onClick="{{ n.go }}" style="min-width:40px;height:40px;padding:0 8px;border:none;border-radius:6px;background:{{ n.bg }};color:{{ n.fg }};box-shadow:{{ n.sh }};font-size:14px;font-weight:700;transition:background .2s ease">{{ n.n }}</button></sc-for>
+              <button type="button" title="Página siguiente" onClick="{{ pag.next }}" disabled="{{ pag.nextDis }}" style="width:40px;height:40px;padding:0;border:none;border-radius:6px;background:#eef1f7;color:#0f3483;display:inline-flex;align-items:center;justify-content:center;opacity:{{ pag.nextOp }};transition:background .2s ease,color .2s ease"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0"><path d="M8 4l6 6-6 6"></path></svg></button>
+            </nav>
+          </div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ verCards }}">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ cards }}" as="k" hint-placeholder-count="3">
+          <div onClick="{{ k.click }}" style="background:#ffffff;border-radius:8px;padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:{{ k.sh }};opacity:{{ k.op }}">
+            <div style="display:flex;align-items:center;gap:12px">
+              <sc-if value="{{ borrando }}"><span style="width:34px;height:34px;flex-shrink:0;box-sizing:border-box;border-radius:6px;border:2px solid {{ k.boxBd }};background:{{ k.boxBg }};color:#ffffff;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700">{{ k.mark }}</span></sc-if>
+              <span style="width:46px;height:46px;flex-shrink:0;border-radius:{{ k.rad }};background:{{ k.ibg }};color:{{ k.ifg }};display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:21px;height:21px;flex-shrink:0"><path d="{{ k.icon }}"></path></svg></span>
+              <span style="display:flex;flex-direction:column;gap:3px;min-width:0;flex:1">
+                <span style="font-size:17px;font-weight:700;color:#172645;line-height:1.25">{{ k.titulo }}</span>
+                <span style="font-size:14px;font-weight:500;color:#555b66;overflow-wrap:anywhere">{{ k.sub }}</span>
+              </span>
+              <sc-if value="{{ k.inactivo }}"><span style="padding:4px 9px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6b7280;background:#f1f2f4">Inactivo</span></sc-if>
+            </div>
+            <sc-if value="{{ k.hayChips }}"><span style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ k.chips }}" as="t" hint-placeholder-count="1"><span style="display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#172645;background:#eef1f7"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="{{ t.icon }}"></path></svg>{{ t.name }}</span></sc-for></span></sc-if>
+            <sc-if value="{{ k.hayLinea }}"><span style="font-size:15px;color:#555b66;overflow-wrap:anywhere">{{ k.linea }}</span></sc-if>
+            <sc-if value="{{ noBorrando }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;gap:10px">
+              <button type="button" onClick="{{ k.ver }}" style="flex:1;min-height:50px;border:none;border-radius:6px;background:#eef1f7;font-size:15px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#0f3483">{{ k.verLabel }}</button>
+              <sc-if value="{{ k.puedeBorrar }}"><button type="button" onClick="{{ k.borrar }}" title="Eliminar" style="width:50px;height:50px;flex-shrink:0;border:none;border-radius:6px;background:#f3f4f7;color:#8a909c;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M3 5.6h14M7.8 5.6V4.3a1.3 1.3 0 0 1 1.3-1.3h1.8a1.3 1.3 0 0 1 1.3 1.3v1.3M5.1 5.6h9.8l-.7 9.6a1.6 1.6 0 0 1-1.6 1.5H7.4a1.6 1.6 0 0 1-1.6-1.5zM8.4 8.8v4.6M11.6 8.8v4.6"></path></svg></button></sc-if>
+              <sc-if value="{{ k.puedeReact }}"><button type="button" onClick="{{ k.reactivar }}" style="min-height:50px;flex-shrink:0;padding:0 16px;border:none;border-radius:6px;background:#e6f4ec;color:#1f7a45;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase">Reactivar</button></sc-if>
+            </div>
+            </sc-if>
+          </div>
+          </sc-for>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:6px 0 4px">
+            <span style="font-size:14px;color:#555b66">Mostrando <strong style="color:#172645">{{ pag.rango }}</strong> de <strong style="color:#172645">{{ pag.total }}</strong></span>
+            <div style="display:flex;align-items:center;gap:10px;width:100%">
+              <button type="button" onClick="{{ pag.prev }}" disabled="{{ pag.prevDis }}" style="flex:1;min-height:50px;border:none;border-radius:6px;background:#eef1f7;color:#0f3483;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:{{ pag.prevOp }}">Anterior</button>
+              <span style="min-width:72px;text-align:center;font-size:14px;font-weight:700;color:#172645">{{ pag.deTxt }}</span>
+              <button type="button" onClick="{{ pag.next }}" disabled="{{ pag.nextDis }}" style="flex:1;min-height:50px;border:none;border-radius:6px;background:#0f3483;color:#ffffff;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:{{ pag.nextOp }}">Siguiente</button>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ verEstado }}">
+        <div style="background:#ffffff;border-radius:8px;box-shadow:0 4px 18px rgba(23,38,69,.06);overflow:hidden">
+          <sc-if value="{{ est.cargando }}">
+            <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;font-size:14px;font-weight:600;color:#3b5998"><span style="width:16px;height:16px;box-sizing:border-box;border-radius:999px;border:2.5px solid #d6deef;border-top-color:#0f3483;animation:spin .8s linear infinite"></span>Cargando {{ lista.plur }}…</div>
+            <sc-for list="{{ skel }}" as="x" hint-placeholder-count="4">
+            <div style="display:grid;grid-template-columns:minmax(0,1.8fr) minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:center;padding:16px 20px;border-top:1px solid #eef0f3">
+              <span style="display:flex;align-items:center;gap:12px"><span style="width:36px;height:36px;flex-shrink:0;border-radius:6px;background:#eef1f7"></span><span style="display:block;height:12px;width:{{ x.a }};border-radius:4px;background:linear-gradient(90deg,#eef1f7 0%,#f7f9fc 50%,#eef1f7 100%);background-size:800px 100%;animation:shimmer 1.4s linear infinite"></span></span>
+              <span style="display:block;height:12px;width:{{ x.b }};border-radius:4px;background:linear-gradient(90deg,#eef1f7 0%,#f7f9fc 50%,#eef1f7 100%);background-size:800px 100%;animation:shimmer 1.4s linear infinite"></span>
+              <span style="display:block;height:12px;width:{{ x.c }};border-radius:4px;background:linear-gradient(90deg,#eef1f7 0%,#f7f9fc 50%,#eef1f7 100%);background-size:800px 100%;animation:shimmer 1.4s linear infinite"></span>
+            </div>
+            </sc-for>
+          </sc-if>
+          <sc-if value="{{ est.msg }}">
+          <div style="min-height:300px;box-sizing:border-box;padding:40px 24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;animation:fadeUp .5s ease both">
+            <span style="width:64px;height:64px;border-radius:12px;background:{{ est.ibg }};color:{{ est.ifg }};display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:30px;height:30px;flex-shrink:0"><path d="{{ est.icon }}"></path></svg></span>
+            <span style="font-size:18px;font-weight:800;color:#172645;text-wrap:pretty;max-width:420px">{{ est.titulo }}</span>
+            <span style="font-size:15px;line-height:1.6;color:#555b66;max-width:400px">{{ est.texto }}</span>
+            <sc-if value="{{ est.btnP }}"><button type="button" onClick="{{ est.accion }}" style="border:none;border-radius:6px;padding:14px 24px;background:#0f3483;color:#fff;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;box-shadow:0 6px 16px rgba(15,52,131,.24);transition:background .2s ease,transform .2s ease" style-hover="background:#0b2766;transform:translateY(-2px)">{{ est.btn }}</button></sc-if>
+            <sc-if value="{{ est.btnS }}"><button type="button" onClick="{{ est.accion }}" style="border:none;border-radius:6px;padding:14px 22px;background:#eef1f7;color:#172645;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease" style-hover="background:#e1e7f2">{{ est.btn }}</button></sc-if>
+          </div>
+          </sc-if>
+        </div>
+        </sc-if>
+      </div>
+      </sc-if>
+
+      <!-- ══════ ALTA ══════ -->
+      <sc-if value="{{ esNuevo }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:24px;min-width:0">
+        <div style="position:relative;overflow:hidden;border-radius:8px;background:#172645;padding:var(--hero-pad);display:flex;flex-direction:column;gap:12px">
+          <div style="position:absolute;top:0;right:0;bottom:0;width:46%;background:{{ nv.foto }};opacity:.6"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(90deg,#172645 48%,rgba(23,38,69,.35) 100%)"></div>
+          <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1px);background-size:22px 22px"></div>
+          <button type="button" onClick="{{ nv.volver }}" style="position:relative;align-self:flex-start;display:inline-flex;align-items:center;gap:8px;border:none;background:none;padding:0;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#c9d2e6;transition:color .2s ease,transform .2s ease" style-hover="color:#ffffff;transform:translateX(-3px)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><path d="M10 3 5 8l5 5" stroke-linecap="round" stroke-linejoin="round"></path></svg>{{ nv.volverLabel }}</button>
+          <span style="position:relative;width:80px;height:3px;background:#3b5998;transform-origin:left;animation:lineGrow .6s ease both"></span>
+          <h2 style="position:relative;margin:0;font-size:var(--h2);font-weight:800;text-transform:uppercase;color:#ffffff">{{ nv.titulo }}</h2>
+          <p style="position:relative;margin:0;font-size:16px;color:#d4d9e4">{{ nv.sub }}</p>
+        </div>
+        <div style="background:#ffffff;border-radius:8px;box-shadow:0 4px 18px rgba(23,38,69,.06);padding:var(--card-pad);display:flex;flex-direction:column;gap:34px;animation:fadeUp .5s ease both">
+          <sc-for list="{{ nv.secciones }}" as="s" hint-placeholder-count="1">
+          <section style="display:flex;flex-direction:column;gap:20px">
+            <sc-if value="{{ s.hayTitulo }}"><div style="display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font-size:20px;font-weight:800;text-transform:uppercase;color:#172645">{{ s.titulo }}</h3><span style="width:50px;height:3px;background:#3b5998"></span></div></sc-if>
+            <div style="display:grid;grid-template-columns:repeat({{ s.cols }},minmax(0,1fr));gap:20px 24px">
+              <sc-for list="{{ s.campos }}" as="c" hint-placeholder-count="4">
+              <div style="grid-column:{{ c.span }};display:flex;flex-direction:column;gap:8px;min-width:0">
+                <sc-if value="{{ c.conLabel }}"><span style="display:flex;align-items:baseline;gap:8px 12px;flex-wrap:wrap"><label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">{{ c.label }}</label><sc-if value="{{ c.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if><sc-if value="{{ c.hayNota }}"><span style="font-size:14px;color:#8a909c">{{ c.nota }}</span></sc-if></span></sc-if>
+                <sc-if value="{{ c.esText }}"><input value="{{ c.value }}" onChange="{{ c.onChange }}" placeholder="{{ c.ph }}" maxLength="{{ c.max }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;text-transform:{{ c.tt }};box-shadow:{{ c.sh }};transition:border-color .2s ease,box-shadow .2s ease" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)"></sc-if>
+                <sc-if value="{{ c.esArea }}"><textarea rows="3" value="{{ c.value }}" onChange="{{ c.onChange }}" placeholder="{{ c.ph }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;line-height:1.6;color:#172645;background:#ffffff;outline:none;resize:vertical;box-shadow:{{ c.sh }}" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)"></textarea></sc-if>
+                <sc-if value="{{ c.esSelect }}"><select value="{{ c.value }}" onChange="{{ c.onChange }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;box-shadow:{{ c.sh }}" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)"><option value="">{{ c.phSel }}</option><sc-for list="{{ c.opciones }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select></sc-if>
+                <sc-if value="{{ c.esCheck }}"><button type="button" onClick="{{ c.toggle }}" style="align-self:flex-start;display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;border:none;background:none;padding:2px 0;font-size:15px;font-weight:600;color:#172645;text-align:left"><span style="width:34px;height:34px;flex-shrink:0;box-sizing:border-box;border-radius:6px;border:2px solid {{ c.boxBd }};background:{{ c.boxBg }};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;transition:background .15s ease">{{ c.mark }}</span>{{ c.label }}<sc-if value="{{ c.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></button></sc-if>
+                <sc-if value="{{ c.esTipos }}"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px"><sc-for list="{{ c.tipoOpts }}" as="o" hint-placeholder-count="4"><button type="button" onClick="{{ o.toggle }}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid {{ o.bd }};border-radius:6px;background:{{ o.bg }};text-align:left;transition:background .2s ease,border-color .2s ease" style-hover="border-color:#3b5998"><span style="width:34px;height:34px;flex-shrink:0;box-sizing:border-box;border-radius:6px;border:2px solid {{ o.boxBd }};background:{{ o.boxBg }};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700">{{ o.mark }}</span><span style="display:inline-flex;color:#3b5998"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="{{ o.icon }}"></path></svg></span><span style="font-size:15px;font-weight:700;color:#172645">{{ o.name }}</span></button></sc-for></div></sc-if>
+                <sc-if value="{{ c.esLock }}"><span style="display:flex;flex-wrap:wrap;gap:6px;opacity:.75"><sc-for list="{{ c.chips }}" as="t" hint-placeholder-count="1"><span style="display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#172645;background:#eef1f7"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="{{ t.icon }}"></path></svg>{{ t.name }}</span></sc-for></span><span style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#8a909c"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="M5.5 9V6.5a4.5 4.5 0 0 1 9 0V9M4.5 9h11v8h-11z"></path></svg>No se puede modificar</span></sc-if>
+                <sc-if value="{{ c.hayErr }}"><span style="display:inline-flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:600;line-height:1.4;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ c.err }}</span></sc-if>
+                <sc-if value="{{ c.hayLink }}"><span style="display:flex;align-items:center;gap:8px"><button type="button" onClick="{{ c.linkGo }}" style="border:none;background:none;padding:4px 0;font-size:14px;font-weight:700;color:#0f3483;transition:color .2s ease" style-hover="color:#3b5998">{{ c.linkLabel }}</button><sc-if value="{{ c.linkFuturo }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></span></sc-if>
+              </div>
+              </sc-for>
+            </div>
+          </section>
+          </sc-for>
+          <div style="display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;padding-top:24px;border-top:1px solid #eef0f3">
+            <button type="button" onClick="{{ nv.volver }}" style="border:none;border-radius:6px;padding:15px 24px;background:#eef1f7;color:#172645;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease,transform .2s ease" style-hover="background:#e1e7f2;transform:translateY(-2px)">Cancelar</button>
+            <button type="button" onClick="{{ nv.crear }}" style="border:none;border-radius:6px;padding:15px 30px;background:#0f3483;color:#fff;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;box-shadow:0 6px 16px rgba(15,52,131,.24);transition:background .2s ease,transform .2s ease" style-hover="background:#0b2766;transform:translateY(-2px)">{{ nv.submit }}</button>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ══════ DETALLE ══════ -->
+      <sc-if value="{{ esDetalle }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:24px;min-width:0">
+        <div style="position:relative;overflow:hidden;border-radius:8px;background:#172645;padding:var(--hero-pad)">
+          <div style="position:absolute;top:0;right:0;bottom:0;width:46%;background:{{ dt.foto }};opacity:.6"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(90deg,#172645 48%,rgba(23,38,69,.35) 100%)"></div>
+          <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1px);background-size:22px 22px"></div>
+          <div style="position:relative;display:flex;flex-direction:column;gap:18px">
+            <button type="button" onClick="{{ dt.volver }}" style="align-self:flex-start;display:inline-flex;align-items:center;gap:8px;border:none;background:none;padding:0;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#c9d2e6;transition:color .2s ease,transform .2s ease" style-hover="color:#ffffff;transform:translateX(-3px)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><path d="M10 3 5 8l5 5" stroke-linecap="round" stroke-linejoin="round"></path></svg>{{ dt.volverLabel }}</button>
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap">
+              <div style="display:flex;align-items:center;gap:18px;min-width:0">
+                <span style="width:64px;height:64px;flex-shrink:0;border-radius:{{ dt.rad }};background:{{ dt.ibg }};color:#0f3483;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:30px;height:30px;flex-shrink:0"><path d="{{ dt.icon }}"></path></svg></span>
+                <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start;min-width:0">
+                  <h2 style="margin:0;font-size:var(--h2);font-weight:800;line-height:1.05;text-transform:uppercase;color:#ffffff;overflow-wrap:anywhere">{{ dt.titulo }}</h2>
+                  <sc-if value="{{ dt.inactivo }}"><span style="padding:5px 11px;border-radius:4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#ffffff;background:rgba(255,255,255,.18)">Inactivo</span></sc-if>
+                  <span style="display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;font-size:15px;font-weight:500;color:#d4d9e4">{{ dt.sub }}<sc-for list="{{ dt.chips }}" as="t" hint-placeholder-count="1"><span style="padding:5px 11px;border-radius:4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#ffffff;background:#3b5998;display:inline-flex;align-items:center;gap:6px"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;flex-shrink:0"><path d="{{ t.icon }}"></path></svg>{{ t.name }}</span></sc-for></span>
+                </div>
+              </div>
+              <div style="display:flex;gap:12px;flex-wrap:wrap">
+                <sc-for list="{{ dt.acciones }}" as="a" hint-placeholder-count="2"><button type="button" onClick="{{ a.go }}" style="{{ a.css }}"><sc-if value="{{ a.hayIcon }}"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0"><path d="{{ a.icon }}"></path></svg></sc-if>{{ a.label }}</button></sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <sc-if value="{{ dt.inactivo }}"><div style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:8px;background:#f1f2f4;font-size:15px;font-weight:600;line-height:1.5;color:#555b66"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="M10 9v5M10 6.2v.01M17 10a7 7 0 1 1-14 0a7 7 0 1 1 14 0"></path></svg>{{ dt.banner }}</div></sc-if>
+
+        <div style="display:grid;grid-template-columns:{{ dt.cols }};gap:24px;align-items:start;opacity:{{ dt.op }}">
+          <div style="display:flex;flex-direction:column;gap:24px;min-width:0">
+            <sc-for list="{{ dt.secciones }}" as="s" hint-placeholder-count="2">
+            <section style="background:#ffffff;border-radius:8px;box-shadow:0 4px 18px rgba(23,38,69,.06);padding:var(--sec-pad);display:flex;flex-direction:column;gap:22px;animation:fadeUp .5s ease both">
+              <div style="display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font-size:19px;font-weight:800;text-transform:uppercase;color:#172645;display:flex;align-items:center;gap:10px">{{ s.titulo }}<sc-if value="{{ s.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></h3><span style="width:50px;height:3px;background:#3b5998"></span></div>
+              <sc-if value="{{ s.leer }}" hint-placeholder-val="{{ true }}">
+              <div style="display:grid;grid-template-columns:repeat({{ s.cols }},minmax(0,1fr));gap:22px 20px">
+                <sc-for list="{{ s.items }}" as="it" hint-placeholder-count="3">
+                <div style="grid-column:{{ it.span }};display:flex;flex-direction:column;gap:6px;min-width:0">
+                  <sc-if value="{{ it.hayLabel }}"><span style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8a909c">{{ it.label }}<sc-if value="{{ it.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></span></sc-if>
+                  <sc-if value="{{ it.hayValor }}"><span style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:16px;font-weight:{{ it.fw }};line-height:1.65;color:{{ it.fg }};overflow-wrap:anywhere">{{ it.valor }}<sc-if value="{{ it.wa }}"><span style="display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:4px;font-size:11px;font-weight:700;line-height:1.3;color:#1f7a45;background:#e6f4ec"><span style="width:6px;height:6px;border-radius:99px;background:#25a35a"></span>WhatsApp</span><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;line-height:1.3;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></span></sc-if>
+                  <sc-if value="{{ it.hayChips }}"><span style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ it.chips }}" as="t" hint-placeholder-count="1"><span style="display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#172645;background:#eef1f7"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="{{ t.icon }}"></path></svg>{{ t.name }}</span></sc-for></span></sc-if>
+                </div>
+                </sc-for>
+              </div>
+              </sc-if>
+              <sc-if value="{{ s.edit }}">
+              <div style="display:grid;grid-template-columns:repeat({{ s.cols }},minmax(0,1fr));gap:20px">
+                <sc-for list="{{ s.campos }}" as="c" hint-placeholder-count="3">
+                <div style="grid-column:{{ c.span }};display:flex;flex-direction:column;gap:8px;min-width:0">
+                  <sc-if value="{{ c.conLabel }}"><span style="display:flex;align-items:baseline;gap:8px 12px;flex-wrap:wrap"><label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">{{ c.label }}</label><sc-if value="{{ c.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></span></sc-if>
+                  <sc-if value="{{ c.esText }}"><input value="{{ c.value }}" onChange="{{ c.onChange }}" placeholder="{{ c.ph }}" maxLength="{{ c.max }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:13px 14px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;text-transform:{{ c.tt }};box-shadow:{{ c.sh }}" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)"></sc-if>
+                  <sc-if value="{{ c.esArea }}"><textarea rows="3" value="{{ c.value }}" onChange="{{ c.onChange }}" placeholder="{{ c.ph }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:13px 14px;font-size:16px;font-weight:500;line-height:1.6;color:#172645;background:#ffffff;outline:none;resize:vertical;box-shadow:{{ c.sh }}" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)"></textarea></sc-if>
+                  <sc-if value="{{ c.esSelect }}"><select value="{{ c.value }}" onChange="{{ c.onChange }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:13px 14px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;box-shadow:{{ c.sh }}"><option value="">{{ c.phSel }}</option><sc-for list="{{ c.opciones }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select></sc-if>
+                  <sc-if value="{{ c.esCheck }}"><button type="button" onClick="{{ c.toggle }}" style="align-self:flex-start;display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;border:none;background:none;padding:2px 0;font-size:15px;font-weight:600;color:#172645;text-align:left"><span style="width:34px;height:34px;flex-shrink:0;box-sizing:border-box;border-radius:6px;border:2px solid {{ c.boxBd }};background:{{ c.boxBg }};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700">{{ c.mark }}</span>{{ c.label }}<sc-if value="{{ c.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></button></sc-if>
+                  <sc-if value="{{ c.esLock }}"><span style="display:flex;flex-wrap:wrap;gap:6px;opacity:.75"><sc-for list="{{ c.chips }}" as="t" hint-placeholder-count="1"><span style="display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#172645;background:#eef1f7"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="{{ t.icon }}"></path></svg>{{ t.name }}</span></sc-for></span><span style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#8a909c"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="M5.5 9V6.5a4.5 4.5 0 0 1 9 0V9M4.5 9h11v8h-11z"></path></svg>No se puede modificar</span></sc-if>
+                  <sc-if value="{{ c.hayErr }}"><span style="display:inline-flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:600;line-height:1.4;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ c.err }}</span></sc-if>
+                </div>
+                </sc-for>
+              </div>
+              </sc-if>
+            </section>
+            </sc-for>
+          </div>
+          <sc-if value="{{ dt.hayAside }}">
+          <aside style="position:relative;overflow:hidden;background:#172645;border-radius:8px;padding:var(--sec-pad);display:flex;flex-direction:column;gap:22px;box-shadow:0 14px 34px rgba(23,38,69,.22);animation:fadeUp .5s .16s ease both">
+            <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1px);background-size:22px 22px"></div>
+            <div style="position:relative;display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font-size:19px;font-weight:800;text-transform:uppercase;color:#ffffff">{{ dt.asTitulo }}</h3><span style="width:50px;height:3px;background:#3b5998"></span></div>
+            <div style="position:relative;display:flex;flex-direction:column;gap:18px">
+              <sc-for list="{{ dt.asItems }}" as="it" hint-placeholder-count="2"><div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9aa7c2">{{ it.label }}</span><span style="font-size:16px;font-weight:600;color:#ffffff">{{ it.valor }}</span></div></sc-for>
+              <sc-if value="{{ dt.asLock }}"><span style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#9aa7c2"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="M5.5 9V6.5a4.5 4.5 0 0 1 9 0V9M4.5 9h11v8h-11z"></path></svg>La fábrica no se puede modificar</span></sc-if>
+              <sc-if value="{{ dt.asLink }}"><button type="button" onClick="{{ dt.asLinkGo }}" style="align-self:flex-start;border:none;display:inline-flex;align-items:center;padding:12px 18px;border-radius:6px;background:rgba(255,255,255,.12);font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#ffffff;transition:background .2s ease" style-hover="background:rgba(255,255,255,.22)">{{ dt.asLinkLabel }}</button></sc-if>
+            </div>
+          </aside>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{ dt.esFab }}">
+        <section style="background:#ffffff;border-radius:8px;box-shadow:0 4px 18px rgba(23,38,69,.06);overflow:hidden;animation:fadeUp .5s .08s ease both">
+          <div style="padding:var(--sec-pad);display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <h3 style="margin:0;font-size:19px;font-weight:800;text-transform:uppercase;color:#172645">Encargados</h3>
+              <span style="width:50px;height:3px;background:#3b5998"></span>
+              <span style="font-size:15px;color:#555b66">Personas de contacto de esta fábrica.</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+              <button type="button" onClick="{{ fe.toggleInc }}" style="display:inline-flex;align-items:center;gap:10px;border:none;background:none;padding:0;font-size:15px;font-weight:600;color:#172645">
+                <span style="width:34px;height:34px;box-sizing:border-box;border-radius:6px;border:2px solid {{ fe.inc.boxBd }};background:{{ fe.inc.boxBg }};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700">{{ fe.inc.mark }}</span>
+                Incluir eliminados
+              </button>
+              <button type="button" onClick="{{ fe.agregar }}" style="border:none;border-radius:6px;padding:15px 22px;background:#0f3483;color:#ffffff;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;box-shadow:0 6px 16px rgba(15,52,131,.24);transition:background .2s ease,transform .2s ease" style-hover="background:#0b2766;transform:translateY(-2px)">+ Agregar encargado</button>
+            </div>
+          </div>
+          <sc-if value="{{ fe.hayFilas }}">
+          <div style="overflow-x:auto"><div style="min-width:780px">
+            <div style="display:grid;grid-template-columns:minmax(0,1.3fr) 250px minmax(0,1.3fr) 170px;gap:14px;padding:15px 28px;background:#f5f6f9;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#172645"><span>Nombre</span><span>Teléfono</span><span>Email</span><span></span></div>
+            <sc-for list="{{ fe.filas }}" as="c" hint-placeholder-count="2">
+            <div style="display:grid;grid-template-columns:minmax(0,1.3fr) 250px minmax(0,1.3fr) 170px;gap:14px;align-items:center;padding:14px 28px;border-top:1px solid #eef0f3;opacity:{{ c.op }};transition:background .2s ease,box-shadow .2s ease" style-hover="background:#f6f8fc;box-shadow:inset 4px 0 0 #3b5998">
+              <span style="display:flex;align-items:center;gap:12px;min-width:0">
+                <span style="width:40px;height:40px;flex-shrink:0;border-radius:999px;background:#eef1f7;color:#172645;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="M13.2 7a3.2 3.2 0 1 1-6.4 0a3.2 3.2 0 1 1 6.4 0M4 16.5c.9-2.8 3.2-4.2 6-4.2s5.1 1.4 6 4.2"></path></svg></span>
+                <span style="font-size:15px;font-weight:700;color:#172645">{{ c.nombreCompleto }}</span>
+                <sc-if value="{{ c.inactivo }}"><span style="padding:4px 9px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6b7280;background:#f1f2f4">Inactivo</span></sc-if>
+              </span>
+              <span style="display:flex;align-items:center;gap:10px;font-size:14px;font-weight:500;color:#555b66;white-space:nowrap">{{ c.telTxt }}<sc-if value="{{ c.wa }}"><span style="display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:4px;font-size:11px;font-weight:700;color:#1f7a45;background:#e6f4ec"><span style="width:6px;height:6px;border-radius:99px;background:#25a35a"></span>WhatsApp</span></sc-if></span>
+              <span style="font-size:14px;font-weight:500;color:#555b66;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.mail }}</span>
+              <span style="justify-self:end;display:flex;align-items:center;gap:8px">
+                <sc-if value="{{ c.activo }}">
+                <button type="button" onClick="{{ c.editar }}" style="border:none;display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border-radius:6px;background:#eef1f7;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#0f3483;transition:background .2s ease,color .2s ease" style-hover="background:#0f3483;color:#ffffff">Editar</button>
+                <button type="button" class="btn-trash" onClick="{{ c.borrar }}" title="Eliminar a {{ c.nombreCompleto }}" style="width:40px;height:40px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:none;border-radius:6px;background:#f3f4f7;color:#8a909c;transition:color .18s ease,background .18s ease,transform .18s ease" style-hover="color:#b3261e;background:#fbe9e7;transform:translateY(-2px)"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;overflow:visible"><g class="lid"><path d="M3 5.6h14"></path><path d="M7.8 5.6V4.3a1.3 1.3 0 0 1 1.3-1.3h1.8a1.3 1.3 0 0 1 1.3 1.3v1.3"></path></g><path d="M5.1 5.6h9.8l-.7 9.6a1.6 1.6 0 0 1-1.6 1.5H7.4a1.6 1.6 0 0 1-1.6-1.5z"></path><path d="M8.4 8.8v4.6M11.6 8.8v4.6"></path></svg></button>
+                </sc-if>
+                <sc-if value="{{ c.inactivo }}"><button type="button" onClick="{{ c.reactivar }}" style="border:none;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:6px;background:#e6f4ec;color:#1f7a45;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease,color .2s ease" style-hover="background:#1f7a45;color:#ffffff"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M16 10a6 6 0 1 1-1.8-4.3M16 3v3.2h-3.2"></path></svg>Reactivar</button></sc-if>
+              </span>
+            </div>
+            </sc-for>
+          </div></div>
+          </sc-if>
+          <sc-if value="{{ fe.vacio }}">
+          <div style="padding:44px 24px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;border-top:1px solid #eef0f3">
+            <span style="width:64px;height:64px;flex-shrink:0;border-radius:10px;background:#eef1f7;color:#3b5998;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:29px;height:29px;flex-shrink:0"><path d="M13.2 7a3.2 3.2 0 1 1-6.4 0a3.2 3.2 0 1 1 6.4 0M4 16.5c.9-2.8 3.2-4.2 6-4.2s5.1 1.4 6 4.2"></path></svg></span>
+            <span style="max-width:560px;font-size:17px;font-weight:700;line-height:1.5;color:#172645;text-wrap:pretty">Esta fábrica no tiene encargados registrados; no será posible enviar informes de cotización.</span>
+          </div>
+          </sc-if>
+        </section>
+        </sc-if>
+      </div>
+      </sc-if>
+
+      <!-- ══════ SISTEMA ══════ -->
+      <sc-if value="{{ esSistema }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:48px;align-items:center;padding:24px 16px">
+        <div style="display:flex;flex-direction:column;gap:16px;animation:fadeUp .5s ease both">
+          <sc-if value="{{ sis.es404 }}"><span style="font-size:96px;font-weight:800;line-height:1;color:#172645;letter-spacing:-0.02em">404</span></sc-if>
+          <sc-if value="{{ sis.esErr }}"><span style="width:72px;height:72px;flex-shrink:0;border-radius:10px;background:#fbe9e7;color:#b3261e;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:33px;height:33px;flex-shrink:0"><path d="M10 3 18 17H2zM10 8.5v3.5M10 14.6v.01"></path></svg></span></sc-if>
+          <span style="width:80px;height:3px;background:{{ sis.bar }}"></span>
+          <h1 style="margin:0;font-size:34px;font-weight:800;text-transform:uppercase;color:#172645">{{ sis.titulo }}</h1>
+          <p style="margin:0;max-width:460px;font-size:17px;line-height:1.7;color:#555b66">{{ sis.texto }}</p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
+            <button type="button" onClick="{{ sis.b1go }}" style="border:none;border-radius:6px;padding:15px 26px;background:#0f3483;color:#fff;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;box-shadow:0 6px 16px rgba(15,52,131,.24);transition:background .2s ease" style-hover="background:#0b2766">{{ sis.b1 }}</button>
+            <button type="button" onClick="{{ sis.b2go }}" style="border:none;border-radius:6px;padding:15px 22px;background:#eef1f7;color:#172645;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease" style-hover="background:#e1e7f2">{{ sis.b2 }}</button>
+          </div>
+        </div>
+        <div style="height:min(420px,50vw);min-height:220px;border-radius:8px;background:{{ sis.foto }};box-shadow:0 20px 44px rgba(23,38,69,.2)"></div>
+      </div>
+      </sc-if>
+
+    </main>
+  </div>
+</div>
+
+<sc-if value="{{ drawer }}">
+<div style="position:fixed;inset:0;z-index:40;display:flex;animation:fadeIn .2s ease both">
+  <aside style="position:relative;box-sizing:border-box;width:272px;background:linear-gradient(185deg,#1b2d52,#13203b);padding:24px 0 24px 16px;display:flex;flex-direction:column;gap:32px;animation:slideIn .28s ease both">
+    <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1px);background-size:22px 22px;pointer-events:none"></div>
+    <img src="assets/logo-castro-white.png" alt="Castro Tornería S.R.L." style="position:relative;height:44px;align-self:flex-start">
+    <nav style="position:relative;display:flex;flex-direction:column;gap:8px;padding-right:16px">
+      <sc-for list="{{ nav }}" as="it" hint-placeholder-count="4">
+        <button type="button" onClick="{{ it.go }}" style="display:flex;align-items:center;gap:14px;padding:17px 16px;border:none;border-radius:8px;background:{{ it.mBg }};font-size:15px;font-weight:{{ it.mFw }};letter-spacing:.04em;text-transform:uppercase;color:{{ it.mFg }};box-shadow:{{ it.mSh }};text-align:left"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="{{ it.d }}"></path></svg>{{ it.label }}</button>
+      </sc-for>
+    </nav>
+  </aside>
+  <button type="button" onClick="{{ cerrarDrawer }}" title="Cerrar el menú" style="flex:1;background:rgba(21,34,62,.6);border:none;display:flex;align-items:flex-start;justify-content:center;padding-top:24px">
+    <span style="width:46px;height:46px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:#ffffff;color:#172645;font-size:24px;font-weight:600">×</span>
+  </button>
+</div>
+</sc-if>
+
+<sc-if value="{{ hayModal }}">
+<div onClick="{{ cerrarModal }}" style="position:fixed;inset:0;z-index:50;background:rgba(21,34,62,.55);display:flex;align-items:{{ mAlign }};justify-content:center;padding:{{ mPad }};box-sizing:border-box;overflow-y:auto;animation:fadeIn .2s ease both">
+  <div onClick="{{ stop }}" style="width:{{ md.ancho }};max-width:100%;box-sizing:border-box;background:#ffffff;border-radius:{{ mRad }};box-shadow:0 30px 70px rgba(0,0,0,.3);padding:32px 28px;display:flex;flex-direction:column;gap:18px;animation:{{ mAnim }}">
+    <div style="display:flex;align-items:center;gap:16px">
+      <span style="width:56px;height:56px;flex-shrink:0;border-radius:10px;background:{{ md.ibg }};color:{{ md.ifg }};display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px;flex-shrink:0"><path d="{{ md.icon }}"></path></svg></span>
+      <div style="display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font-size:22px;font-weight:800;text-transform:uppercase;color:#172645">{{ md.titulo }}</h3><span style="width:50px;height:3px;background:{{ md.bar }}"></span></div>
+    </div>
+    <sc-if value="{{ md.hayTexto }}"><p style="margin:0;font-size:16px;line-height:1.65;color:#555b66">{{ md.pre }}<strong style="color:#172645">{{ md.strong }}</strong>{{ md.post }}</p></sc-if>
+    <sc-if value="{{ md.hayItems }}">
+    <div style="display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto">
+      <sc-for list="{{ md.items }}" as="p" hint-placeholder-count="2">
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:6px;background:#f5f6f9">
+        <span style="width:34px;height:34px;flex-shrink:0;border-radius:6px;background:#172645;color:#fff;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="{{ p.icon }}"></path></svg></span>
+        <span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;font-weight:700;color:#172645">{{ p.titulo }}</span><span style="font-size:13px;color:#8a909c">{{ p.sub }}</span></span>
+      </div>
+      </sc-for>
+    </div>
+    </sc-if>
+    <sc-if value="{{ md.hayAviso }}"><div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:6px;background:#fbe9e7;font-size:14px;font-weight:700;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ md.aviso }}</div></sc-if>
+    <sc-if value="{{ md.hayCampos }}">
+    <div style="display:grid;grid-template-columns:repeat({{ md.cols }},minmax(0,1fr));gap:18px 20px">
+      <sc-for list="{{ md.campos }}" as="c" hint-placeholder-count="2">
+      <div style="grid-column:{{ c.span }};display:flex;flex-direction:column;gap:8px;min-width:0">
+        <sc-if value="{{ c.conLabel }}"><span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">{{ c.label }}</label><sc-if value="{{ c.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></span></sc-if>
+        <sc-if value="{{ c.esText }}"><input value="{{ c.value }}" onChange="{{ c.onChange }}" placeholder="{{ c.ph }}" maxLength="{{ c.max }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;text-transform:{{ c.tt }};box-shadow:{{ c.sh }}" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)"></sc-if>
+        <sc-if value="{{ c.esSelect }}"><select value="{{ c.value }}" onChange="{{ c.onChange }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;box-shadow:{{ c.sh }}"><option value="">{{ c.phSel }}</option><sc-for list="{{ c.opciones }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select></sc-if>
+        <sc-if value="{{ c.esCheck }}"><button type="button" onClick="{{ c.toggle }}" style="align-self:flex-start;display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;border:none;background:none;padding:2px 0;font-size:15px;font-weight:600;color:#172645;text-align:left"><span style="width:34px;height:34px;flex-shrink:0;box-sizing:border-box;border-radius:6px;border:2px solid {{ c.boxBd }};background:{{ c.boxBg }};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700">{{ c.mark }}</span>{{ c.label }}<sc-if value="{{ c.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></button></sc-if>
+        <sc-if value="{{ c.hayErr }}"><span style="display:inline-flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:600;line-height:1.4;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ c.err }}</span></sc-if>
+      </div>
+      </sc-for>
+    </div>
+    </sc-if>
+    <div style="display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-top:6px">
+      <button type="button" onClick="{{ cerrarModal }}" style="border:none;border-radius:6px;padding:15px 22px;background:#eef1f7;color:#172645;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease" style-hover="background:#e1e7f2">Cancelar</button>
+      <button type="button" onClick="{{ md.ok }}" style="{{ md.okCss }}">{{ md.okLabel }}</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ hayToast }}">
+<div style="position:fixed;top:20px;right:20px;z-index:60;max-width:calc(100vw - 40px);width:420px;box-sizing:border-box;display:flex;align-items:center;gap:12px;background:#ffffff;border-radius:8px;padding:14px 16px;box-shadow:0 14px 30px rgba(23,38,69,.18);animation:toastIn .35s ease both">
+  <span style="width:28px;height:28px;flex-shrink:0;border-radius:999px;background:{{ toastBg }};color:#fff;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="{{ toastIcon }}"></path></svg></span>
+  <span style="flex:1;font-size:15px;font-weight:600;line-height:1.45;color:#172645">{{ toastTxt }}</span>
+  <button type="button" onClick="{{ cerrarToast }}" title="Cerrar" style="width:30px;height:30px;flex-shrink:0;border:none;border-radius:6px;background:transparent;color:#8a909c;font-size:18px" style-hover="background:#eef1f7">×</button>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+// ── Íconos (paths SVG 20×20) ──
+const IC = {
+  enc: 'M13.2 7a3.2 3.2 0 1 1-6.4 0a3.2 3.2 0 1 1 6.4 0M4 16.5c.9-2.8 3.2-4.2 6-4.2s5.1 1.4 6 4.2',
+  fab: 'M3 17V8.5l4.5 3V8.5l4.5 3V5h5v12z',
+  rub: 'M3 3.5h6.5l7.5 7.5-6 6-7.5-7.5zM6.8 7.2h.01',
+  prov: 'M10 2.6 17 6v8l-7 3.4L3 14V6zM3 6l7 3.4L17 6M10 9.4v8',
+  trash: 'M3 5.6h14M7.8 5.6V4.3a1.3 1.3 0 0 1 1.3-1.3h1.8a1.3 1.3 0 0 1 1.3 1.3v1.3M5.1 5.6h9.8l-.7 9.6a1.6 1.6 0 0 1-1.6 1.5H7.4a1.6 1.6 0 0 1-1.6-1.5zM8.4 8.8v4.6M11.6 8.8v4.6',
+  react: 'M16 10a6 6 0 1 1-1.8-4.3M16 3v3.2h-3.2',
+  check: 'M4 10.5l4 4 8-9', alert: 'M10 5.5v6M10 14.5v.01', info: 'M10 9v5M10 6.2v.01',
+  warn: 'M10 3 18 17H2zM10 8.5v3.5M10 14.6v.01',
+  nores: 'M14.5 9a5.5 5.5 0 1 1-11 0a5.5 5.5 0 1 1 11 0M13 13l4.5 4.5M6.5 9h5'
+};
+const TIPO_ICON = {
+  Material: 'M2.5 13.5h9l2-3h-9zM6.5 10.5h9l2-3h-9zM2.5 13.5v2.5h9v-2.5M11.5 16l2-3v-2.5M15.5 10.5v-3',
+  Repuesto: 'M10 2.5l6.5 3.75v7.5L10 17.5l-6.5-3.75v-7.5zM12.6 10a2.6 2.6 0 1 1-5.2 0a2.6 2.6 0 1 1 5.2 0',
+  Pintura: 'M3 3.5h11v4H3zM14 5.5h2.5v4.5H9.5v2.5M8.5 12.5h2v5h-2z',
+  Tercerizado: 'M1.5 5.5h10v7.5h-10zM11.5 8.5h3.5l3 3v1.5h-6.5M5 15.6a1.6 1.6 0 1 1 0-.01M14.5 15.6a1.6 1.6 0 1 1 0-.01'
+};
+const TIPOS = ['Material', 'Tercerizado', 'Repuesto', 'Pintura'];
+const PAGE = 8;
+const HOY = '08/10/2026';
+const LS = 'castro-prototipo-nav';
+const MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const fechaLarga = f => { const p = (f || '').split('/'); return p.length === 3 ? (+p[0]) + ' ' + MES[+p[1] - 1] + ' ' + p[2] : f; };
+const norm = s => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const tr = x => (x == null ? '' : x).toString().trim();
+const CUIT_RE = /^\d{2}-\d{8}-\d$/;
+const MAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const box = on => ({ mark: on ? '✓' : '', boxBg: on ? '#0f3483' : '#ffffff', boxBd: on ? '#0f3483' : '#c3c9d6' });
+const BTN = 'border:none;border-radius:6px;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:8px;';
+const S = {
+  hBlanco: BTN + 'padding:15px 34px;background:#ffffff;color:#0f3483;box-shadow:0 10px 24px rgba(0,0,0,.25)',
+  hGhost: BTN + 'padding:15px 22px;background:rgba(255,255,255,.12);color:#ffffff',
+  hAcento: BTN + 'padding:15px 28px;background:#3b5998;color:#ffffff;box-shadow:0 10px 24px rgba(0,0,0,.25)',
+  hVerde: BTN + 'padding:15px 30px;background:#ffffff;color:#1f7a45;box-shadow:0 10px 24px rgba(0,0,0,.25)',
+  okAzul: BTN + 'padding:15px 26px;background:#0f3483;color:#ffffff;box-shadow:0 6px 16px rgba(15,52,131,.24)',
+  okRojo: BTN + 'padding:15px 26px;background:#b3261e;color:#ffffff;box-shadow:0 6px 16px rgba(179,38,30,.25)'
+};
+
+// ── Datos de ejemplo (se reinician al recargar) ──
+const semilla = () => ({
+  rub: [
+    { id: 'r1', nombre: 'Particular', fecha: '12/03/2026' },
+    { id: 'r2', nombre: 'Metalúrgica', fecha: '02/09/2026' },
+    { id: 'r3', nombre: 'Autopartes', fecha: '18/06/2026' },
+    { id: 'r4', nombre: 'Agroindustria', fecha: '27/08/2026' },
+    { id: 'r5', nombre: 'Petróleo y gas', fecha: '05/10/2026' },
+    { id: 'r6', nombre: 'Alimenticia', fecha: '14/07/2026' },
+    { id: 'r7', nombre: 'Construcción', fecha: '21/04/2026' },
+    { id: 'r8', nombre: 'Minería', fecha: '09/02/2026' },
+    { id: 'r9', nombre: 'Energía', fecha: '30/09/2026' }
+  ],
+  fab: [
+    { id: 'f1', nombre: 'EDASA', codigo: 'EDA', cuit: '30-71234567-1', rubroId: 'r3', direccion: 'Av. Siempre Viva 123, Córdoba', pago: 'Cliente puntual con los pagos, suele abonar por transferencia a 30 días.' },
+    { id: 'f2', nombre: 'OxyCAM', codigo: 'OXY', cuit: '30-79876543-0', rubroId: 'r5', direccion: 'Parque Industrial Norte, lote 14, Neuquén', pago: 'Cheque a 60 días.' },
+    { id: 'f3', nombre: 'Fundición Norte', codigo: 'FNO', cuit: '30-70555123-8', rubroId: 'r2', direccion: 'Ruta 9 km 694, Córdoba', pago: 'Contado contra entrega.' },
+    { id: 'f4', nombre: 'Agro Pampa S.A.', codigo: 'AGP', cuit: '33-71098765-9', rubroId: 'r4', direccion: 'Ruta 158 km 3, San Francisco', pago: 'Transferencia a 45 días.' },
+    { id: 'f5', nombre: 'Lácteos Sierras', codigo: 'LSI', cuit: '30-70888111-2', rubroId: 'r6', direccion: 'Camino a Alta Gracia km 12, Córdoba', pago: 'Transferencia a 30 días.' },
+    { id: 'f6', nombre: 'Metalúrgica Tecnovial', codigo: 'MTV', cuit: '30-71555999-4', rubroId: 'r2', direccion: 'Bv. Los Granaderos 2350, Córdoba', pago: '' },
+    { id: 'f7', nombre: 'Hidráulica Andina', codigo: 'HAN', cuit: '30-70444333-7', rubroId: 'r9', direccion: 'Acceso Sur 3100, Mendoza', pago: 'Seña del 30% y saldo a 30 días.' },
+    { id: 'f8', nombre: 'Agrometal Monte Maíz', codigo: 'AMM', cuit: '30-50123456-6', rubroId: 'r4', direccion: 'Misiones 1974, Monte Maíz', pago: 'Transferencia a 30 días.' },
+    { id: 'f9', nombre: 'Autopartes Ferreyra', codigo: 'APF', cuit: '30-71999888-5', rubroId: 'r3', direccion: 'Av. Sabattini 5200, Córdoba', pago: '' }
+  ],
+  enc: [
+    { id: 'e1', nombre: 'Laura', apellido: 'Gómez', tel: '+54 351 555-0001', wa: true, mail: 'compras@edasa.com', fabricaId: 'f1', obs: 'Atiende de 8 a 14. Prefiere que los presupuestos lleguen por mail con copia por WhatsApp.', activo: true },
+    { id: 'e2', nombre: 'Martín', apellido: 'Pérez', tel: '+54 351 555-0002', wa: false, mail: 'pedidos@oxycam.com', fabricaId: 'f2', obs: '', activo: true },
+    { id: 'e3', nombre: 'Sofía', apellido: 'Herrera', tel: '+54 351 555-0147', wa: true, mail: 'sherrera@edasa.com', fabricaId: 'f1', obs: '', activo: true },
+    { id: 'e4', nombre: 'Ricardo', apellido: 'Molina', tel: '+54 3564 42-1180', wa: true, mail: 'rmolina@agropampa.com.ar', fabricaId: 'f4', obs: '', activo: true },
+    { id: 'e5', nombre: 'Jorge', apellido: 'Ledesma', tel: '', wa: false, mail: 'jledesma@fundicionnorte.com', fabricaId: 'f3', obs: '', activo: false },
+    { id: 'e6', nombre: 'Carlos', apellido: 'Díaz', tel: '+54 351 555-0099', wa: false, mail: 'cdiaz@edasa.com', fabricaId: 'f1', obs: '', activo: false },
+    { id: 'e7', nombre: 'Valeria', apellido: 'Ortiz', tel: '+54 351 422-7781', wa: true, mail: 'vortiz@lacteossierras.com', fabricaId: 'f5', obs: '', activo: true },
+    { id: 'e8', nombre: 'Gustavo', apellido: 'Ferreyra', tel: '+54 351 468-2210', wa: false, mail: 'compras@tecnovial.com.ar', fabricaId: 'f6', obs: '', activo: true },
+    { id: 'e9', nombre: 'Natalia', apellido: 'Bustos', tel: '+54 261 455-9012', wa: true, mail: 'nbustos@hidraulicaandina.com', fabricaId: 'f7', obs: '', activo: true },
+    { id: 'e10', nombre: 'Pablo', apellido: 'Quiroga', tel: '+54 3467 46-0033', wa: false, mail: 'pquiroga@agrometal.com', fabricaId: 'f8', obs: '', activo: true },
+    { id: 'e11', nombre: 'Mariana', apellido: 'Luna', tel: '+54 351 499-1200', wa: true, mail: 'mluna@apferreyra.com.ar', fabricaId: 'f9', obs: '', activo: true }
+  ],
+  prov: [
+    { id: 'p1', razon: 'Aceros del Sur S.A.', cuit: '30-70987654-3', tipos: ['Material', 'Tercerizado'], contacto: 'Diego Fernández', tel: '+54 9 351 444-5678', mail: 'ventas@acerosdelsur.com', direccion: 'Av. Circunvalación 4500, Córdoba', alta: '11/03/2026', mod: '11/03/2026' },
+    { id: 'p2', razon: 'Metalúrgica Rivadavia S.R.L.', cuit: '30-71234567-9', tipos: ['Tercerizado'], contacto: 'Laura Giménez', tel: '+54 9 11 5566-7788', mail: 'lgimenez@rivadavia.com.ar', direccion: 'Av. Rivadavia 8840, CABA', alta: '02/04/2026', mod: '19/08/2026' },
+    { id: 'p3', razon: 'Bronces Industriales Castro', cuit: '33-69874521-4', tipos: ['Repuesto'], contacto: 'Martín Sosa', tel: '+54 9 341 220-1199', mail: '', direccion: 'Ovidio Lagos 4120, Rosario', alta: '15/01/2026', mod: '15/01/2026' },
+    { id: 'p4', razon: 'Insumos Técnicos del Litoral S.A.', cuit: '30-71987456-1', tipos: ['Pintura', 'Material'], contacto: '', tel: '', mail: '', direccion: 'Ruta 11 km 8, Santa Fe', alta: '28/05/2026', mod: '28/05/2026' },
+    { id: 'p5', razon: 'Tornillos y Bulones del Centro', cuit: '', tipos: ['Repuesto'], contacto: 'Nadia Ruiz', tel: '+54 9 353 415-2200', mail: 'nruiz@tbcentro.com', direccion: '', alta: '07/07/2026', mod: '07/07/2026' },
+    { id: 'p6', razon: 'Pinturerías Industriales Córdoba', cuit: '30-70333222-1', tipos: ['Pintura'], contacto: 'Hernán Vega', tel: '+54 9 351 600-1122', mail: 'hvega@picba.com.ar', direccion: 'Colón 3400, Córdoba', alta: '20/02/2026', mod: '03/09/2026' },
+    { id: 'p7', razon: 'Transporte Mediterráneo', cuit: '30-71444555-0', tipos: ['Tercerizado'], contacto: 'Silvia Paz', tel: '+54 9 351 777-3030', mail: 'logistica@tmediterraneo.com', direccion: 'Av. Japón 1500, Córdoba', alta: '11/06/2026', mod: '11/06/2026' },
+    { id: 'p8', razon: 'Rodamientos Córdoba S.A.', cuit: '30-70222111-9', tipos: ['Repuesto'], contacto: 'Lucas Ríos', tel: '+54 9 351 512-8800', mail: 'ventas@rodcba.com.ar', direccion: 'La Rioja 980, Córdoba', alta: '04/03/2026', mod: '04/03/2026' },
+    { id: 'p9', razon: 'Hierros Ferreyra', cuit: '20-25789456-3', tipos: ['Material'], contacto: 'Omar Ferreyra', tel: '+54 9 351 433-9090', mail: '', direccion: 'Camino a 60 Cuadras km 6, Córdoba', alta: '18/08/2026', mod: '18/08/2026' },
+    { id: 'p10', razon: 'Tratamientos Térmicos del Centro', cuit: '30-71666777-2', tipos: ['Tercerizado'], contacto: 'Ana Bertoldi', tel: '+54 9 353 420-5566', mail: 'abertoldi@ttcentro.com', direccion: 'Parque Industrial, Villa María', alta: '25/09/2026', mod: '25/09/2026' },
+    { id: 'p11', razon: 'Abrasivos Norte', cuit: '30-70777888-5', tipos: ['Material', 'Repuesto'], contacto: '', tel: '+54 9 381 455-7070', mail: '', direccion: '', alta: '30/04/2026', mod: '30/04/2026' },
+    { id: 'p12', razon: 'Cromados San Vicente', cuit: '27-30111222-8', tipos: ['Tercerizado', 'Pintura'], contacto: 'Raúl Medina', tel: '+54 9 351 488-2121', mail: 'cromados@sanvicente.com', direccion: 'Sargento Cabral 1450, Córdoba', alta: '09/09/2026', mod: '09/09/2026' }
+  ]
+});
+
+const LISTAS = {
+  proveedores: { ey1: 'Catálogo de', ey2: 'proveedores', titulo: 'Proveedores', foto: 'url(assets/hero-castro.png) 65% center/cover no-repeat', ph: 'Buscar por razón social, CUIT, contacto o tipo', nuevoLabel: '+ Nuevo proveedor', plur: 'proveedores', reg: 'proveedores registrados', vacioT: 'Todavía no hay proveedores registrados.', vacioS: 'Cuando cargues el primero va a aparecer acá.', sinresS: 'Revisá cómo está escrito o buscá por CUIT.', icon: IC.prov },
+  encargados: { ey1: 'Contactos de', ey2: 'fábricas', titulo: 'Encargados', foto: 'url(assets/foto-cnc.png) center 55%/cover no-repeat', ph: 'Buscar por nombre, apellido, mail o fábrica', nuevoLabel: '+ Nuevo encargado', plur: 'encargados', reg: 'encargados activos', vacioT: 'Todavía no hay encargados registrados.', vacioS: 'Cuando cargues el primero va a aparecer acá.', sinresS: 'Revisá cómo está escrito o buscá por fábrica.', icon: IC.enc },
+  fabricas: { ey1: 'Empresas', ey2: 'clientes', titulo: 'Fábricas', foto: 'url(assets/foto-ejes.png) center 45%/cover no-repeat', ph: 'Buscar por nombre, código o CUIT', nuevoLabel: '+ Nueva fábrica', plur: 'fábricas', reg: 'fábricas registradas', vacioT: 'Todavía no hay fábricas registradas.', vacioS: 'Cuando cargues la primera va a aparecer acá.', sinresS: 'Revisá cómo está escrito o cambiá el rubro.', icon: IC.fab },
+  rubros: { ey1: 'Catálogo de', ey2: 'rubros', titulo: 'Rubros', foto: 'url(assets/foto-disco.png) center 45%/cover no-repeat', ph: 'Buscar rubro', nuevoLabel: '+ Nuevo rubro', plur: 'rubros', reg: 'rubros registrados', vacioT: 'Todavía no hay rubros registrados.', vacioS: 'Cuando cargues el primero va a aparecer acá.', sinresS: 'Revisá cómo está escrito.', icon: IC.rub }
+};
+const SECCION_DE = { prov: 'proveedores', enc: 'encargados', fab: 'fabricas' };
+const NAV = [
+  { key: 'encargados', label: 'Encargados', d: IC.enc },
+  { key: 'fabricas', label: 'Fábricas', d: IC.fab },
+  { key: 'rubros', label: 'Rubros', d: IC.rub },
+  { key: 'proveedores', label: 'Proveedores', d: IC.prov }
+];
+
+class Component extends DCLogic {
+  state = {
+    pantalla: 'proveedores', det: null, nuevo: null, editando: false,
+    menuCerrado: false, drawer: false, movil: false,
+    d: semilla(), q: {}, pag: {}, fRubro: '', incEnc: false, incFabEnc: false,
+    borrando: false, sel: [], form: {}, intento: false,
+    modal: null, mform: {}, mIntento: false, toast: null, demo: 'normal'
+  };
+
+  componentDidMount() {
+    this.mq = window.matchMedia('(max-width: 760px)');
+    this.onMq = () => this.setState({ movil: this.mq.matches, drawer: false });
+    this.onMq();
+    this.mq.addEventListener('change', this.onMq);
+    try {
+      const g = JSON.parse(localStorage.getItem(LS) || 'null');
+      if (g) this.setState({ pantalla: g.pantalla || 'proveedores', det: g.det || null, nuevo: g.nuevo || null, menuCerrado: !!g.menuCerrado, form: g.nuevo === 'prov' ? { tipos: [] } : {} });
+    } catch (e) {}
+  }
+  componentDidUpdate() {
+    const s = this.state;
+    const snap = JSON.stringify({ pantalla: s.pantalla, det: s.det, nuevo: s.nuevo, menuCerrado: s.menuCerrado });
+    if (snap !== this._nav) {
+      this._nav = snap;
+      try { localStorage.setItem(LS, snap); } catch (e) {}
+    }
+  }
+  componentWillUnmount() { if (this.mq) this.mq.removeEventListener('change', this.onMq); clearTimeout(this.tt); }
+
+  // ── navegación y utilidades ──
+  go(pantalla, extra) {
+    this.setState({ pantalla, editando: false, borrando: false, sel: [], intento: false, drawer: false, modal: null, form: {}, ...(extra || {}) });
+    try { window.scrollTo(0, 0); } catch (e) {}
+  }
+  verDet(t, id) { this.go('detalle', { det: { t, id } }); }
+  aviso(texto, tipo) {
+    clearTimeout(this.tt);
+    this.setState({ toast: { texto, tipo: tipo || 'ok' } });
+    this.tt = setTimeout(() => this.setState({ toast: null }), 3600);
+  }
+  upd(fn) { this.setState(s => ({ d: fn(s.d) })); }
+  abrir(m) { this.setState({ modal: m, mform: { ...(m.valores || {}) }, mIntento: false }); }
+  cerrar() { this.setState({ modal: null, mform: {}, mIntento: false }); }
+  rubro(d, id) { const r = d.rub.find(x => x.id === id); return r ? r.nombre : '—'; }
+
+  validar(t, v, id, d) {
+    const e = {};
+    if (t === 'prov') {
+      if (!tr(v.razon)) e.razon = 'Ingresá la razón social';
+      if (tr(v.cuit) && !CUIT_RE.test(tr(v.cuit))) e.cuit = 'El formato debe ser XX-XXXXXXXX-X';
+      else if (tr(v.cuit) && d.prov.some(p => p.id !== id && p.cuit === tr(v.cuit))) e.cuit = 'Ya existe un proveedor con ese CUIT';
+      if (!(v.tipos || []).length) e.tipos = 'Elegí al menos un tipo de proveedor';
+      if (tr(v.mail) && !MAIL_RE.test(tr(v.mail))) e.mail = 'Revisá el formato del email';
+    }
+    if (t === 'enc') {
+      if (!tr(v.nombre)) e.nombre = 'Ingresá el nombre';
+      if (!tr(v.apellido)) e.apellido = 'Ingresá el apellido';
+      if (!tr(v.mail)) e.mail = 'Ingresá el email';
+      else if (!MAIL_RE.test(tr(v.mail))) e.mail = 'Revisá el formato del email';
+      else if (d.enc.some(x => x.id !== id && x.fabricaId === v.fabricaId && norm(x.mail) === norm(tr(v.mail)))) e.mail = 'Ya existe un encargado con ese correo en esta fábrica';
+      if (!v.fabricaId) e.fabricaId = 'Elegí la fábrica';
+    }
+    if (t === 'fab') {
+      if (!tr(v.nombre)) e.nombre = 'Ingresá el nombre de la fábrica';
+      if (tr(v.cuit) && !CUIT_RE.test(tr(v.cuit))) e.cuit = 'El formato debe ser XX-XXXXXXXX-X';
+      else if (tr(v.cuit) && d.fab.some(f => f.id !== id && f.cuit === tr(v.cuit))) e.cuit = 'Ya existe una fábrica registrada con ese CUIT ' + tr(v.cuit) + '.';
+      if (!v.rubroId) e.rubroId = 'Elegí el rubro';
+    }
+    if (t === 'rub') {
+      if (tr(v.nombre).length < 3) e.nombre = 'El nombre debe tener al menos 3 caracteres';
+      else if (d.rub.some(r => r.id !== id && norm(r.nombre) === norm(tr(v.nombre)))) e.nombre = 'Ya existe un rubro con ese nombre';
+    }
+    return e;
+  }
+
+  // ── definiciones de formularios (datos → campos) ──
+  defsProv(modo) {
+    const nuevo = modo === 'nuevo';
+    return [
+      { titulo: 'Datos generales', cols: nuevo ? 2 : 3, campos: [
+        { k: 'razon', label: 'Razón social', full: nuevo, ph: 'Ej: Aceros del Sur S.A.' },
+        { k: 'cuit', label: 'CUIT', ph: 'XX-XXXXXXXX-X', max: 13 },
+        nuevo ? { k: 'direccion', label: 'Dirección', ph: 'Calle, número y ciudad' } : { k: 'tipos', label: 'Tipo', tipo: 'lock' },
+        nuevo ? { k: 'tipos', label: 'Tipo', tipo: 'tipos', full: true, nota: 'Elegí al menos uno. Un proveedor puede tener varios.' } : { k: 'direccion', label: 'Dirección', full: true }
+      ] },
+      { titulo: 'Contacto', cols: nuevo ? 2 : 3, campos: [
+        { k: 'contacto', label: 'Persona de contacto' },
+        { k: 'tel', label: 'Teléfono', ph: '+54 9 351 000-0000' },
+        { k: 'mail', label: 'Email', full: nuevo, ph: 'nombre@empresa.com' }
+      ] }
+    ];
+  }
+  defsEnc(modo, d) {
+    const base = [
+      { k: 'nombre', label: 'Nombre', ph: 'Ej: Laura' },
+      { k: 'apellido', label: 'Apellido', ph: 'Ej: Gómez' },
+      { k: 'tel', label: 'Teléfono', ph: '+54 351 555-0000' },
+      { k: 'mail', label: 'Email', ph: 'nombre@fabrica.com' },
+      { k: 'wa', label: 'Este número tiene WhatsApp', tipo: 'check', futuro: true }
+    ];
+    if (modo === 'editar') return [
+      { titulo: 'Datos de contacto', cols: 2, campos: base },
+      { titulo: 'Observaciones', futuro: true, cols: 1, campos: [{ k: 'obs', label: 'Observaciones', tipo: 'area', full: true, sinLabel: true, ph: 'Notas internas sobre el encargado (opcional).' }] }
+    ];
+    return [{ cols: 2, campos: base.concat([
+      { k: 'obs', label: 'Observaciones', tipo: 'area', full: true, futuro: true, ph: 'Notas internas sobre el encargado (opcional).' },
+      { k: 'fabricaId', label: 'Fábrica', tipo: 'select', full: true, phSel: 'Elegí la fábrica', opciones: d.fab.map(f => ({ v: f.id, l: f.nombre })), link: { label: '+ Registrar nueva fábrica', go: () => this.modalNuevaFab() } }
+    ]) }];
+  }
+  defsFab(d) {
+    return [{ titulo: '', cols: 3, campos: [
+      { k: 'nombre', label: 'Nombre', full: true, ph: 'Ej: EDASA' },
+      { k: 'codigo', label: 'Código de fábrica', futuro: true, max: 4, upper: true, ph: 'EDA' },
+      { k: 'cuit', label: 'CUIT (opcional)', ph: 'XX-XXXXXXXX-X', max: 13 },
+      { k: 'rubroId', label: 'Rubro', tipo: 'select', phSel: 'Elegí el rubro', opciones: d.rub.map(r => ({ v: r.id, l: r.nombre })), link: { label: '+ Nuevo rubro', futuro: true, go: () => this.aviso('El alta de rubros desde la fábrica es a futuro. Por ahora se cargan en Rubros.', 'info') } },
+      { k: 'direccion', label: 'Dirección', full: true },
+      { k: 'pago', label: 'Formas de pago', tipo: 'area', full: true }
+    ] }];
+  }
+
+  campo(c, vals, set, errs) {
+    const t = c.tipo || 'text', v = vals[c.k], err = errs[c.k] || '';
+    const o = {
+      label: c.label, futuro: !!c.futuro, nota: c.nota || '', hayNota: !!c.nota,
+      conLabel: t !== 'check' && !c.sinLabel, span: c.full ? '1 / -1' : 'auto',
+      esText: t === 'text', esArea: t === 'area', esSelect: t === 'select', esCheck: t === 'check', esTipos: t === 'tipos', esLock: t === 'lock',
+      value: v == null ? '' : v, ph: c.ph || '', max: c.max || 200, tt: c.upper ? 'uppercase' : 'none',
+      onChange: e => set(c.k, c.upper ? e.target.value.toUpperCase() : e.target.value),
+      hayErr: !!err, err, bc: err ? '#b3261e' : '#e1e5ec', sh: err ? '0 0 0 4px rgba(179,38,30,.10)' : 'none',
+      opciones: c.opciones || [], phSel: c.phSel || 'Elegí una opción',
+      hayLink: !!c.link, linkLabel: c.link ? c.link.label : '', linkGo: c.link ? c.link.go : null, linkFuturo: !!(c.link && c.link.futuro),
+      chips: [], tipoOpts: [], mark: '', boxBg: '#fff', boxBd: '#c3c9d6', toggle: null
+    };
+    if (t === 'check') Object.assign(o, box(!!v), { toggle: () => set(c.k, !v) });
+    if (t === 'tipos') {
+      const arr = v || [];
+      o.tipoOpts = TIPOS.map(n => { const on = arr.includes(n); return { name: n, icon: TIPO_ICON[n], ...box(on), bg: on ? '#eef2fa' : '#ffffff', bd: on ? '#0f3483' : '#e1e5ec', toggle: () => set(c.k, on ? arr.filter(x => x !== n) : arr.concat(n)) }; });
+    }
+    if (t === 'lock') o.chips = (v || []).map(n => ({ name: n, icon: TIPO_ICON[n] }));
+    return o;
+  }
+  mk(secs, vals, set, errs, movil) {
+    return secs.map(s => ({ titulo: s.titulo || '', hayTitulo: !!s.titulo, futuro: !!s.futuro, cols: movil ? 1 : (s.cols || 2), campos: s.campos.map(c => this.campo(c, vals, set, errs)) }));
+  }
+
+  // ── acciones ──
+  crear() {
+    const s = this.state, t = s.nuevo, v = s.form, e = this.validar(t, v, null, s.d);
+    if (Object.keys(e).length) { this.setState({ intento: true }); this.aviso('Revisá los campos marcados.', 'error'); return; }
+    const id = t + Date.now();
+    if (t === 'prov') {
+      this.upd(d => ({ ...d, prov: [{ id, razon: tr(v.razon), cuit: tr(v.cuit), direccion: tr(v.direccion), tipos: v.tipos, contacto: tr(v.contacto), tel: tr(v.tel), mail: tr(v.mail), alta: HOY, mod: HOY }].concat(d.prov) }));
+      this.verDet('prov', id); this.aviso('Proveedor creado exitosamente.');
+    }
+    if (t === 'enc') {
+      this.upd(d => ({ ...d, enc: [{ id, nombre: tr(v.nombre), apellido: tr(v.apellido), tel: tr(v.tel), wa: !!v.wa, mail: tr(v.mail), obs: tr(v.obs), fabricaId: v.fabricaId, activo: true }].concat(d.enc) }));
+      this.verDet('enc', id); this.aviso('Encargado creado exitosamente.');
+    }
+    if (t === 'fab') {
+      this.upd(d => ({ ...d, fab: [{ id, nombre: tr(v.nombre), codigo: tr(v.codigo), cuit: tr(v.cuit), rubroId: v.rubroId, direccion: tr(v.direccion), pago: tr(v.pago) }].concat(d.fab) }));
+      this.verDet('fab', id); this.aviso('Fábrica creada. Ya podés cargar sus encargados.');
+    }
+  }
+  guardar() {
+    const s = this.state, { t, id } = s.det, v = s.form, e = this.validar(t, v, id, s.d);
+    if (Object.keys(e).length) { this.setState({ intento: true }); this.aviso('Revisá los campos marcados.', 'error'); return; }
+    const limpio = {};
+    Object.keys(v).forEach(k => { limpio[k] = typeof v[k] === 'string' ? v[k].trim() : v[k]; });
+    this.upd(d => ({ ...d, [t]: d[t].map(x => x.id === id ? { ...x, ...limpio, mod: HOY } : x) }));
+    this.setState({ editando: false, intento: false, form: {} });
+    this.aviso('Cambios guardados.');
+  }
+  setActivoEnc(id, activo) {
+    this.upd(d => ({ ...d, enc: d.enc.map(x => x.id === id ? { ...x, activo } : x) }));
+    this.aviso(activo ? 'Encargado reactivado.' : 'Encargado eliminado. Se conserva su historial.');
+  }
+  modalBorrarEnc(e) {
+    this.abrir({ icon: IC.trash, tono: 'rojo', titulo: 'Eliminar encargado', pre: '¿Seguro que querés eliminar a ', strong: e.nombre + ' ' + e.apellido, post: '? El encargado se eliminará, pero se conserva su historial.', okLabel: 'Eliminar', ok: () => { this.cerrar(); this.setActivoEnc(e.id, false); } });
+  }
+  modalEnc(fabId, e) {
+    const editar = !!e;
+    this.abrir({
+      icon: IC.enc, titulo: editar ? 'Editar encargado' : 'Agregar encargado', ancho: '680px', cols: 2,
+      valores: editar ? { nombre: e.nombre, apellido: e.apellido, tel: e.tel, mail: e.mail, wa: e.wa } : { wa: false },
+      fijo: { fabricaId: fabId }, validar: 'enc', selfId: editar ? e.id : null,
+      campos: this.defsEnc('editar')[0].campos,
+      okLabel: editar ? 'Guardar cambios' : 'Agregar encargado',
+      ok: v => {
+        const datos = { nombre: tr(v.nombre), apellido: tr(v.apellido), tel: tr(v.tel), mail: tr(v.mail), wa: !!v.wa };
+        if (editar) this.upd(d => ({ ...d, enc: d.enc.map(x => x.id === e.id ? { ...x, ...datos } : x) }));
+        else this.upd(d => ({ ...d, enc: d.enc.concat([{ id: 'enc' + Date.now(), ...datos, obs: '', fabricaId: fabId, activo: true }]) }));
+        this.cerrar(); this.aviso(editar ? 'Encargado actualizado.' : 'Encargado agregado a la fábrica.');
+      }
+    });
+  }
+  modalNuevaFab() {
+    this.abrir({
+      icon: IC.fab, titulo: 'Nueva fábrica', ancho: '680px', cols: 2, validar: 'fab',
+      campos: [
+        { k: 'nombre', label: 'Nombre', full: true, ph: 'Ej: EDASA' },
+        { k: 'codigo', label: 'Código de fábrica', futuro: true, max: 4, upper: true, ph: 'EDA' },
+        { k: 'cuit', label: 'CUIT (opcional)', ph: 'XX-XXXXXXXX-X', max: 13 },
+        { k: 'rubroId', label: 'Rubro', tipo: 'select', phSel: 'Elegí el rubro', opciones: this.state.d.rub.map(r => ({ v: r.id, l: r.nombre })) },
+        { k: 'direccion', label: 'Dirección' }
+      ],
+      okLabel: 'Crear fábrica',
+      ok: v => {
+        const id = 'fab' + Date.now();
+        this.upd(d => ({ ...d, fab: [{ id, nombre: tr(v.nombre), codigo: tr(v.codigo), cuit: tr(v.cuit), rubroId: v.rubroId, direccion: tr(v.direccion), pago: '' }].concat(d.fab) }));
+        this.setState(s => ({ form: { ...s.form, fabricaId: id } }));
+        this.cerrar(); this.aviso('Fábrica creada y elegida para este encargado.');
+      }
+    });
+  }
+  modalRubro(r) {
+    const editar = !!r;
+    this.abrir({
+      icon: IC.rub, titulo: editar ? 'Editar rubro' : 'Nuevo rubro', ancho: '480px', cols: 1, validar: 'rub', selfId: editar ? r.id : null,
+      valores: { nombre: editar ? r.nombre : '' },
+      campos: [{ k: 'nombre', label: 'Nombre del rubro', full: true, ph: 'Ej: Metalúrgica' }],
+      okLabel: editar ? 'Guardar cambios' : 'Crear rubro',
+      ok: v => {
+        if (editar) this.upd(d => ({ ...d, rub: d.rub.map(x => x.id === r.id ? { ...x, nombre: tr(v.nombre), fecha: HOY } : x) }));
+        else this.upd(d => ({ ...d, rub: [{ id: 'rub' + Date.now(), nombre: tr(v.nombre), fecha: HOY }].concat(d.rub) }));
+        this.cerrar(); this.aviso(editar ? 'Rubro actualizado.' : 'Rubro creado exitosamente.');
+      }
+    });
+  }
+  modalBorrarRubro(r) {
+    this.abrir({
+      icon: IC.trash, tono: 'rojo', titulo: 'Eliminar rubro', pre: '¿Seguro que querés eliminar el rubro ', strong: r.nombre, post: '? No se puede eliminar si alguna fábrica lo tiene asignado.', okLabel: 'Eliminar',
+      ok: () => {
+        const usos = this.state.d.fab.filter(f => f.rubroId === r.id).length;
+        this.cerrar();
+        if (usos) { this.aviso('No se puede eliminar ' + r.nombre + ': ' + (usos === 1 ? 'una fábrica lo tiene asignado.' : usos + ' fábricas lo tienen asignado.'), 'error'); return; }
+        this.upd(d => ({ ...d, rub: d.rub.filter(x => x.id !== r.id) }));
+        this.aviso('Rubro eliminado.');
+      }
+    });
+  }
+  modalBorrarProv(lista, alFinal) {
+    const uno = lista.length === 1;
+    this.abrir({
+      icon: IC.trash, tono: 'rojo', ancho: '540px', titulo: uno ? 'Eliminar proveedor' : 'Eliminar proveedores',
+      pre: uno ? 'Vas a eliminar este proveedor:' : 'Vas a eliminar estos proveedores:', strong: '', post: '',
+      items: lista.map(p => ({ icon: TIPO_ICON[p.tipos[0]] || IC.prov, titulo: p.razon, sub: p.cuit || 'Sin CUIT' })),
+      aviso: 'Esta acción no se puede deshacer', okLabel: 'Eliminar',
+      ok: () => {
+        const ids = lista.map(p => p.id);
+        this.upd(d => ({ ...d, prov: d.prov.filter(p => !ids.includes(p.id)) }));
+        this.cerrar(); if (alFinal) alFinal();
+        this.aviso(uno ? 'Proveedor eliminado.' : lista.length + ' proveedores eliminados.');
+      }
+    });
+  }
+
+  renderVals() {
+    const s = this.state, d = s.d, movil = s.movil;
+    const setForm = (k, v) => this.setState(st => ({ form: { ...st.form, [k]: v } }));
+    const setM = (k, v) => this.setState(st => ({ mform: { ...st.mform, [k]: v } }));
+
+    // pantalla efectiva (si el registro guardado ya no existe, vuelve al listado)
+    let P = s.pantalla;
+    const detEnt = P === 'detalle' && s.det ? (d[s.det.t] || []).find(x => x.id === s.det.id) : null;
+    if (P === 'detalle' && !detEnt) P = s.det ? SECCION_DE[s.det.t] || 'proveedores' : 'proveedores';
+    if (P === 'nuevo' && !SECCION_DE[s.nuevo]) P = 'proveedores';
+    const esL = !!LISTAS[P];
+    const seccion = esL ? P : P === 'nuevo' ? SECCION_DE[s.nuevo] : P === 'detalle' ? SECCION_DE[s.det.t] : '';
+
+    const nav = NAV.map(n => {
+      const on = n.key === seccion;
+      return { ...n, on, off: !on, go: () => this.go(n.key), mBg: on ? '#fcfcfc' : 'transparent', mFg: on ? '#0f3483' : '#e6e9f0', mFw: on ? '800' : '700', mSh: on ? '0 10px 24px rgba(0,0,0,.25)' : 'none' };
+    });
+
+    // ── listados ──
+    const L = LISTAS[P] || LISTAS.proveedores;
+    const q = norm(s.q[P] || '');
+    let todas = [], filas = [], totalHero = 0;
+    if (P === 'proveedores') { todas = d.prov; totalHero = todas.length; filas = todas.filter(p => !q || norm([p.razon, p.cuit, p.contacto, p.tipos.join(' ')].join(' ')).includes(q)); }
+    if (P === 'encargados') {
+      todas = d.enc; totalHero = todas.filter(x => x.activo).length;
+      filas = todas.filter(x => (x.activo || s.incEnc)).filter(x => { const f = d.fab.find(y => y.id === x.fabricaId); return !q || norm([x.nombre, x.apellido, x.mail, f ? f.nombre : ''].join(' ')).includes(q); });
+    }
+    if (P === 'fabricas') { todas = d.fab; totalHero = todas.length; filas = todas.filter(f => (!s.fRubro || f.rubroId === s.fRubro) && (!q || norm([f.nombre, f.codigo, f.cuit].join(' ')).includes(q))); }
+    if (P === 'rubros') { todas = d.rub; totalHero = todas.length; filas = todas.filter(r => !q || norm(r.nombre).includes(q)); }
+    const paginas = Math.max(1, Math.ceil(filas.length / PAGE));
+    const pg = Math.min(s.pag[P] || 1, paginas);
+    const vis = filas.slice((pg - 1) * PAGE, pg * PAGE);
+    const irPag = n => () => this.setState(st => ({ pag: { ...st.pag, [P]: n } }));
+    const pag = {
+      rango: filas.length ? ((pg - 1) * PAGE + 1) + '–' + Math.min(pg * PAGE, filas.length) : '0', total: filas.length,
+      deTxt: pg + ' de ' + paginas,
+      prev: irPag(Math.max(1, pg - 1)), next: irPag(Math.min(paginas, pg + 1)),
+      prevDis: pg <= 1, nextDis: pg >= paginas, prevOp: pg <= 1 ? .4 : 1, nextOp: pg >= paginas ? .4 : 1,
+      nums: Array.from({ length: paginas }, (_, i) => { const on = i + 1 === pg; return { n: i + 1, go: irPag(i + 1), bg: on ? '#0f3483' : 'transparent', fg: on ? '#ffffff' : '#172645', sh: on ? '0 4px 12px rgba(15,52,131,.25)' : 'none' }; })
+    };
+    let estado = 'ok';
+    if (s.demo !== 'normal') estado = s.demo;
+    else if (!todas.length) estado = 'vacio';
+    else if (!filas.length) estado = 'sinres';
+    const limpiar = () => this.setState(st => ({ q: { ...st.q, [P]: '' }, fRubro: P === 'fabricas' ? '' : st.fRubro, incEnc: P === 'encargados' ? true : st.incEnc }));
+    const nuevoDe = {
+      proveedores: () => this.go('nuevo', { nuevo: 'prov', form: { tipos: [] } }),
+      encargados: () => this.go('nuevo', { nuevo: 'enc', form: { wa: false } }),
+      fabricas: () => this.go('nuevo', { nuevo: 'fab' }),
+      rubros: () => this.modalRubro(null)
+    };
+    const EST = {
+      vacio: { icon: L.icon, ibg: '#eef1f7', ifg: '#3b5998', titulo: L.vacioT, texto: L.vacioS, btn: L.nuevoLabel, btnP: true, btnS: false, accion: nuevoDe[P] },
+      sinres: { icon: IC.nores, ibg: '#eef1f7', ifg: '#3b5998', titulo: 'No hay ' + L.plur + ' que coincidan con la búsqueda.', texto: L.sinresS, btn: 'Limpiar búsqueda', btnP: false, btnS: true, accion: limpiar },
+      error: { icon: IC.warn, ibg: '#fbe9e7', ifg: '#b3261e', titulo: 'No se pudieron cargar los ' + L.plur + '.', texto: 'Revisá la conexión e intentá de nuevo.', btn: 'Reintentar', btnP: true, btnS: false, accion: () => { this.setState({ demo: 'cargando' }); setTimeout(() => this.setState({ demo: 'normal' }), 1200); } }
+    };
+    const est = { cargando: estado === 'cargando', msg: !!EST[estado], ...(EST[estado] || EST.vacio) };
+
+    const toggleSel = id => () => this.setState(st => ({ sel: st.sel.includes(id) ? st.sel.filter(x => x !== id) : st.sel.concat(id) }));
+    const provRows = P === 'proveedores' ? vis.map(p => {
+      const on = s.sel.includes(p.id);
+      const ver = () => this.verDet('prov', p.id);
+      return {
+        ...p, icon: TIPO_ICON[p.tipos[0]] || IC.prov, tipos: p.tipos.map(n => ({ name: n, icon: TIPO_ICON[n] })),
+        cuitTxt: p.cuit || '—', cuitFg: p.cuit ? '#555b66' : '#b0b5be',
+        contTxt: p.contacto || '—', contFg: p.contacto ? '#172645' : '#b0b5be', telTxt: p.tel || '—', telFg: p.tel ? '#555b66' : '#b0b5be',
+        ...box(on), bg: on ? '#eef2fa' : '#ffffff', sh: on ? 'inset 4px 0 0 #0f3483' : 'none',
+        ver, click: s.borrando ? toggleSel(p.id) : ver
+      };
+    }) : [];
+    const encRows = P === 'encargados' ? vis.map(e => {
+      const f = d.fab.find(x => x.id === e.fabricaId);
+      return { ...e, nombreCompleto: e.nombre + ' ' + e.apellido, telTxt: e.tel || '—', fab: f ? f.nombre : '—', rubro: this.rubro(d, f && f.rubroId), inactivo: !e.activo, op: e.activo ? 1 : .6,
+        ver: () => this.verDet('enc', e.id), borrar: () => this.modalBorrarEnc(e), reactivar: () => this.setActivoEnc(e.id, true) };
+    }) : [];
+    const fabRows = P === 'fabricas' ? vis.map(f => {
+      const cant = d.enc.filter(e => e.fabricaId === f.id && e.activo).length;
+      return { ...f, codigoTxt: f.codigo || '—', cuitTxt: f.cuit || '—', cuitFg: f.cuit ? '#555b66' : '#b0b5be', rubro: this.rubro(d, f.rubroId), cant,
+        cntBg: cant ? '#e8edf8' : '#fbe9e7', cntFg: cant ? '#0f3483' : '#b3261e', ver: () => this.verDet('fab', f.id) };
+    }) : [];
+    const rubRows = P === 'rubros' ? vis.map(r => ({ ...r, editar: () => this.modalRubro(r), borrar: () => this.modalBorrarRubro(r) })) : [];
+
+    const cards = !movil || !esL ? [] : vis.map(x => {
+      const c = { rad: '6px', ibg: '#172645', ifg: '#ffffff', chips: [], linea: '', inactivo: false, op: 1, sh: '0 4px 16px rgba(23,38,69,.07)', verLabel: 'Ver', puedeBorrar: false, puedeReact: false, click: null, mark: '', boxBg: '#fff', boxBd: '#c3c9d6' };
+      if (P === 'proveedores') {
+        const on = s.sel.includes(x.id);
+        Object.assign(c, box(on), { icon: TIPO_ICON[x.tipos[0]] || IC.prov, titulo: x.razon, sub: x.cuit || 'Sin CUIT', chips: x.tipos.map(n => ({ name: n, icon: TIPO_ICON[n] })), linea: [x.contacto, x.tel].filter(Boolean).join(' · '), verLabel: 'Ver proveedor', ver: () => this.verDet('prov', x.id), click: s.borrando ? toggleSel(x.id) : null, sh: on ? 'inset 4px 0 0 #0f3483, 0 4px 16px rgba(23,38,69,.07)' : c.sh });
+      }
+      if (P === 'encargados') {
+        const f = d.fab.find(y => y.id === x.fabricaId);
+        Object.assign(c, { icon: IC.enc, rad: '999px', ibg: '#eef1f7', ifg: '#172645', titulo: x.nombre + ' ' + x.apellido, sub: (f ? f.nombre : '—') + ' · ' + this.rubro(d, f && f.rubroId), linea: [x.tel, x.mail].filter(Boolean).join(' · '), inactivo: !x.activo, op: x.activo ? 1 : .7, verLabel: 'Ver encargado', ver: () => this.verDet('enc', x.id), puedeBorrar: x.activo, borrar: () => this.modalBorrarEnc(x), puedeReact: !x.activo, reactivar: () => this.setActivoEnc(x.id, true) });
+      }
+      if (P === 'fabricas') {
+        const cant = d.enc.filter(e => e.fabricaId === x.id && e.activo).length;
+        Object.assign(c, { icon: IC.fab, titulo: x.nombre, sub: x.cuit || 'Sin CUIT', chips: [{ name: this.rubro(d, x.rubroId), icon: IC.rub }], linea: cant === 1 ? '1 encargado' : cant + ' encargados', verLabel: 'Ver fábrica', ver: () => this.verDet('fab', x.id) });
+      }
+      if (P === 'rubros') {
+        Object.assign(c, { icon: IC.rub, ibg: '#eef1f7', ifg: '#3b5998', titulo: x.nombre, sub: 'Modificado el ' + x.fecha, verLabel: 'Editar', ver: () => this.modalRubro(x), puedeBorrar: true, borrar: () => this.modalBorrarRubro(x) });
+      }
+      c.hayChips = c.chips.length > 0; c.hayLinea = !!c.linea;
+      return c;
+    });
+
+    const visSel = s.borrando ? vis.filter(p => s.sel.includes(p.id)).length : 0;
+    const todosOn = s.borrando && vis.length > 0 && visSel === vis.length;
+    const nSel = s.sel.length;
+
+    // ── alta ──
+    let nv = null;
+    if (P === 'nuevo') {
+      const t = s.nuevo, errs = s.intento ? this.validar(t, s.form, null, d) : {};
+      const C = {
+        prov: { foto: 'url(assets/foto-brida.png) center/cover no-repeat', volverLabel: 'Proveedores', volverA: 'proveedores', titulo: 'Nuevo proveedor', sub: 'Datos del proveedor a registrar.', submit: 'Crear proveedor', defs: this.defsProv('nuevo') },
+        enc: { foto: 'url(assets/foto-cono.png) center 45%/cover no-repeat', volverLabel: 'Encargados', volverA: 'encargados', titulo: 'Nuevo encargado', sub: 'Persona de contacto de una fábrica.', submit: 'Crear encargado', defs: this.defsEnc('nuevo', d) },
+        fab: { foto: 'url(assets/foto-dispositivo.png) center 45%/cover no-repeat', volverLabel: 'Fábricas', volverA: 'fabricas', titulo: 'Nueva fábrica', sub: 'Después de crearla podés cargar sus encargados.', submit: 'Crear fábrica', defs: this.defsFab(d) }
+      }[t];
+      nv = { ...C, volver: () => this.go(C.volverA), secciones: this.mk(C.defs, s.form, setForm, errs, movil), crear: () => this.crear() };
+    }
+
+    // ── detalle ──
+    let dt = null, fe = null;
+    if (P === 'detalle') {
+      const { t } = s.det, x = detEnt, ed = s.editando;
+      const errs = ed && s.intento ? this.validar(t, s.form, x.id, d) : {};
+      const editar = defs => this.mk(defs, s.form, setForm, errs, movil).map(z => ({ ...z, leer: false, edit: true, items: [] }));
+      const leer = (titulo, cols, items, futuro) => ({
+        titulo, futuro: !!futuro, leer: true, edit: false, cols: movil ? 1 : cols, campos: [],
+        items: items.map(it => ({ label: it.label || '', hayLabel: !!it.label, futuro: !!it.futuro, span: it.full ? '1 / -1' : 'auto', valor: it.valor == null ? '' : it.valor, hayValor: !it.chips, fg: it.muted ? '#8a909c' : (it.texto ? '#555b66' : '#172645'), fw: it.texto ? '500' : '600', wa: !!it.wa, hayChips: !!it.chips, chips: it.chips || [] }))
+      });
+      const empezar = { label: 'Editar', css: S.hBlanco, go: () => this.setState({ editando: true, form: { ...x }, intento: false }) };
+      const enEdicion = [
+        { label: 'Cancelar', css: S.hGhost, go: () => this.setState({ editando: false, intento: false, form: {} }) },
+        { label: 'Guardar cambios', css: S.hAcento, go: () => this.guardar() }
+      ];
+      const base = { volver: () => this.go(SECCION_DE[t]), inactivo: false, banner: '', chips: [], rad: '8px', ibg: '#ffffff', hayAside: false, asItems: [], asTitulo: '', asLock: false, asLink: false, asLinkLabel: '', asLinkGo: null, esFab: false };
+      if (t === 'prov') dt = { ...base,
+        foto: 'url(assets/foto-piezas-bronce.png) center 60%/cover no-repeat', volverLabel: 'Proveedores', icon: TIPO_ICON[x.tipos[0]] || IC.prov,
+        titulo: x.razon, sub: x.cuit ? 'CUIT ' + x.cuit : 'Sin CUIT', chips: x.tipos.map(n => ({ name: n, icon: TIPO_ICON[n] })),
+        acciones: ed ? enEdicion : [{ label: 'Eliminar', css: S.hGhost, go: () => this.modalBorrarProv([x], () => this.go('proveedores')) }, empezar],
+        secciones: ed ? editar(this.defsProv('editar')) : [
+          leer('Datos generales', 3, [{ label: 'Razón social', valor: x.razon }, { label: 'CUIT', valor: x.cuit || '—', muted: !x.cuit }, { label: 'Tipo', chips: x.tipos.map(n => ({ name: n, icon: TIPO_ICON[n] })) }, { label: 'Dirección', valor: x.direccion || '—', muted: !x.direccion, full: true }]),
+          leer('Contacto', 3, [{ label: 'Persona de contacto', valor: x.contacto || '—', muted: !x.contacto }, { label: 'Email', valor: x.mail || '—', muted: !x.mail }, { label: 'Teléfono', valor: x.tel || '—', muted: !x.tel }])
+        ],
+        hayAside: true, asTitulo: 'Registro', asItems: [{ label: 'Alta', valor: fechaLarga(x.alta) }, { label: 'Última modificación', valor: fechaLarga(x.mod) }]
+      };
+      if (t === 'enc') {
+        const f = d.fab.find(y => y.id === x.fabricaId);
+        dt = { ...base,
+          foto: 'url(assets/foto-fresado.png) center 35%/cover no-repeat', volverLabel: 'Encargados', icon: IC.enc, rad: '999px', ibg: x.activo ? '#ffffff' : 'rgba(255,255,255,.55)',
+          titulo: x.nombre + ' ' + x.apellido, sub: (f ? f.nombre : '—') + ' · ' + this.rubro(d, f && f.rubroId), inactivo: !x.activo,
+          banner: 'Este encargado está inactivo: no aparece en los listados ni recibe informes de cotización.',
+          acciones: !x.activo ? [{ label: 'Reactivar', hayIcon: true, icon: IC.react, css: S.hVerde, go: () => this.setActivoEnc(x.id, true) }] : ed ? enEdicion : [{ label: 'Eliminar', css: S.hGhost, go: () => this.modalBorrarEnc(x) }, empezar],
+          secciones: ed ? editar(this.defsEnc('editar', d)) : [
+            leer('Datos de contacto', 2, [{ label: 'Nombre', valor: x.nombre }, { label: 'Apellido', valor: x.apellido }, { label: 'Teléfono', valor: x.tel || '—', muted: !x.tel, wa: x.wa }, { label: 'Email', valor: x.mail }]),
+            leer('Observaciones', 1, [{ valor: x.obs || 'Sin observaciones.', texto: true, muted: !x.obs, full: true }], true)
+          ],
+          hayAside: true, asTitulo: 'Fábrica', asItems: [{ label: 'Nombre', valor: f ? f.nombre : '—' }, { label: 'Rubro', valor: this.rubro(d, f && f.rubroId) }],
+          asLock: ed, asLink: !!f && !ed, asLinkLabel: 'Ver fábrica', asLinkGo: () => f && this.verDet('fab', f.id)
+        };
+      }
+      if (t === 'fab') {
+        const rub = this.rubro(d, x.rubroId);
+        dt = { ...base,
+          foto: 'url(assets/foto-prensa.png) center 40%/cover no-repeat', volverLabel: 'Fábricas', icon: IC.fab,
+          titulo: x.nombre, sub: x.cuit ? 'CUIT ' + x.cuit : 'Sin CUIT', chips: [{ name: rub, icon: IC.rub }],
+          acciones: ed ? enEdicion : [empezar],
+          secciones: ed ? editar(this.defsFab(d)).map(z => ({ ...z, titulo: 'Datos de la fábrica' })) : [
+            leer('Datos de la fábrica', 3, [{ label: 'Código de fábrica', valor: x.codigo || '—', futuro: true, muted: !x.codigo }, { label: 'Rubro', valor: rub }, { label: 'CUIT', valor: x.cuit || '—', muted: !x.cuit }, { label: 'Dirección', valor: x.direccion || '—', muted: !x.direccion, full: true }, { label: 'Formas de pago', valor: x.pago || 'Sin datos.', texto: true, muted: !x.pago, full: true }])
+          ],
+          esFab: true
+        };
+        // en edición, el "+ Nuevo rubro" no aplica
+        if (ed) dt.secciones.forEach(z => z.campos.forEach(c => { if (c.esSelect) c.hayLink = false; }));
+        const filasF = d.enc.filter(e => e.fabricaId === x.id && (e.activo || s.incFabEnc));
+        fe = {
+          inc: box(s.incFabEnc), toggleInc: () => this.setState(st => ({ incFabEnc: !st.incFabEnc })),
+          agregar: () => this.modalEnc(x.id, null),
+          hayFilas: filasF.length > 0, vacio: filasF.length === 0,
+          filas: filasF.map(e => ({ ...e, nombreCompleto: e.nombre + ' ' + e.apellido, telTxt: e.tel || '—', inactivo: !e.activo, op: e.activo ? 1 : .6,
+            editar: () => this.modalEnc(x.id, e), borrar: () => this.modalBorrarEnc(e), reactivar: () => this.setActivoEnc(e.id, true) }))
+        };
+      }
+      dt.hayIconAcc = true;
+      dt.acciones = dt.acciones.map(a => ({ hayIcon: false, icon: '', ...a }));
+      dt.cols = dt.hayAside && !movil ? 'minmax(0,2fr) minmax(0,1fr)' : 'minmax(0,1fr)';
+      dt.op = dt.inactivo ? .7 : 1;
+    }
+
+    // ── sistema ──
+    const sis = P === '404'
+      ? { es404: true, esErr: false, bar: '#3b5998', titulo: 'Página no encontrada', texto: 'La página que buscás no existe o se movió. Volvé al listado y seguí desde ahí.', b1: 'Ir a Proveedores', b1go: () => this.go('proveedores'), b2: 'Volver', b2go: () => this.go('proveedores'), foto: 'url(assets/foto-cono.png) center 40%/cover no-repeat' }
+      : { es404: false, esErr: true, bar: '#b3261e', titulo: 'Algo salió mal', texto: 'No pudimos cargar esta pantalla. Revisá la conexión e intentá de nuevo.', b1: 'Reintentar', b1go: () => this.go('proveedores'), b2: 'Ir al inicio', b2go: () => this.go('proveedores'), foto: 'url(assets/foto-fresado.png) center 40%/cover no-repeat' };
+
+    // ── modal ──
+    const m = s.modal;
+    let md = { titulo: '', icon: '', ibg: '#eef1f7', ifg: '#3b5998', bar: '#3b5998', hayTexto: false, hayItems: false, hayAviso: false, hayCampos: false, items: [], campos: [], cols: 1, ancho: '480px', okLabel: '', okCss: S.okAzul, ok: null };
+    if (m) {
+      const rojo = m.tono === 'rojo';
+      const v = { ...s.mform, ...(m.fijo || {}) };
+      const errs = m.validar && s.mIntento ? this.validar(m.validar, v, m.selfId || null, d) : {};
+      md = {
+        titulo: m.titulo, icon: m.icon, ibg: rojo ? '#fbe9e7' : '#eef1f7', ifg: rojo ? '#b3261e' : '#3b5998', bar: rojo ? '#b3261e' : '#3b5998',
+        hayTexto: !!(m.pre || m.strong), pre: m.pre || '', strong: m.strong || '', post: m.post || '',
+        hayItems: !!(m.items && m.items.length), items: m.items || [],
+        hayAviso: !!m.aviso, aviso: m.aviso || '',
+        hayCampos: !!(m.campos && m.campos.length), cols: movil ? 1 : (m.cols || 1),
+        campos: (m.campos || []).map(c => this.campo({ ...c, full: c.full || movil }, s.mform, setM, errs)),
+        ancho: m.ancho || '480px', okLabel: m.okLabel || 'Aceptar', okCss: rojo ? S.okRojo : S.okAzul,
+        ok: () => {
+          const vv = { ...this.state.mform, ...(m.fijo || {}) };
+          if (m.validar) { const e = this.validar(m.validar, vv, m.selfId || null, this.state.d); if (Object.keys(e).length) { this.setState({ mIntento: true }); return; } }
+          m.ok(vv);
+        }
+      };
+    }
+
+    const T = s.toast;
+    const crumbSec = (NAV.find(n => n.key === seccion) || { label: '' }).label;
+    const crumbAct = P === 'nuevo' ? 'Nuevo' : P === 'detalle' ? (dt ? dt.titulo : '') : '';
+
+    return {
+      // chrome del prototipo
+      demos: [['normal', 'Normal'], ['cargando', 'Cargando'], ['vacio', 'Vacío'], ['error', 'Error']].map(([k, label]) => ({
+        label, go: () => this.setState({ demo: k }),
+        css: 'border:none;border-radius:4px;padding:5px 10px;font-size:11.5px;font-weight:700;cursor:pointer;' + (s.demo === k ? 'background:#ffffff;color:#172645' : 'background:transparent;color:#9aa7c2')
+      })),
+      ir404: () => this.go('404'), irError: () => this.go('error'),
+      reiniciar: () => { this.go('proveedores', { d: semilla(), q: {}, pag: {}, fRubro: '', incEnc: false, incFabEnc: false, demo: 'normal' }); this.aviso('Datos de ejemplo restablecidos.', 'info'); },
+
+      // shell
+      movil, escritorio: !movil, railAbierto: !movil && !s.menuCerrado, railCerrado: !movil && s.menuCerrado,
+      toggleMenu: () => this.setState(st => ({ menuCerrado: !st.menuCerrado })),
+      nav, drawer: movil && s.drawer, abrirDrawer: () => this.setState({ drawer: true }), cerrarDrawer: () => this.setState({ drawer: false }),
+      crumb1: !crumbAct && !!crumbSec, crumb2: !!crumbAct, crumbSec: crumbSec || 'Sistema', crumbAct, crumbGo: () => this.go(seccion),
+
+      // listados
+      esLista: esL, esProv: P === 'proveedores', esEnc: P === 'encargados', esFab: P === 'fabricas', esRub: P === 'rubros',
+      lista: { ...L, total: totalHero, totalTxt: L.reg, nuevo: nuevoDe[P] },
+      q: s.q[P] || '', setQ: e => { const v = e.target.value; this.setState(st => ({ q: { ...st.q, [P]: v }, pag: { ...st.pag, [P]: 1 } })); },
+      incEnc: box(s.incEnc), toggleIncEnc: () => this.setState(st => ({ incEnc: !st.incEnc, pag: { ...st.pag, encargados: 1 } })),
+      fRubro: s.fRubro, setFRubro: e => { const v = e.target.value; this.setState(st => ({ fRubro: v, pag: { ...st.pag, fabricas: 1 } })); },
+      rubroOpts: d.rub.map(r => ({ v: r.id, l: r.nombre })),
+      provNormal: P === 'proveedores' && !s.borrando, borrando: P === 'proveedores' && s.borrando, noBorrando: !(P === 'proveedores' && s.borrando),
+      nuevoOp: s.borrando ? .4 : 1,
+      entrarBorrado: () => this.setState({ borrando: true, sel: [] }),
+      salirBorrado: () => this.setState({ borrando: false, sel: [] }),
+      todos: box(todosOn),
+      toggleTodos: () => this.setState(st => { const ids = vis.map(p => p.id); return { sel: todosOn ? st.sel.filter(x => !ids.includes(x)) : Array.from(new Set(st.sel.concat(ids))) }; }),
+      selLabel: nSel === 1 ? '1 proveedor seleccionado' : nSel + ' proveedores seleccionados',
+      confirmOp: nSel ? 1 : .4,
+      confirmarBorrado: () => {
+        if (!nSel) { this.aviso('Tocá los proveedores que querés eliminar.', 'info'); return; }
+        this.modalBorrarProv(d.prov.filter(p => s.sel.includes(p.id)), () => this.setState({ borrando: false, sel: [] }));
+      },
+      provCols: s.borrando ? '52px minmax(0,1.8fr) 140px 240px minmax(0,1.2fr)' : 'minmax(0,1.8fr) 130px 230px minmax(0,1.2fr) 80px',
+      provRows, encRows, fabRows, rubRows, cards, pag,
+      verTabla: esL && !movil && estado === 'ok', verCards: esL && movil && estado === 'ok', verEstado: esL && estado !== 'ok',
+      est, skel: [{ a: '65%', b: '80%', c: '55%' }, { a: '50%', b: '70%', c: '60%' }, { a: '72%', b: '60%', c: '45%' }, { a: '58%', b: '75%', c: '65%' }],
+
+      // alta / detalle / sistema
+      esNuevo: !!nv, nv: nv || { secciones: [] },
+      esDetalle: !!dt, dt: dt || { secciones: [], acciones: [], chips: [], asItems: [] }, fe: fe || { filas: [], inc: box(false) },
+      esSistema: P === '404' || P === 'error', sis,
+
+      // modal y aviso
+      hayModal: !!m, md, cerrarModal: () => this.cerrar(), stop: e => e.stopPropagation(),
+      mAlign: movil ? 'flex-end' : 'center', mPad: movil ? '0' : '24px', mRad: movil ? '16px 16px 0 0' : '10px', mAnim: movil ? 'sheetUp .3s ease both' : 'popIn .3s ease both',
+      hayToast: !!T, toastTxt: T ? T.texto : '', cerrarToast: () => this.setState({ toast: null }),
+      toastBg: T && T.tipo === 'error' ? '#b3261e' : T && T.tipo === 'info' ? '#3b5998' : '#2b7a52',
+      toastIcon: T && T.tipo === 'error' ? IC.alert : T && T.tipo === 'info' ? IC.info : IC.check
+    };
+  }
+}
+</script>
+</body>
+</html>

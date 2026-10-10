@@ -12,7 +12,7 @@ export function useCreateSupplier(){
             // la pantalla ya tiene el dato y no pide nada.
             queryClient.setQueryData(supplierKeys.detail(supplierCreated.id), supplierCreated)
             // La lista queda stale y se refetchea sola al volver al listado.
-            queryClient.invalidateQueries({ queryKey: supplierKeys.list()})
+            void queryClient.invalidateQueries({ queryKey: supplierKeys.lists()})
         }
     })
 }

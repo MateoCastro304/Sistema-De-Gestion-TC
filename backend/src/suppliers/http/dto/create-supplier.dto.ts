@@ -1,20 +1,10 @@
-import {
-  ArrayNotEmpty,
-  ArrayUnique,
-  IsArray,
-  IsEmail,
-  IsIn,
-  IsOptional,
-  IsString,
-  Length,
-  Matches,
-  MaxLength,
-} from 'class-validator';
-import { SUPPLIER_TYPES, SupplierType } from '../../domain/supplier-type';
+import { IsEmail, IsIn, IsOptional, IsString, Length, Matches, MaxLength } from 'class-validator';
+import { SUPPLIER_TYPES } from '../../domain/supplier-type';
+import type { SupplierType } from '../../domain/supplier-type';
 
 /**
  * Body payload for POST /suppliers. Mirrors the SupplierCreate schema of the
- * OpenAPI spec: legalName and supplierTypes are required, every other field
+ * OpenAPI spec: legalName and supplierType are required, every other field
  * is optional. The constraints declared here (length, enum, CUIT pattern,
  * email format) are enforced by the global ValidationPipe before the request
  * reaches the controller, so an invalid payload fails at the boundary with a
@@ -23,14 +13,11 @@ import { SUPPLIER_TYPES, SupplierType } from '../../domain/supplier-type';
  */
 export class CreateSupplierDto {
   @IsString()
-  @Length(1, 120)
+  @Length(1, 80)
   legalName!: string;
 
-  @IsArray()
-  @ArrayNotEmpty()
-  @ArrayUnique()
-  @IsIn(SUPPLIER_TYPES, { each: true })
-  supplierTypes!: SupplierType[];
+  @IsIn(SUPPLIER_TYPES)
+  supplierType!: SupplierType;
 
   @IsOptional()
   @IsString()
@@ -41,7 +28,7 @@ export class CreateSupplierDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(120)
+  @MaxLength(150)
   contactName?: string;
 
   @IsOptional()
@@ -51,11 +38,16 @@ export class CreateSupplierDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(40)
+  @MaxLength(50)
   contactPhone?: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(200)
+  @MaxLength(255)
   address?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  observation?: string;
 }

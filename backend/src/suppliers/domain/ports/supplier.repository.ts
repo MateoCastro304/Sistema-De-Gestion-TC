@@ -1,4 +1,4 @@
-import { Cuit } from '../cuit';
+import { Cuit } from '../../../shared/domain/cuit';
 import { Supplier } from '../supplier';
 import { SupplierType } from '../supplier-type';
 
@@ -14,10 +14,18 @@ import { SupplierType } from '../supplier-type';
 export type SupplierListParams = {
   page: number;
   limit: number;
-  // Matches suppliers that carry at least one of the given types.
-  types?: SupplierType[];
-  // Case-insensitive partial match on legalName.
-  legalNameContains?: string;
+  // Exact match on the supplier's single type.
+  type?: SupplierType;
+  /**
+   * Free-text search. Matches a case-insensitive substring of the legalName or
+   * the contactName, or a substring of the cuit. For the cuit the separators
+   * are stripped from both sides before comparing, so "30-712" finds the
+   * supplier stored as "30712345671".
+   *
+   * One field instead of one filter per column because the UI is a single
+   * search box: the user types and does not pick which column to look at.
+   */
+  search?: string;
 };
 
 /** A page of suppliers together with the total count matching the filter. */
@@ -49,20 +57,40 @@ export abstract class SupplierRepository {
   abstract findById(id: number): Promise<Supplier | null>;
 
   /**
-   * Whether any supplier — active or inactive — already uses this CUIT.
-   * Uniqueness is enforced across all rows, per the 409 rule in the OpenAPI.
+   * Whether an **active** supplier already uses this CUIT.
+   *
+   * Uniqueness deliberately ignores inactive rows: the baja is logical and
+   * there is no reactivation, so a supplier that was dado de baja must not
+   * block its CUIT forever. Deactivate "EDASA" with CUIT 30-11111111-1 and
+   * registering "OxyCam" with that same CUIT has to succeed, without reviving
+   * the old record.
+   *
    * excludeId lets the update flow skip the record being modified so it does
    * not clash with itself.
+   *
+   * Mirrors the partial index `supplier_cuit_active_key`
+   * (UNIQUE (cuit) WHERE is_active). Keep both in sync: if this method ever
+   * looks at inactive rows again, the application would answer 409 where the
+   * database would happily accept the insert.
    */
   abstract existsByCuit(cuit: Cuit, excludeId?: number): Promise<boolean>;
 
-  /** Same rule as {@link existsByCuit}, applied to the legal name. */
+  /**
+   * Same active-only rule as {@link existsByCuit}, applied to the legal name,
+   * and additionally **case-insensitive**: "Proveedor" and "PROVEEDOR" are the
+   * same legal name.
+   *
+   * Mirrors the index `supplier_legal_name_active_key`
+   * (UNIQUE (LOWER(legal_name)) WHERE is_active).
+   */
   abstract existsByLegalName(legalName: string, excludeId?: number): Promise<boolean>;
 
   /**
-   * Paginated listing driven by {@link SupplierListParams}. The result carries
-   * the total count so the client can render pagination without a second
-   * round-trip.
+   * Paginated listing driven by {@link SupplierListParams}. Returns **only
+   * active suppliers**: the baja is logical, but a supplier dado de baja stops
+   * existing for every query, so there is no flag to include them. The result
+   * carries the total count so the client can render pagination without a
+   * second round-trip.
    */
   abstract list(params: SupplierListParams): Promise<SupplierListResult>;
 

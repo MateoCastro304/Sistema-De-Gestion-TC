@@ -11,7 +11,7 @@ export function useUpdateSupplier(id:number) {
             queryClient.setQueryData(supplierKeys.detail(id), supplierUpdated)
 
             // La lista queda stale y se refetchea sola al volver al listado.
-            queryClient.invalidateQueries({ queryKey: supplierKeys.list()})
+            void queryClient.invalidateQueries({ queryKey: supplierKeys.lists()})
         },
     })
 }

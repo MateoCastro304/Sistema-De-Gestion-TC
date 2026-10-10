@@ -1,6 +1,6 @@
 import { isApiError } from "@/shared/api/ApiError";
-import { cuitError } from "@/shared/lib/cuit";
-import type { SupplierCreate, SupplierFormValues } from "../types/supplier";
+import { cuitError, formatCuit } from "@/shared/lib/cuit";
+import type { SupplierCreate, SupplierFormValues, SupplierType } from "../types/supplier";
 
 export type SupplierFormErrors = Partial<Record<keyof SupplierFormValues, string>>
 
@@ -35,8 +35,8 @@ export function validateSupplierForm(values: SupplierFormValues): SupplierFormEr
         errors.legalName = 'La razón social es obligatoria.'
     }
 
-    if (values.supplierTypes.length === 0) {
-        errors.supplierTypes = 'Elegí al menos un tipo.'
+    if (!values.supplierType) {
+        errors.supplierType = 'Elegí un tipo.'
     }
 
     const email = values.contactEmail.trim()
@@ -78,13 +78,16 @@ export function supplierErrorMessage(error: unknown, fallback: string): string {
 export function toSupplierCreate(values: SupplierFormValues): SupplierCreate {
     return {
         legalName: values.legalName.trim(),
-        cuit: values.cuit.trim() || undefined,
-        supplierTypes: values.supplierTypes,
+        // Con guiones (XX-XXXXXXXX-X): el backend rechaza el CUIT pelado.
+        cuit: formatCuit(values.cuit.trim()) || undefined,
+        // validateSupplierForm ya corrio: aca el tipo no puede estar vacio.
+        supplierType: values.supplierType as SupplierType,
         // `||` y no `??` a proposito: aca '' significa "no cargo nada" y se
         // convierte en undefined, que JSON.stringify descarta del payload.
         contactName: values.contactName.trim() || undefined,
         contactEmail: values.contactEmail.trim() || undefined,
         contactPhone: values.contactPhone.trim() || undefined,
         address: values.address.trim() || undefined,
+        observation: values.observation.trim() || undefined,
     }
 }

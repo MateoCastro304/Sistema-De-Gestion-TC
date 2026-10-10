@@ -14,8 +14,8 @@ export function useDeleteSuppliers() {
 
   return useMutation({
     mutationFn: async (ids: number[]): Promise<DeleteSuppliersResult> => {
-      // allSettled y no all: el DELETE da 409 si el proveedor esta en uso, y
-      // con `all` el primer 409 cancelaria los que si se podian borrar.
+      // allSettled y no all: el DELETE da 404 si otro ya lo elimino, y
+      // con `all` el primer 404 cancelaria los que si se podian borrar.
       const results = await Promise.allSettled(ids.map((id) => deleteSupplier(id)))
 
       const deleted: number[] = []
@@ -33,7 +33,7 @@ export function useDeleteSuppliers() {
     // un resultado. Por eso el if: sin borrados, la lista no cambio.
     onSuccess: ({ deleted }) => {
       if (deleted.length > 0) {
-        queryClient.invalidateQueries({ queryKey: supplierKeys.list() })
+        void queryClient.invalidateQueries({ queryKey: supplierKeys.lists() })
       }
 
       // remove y no invalidate: invalidar dispararia un GET que da 404.

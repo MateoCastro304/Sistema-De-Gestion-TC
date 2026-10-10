@@ -20,7 +20,7 @@ make dev-up
 make ps
 ```
 
-The API is available at `http://localhost:3000` (Swagger at `/docs`).
+The API is available at `http://localhost:3000`. The API contract (Swagger UI) is at `http://localhost:8081`.
 
 See all available commands with `make help`.
 

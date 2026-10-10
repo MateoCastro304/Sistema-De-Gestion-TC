@@ -1,4 +1,4 @@
-import { DomainValidationError } from '../../shared/domain/errors/domain-validation.error';
+import { DomainValidationError } from './errors/domain-validation.error';
 
 export class Cuit {
   private static readonly WEIGHTS = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];

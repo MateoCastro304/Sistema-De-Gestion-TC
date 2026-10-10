@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { Button, CheckBox, IconTrash, Modal } from '@/shared/components/ui'
+import { Button, IconTrash, Modal, PageHero, Pagination, SearchField } from '@/shared/components/ui'
+import { EmptyState } from '@/shared/components/feedback/EmptyState'
+import fotoTaller from '@/assets/foto-cnc.webp'
 import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
 import type { Customer } from '../types/customer'
 import {
-  useActivateCustomer,
   useCustomers,
   useDeactivateCustomer,
   useFactories,
@@ -23,7 +24,6 @@ export function CustomersPage() {
   const { data: factories = [] } = useFactories()
   const { data: categories = [] } = useCategories()
   const deactivate = useDeactivateCustomer()
-  const activate = useActivateCustomer()
 
   // Customer pending confirmation for baja lógica; null when the modal is closed.
   const [toDeactivate, setToDeactivate] = useState<Customer | null>(null)
@@ -32,8 +32,6 @@ export function CustomersPage() {
   // backend hace la búsqueda; se debouncea para no pegarle en cada tecla.
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
-  // Regla de negocio: los inactivos se muestran solo si se activa este filtro.
-  const [showInactive, setShowInactive] = useState(false)
   const [page, setPage] = useState(1)
 
   useEffect(() => {
@@ -41,46 +39,31 @@ export function CustomersPage() {
     return () => clearTimeout(timer)
   }, [search])
 
-  // Al cambiar la búsqueda o el filtro de inactivos volvemos a la primera página;
+  // Al cambiar la búsqueda volvemos a la primera página;
   // se hace en los handlers (no en un effect) para no encadenar renders.
   const handleSearchChange = (value: string) => {
     setSearch(value)
     setPage(1)
   }
 
-  const handleShowInactiveChange = (checked: boolean) => {
-    setShowInactive(checked)
-    setPage(1)
+  // "Limpiar búsqueda" no espera al debounce: el botón ya dijo qué quiere.
+  const clearSearch = () => {
+    handleSearchChange('')
+    setDebouncedSearch('')
   }
 
-  // El backend filtra y pagina; sin `active` trae activos + inactivos.
+  // El backend filtra y pagina; los eliminados nunca se listan.
   const customersQuery = useCustomers({
     nameContains: debouncedSearch || undefined,
-    active: showInactive ? undefined : true,
+    active: true,
     page,
     limit: PAGE_SIZE,
   })
 
   const customers = customersQuery.data?.items ?? []
   const total = customersQuery.data?.total ?? 0
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   const fullName = (c: Customer) => customerFullName(c)
-
-  const handleActivate = (customer: Customer) => {
-    activate.mutate(
-      { factoryId: customer.factoryId, id: customer.id },
-      {
-        onSuccess: () =>
-          showToast('success', `Encargado "${fullName(customer)}" reactivado.`),
-        onError: (error) =>
-          showToast(
-            'error',
-            customerErrorMessage(error, 'No se pudo reactivar el encargado.'),
-          ),
-      },
-    )
-  }
 
   const confirmDeactivate = () => {
     if (!toDeactivate) return
@@ -109,62 +92,21 @@ export function CustomersPage() {
 
   return (
     <>
-      {/* Rediseño: el encabezado pasa a ser el panel azul, el mismo de
-          Fábricas y Proveedores. Cambia la envoltura y las clases; los
-          textos, el botón y el link son los de antes. Los filtros se
-          mudan acá adentro (ver más abajo). */}
-      <div className="page-header">
-        <div className="page-header__row">
-          <div className="page-header__heading">
-            <span className="page-header__eyebrow">Catálogo</span>
-            <h1 className="page-header__title">Encargados</h1>
-            <p className="page-header__subtitle">
-              Alta, baja, modificación y consulta de encargados de fábricas.
-            </p>
-          </div>
-          <div className="content__actions">
-            <Link to="/catalogos/encargados/nuevo" className="btn btn--primary content__cta">
-              <span>+</span> Nuevo encargado
-            </Link>
-          </div>
-        </div>
+      <PageHero eyebrow="Contactos de" accent="fábricas" title="Encargados" photo={fotoTaller} />
 
+      {/* Barra de herramientas: buscador y alta. El buscador aparece
+          recién cuando el listado cargó. */}
+      <div className="toolbar">
         {customersQuery.isSuccess && (
-          <div className="page-header__filters">
-            <label className="search-field">
-              <svg
-                className="search-field__icon"
-                viewBox="0 0 20 20"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                aria-hidden="true"
-              >
-                <circle cx="9" cy="9" r="6" />
-                <path d="m14 14 4 4" strokeLinecap="round" />
-              </svg>
-              <input
-                type="search"
-                className="search-input"
-                placeholder="Buscar por nombre o apellido"
-                aria-label="Buscar por nombre o apellido"
-                value={search}
-                onChange={(event) => handleSearchChange(event.target.value)}
-              />
-            </label>
-
-            {/* El <label> envuelve al input, así que el texto también
-                alterna la casilla. CheckBox sólo cambia el aspecto: el
-                input nativo sigue adentro con su mismo onChange. */}
-            <label className="filter-check">
-              <CheckBox
-                checked={showInactive}
-                onChange={() => handleShowInactiveChange(!showInactive)}
-              />
-              Incluir eliminados
-            </label>
-          </div>
+          <SearchField
+            value={search}
+            onChange={handleSearchChange}
+            placeholder="Buscar por nombre o apellido"
+          />
         )}
+        <Link to="/catalogos/encargados/nuevo" className="btn btn--primary toolbar__cta">
+          + Nuevo encargado
+        </Link>
       </div>
 
       {customersQuery.isLoading && (
@@ -173,59 +115,80 @@ export function CustomersPage() {
         </div>
       )}
 
+      {/* El error va dentro de la misma tarjeta del listado, con el
+          encabezado de columnas a la vista: se lee como "acá iba la
+          lista", no como un cartel suelto. */}
       {customersQuery.isError && (
-        <div className="callout callout--warning">
-          <span>
-            {isApiError(customersQuery.error)
-              ? customersQuery.error.message
-              : 'No se pudieron cargar los encargados.'}
-          </span>
-        </div>
+        <CustomersTable
+          customers={[]}
+          factories={factories}
+          categories={categories}
+          onDeactivate={setToDeactivate}
+          emptyState={
+            <EmptyState
+              kind="error"
+              title="No se pudieron cargar los encargados."
+              action={<Button onClick={() => customersQuery.refetch()}>Reintentar</Button>}
+            >
+              {isApiError(customersQuery.error)
+                ? customersQuery.error.message
+                : 'Revisá la conexión e intentá de nuevo.'}
+            </EmptyState>
+          }
+        />
       )}
 
       {customersQuery.isSuccess && (
-        <>
-          <CustomersTable
-            customers={customers}
-            factories={factories}
-            categories={categories}
-            onDeactivate={setToDeactivate}
-            onActivate={handleActivate}
-            emptyMessage={
-              debouncedSearch !== ''
-                ? 'No hay encargados que coincidan con la búsqueda.'
-                : 'No hay encargados registrados.'
-            }
-          />
-
-          {totalPages > 1 && (
-            <div className="pagination">
-              <Button
-                variant="outline"
-                disabled={page <= 1 || customersQuery.isFetching}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+        <CustomersTable
+          customers={customers}
+          factories={factories}
+          categories={categories}
+          onDeactivate={setToDeactivate}
+          emptyState={
+            debouncedSearch !== '' ? (
+              <EmptyState
+                kind="no-results"
+                title="No hay encargados que coincidan con la búsqueda."
+                action={
+                  <Button variant="secondary" onClick={clearSearch}>
+                    Limpiar búsqueda
+                  </Button>
+                }
               >
-                Anterior
-              </Button>
-              <span className="pagination__status">
-                Página {page} de {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                disabled={page >= totalPages || customersQuery.isFetching}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                Revisá cómo está escrito o probá con el apellido.
+              </EmptyState>
+            ) : (
+              <EmptyState
+                title="Todavía no hay encargados registrados."
+                action={
+                  <Link to="/catalogos/encargados/nuevo" className="btn btn--primary">
+                    + Nuevo encargado
+                  </Link>
+                }
               >
-                Siguiente
-              </Button>
-            </div>
-          )}
-        </>
+                Cuando cargues el primero va a aparecer acá.
+              </EmptyState>
+            )
+          }
+          footer={
+            <Pagination
+              page={page}
+              pageSize={PAGE_SIZE}
+              total={total}
+              onPageChange={setPage}
+              // Con keepPreviousData la página vieja sigue a la vista
+              // mientras llega la nueva: se bloquea para no encolar saltos.
+              disabled={customersQuery.isFetching}
+            />
+          }
+        />
       )}
 
       <Modal
         open={toDeactivate !== null}
         onClose={() => setToDeactivate(null)}
         title="Eliminar encargado"
+        tone="danger"
         size="sm"
         footer={
           <>

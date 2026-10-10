@@ -34,7 +34,7 @@ let categories: Category[] = [
  * Rubros que usa alguna fábrica activa del mock de Fábricas (Autopartes y
  * Petróleo y gas): darlos de baja responde 409, como el backend.
  */
-const IN_USE_BY_ACTIVE_FACTORIES = new Set([3, 5])
+const IN_USE_IDS = new Set([3, 5])
 
 function findCategory(id: number): Category | undefined {
   return categories.find((c) => c.id === id)
@@ -86,11 +86,11 @@ export const categoryHandlers = [
     const created: Category = {
       id: nextId++,
       name: body.name,
-      active: true,
       createdAt: now,
       updatedAt: now,
     }
     categories = [...categories, created]
+    // El rubro directo, igual que el backend real.
     return HttpResponse.json(created, { status: 201 })
   }),
 
@@ -109,18 +109,17 @@ export const categoryHandlers = [
     return HttpResponse.json(category)
   }),
 
-  // Baja lógica: el rubro queda, con active: false, y deja de listarse.
   http.delete('/api/categories/:id', ({ params }) => {
     const id = Number(params.id)
-    const category = findCategory(id)
-    if (!category) return new HttpResponse(null, { status: 404 })
-    if (IN_USE_BY_ACTIVE_FACTORIES.has(id)) {
+    if (!findCategory(id)) return new HttpResponse(null, { status: 404 })
+    if (IN_USE_IDS.has(id)) {
       return conflict(
         'No es posible dar de baja el rubro: existen 1 fábricas activas asociadas. Reasignelas antes de continuar',
         `/api/categories/${id}`,
       )
     }
-    Object.assign(category, { active: false, updatedAt: new Date().toISOString() })
+    // Baja lógica: el rubro queda, con active: false, y deja de listarse.
+    Object.assign(findCategory(id)!, { active: false, updatedAt: new Date().toISOString() })
     return new HttpResponse(null, { status: 204 })
   }),
 ]

@@ -1,4 +1,6 @@
 import { cn } from '@/shared/lib/cn'
+import { EntityIcon } from './EntityIcon'
+import type { EntityIconName } from './EntityIcon'
 
 /**
  * ============================================================
@@ -40,6 +42,8 @@ export type AvatarTone = 'azul' | 'ambar' | 'verde' | 'neutral'
 interface AvatarProps {
   /** Nombre completo; de acá salen las iniciales. */
   name: string
+  /** Ícono de la entidad. Si falta, se muestran las iniciales del nombre. */
+  icon?: EntityIconName
   tone?: AvatarTone
   /** `lg` es la versión grande del encabezado de detalle. */
   size?: 'md' | 'lg'
@@ -59,13 +63,13 @@ function initials(name: string): string {
     .join('')
 }
 
-export function Avatar({ name, tone = 'azul', size = 'md' }: AvatarProps) {
+export function Avatar({ name, icon, tone = 'azul', size = 'md' }: AvatarProps) {
   return (
     <span
       className={cn('avatar', tone !== 'azul' && `avatar--${tone}`, size === 'lg' && 'avatar--lg')}
       aria-hidden="true"
     >
-      {initials(name)}
+      {icon ? <EntityIcon name={icon} /> : initials(name)}
     </span>
   )
 }

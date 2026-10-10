@@ -14,10 +14,11 @@ describe('ListSuppliers (use case)', () => {
 
   const seed = async (
     legalName: string,
-    types: SupplierType[] = ['MATERIAL'],
+    type: SupplierType = 'MATERIAL',
     active: boolean = true,
+    options: { cuit?: string; contactName?: string } = {},
   ): Promise<Supplier> => {
-    const draft = Supplier.create(legalName, types);
+    const draft = Supplier.create(legalName, type, options);
     const stored = await repo.save(draft);
     if (!active) {
       stored.deactivate();
@@ -46,13 +47,14 @@ describe('ListSuppliers (use case)', () => {
     expect(result.total).toBe(2);
   });
 
-  it('includes inactive suppliers because no active filter is applied yet', async () => {
+  it('excludes inactive suppliers, with no flag to include them', async () => {
     await seed('Activo');
-    await seed('Inactivo', ['MATERIAL'], false);
+    await seed('Inactivo', 'MATERIAL', false);
 
     const result = await useCase.execute({ page: 1, limit: 10 });
 
-    expect(result.total).toBe(2);
+    expect(result.total).toBe(1);
+    expect(result.items[0].getLegalName()).toBe('Activo');
   });
 
   // ---------------------------------------------------------------------------
@@ -88,45 +90,98 @@ describe('ListSuppliers (use case)', () => {
   // filters
   // ---------------------------------------------------------------------------
   describe('filters', () => {
-    it('filters by supplier type, matching at least one of the given types', async () => {
-      await seed('Aceros del Sur', ['MATERIAL']);
-      await seed('Servicios SA', ['PROCESS']);
-      await seed('Aceros y Procesos', ['MATERIAL', 'PROCESS']);
+    it('filters by supplier type, exclusively', async () => {
+      await seed('Aceros del Sur', 'MATERIAL');
+      await seed('Servicios SA', 'PROCESS');
+      await seed('Pinturas del Centro', 'PAINT');
 
-      const result = await useCase.execute({ page: 1, limit: 10, types: ['PROCESS'] });
+      const result = await useCase.execute({ page: 1, limit: 10, type: 'PROCESS' });
 
-      expect(result.total).toBe(2);
-      const names = result.items.map((s) => s.getLegalName());
-      expect(names).toEqual(expect.arrayContaining(['Servicios SA', 'Aceros y Procesos']));
-      expect(names).not.toContain('Aceros del Sur');
+      expect(result.total).toBe(1);
+      expect(result.items[0].getLegalName()).toBe('Servicios SA');
     });
 
-    it('filters by legal name substring, case-insensitively', async () => {
-      await seed('Aceros del Sur');
-      await seed('Otro Proveedor');
-      await seed('Aceros y Procesos');
+    describe('search', () => {
+      it('matches a legal name substring, case-insensitively', async () => {
+        await seed('Aceros del Sur');
+        await seed('Otro Proveedor');
+        await seed('Aceros y Procesos');
 
-      const result = await useCase.execute({
-        page: 1,
-        limit: 10,
-        legalNameContains: 'ACEROS',
+        const result = await useCase.execute({ page: 1, limit: 10, search: 'ACEROS' });
+
+        expect(result.total).toBe(2);
+        const names = result.items.map((s) => s.getLegalName());
+        expect(names).toEqual(expect.arrayContaining(['Aceros del Sur', 'Aceros y Procesos']));
       });
 
-      expect(result.total).toBe(2);
-      const names = result.items.map((s) => s.getLegalName());
-      expect(names).toEqual(expect.arrayContaining(['Aceros del Sur', 'Aceros y Procesos']));
+      it('matches a contact name substring', async () => {
+        await seed('Aceros del Sur', 'MATERIAL', true, { contactName: 'Diego Fernandez' });
+        await seed('Otro Proveedor');
+
+        const result = await useCase.execute({ page: 1, limit: 10, search: 'fernandez' });
+
+        expect(result.total).toBe(1);
+        expect(result.items[0].getLegalName()).toBe('Aceros del Sur');
+      });
+
+      it('matches the cuit ignoring the separators the user types', async () => {
+        await seed('Aceros del Sur', 'MATERIAL', true, { cuit: '30-71234567-1' });
+        await seed('Otro Proveedor');
+
+        // Stored as 11 bare digits, searched with dashes.
+        const result = await useCase.execute({ page: 1, limit: 10, search: '30-712' });
+
+        expect(result.total).toBe(1);
+        expect(result.items[0].getLegalName()).toBe('Aceros del Sur');
+      });
+
+      it('matches a partial cuit typed without separators', async () => {
+        await seed('Aceros del Sur', 'MATERIAL', true, { cuit: '30-71234567-1' });
+
+        const result = await useCase.execute({ page: 1, limit: 10, search: '71234567' });
+
+        expect(result.total).toBe(1);
+      });
+
+      it('returns nothing when the search matches no field', async () => {
+        await seed('Aceros del Sur', 'MATERIAL', true, { cuit: '30-71234567-1' });
+
+        const result = await useCase.execute({ page: 1, limit: 10, search: 'zzz' });
+
+        expect(result.total).toBe(0);
+      });
+
+      it('ignores a blank search instead of matching nothing', async () => {
+        await seed('Aceros del Sur');
+        await seed('Otro Proveedor');
+
+        const result = await useCase.execute({ page: 1, limit: 10, search: '   ' });
+
+        expect(result.total).toBe(2);
+      });
+
+      it('does not match every supplier when the search has no digits', async () => {
+        // A needle with no digits strips down to an empty string: that must not
+        // be treated as "every cuit contains the empty string".
+        await seed('Aceros del Sur', 'MATERIAL', true, { cuit: '30-71234567-1' });
+        await seed('Otro Proveedor', 'MATERIAL', true, { cuit: '27-23456789-1' });
+
+        const result = await useCase.execute({ page: 1, limit: 10, search: '---' });
+
+        expect(result.total).toBe(0);
+      });
     });
 
     it('combines several filters with AND', async () => {
-      await seed('Aceros del Sur', ['MATERIAL']);
-      await seed('Aceros y Procesos', ['PROCESS']);
-      await seed('Servicios SA', ['PROCESS']);
+      await seed('Aceros del Sur', 'MATERIAL');
+      await seed('Aceros y Procesos', 'PROCESS');
+      await seed('Servicios SA', 'PROCESS');
 
       const result = await useCase.execute({
         page: 1,
         limit: 10,
-        types: ['MATERIAL'],
-        legalNameContains: 'aceros',
+        type: 'MATERIAL',
+        search: 'aceros',
       });
 
       expect(result.total).toBe(1);
@@ -134,14 +189,14 @@ describe('ListSuppliers (use case)', () => {
     });
 
     it('computes total over the filtered set, not over the full store', async () => {
-      await seed('Aceros del Sur', ['MATERIAL']);
-      await seed('Servicios SA', ['PROCESS']);
-      await seed('Insumos del Norte', ['MATERIAL']);
+      await seed('Aceros del Sur', 'MATERIAL');
+      await seed('Servicios SA', 'PROCESS');
+      await seed('Insumos del Norte', 'MATERIAL');
 
       const result = await useCase.execute({
         page: 1,
         limit: 1,
-        types: ['MATERIAL'],
+        type: 'MATERIAL',
       });
 
       expect(result.items).toHaveLength(1);

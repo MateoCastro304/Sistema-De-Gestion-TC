@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Avatar, Table, TrashButton } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
 import type { Category } from '../types/category'
@@ -5,8 +6,11 @@ import type { Category } from '../types/category'
 interface CategoriesTableProps {
   categories: Category[]
   onEdit: (category: Category) => void
-  onDeactivate: (category: Category) => void
-  emptyMessage?: string
+  onDelete: (category: Category) => void
+  /** Qué mostrar si no hay filas: sin registros, sin resultados o error. */
+  emptyState?: ReactNode
+  /** Pie del listado (la paginación). */
+  footer?: ReactNode
 }
 
 const dateFormatter = new Intl.DateTimeFormat('es-AR', {
@@ -22,15 +26,16 @@ const dateFormatter = new Intl.DateTimeFormat('es-AR', {
 export function CategoriesTable({
   categories,
   onEdit,
-  onDeactivate,
-  emptyMessage = 'No hay rubros registrados.',
+  onDelete,
+  emptyState,
+  footer,
 }: CategoriesTableProps) {
   const columns: Column<Category>[] = [
     {
       header: 'Nombre',
       render: (c) => (
         <span className="table__cell--nombre">
-          <Avatar name={c.name} />
+          <Avatar name={c.name} icon="rubro" />
           <b>{c.name}</b>
         </span>
       ),
@@ -60,7 +65,7 @@ export function CategoriesTable({
               <path d="M13.5 3.5 16.5 6.5 7 16H4v-3z" strokeLinejoin="round" />
             </svg>
           </button>
-          <TrashButton label={`Dar de baja ${c.name}`} onClick={() => onDeactivate(c)} />
+          <TrashButton label={`Dar de baja ${c.name}`} onClick={() => onDelete(c)} />
         </>
       ),
     },
@@ -74,7 +79,8 @@ export function CategoriesTable({
       columns={columns}
       data={categories}
       rowKey={(c) => c.id}
-      emptyMessage={emptyMessage}
+      emptyState={emptyState}
+      footer={footer}
     />
   )
 }

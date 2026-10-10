@@ -1,0 +1,36 @@
+type: object
+description: |
+  A page of suppliers together with the total matching the filters, so the
+  client can render a pager without asking for the whole catalogue.
+
+  `total` counts the suppliers that match the filters, not the ones in this
+  page: with `limit=20` over 57 matches, `items` has 20 and `total` is 57.
+  `page` and `limit` are echoed back because the server defaults them.
+required:
+  - items
+  - total
+  - page
+  - limit
+properties:
+  items:
+    type: array
+    description: The suppliers in the requested page. Only active ones.
+    items:
+      $ref: './Supplier.yaml'
+  total:
+    type: integer
+    format: int64
+    minimum: 0
+    description: Total number of active suppliers matching the filters.
+    example: 57
+  page:
+    type: integer
+    minimum: 1
+    description: The page that was returned.
+    example: 1
+  limit:
+    type: integer
+    minimum: 1
+    maximum: 100
+    description: Page size that was applied.
+    example: 20

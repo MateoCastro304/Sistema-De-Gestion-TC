@@ -3,7 +3,7 @@ import type { CategoryInput } from '../types/category'
 import { categoryKeys } from './categories.keys'
 import {
   createCategory,
-  deactivateCategory,
+  deleteCategory,
   getCategory,
   listCategories,
   updateCategory,
@@ -32,7 +32,7 @@ export function useCreateCategory() {
   return useMutation({
     mutationFn: createCategory,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: categoryKeys.all })
+      void queryClient.invalidateQueries({ queryKey: categoryKeys.all })
     },
   })
 }
@@ -45,23 +45,22 @@ export function useUpdateCategory() {
       updateCategory(id, input),
     onSuccess: (updated) => {
       queryClient.setQueryData(categoryKeys.detail(updated.id), updated)
-      queryClient.invalidateQueries({ queryKey: categoryKeys.lists() })
+      void queryClient.invalidateQueries({ queryKey: categoryKeys.lists() })
     },
   })
 }
 
+/** Delete a rubro (CU-44 Baja de Rubro). */
 /**
- * Baja lógica de un rubro (CU-44). Dado de baja, el rubro no se vuelve a ver
- * ni a modificar desde el frontend.
+ * Dado de baja, el rubro no se vuelve a ver ni a modificar desde el frontend.
  */
-export function useDeactivateCategory() {
+export function useDeleteCategory() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: deactivateCategory,
+    mutationFn: deleteCategory,
     onSuccess: (_, id) => {
       queryClient.removeQueries({ queryKey: categoryKeys.detail(id) })
-      // También refresca el selector de rubro de Fábricas (misma clave).
-      queryClient.invalidateQueries({ queryKey: categoryKeys.lists() })
+      void queryClient.invalidateQueries({ queryKey: categoryKeys.lists() })
     },
   })
 }

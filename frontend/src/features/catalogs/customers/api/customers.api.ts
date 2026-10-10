@@ -92,17 +92,6 @@ export async function deactivateCustomer(
   await http.patch(`${customerPath(factoryId, id)}/deactivate`)
 }
 
-/**
- * Reactivación (CU-04 inverso): vuelve a poner `isActive` en true. Como la
- * baja, responde `204 No Content` (sin cuerpo).
- */
-export async function activateCustomer(
-  factoryId: string,
-  id: string,
-): Promise<void> {
-  await http.patch(`${customerPath(factoryId, id)}/activate`)
-}
-
 // Factories (FabricaCliente) ----------------------------------------------
 
 /** El backend pagina: se pide una página grande y se devuelven sus items. */
@@ -122,8 +111,20 @@ export async function updateFactory(
   id: string,
   input: FactoryInput,
 ): Promise<Factory> {
-  const { data } = await http.patch<Factory>(`${FACTORIES}/${id}`, input)
+  // El CUIT no se puede modificar: el backend lo ignora, así que ni se manda.
+  const body = {
+    name: input.name,
+    address: input.address,
+    categoryId: input.categoryId,
+    payMethod: input.payMethod,
+  }
+  const { data } = await http.patch<Factory>(`${FACTORIES}/${id}`, body)
   return data
+}
+
+/** Baja lógica de una fábrica. Responde 409 si tiene encargados activos. */
+export async function deactivateFactory(id: string): Promise<void> {
+  await http.patch(`${FACTORIES}/${id}/deactivate`)
 }
 
 // Los rubros no se piden desde acá: la lista la trae la feature de Rubros

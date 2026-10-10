@@ -32,7 +32,7 @@ export class DomainErrorFilter implements ExceptionFilter {
 
   private mapToHttp(exception: DomainError): {
     status: HttpStatus;
-    body: Object;
+    body: object;
   } {
     if (exception instanceof SupplierNotFound) {
       return {

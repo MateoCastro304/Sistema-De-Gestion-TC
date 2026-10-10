@@ -1,5 +1,19 @@
-import { Controller, Body, Get, Param, ParseIntPipe, Patch, Post, Query, UseFilters } from '@nestjs/common';
+import {
+  Controller,
+  Body,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseFilters,
+} from '@nestjs/common';
 import { CreateSupplier } from '../application/create-supplier.use-case';
+import { DeactivateSupplier } from '../application/deactivate-supplier.use-case';
 import { GetSupplierById } from '../application/get-supplier-by-id.use-case';
 import { ListSuppliers } from '../application/list-suppliers.use-case';
 import { UpdateSupplier } from '../application/update-supplier.use-case';
@@ -7,7 +21,7 @@ import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { ListSuppliersQueryDto } from './dto/list-suppliers-query.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { DomainErrorFilter } from './filters/domain-error.filter';
-import { SupplierResponse, toSupplierResponse } from './mappers/supplier.mapper';
+import { SupplierListResponse, SupplierResponse, toSupplierResponse } from './mappers/supplier.mapper';
 
 /**
  * HTTP entry point for every operation on the Supplier aggregate. Each
@@ -26,12 +40,24 @@ export class SuppliersController {
     private readonly getSupplierById: GetSupplierById,
     private readonly listSuppliers: ListSuppliers,
     private readonly updateSupplier: UpdateSupplier,
+    private readonly deactivateSupplier: DeactivateSupplier,
   ) {}
 
+  /**
+   * Devuelve la pagina junto con el total, igual que /factories y /customers.
+   * Sin el total el cliente no puede saber si quedaron proveedores afuera y
+   * termina pidiendo una pagina enorme para traer todo y filtrar en el
+   * navegador, que es justo lo que esto viene a sacar.
+   */
   @Get()
-  async list(@Query() query: ListSuppliersQueryDto): Promise<SupplierResponse[]> {
-    const { items } = await this.listSuppliers.execute(query);
-    return items.map(toSupplierResponse);
+  async list(@Query() query: ListSuppliersQueryDto): Promise<SupplierListResponse> {
+    const { items, total } = await this.listSuppliers.execute(query);
+    return {
+      items: items.map(toSupplierResponse),
+      total,
+      page: query.page,
+      limit: query.limit,
+    };
   }
 
   @Get(':id')
@@ -50,5 +76,16 @@ export class SuppliersController {
   async update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateSupplierDto): Promise<SupplierResponse> {
     const supplier = await this.updateSupplier.execute(id, body);
     return toSupplierResponse(supplier);
+  }
+
+  /**
+   * Baja logica. Responde 204 sin cuerpo: el cliente ya no tiene nada que
+   * mostrar del proveedor, porque a partir de aca deja de existir para toda
+   * consulta. No hay endpoint inverso.
+   */
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deactivate(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    await this.deactivateSupplier.execute(id);
   }
 }

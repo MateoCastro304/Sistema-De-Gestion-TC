@@ -29,7 +29,7 @@ function fallbackMessage(status: number): string {
 
 function toApiError(error: unknown): ApiError {
     // Un error que no sea de axios, un bug nuestro
-    if (!axios.isAxiosError(error)) {
+    if (!axios.isAxiosError<NestErrorBody | undefined>(error)) {
         return new ApiError(0, 'Ocurrió un error inesperado en la aplicación.');
     }
 
@@ -40,7 +40,7 @@ function toApiError(error: unknown): ApiError {
     }
 
     const {status, data} = error.response
-    const body = data as NestErrorBody | undefined
+    const body = data
     const rawMessage = body?.message
     if (Array.isArray(rawMessage) && rawMessage.length > 0) {
     return new ApiError(status, rawMessage[0], rawMessage)

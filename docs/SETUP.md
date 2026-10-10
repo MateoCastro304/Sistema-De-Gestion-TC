@@ -53,6 +53,14 @@ Run this command twice: once for `JWT_SECRET` and once for `JWT_REFRESH_SECRET`.
 
 **Do not reuse the same value for both secrets.**
 
+Also add the CORS origins the backend accepts:
+
+```env
+ALLOWED_ORIGINS=http://localhost:8081
+```
+
+`ALLOWED_ORIGINS` is optional and takes a comma-separated list. In development it must include `http://localhost:8081` so Swagger UI can send requests to the backend. Leave it unset in production: the frontend reaches the backend through Nginx on the same origin, so CORS stays disabled.
+
 > Project rule: if you add a new environment variable, update `.env.example` in the same commit (see `docs/CONTRIBUTING.md`).
 
 ---
@@ -121,12 +129,6 @@ The backend API is available at:
 http://localhost:3000
 ```
 
-Swagger documentation is available at:
-
-```text
-http://localhost:3000/docs
-```
-
 ### Verify the frontend
 
 The frontend is available at:
@@ -139,13 +141,17 @@ http://localhost:5173
 
 ### Verify the OpenAPI documentation
 
-A standalone Redoc viewer serves the API contract independently of the backend container. It is available at:
+Swagger UI serves the API contract (`docs/openapi/`) at:
 
 ```text
 http://localhost:8081
 ```
 
-This service reads the already-bundled OpenAPI spec and stays up even if the backend container is stopped or crashes — useful for consulting endpoint contracts while debugging or restarting the backend.
+It runs in its own container (`openapi-docs`), separate from the backend, so the contract stays readable even if the backend is stopped or crashing.
+
+"Try it out" sends requests from your browser straight to `http://localhost:3000` (the `servers` entry in `openapi.yaml`), not through Nginx. Because the page lives on a different origin (`:8081`), the backend must allow it through CORS — see `ALLOWED_ORIGINS` in section 2.
+
+After editing the contract, run `make openapi-docs-build` and reload the page with `Ctrl+F5`. There is no need to restart `openapi-docs`: it reads `build/openapi.yaml` on every load.
 
 ### Accessing the stack through Nginx
 
@@ -160,7 +166,6 @@ Nginx routes incoming requests based on the URL path:
 | -------- | -------------------------------- |
 | `/`      | `frontend-dev` (Vite dev server) |
 | `/api/*` | `backend` (API)                  |
-| `/docs`  | `backend` (Swagger)              |
 
 **Why this exists:** it lets the frontend and backend be reached through a
 single origin, exactly as they will be in production. This avoids CORS
@@ -238,10 +243,10 @@ make db-shell
 
 ### OpenAPI docs-scoped
 
-| Command                     | What it does                                                          |
-| --------------------------- | --------------------------------------------------------------------- |
-| `make openapi-docs-rebuild` | Re-bundle the OpenAPI contract and regenerate the Redoc documentation |
-| `make openapi-docs-logs`    | Live logs for the OpenAPI docs service                                |
+| Command                   | What it does                                                         |
+| ------------------------- | -------------------------------------------------------------------- |
+| `make openapi-docs-build` | Validate and re-bundle the OpenAPI contract (then `Ctrl+F5` in Swagger) |
+| `make openapi-docs-logs`  | Live logs for the Swagger UI service                                 |
 
 ### Frontend-scoped
 
@@ -404,7 +409,9 @@ to recreate the database schema and load the development data.
 | Code changes aren't reflected in the frontend | Confirm that the frontend bind mount and Vite development server are running correctly inside the frontend container.                                                                   |
 | Dependency changes aren't reflected           | Rebuild the affected image with `make backend-build` or `make frontend-build`.                                                                                                          |
 | Database data disappeared                     | `make dev-down-v` or `make clean` may have removed the Docker volume containing the development database.                                                                               |
-| OpenAPI docs not reflecting a contract change | Run `make openapi-docs-rebuild` — the Redoc HTML is generated once by the `openapi-build` init container and needs to be regenerated after editing the OpenAPI source files.            |
+| Swagger UI not reflecting a contract change   | Run `make openapi-docs-build` and reload with `Ctrl+F5`. Swagger reads `build/openapi.yaml`, which only `openapi-build` regenerates.                                                     |
+| Swagger "Try it out" fails with a CORS error  | `ALLOWED_ORIGINS` in `.env.dev` must include `http://localhost:8081`. Recreate the backend container after changing it.                                                                  |
+| Swagger "Try it out" returns `404`            | The request reached the backend but the route does not exist. Check that the `servers` URL in `openapi.yaml` has no `/api` prefix (that prefix only exists in Nginx).                    |
 
 ---
 
