@@ -6,6 +6,9 @@ import type { Category, CategoryInput } from '../types/category'
  * not wired up. They implement `docs/openapi/paths/categories*.yaml`, including
  * the 409 answers the screen has to surface. Data lives in memory and resets on
  * every page reload.
+ *
+ * Donde el contrato y el backend difieren, copian al backend (baja lógica,
+ * `active`, mensajes de los 409). Ver `docs/rubros-desvios-contrato.md`.
  */
 
 const SEED_DATE = '2026-08-01T12:00:00Z'
@@ -14,6 +17,7 @@ let nextId = 1
 const seed = (name: string): Category => ({
   id: nextId++,
   name,
+  active: true,
   createdAt: SEED_DATE,
   updatedAt: SEED_DATE,
 })
@@ -26,7 +30,10 @@ let categories: Category[] = [
   seed('Petróleo y gas'),
 ]
 
-/** Ids of rubros a factory uses, so deleting them answers 409 as the real API. */
+/**
+ * Rubros que usa alguna fábrica activa del mock de Fábricas (Autopartes y
+ * Petróleo y gas): darlos de baja responde 409, como el backend.
+ */
 const IN_USE_IDS = new Set([3, 5])
 
 function findCategory(id: number): Category | undefined {
@@ -59,7 +66,9 @@ export const categoryHandlers = [
     const page = Number(url.searchParams.get('page') ?? 1)
     const limit = Number(url.searchParams.get('limit') ?? 20)
     const start = (page - 1) * limit
-    return HttpResponse.json(categories.slice(start, start + limit))
+    // Como el backend: sólo los activos.
+    const active = categories.filter((c) => c.active !== false)
+    return HttpResponse.json(active.slice(start, start + limit))
   }),
 
   http.get('/api/categories/:id', ({ params }) => {
@@ -105,11 +114,12 @@ export const categoryHandlers = [
     if (!findCategory(id)) return new HttpResponse(null, { status: 404 })
     if (IN_USE_IDS.has(id)) {
       return conflict(
-        'No se puede eliminar el rubro porque tiene fábricas asociadas.',
+        'No es posible dar de baja el rubro: existen 1 fábricas activas asociadas. Reasignelas antes de continuar',
         `/api/categories/${id}`,
       )
     }
-    categories = categories.filter((c) => c.id !== id)
+    // Baja lógica: el rubro queda, con active: false, y deja de listarse.
+    Object.assign(findCategory(id)!, { active: false, updatedAt: new Date().toISOString() })
     return new HttpResponse(null, { status: 204 })
   }),
 ]

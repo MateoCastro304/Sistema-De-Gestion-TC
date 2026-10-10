@@ -51,6 +51,9 @@ export function useUpdateCategory() {
 }
 
 /** Delete a rubro (CU-44 Baja de Rubro). */
+/**
+ * Dado de baja, el rubro no se vuelve a ver ni a modificar desde el frontend.
+ */
 export function useDeleteCategory() {
   const queryClient = useQueryClient()
   return useMutation({

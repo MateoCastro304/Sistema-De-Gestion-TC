@@ -19,7 +19,10 @@ const dateFormatter = new Intl.DateTimeFormat('es-AR', {
   year: 'numeric',
 })
 
-/** Listing of rubros (CU-43), with edit (CU-42) and delete (CU-44) actions. */
+/**
+ * Listing of rubros (CU-43), with edit (CU-42) and baja (CU-44) actions. Sólo
+ * llegan rubros activos: los dados de baja no se muestran.
+ */
 export function CategoriesTable({
   categories,
   onEdit,
@@ -47,7 +50,7 @@ export function CategoriesTable({
       header: '',
       align: 'center',
       cellClassName: 'table__cell--acciones',
-      // Editar y eliminar como íconos, igual que los encargados dentro de
+      // Editar y dar de baja como íconos, igual que los encargados dentro de
       // una fábrica: son dos acciones por fila.
       render: (c) => (
         <>
@@ -62,7 +65,7 @@ export function CategoriesTable({
               <path d="M13.5 3.5 16.5 6.5 7 16H4v-3z" strokeLinejoin="round" />
             </svg>
           </button>
-          <TrashButton label={`Eliminar ${c.name}`} onClick={() => onDelete(c)} />
+          <TrashButton label={`Dar de baja ${c.name}`} onClick={() => onDelete(c)} />
         </>
       ),
     },
