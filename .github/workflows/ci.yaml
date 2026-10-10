@@ -7,6 +7,21 @@ on:
     branches: [main]
 
 jobs:
+  openapi-contract:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tooling/openapi
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tooling/openapi/package-lock.json
+      - run: npm ci
+      - run: npm run validate
+
   frontend:
     runs-on: ubuntu-latest
     defaults:
