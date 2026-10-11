@@ -2,13 +2,21 @@ name: Torneria CI
 
 on:
   push:
-    branches: [develop, feature/CI]
+    branches: [develop]
   pull_request:
     branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   openapi-contract:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: tooling/openapi
@@ -24,6 +32,7 @@ jobs:
 
   frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: frontend
@@ -40,6 +49,7 @@ jobs:
 
   backend:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: backend
@@ -63,6 +73,7 @@ jobs:
     if: github.event_name == 'pull_request'
     needs: backend
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: backend
@@ -78,3 +89,13 @@ jobs:
         env:
           DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
       - run: npm run test:int
+
+  docker-build:
+    if: github.event_name == 'pull_request'
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build --target ??? -f ??? ??? # frontend
+      - run: docker build --target ??? -f ??? ??? # backend
