@@ -5,19 +5,19 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 /**
- * ESLint del backend (NestJS, arquitectura hexagonal por modulo).
+ * Backend ESLint config (NestJS, hexagonal architecture per module).
  *
- * Criterios:
- * - Cada regla es 'error' u 'off'. Nada de 'warn': el CI corre con
- *   --max-warnings 0, asi que un warning que nadie mira no sirve.
- * - El formato es cosa de Prettier (`npm run format:check`), no de ESLint.
- *   eslint-config-prettier apaga las reglas de estilo que chocarian con el.
- * - Lint con tipos (recommendedTypeChecked): necesita src/generated (Prisma).
- *   Si falta, correr `npm run prisma:generate` antes; en CI tambien.
+ * Principles:
+ * - Every rule is 'error' or 'off'. No 'warn': CI runs with
+ *   --max-warnings 0, because a warning nobody reads is useless.
+ * - Formatting is Prettier's job (`npm run format:check`), not ESLint's.
+ *   eslint-config-prettier turns off the style rules that would clash with it.
+ * - Type-aware linting (recommendedTypeChecked): needs src/generated (Prisma).
+ *   If it is missing, run `npm run prisma:generate` first; CI does the same.
  */
 
-// Capas de cada modulo: src/<modulo>/{domain,application,http,infrastructure}.
-// Las dependencias apuntan hacia adentro: http/infrastructure -> application -> domain.
+// Layers of each module: src/<module>/{domain,application,http,infrastructure}.
+// Dependencies point inwards: http/infrastructure -> application -> domain.
 const frameworkPackages = [
   '@nestjs/*',
   '@prisma/*',
@@ -48,25 +48,25 @@ export default tseslint.config(
       },
     },
     rules: {
-      // Nest depende de promesas en todos lados: una promesa sin await es un
-      // error que se pierde en silencio (o tumba el proceso).
+      // Nest relies on promises everywhere: a promise without await is an error
+      // that gets lost silently (or crashes the process).
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
       ],
-      // Los repos in-memory implementan puertos async sin necesitar await.
-      // Marcarlos no encuentra bugs, solo obliga a escribir Promise.resolve().
+      // In-memory repositories implement async ports without needing await.
+      // Flagging them finds no bugs, it only forces Promise.resolve() boilerplate.
       '@typescript-eslint/require-await': 'off',
-      // OJO: no activar consistent-type-imports. Con emitDecoratorMetadata,
-      // convertir un import de clase inyectada en `import type` rompe la DI
-      // de Nest en runtime (el tipo desaparece del metadata).
+      // WARNING: do not enable consistent-type-imports. With emitDecoratorMetadata,
+      // turning the import of an injected class into `import type` breaks Nest's
+      // DI at runtime (the type disappears from the metadata).
     },
   },
 
-  // --- Limites de la arquitectura hexagonal ---------------------------------
+  // --- Hexagonal architecture boundaries -----------------------------------
   {
-    // domain: TypeScript puro. No conoce el framework, la base ni las otras capas.
+    // domain: plain TypeScript. Knows nothing about the framework, the database or other layers.
     files: ['src/**/domain/**/*.ts'],
     ignores: ['**/*.spec.ts'],
     rules: {
@@ -76,11 +76,11 @@ export default tseslint.config(
           patterns: [
             {
               group: ['**/application/**', '**/http/**', '**/infrastructure/**', '**/generated/**'],
-              message: 'domain no puede depender de otras capas.',
+              message: 'domain must not depend on other layers.',
             },
             {
               group: frameworkPackages,
-              message: 'domain no puede depender del framework ni de librerias de infraestructura.',
+              message: 'domain must not depend on the framework or on infrastructure libraries.',
             },
           ],
         },
@@ -88,7 +88,7 @@ export default tseslint.config(
     },
   },
   {
-    // application: casos de uso. Hablan con domain y sus puertos, no con HTTP ni Prisma.
+    // application: use cases. They talk to domain and its ports, not to HTTP or Prisma.
     files: ['src/**/application/**/*.ts'],
     ignores: ['**/*.spec.ts'],
     rules: {
@@ -99,11 +99,11 @@ export default tseslint.config(
             {
               group: ['**/http/**'],
               message:
-                'application no puede depender de http (los DTOs son del adaptador HTTP). Defini un input/command propio del caso de uso.',
+                'application must not depend on http (DTOs belong to the HTTP adapter). Define an input/command owned by the use case.',
             },
             {
               group: ['**/infrastructure/**', '**/generated/**', '@prisma/*'],
-              message: 'application no puede depender de infrastructure: usa el puerto definido en domain.',
+              message: 'application must not depend on infrastructure: use the port defined in domain.',
             },
           ],
         },
@@ -111,7 +111,7 @@ export default tseslint.config(
     },
   },
   {
-    // http: adaptador de entrada. Llama a casos de uso, no a repositorios concretos.
+    // http: inbound adapter. Calls use cases, never concrete repositories.
     files: ['src/**/http/**/*.ts'],
     ignores: ['**/*.spec.ts'],
     rules: {
@@ -121,7 +121,7 @@ export default tseslint.config(
           patterns: [
             {
               group: ['**/infrastructure/**', '**/generated/**', '@prisma/*'],
-              message: 'http no puede depender de infrastructure: pasa por application.',
+              message: 'http must not depend on infrastructure: go through application.',
             },
           ],
         },
@@ -136,10 +136,10 @@ export default tseslint.config(
       globals: globals.jest,
     },
     rules: {
-      // expect(repo.save).toHaveBeenCalled() es el uso normal de Jest.
+      // expect(repo.save).toHaveBeenCalled() is normal Jest usage.
       '@typescript-eslint/unbound-method': 'off',
-      // supertest y los bodies de respuesta son `any` por naturaleza: en tests
-      // validamos la forma con expect(), no con el sistema de tipos.
+      // supertest and response bodies are `any` by nature: in tests the shape
+      // is validated with expect(), not with the type system.
       '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
@@ -149,12 +149,12 @@ export default tseslint.config(
     },
   },
 
-  // --- Archivos JS (este config) --------------------------------------------
+  // --- JS files (this config) ----------------------------------------------
   {
     files: ['**/*.{js,mjs,cjs}'],
     extends: [tseslint.configs.disableTypeChecked],
   },
 
-  // Siempre al final: apaga reglas de estilo que pisan a Prettier.
+  // Always last: turns off style rules that conflict with Prettier.
   eslintConfigPrettier,
 );
