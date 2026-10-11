@@ -97,5 +97,5 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
-      - run: docker build --target ??? -f ??? ??? # frontend
-      - run: docker build --target ??? -f ??? ??? # backend
+      - run: docker build --target production -f frontend/Dockerfile frontend
+      - run: docker build --target production -f backend/Dockerfile backend
