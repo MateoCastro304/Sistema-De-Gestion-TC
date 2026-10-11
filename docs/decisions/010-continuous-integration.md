@@ -107,8 +107,8 @@ The contract job checks that the OpenAPI spec is **well formed** (valid schema, 
 | `backend` job (Tier 1)                                      | Implemented |
 | `openapi-contract` job (Tier 1)                             | Implemented |
 | `backend-integration` job on PRs to `main` (Tier 2)         | Implemented |
-| Docker build on PRs to `main` (Tier 2)                      | Pending     |
-| Branch protection on `main` requiring the CI checks to pass | Pending     |
+| `docker-build` job on PRs to `main` (Tier 2)                | Implemented |
+| Branch protection on `main` requiring the CI checks to pass | In progress (protection enabled; required checks to be selected after their first run) |
 
 ## Future evolution
 
