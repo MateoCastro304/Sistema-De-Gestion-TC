@@ -1,7 +1,16 @@
 apis:
   main:
-    root: docs/openapi/openapi.yaml
+    root: ../../docs/openapi/openapi.yaml
 extends:
-  - recommended
+  # recommended-strict = the recommended rules, with warnings turned into errors.
+  # Same principle as ESLint (--max-warnings 0): a warning nobody reads is
+  # useless, so a rule is either an error or off.
+  - recommended-strict
 rules:
   info-license-strict: off
+  # The only declared server is the local backend, on purpose: Swagger UI
+  # (localhost:8081) uses it for "Try it out" in development. The production
+  # host does not exist yet (see the TODO under servers). Once it does, add it
+  # as a second server; this rule can go back to 'error' if localhost is
+  # removed from the contract.
+  no-server-example.com: off
