@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { CustomerQuery } from '../../factory/domain/port/customer-query.port';
 import { CustomerRepository } from '../domain/port/customer.repository';
 
-
 @Injectable()
 export class CustomerQueryAdapter implements CustomerQuery {
   constructor(private readonly customerRepository: CustomerRepository) {}

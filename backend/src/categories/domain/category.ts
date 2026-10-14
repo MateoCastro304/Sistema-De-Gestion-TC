@@ -10,27 +10,18 @@ export class Category {
   ) {
     this.validate();
   }
- //Crear un rubro NUEVO (todavía no existe en la base)
-  static create(
-    name: string
-  ): Category {
+  //Crear un rubro NUEVO (todavía no existe en la base)
+  static create(name: string): Category {
     const now = new Date();
     return new Category(null, name.trim(), true, now, now);
   }
-//RECONSTRUIR un rubro que ya existía en la base de datos
+  //RECONSTRUIR un rubro que ya existía en la base de datos
   // (esto lo va a usar el repository más adelante, cuando conectemos Prisma)
-  static reconstruct(
-    id: number, 
-    name: string, 
-    active: boolean, 
-    createdAt: Date, 
-    updatedAt: Date,
-  ): Category {
+  static reconstruct(id: number, name: string, active: boolean, createdAt: Date, updatedAt: Date): Category {
     return new Category(id, name, active, createdAt, updatedAt);
   }
 
-
-// Getters: formas de LEER los datos desde afuera de la clase
+  // Getters: formas de LEER los datos desde afuera de la clase
   getId(): number | null {
     return this._id;
   }
@@ -51,7 +42,6 @@ export class Category {
     return this._updatedAt;
   }
 
-
   private validate() {
     Category.assertValidName(this._name);
   }
@@ -70,7 +60,6 @@ export class Category {
     }
   }
 
-
   // Setters: formas de MODIFICAR los datos desde afuera de la clase
   rename(newName: string) {
     const trimmed = newName.trim();
@@ -78,14 +67,14 @@ export class Category {
     this._name = trimmed;
     this._updatedAt = new Date();
   }
-  
-// Da de baja el rubro (baja LÓGICA, no lo borra de la base)
+
+  // Da de baja el rubro (baja LÓGICA, no lo borra de la base)
   deactivate() {
     this._active = false;
     this._updatedAt = new Date();
   }
 
-// Reactiva un rubro que estaba dado de baja
+  // Reactiva un rubro que estaba dado de baja
   activate() {
     this._active = true;
     this._updatedAt = new Date();

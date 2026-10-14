@@ -90,10 +90,7 @@ export class FactoryController {
   }
 
   @Patch(':id')
-  async update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateDto: UpdateFactoryDto,
-  ) {
+  async update(@Param('id', ParseIntPipe) id: number, @Body() updateDto: UpdateFactoryDto) {
     const factory = await this.updateFactory.execute(id, updateDto);
     return FactoryResponseDto.fromDomain(factory);
   }

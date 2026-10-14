@@ -6,10 +6,10 @@ import { CategoryDomainError } from './category-domain.error';
  * instead of creating a duplicate. Mapped to HTTP 409 by the filter.
  */
 export class CategoryNameTakenByInactive extends CategoryDomainError {
-    constructor(
-        public readonly name: string,
-        public readonly categoryId: number,
-    ) {
-        super(`El rubro existe pero está dado de baja`);
-    }
+  constructor(
+    public readonly name: string,
+    public readonly categoryId: number,
+  ) {
+    super(`El rubro existe pero está dado de baja`);
+  }
 }

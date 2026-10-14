@@ -17,9 +17,9 @@ import { UpdateFactory } from './application/update-factory.use-case';
 import { DeactivateFactory } from './application/deactivate-factory.use-case';
 
 @Module({
-    imports: [forwardRef(() => CategoriesModule), forwardRef(() => CustomersModule)],
-    controllers: [FactoryController],
-    providers: [
+  imports: [forwardRef(() => CategoriesModule), forwardRef(() => CustomersModule)],
+  controllers: [FactoryController],
+  providers: [
     CreateFactory,
     GetFactoryById,
     ListFactories,
@@ -36,4 +36,4 @@ import { DeactivateFactory } from './application/deactivate-factory.use-case';
   ],
   exports: [FactoryRepository, FactoryQuery],
 })
-export class FactoryModule{}
+export class FactoryModule {}

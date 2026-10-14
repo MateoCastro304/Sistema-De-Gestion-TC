@@ -5,7 +5,7 @@ import { CategoryDomainError } from './category-domain.error';
  * must be reactivated first. Mapped to HTTP 409 by the filter.
  */
 export class CategoryInactive extends CategoryDomainError {
-    constructor(public readonly id: number) {
-        super(`Debe reactivar el rubro antes de modificarlo`);
-    }
+  constructor(public readonly id: number) {
+    super(`Debe reactivar el rubro antes de modificarlo`);
+  }
 }

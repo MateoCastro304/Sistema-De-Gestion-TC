@@ -54,7 +54,8 @@ describe('DeactivateCategory (use case)', () => {
     await expect(call).rejects.toBeInstanceOf(ConflictException);
     await expect(call).rejects.toMatchObject({
       response: {
-        message: 'No es posible dar de baja el rubro: existen 2 fábricas activas asociadas. Reasignelas antes de continuar',
+        message:
+          'No es posible dar de baja el rubro: existen 2 fábricas activas asociadas. Reasignelas antes de continuar',
         factories: activeFactories,
       },
     });

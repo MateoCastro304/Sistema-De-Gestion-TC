@@ -6,7 +6,7 @@ import { CategoryDomainError } from './category-domain.error';
  * response body. Mapped to HTTP 404 by the filter.
  */
 export class CategoryNotFound extends CategoryDomainError {
-    constructor(public readonly id: number) {
-        super(`Category with id ${id} not found`);
-    }
+  constructor(public readonly id: number) {
+    super(`Category with id ${id} not found`);
+  }
 }

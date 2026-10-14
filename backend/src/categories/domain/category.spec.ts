@@ -1,4 +1,4 @@
-import { Category } from "./category";
+import { Category } from './category';
 
 describe('Category (domain)', () => {
   it('creates a category with a valid name', () => {

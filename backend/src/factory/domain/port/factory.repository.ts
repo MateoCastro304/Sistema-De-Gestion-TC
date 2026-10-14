@@ -1,7 +1,6 @@
 // Define QUÉ operaciones puede hacer el sistema con las fábricas, pero no define CÓMO se hacen.
 import { Factory } from '../factory';
 
-
 export type FactoryListParams = {
   page: number;
   limit: number;
@@ -15,7 +14,6 @@ export type FactoryListResult = {
   items: Factory[]; // Factories encontradas
   total: number; // cuantas
 };
-
 
 export abstract class FactoryRepository {
   abstract save(factory: Factory): Promise<Factory>;
@@ -31,7 +29,6 @@ export abstract class FactoryRepository {
 
   /** Whether any ACTIVE factory already uses this name (case-insensitive). */
   abstract existsByName(name: string, excludeId?: number): Promise<boolean>;
-
 
   abstract list(params: FactoryListParams): Promise<FactoryListResult>;
 }

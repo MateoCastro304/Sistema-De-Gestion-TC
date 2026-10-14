@@ -11,7 +11,6 @@ import { ListCustomers } from './application/list-customers.use-case';
 import { UpdateCustomer } from './application/update-customer.use-case';
 import { DeactivateCustomer } from './application/deactivate-customer.use-case';
 
-
 @Module({
   imports: [forwardRef(() => FactoryModule)], // "Esta dependencia existe, pero resolvela más adelante cuando tengas disponible la referencia."
   controllers: [CustomersController],

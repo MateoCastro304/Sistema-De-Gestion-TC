@@ -1,16 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CategoriesRepository,
-  CategoryListParams,
-  CategoryListResult,
-} from '../domain/ports/categories.repository';
+import { CategoriesRepository, CategoryListParams, CategoryListResult } from '../domain/ports/categories.repository';
 import { Category } from '../domain/category';
 
 @Injectable()
 export class CategoriesInMemoryRepository implements CategoriesRepository {
   private readonly categories: Map<number, Category> = new Map();
   private autoIncrementId = 1;
-
 
   async list(params: CategoryListParams): Promise<CategoryListResult> {
     let filtered = Array.from(this.categories.values()).filter((c) => c.getActive());
@@ -31,14 +26,11 @@ export class CategoriesInMemoryRepository implements CategoriesRepository {
     return this.categories.get(id) ?? null;
   }
 
-    async findByName(name: string): Promise<Category | null> {
+  async findByName(name: string): Promise<Category | null> {
     const normalized = name.trim().toLowerCase();
-    const found = Array.from(this.categories.values()).find(
-      (c) => c.getName().trim().toLowerCase() === normalized,
-    );
+    const found = Array.from(this.categories.values()).find((c) => c.getName().trim().toLowerCase() === normalized);
     return found ?? null;
   }
-
 
   async save(category: Category): Promise<Category> {
     const id = category.getId();

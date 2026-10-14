@@ -10,13 +10,7 @@ describe('Factory Entity', () => {
 
   describe('create()', () => {
     it('debería crear una instancia de Factory válida', () => {
-      const factory = Factory.create(
-        validCuit,
-        validName,
-        validAddress,
-        validPaymentDescription,
-        validCategoryId,
-      );
+      const factory = Factory.create(validCuit, validName, validAddress, validPaymentDescription, validCategoryId);
 
       expect(factory).toBeDefined();
       expect(factory.getId()).toBeNull(); // Nace sin ID antes de persisitir
@@ -42,27 +36,27 @@ describe('Factory Entity', () => {
     });
 
     it('debería lanzar un error si el cuit está vacío', () => {
-      expect(() =>
-        Factory.create('', validName, validAddress, validPaymentDescription, validCategoryId),
-      ).toThrow('CUIT must have 11 digits');
+      expect(() => Factory.create('', validName, validAddress, validPaymentDescription, validCategoryId)).toThrow(
+        'CUIT must have 11 digits',
+      );
     });
 
     it('debería lanzar un error si el cuit no tiene 11 dígitos', () => {
-      expect(() =>
-        Factory.create('123', validName, validAddress, null, validCategoryId),
-      ).toThrow('CUIT must have 11 digits');
+      expect(() => Factory.create('123', validName, validAddress, null, validCategoryId)).toThrow(
+        'CUIT must have 11 digits',
+      );
     });
 
     it('debería lanzar un error si el dígito verificador del cuit es inválido', () => {
-      expect(() =>
-        Factory.create('20-12345678-9', validName, validAddress, null, validCategoryId),
-      ).toThrow('CUIT check digit is invalid');
+      expect(() => Factory.create('20-12345678-9', validName, validAddress, null, validCategoryId)).toThrow(
+        'CUIT check digit is invalid',
+      );
     });
 
     it('debería lanzar un error si el nombre está vacío', () => {
-      expect(() =>
-        Factory.create(validCuit, '   ', validAddress, validPaymentDescription, validCategoryId),
-      ).toThrow('Factory name cannot be empty');
+      expect(() => Factory.create(validCuit, '   ', validAddress, validPaymentDescription, validCategoryId)).toThrow(
+        'Factory name cannot be empty',
+      );
     });
   });
 

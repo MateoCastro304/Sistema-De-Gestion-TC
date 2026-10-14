@@ -6,7 +6,7 @@ import { CategoryDomainError } from './category-domain.error';
  * filter.
  */
 export class CategoryNameAlreadyExists extends CategoryDomainError {
-    constructor(public readonly name: string) {
-        super(`Ya existe un rubro con ese nombre`);
-    }
+  constructor(public readonly name: string) {
+    super(`Ya existe un rubro con ese nombre`);
+  }
 }

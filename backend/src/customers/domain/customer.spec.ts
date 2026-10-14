@@ -11,13 +11,7 @@ describe('Customer Entity', () => {
 
   describe('create()', () => {
     it('debería crear una instancia de Customer válida', () => {
-      const customer = Customer.create(
-        validName,
-        validLastName,
-        validPhone,
-        validMail,
-        validFactoryId,
-      );
+      const customer = Customer.create(validName, validLastName, validPhone, validMail, validFactoryId);
 
       expect(customer).toBeDefined();
       expect(customer.getId()).toBeNull(); // Nace sin ID antes de persistir
@@ -41,31 +35,25 @@ describe('Customer Entity', () => {
     });
 
     it('debería recortar los espacios en blanco de los campos de texto', () => {
-      const customer = Customer.create(
-        '  Juan  ',
-        '  Pérez  ',
-        '  11 5555-1234  ',
-        validMail,
-        validFactoryId,
-      );
+      const customer = Customer.create('  Juan  ', '  Pérez  ', '  11 5555-1234  ', validMail, validFactoryId);
       expect(customer.getName()).toBe('Juan');
       expect(customer.getLastName()).toBe('Pérez');
       expect(customer.getPhone()).toBe('1155551234');
     });
 
     it('debería rechazar un teléfono inválido', () => {
-      expect(() =>
-        Customer.create(validName, validLastName, 'abc', validMail, validFactoryId),
-      ).toThrow('Phone must contain only digits and separators');
-      expect(() =>
-        Customer.create(validName, validLastName, '123', validMail, validFactoryId),
-      ).toThrow('Phone must have between 8 and 15 digits');
+      expect(() => Customer.create(validName, validLastName, 'abc', validMail, validFactoryId)).toThrow(
+        'Phone must contain only digits and separators',
+      );
+      expect(() => Customer.create(validName, validLastName, '123', validMail, validFactoryId)).toThrow(
+        'Phone must have between 8 and 15 digits',
+      );
     });
 
     it('debería lanzar un error si el nombre está vacío', () => {
-      expect(() =>
-        Customer.create('   ', validLastName, validPhone, validMail, validFactoryId),
-      ).toThrow('Customer name cannot be empty');
+      expect(() => Customer.create('   ', validLastName, validPhone, validMail, validFactoryId)).toThrow(
+        'Customer name cannot be empty',
+      );
     });
 
     it('debería permitir un apellido ausente (null o vacío)', () => {
@@ -96,38 +84,30 @@ describe('Customer Entity', () => {
     });
 
     it('debería lanzar un error si no hay teléfono ni mail', () => {
-      expect(() =>
-        Customer.create(validName, validLastName, null, null, validFactoryId),
-      ).toThrow('Customer must have at least one contact: phone or mail');
-      expect(() =>
-        Customer.create(validName, validLastName, '   ', '   ', validFactoryId),
-      ).toThrow('Customer must have at least one contact: phone or mail');
+      expect(() => Customer.create(validName, validLastName, null, null, validFactoryId)).toThrow(
+        'Customer must have at least one contact: phone or mail',
+      );
+      expect(() => Customer.create(validName, validLastName, '   ', '   ', validFactoryId)).toThrow(
+        'Customer must have at least one contact: phone or mail',
+      );
     });
 
     it('debería lanzar un error si el mail tiene un formato inválido', () => {
-      expect(() =>
-        Customer.create(validName, validLastName, validPhone, 'no-es-un-mail', validFactoryId),
-      ).toThrow('Invalid email format');
+      expect(() => Customer.create(validName, validLastName, validPhone, 'no-es-un-mail', validFactoryId)).toThrow(
+        'Invalid email format',
+      );
     });
 
     it('debería lanzar un error si el factoryId no es un entero positivo', () => {
-      expect(() =>
-        Customer.create(validName, validLastName, validPhone, validMail, 0),
-      ).toThrow('Factory id must be a positive integer');
+      expect(() => Customer.create(validName, validLastName, validPhone, validMail, 0)).toThrow(
+        'Factory id must be a positive integer',
+      );
     });
   });
 
   describe('reconstruct()', () => {
     it('debería reconstruir una entidad Customer persistida previamente', () => {
-      const customer = Customer.reconstruct(
-        10,
-        validName,
-        validLastName,
-        validPhone,
-        validMail,
-        validFactoryId,
-        false,
-      );
+      const customer = Customer.reconstruct(10, validName, validLastName, validPhone, validMail, validFactoryId, false);
 
       expect(customer.getId()).toBe(10);
       expect(customer.getName()).toBe(validName);
@@ -145,13 +125,7 @@ describe('Customer Entity', () => {
 
   describe('update()', () => {
     it('debería actualizar todas las propiedades correctamente', () => {
-      const customer = Customer.create(
-        validName,
-        validLastName,
-        validPhone,
-        validMail,
-        validFactoryId,
-      );
+      const customer = Customer.create(validName, validLastName, validPhone, validMail, validFactoryId);
 
       customer.update('Ana', 'Gómez', '11 5555-9999', 'ana.gomez@example.com', 2);
 
@@ -163,13 +137,7 @@ describe('Customer Entity', () => {
     });
 
     it('debería permitir quitar apellido y teléfono si queda el mail', () => {
-      const customer = Customer.create(
-        validName,
-        validLastName,
-        validPhone,
-        validMail,
-        validFactoryId,
-      );
+      const customer = Customer.create(validName, validLastName, validPhone, validMail, validFactoryId);
 
       customer.update(validName, null, null, validMail, validFactoryId);
 
@@ -179,13 +147,7 @@ describe('Customer Entity', () => {
     });
 
     it('debería rechazar un update que deja al cliente sin contacto y no modificar nada', () => {
-      const customer = Customer.create(
-        validName,
-        validLastName,
-        validPhone,
-        validMail,
-        validFactoryId,
-      );
+      const customer = Customer.create(validName, validLastName, validPhone, validMail, validFactoryId);
 
       expect(() => customer.update('Otro', 'Nombre', null, null, validFactoryId)).toThrow(
         'Customer must have at least one contact: phone or mail',
@@ -195,13 +157,7 @@ describe('Customer Entity', () => {
     });
 
     it('debería recortar los espacios en blanco en las modificaciones', () => {
-      const customer = Customer.create(
-        validName,
-        validLastName,
-        validPhone,
-        validMail,
-        validFactoryId,
-      );
+      const customer = Customer.create(validName, validLastName, validPhone, validMail, validFactoryId);
 
       customer.setName('   Nombre Nuevo  ');
       customer.setLastName('   Apellido Nuevo  ');
@@ -215,27 +171,13 @@ describe('Customer Entity', () => {
 
   describe('deactivate()', () => {
     it('debería desactivar un cliente activo', () => {
-      const customer = Customer.create(
-        validName,
-        validLastName,
-        validPhone,
-        validMail,
-        validFactoryId,
-      );
+      const customer = Customer.create(validName, validLastName, validPhone, validMail, validFactoryId);
       customer.deactivate();
       expect(customer.isActive()).toBe(false);
     });
 
     it('debería lanzar un error si se intenta desactivar un cliente ya inactivo', () => {
-      const customer = Customer.reconstruct(
-        1,
-        validName,
-        validLastName,
-        validPhone,
-        validMail,
-        validFactoryId,
-        false,
-      );
+      const customer = Customer.reconstruct(1, validName, validLastName, validPhone, validMail, validFactoryId, false);
       expect(() => customer.deactivate()).toThrow('Customer is already inactive');
     });
   });

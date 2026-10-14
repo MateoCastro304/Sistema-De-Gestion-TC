@@ -1,9 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CategoriesRepository,
-  CategoryListParams,
-  CategoryListResult,
-} from '../domain/ports/categories.repository';
+import { CategoriesRepository, CategoryListParams, CategoryListResult } from '../domain/ports/categories.repository';
 
 export type ListCategoriesInput = CategoryListParams;
 

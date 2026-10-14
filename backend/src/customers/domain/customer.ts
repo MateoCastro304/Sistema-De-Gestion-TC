@@ -11,7 +11,7 @@ export class Customer {
     private _lastName: string | null,
     private _phone: string | null,
     private _mail: Mail | null,
-    private _factoryId: FactoryId,  // Fabrica asociada
+    private _factoryId: FactoryId, // Fabrica asociada
     private _active: boolean,
     private readonly _createdAt: Date,
     private _updatedAt: Date,
@@ -72,13 +72,7 @@ export class Customer {
   }
 
   // UPDATE: valida todo antes de asignar, para no dejar el objeto a medio modificar.
-  update(
-    name: string,
-    lastName: string | null,
-    phone: string | null,
-    mail: string | null,
-    factoryId: number,
-  ): void {
+  update(name: string, lastName: string | null, phone: string | null, mail: string | null, factoryId: number): void {
     const normalizedName = Customer.requireName(name);
     const normalizedLastName = Customer.optionalText(lastName);
     const normalizedPhone = Customer.toPhone(phone);
@@ -166,12 +160,28 @@ export class Customer {
   getId(): number | null {
     return this._id ? this._id.getValue() : null;
   }
-  getName(): string { return this._name; }
-  getLastName(): string | null { return this._lastName; }
-  getPhone(): string | null { return this._phone; }
-  getMail(): string | null { return this._mail ? this._mail.getValue() : null; }
-  getFactoryId(): number { return this._factoryId.getValue(); }
-  isActive(): boolean { return this._active; }
-  getCreatedAt(): Date { return this._createdAt; }
-  getUpdatedAt(): Date { return this._updatedAt; }
+  getName(): string {
+    return this._name;
+  }
+  getLastName(): string | null {
+    return this._lastName;
+  }
+  getPhone(): string | null {
+    return this._phone;
+  }
+  getMail(): string | null {
+    return this._mail ? this._mail.getValue() : null;
+  }
+  getFactoryId(): number {
+    return this._factoryId.getValue();
+  }
+  isActive(): boolean {
+    return this._active;
+  }
+  getCreatedAt(): Date {
+    return this._createdAt;
+  }
+  getUpdatedAt(): Date {
+    return this._updatedAt;
+  }
 }

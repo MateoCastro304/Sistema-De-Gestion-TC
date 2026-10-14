@@ -66,9 +66,7 @@ describe('CreateCategory (use case)', () => {
     });
 
     it('rejects a name shorter than 3 characters', async () => {
-      await expect(useCase.execute({ name: 'ab' })).rejects.toThrow(
-        'Category name must be at least 3 characters long',
-      );
+      await expect(useCase.execute({ name: 'ab' })).rejects.toThrow('Category name must be at least 3 characters long');
     });
   });
 });

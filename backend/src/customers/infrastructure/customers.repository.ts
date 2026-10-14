@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { Customer } from "../domain/customer";
-import { CustomerRepository, CustomerListParams, CustomerListResult } from "../domain/port/customer.repository";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Customer } from '../domain/customer';
+import { CustomerRepository, CustomerListParams, CustomerListResult } from '../domain/port/customer.repository';
 
 @Injectable()
 export class CustomerInMemoryRepository implements CustomerRepository {

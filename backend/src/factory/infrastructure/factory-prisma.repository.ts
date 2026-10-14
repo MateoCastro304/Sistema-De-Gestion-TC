@@ -4,12 +4,7 @@ import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service
 import { Factory } from '../domain/factory';
 import { FactoryAlreadyExists } from '../domain/errors/factory-already-exists.error';
 import { FactoryNameAlreadyExists } from '../domain/errors/factory-name-already-exists.error';
-import {
-  FactoryRepository,
-  FactoryListParams,
-  FactoryListResult,
-} from '../domain/port/factory.repository';
-
+import { FactoryRepository, FactoryListParams, FactoryListResult } from '../domain/port/factory.repository';
 
 @Injectable()
 export class FactoryPrismaRepository implements FactoryRepository {
@@ -97,9 +92,7 @@ export class FactoryPrismaRepository implements FactoryRepository {
     const where: Prisma.FactoryWhereInput = {
       ...(categoryId !== undefined ? { categoryId } : {}),
       ...(active !== undefined ? { isActive: active } : {}),
-      ...(nameContains
-        ? { name: { contains: nameContains, mode: 'insensitive' } }
-        : {}),
+      ...(nameContains ? { name: { contains: nameContains, mode: 'insensitive' } } : {}),
     };
 
     const [rows, total] = await this.prisma.$transaction([

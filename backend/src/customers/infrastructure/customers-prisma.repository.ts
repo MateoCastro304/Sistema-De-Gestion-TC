@@ -3,11 +3,7 @@ import { Prisma, Customer as CustomerRow } from '../../generated/prisma/client';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
 import { Customer } from '../domain/customer';
 import { CustomerAlreadyExists } from '../domain/errors/customer-already-exists.error';
-import {
-  CustomerRepository,
-  CustomerListParams,
-  CustomerListResult,
-} from '../domain/port/customer.repository';
+import { CustomerRepository, CustomerListParams, CustomerListResult } from '../domain/port/customer.repository';
 
 const MAX_ID_ATTEMPTS = 3;
 
@@ -52,8 +48,7 @@ export class CustomerPrismaRepository implements CustomerRepository {
         ) {
           throw new ConflictException(new CustomerAlreadyExists(customer.getMail() ?? '').message);
         }
-        const isIdCollision =
-          error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002';
+        const isIdCollision = error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002';
         if (!isIdCollision || attempt >= MAX_ID_ATTEMPTS) {
           throw error;
         }

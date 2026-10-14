@@ -7,5 +7,5 @@ export class CreateCategoryDto {
   @Transform(trim)
   @MinLength(3)
   @MaxLength(80)
-  name: string; 
+  name: string;
 }

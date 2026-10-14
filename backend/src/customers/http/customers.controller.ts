@@ -15,17 +15,17 @@ import {
   BadRequestException,
   Query,
   DefaultValuePipe,
-} from "@nestjs/common";
+} from '@nestjs/common';
 
-import { CreateCustomerDto } from "./dto/create-customer.dto";
-import { UpdateCustomerDto } from "./dto/update-customer.dto";
-import { CreateCustomer } from "../application/create-customer.use-case";
-import { GetCustomerById } from "../application/get-customer-by-id.use-case";
-import { ListCustomers } from "../application/list-customers.use-case";
-import { UpdateCustomer } from "../application/update-customer.use-case";
-import { DeactivateCustomer } from "../application/deactivate-customer.use-case";
-import { CustomerResponseDto } from "./dto/customer-response.dto";
-import { CustomerExceptionFilter } from "./filters/customers-exception.filter";
+import { CreateCustomerDto } from './dto/create-customer.dto';
+import { UpdateCustomerDto } from './dto/update-customer.dto';
+import { CreateCustomer } from '../application/create-customer.use-case';
+import { GetCustomerById } from '../application/get-customer-by-id.use-case';
+import { ListCustomers } from '../application/list-customers.use-case';
+import { UpdateCustomer } from '../application/update-customer.use-case';
+import { DeactivateCustomer } from '../application/deactivate-customer.use-case';
+import { CustomerResponseDto } from './dto/customer-response.dto';
+import { CustomerExceptionFilter } from './filters/customers-exception.filter';
 import { ValidationError } from 'class-validator';
 
 function customerValidationExceptionFactory(errors: ValidationError[]) {
@@ -54,7 +54,7 @@ export class CustomersController {
     private readonly deactivateCustomer: DeactivateCustomer,
   ) {}
 
-    @Get('customers')
+  @Get('customers')
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
@@ -77,22 +77,15 @@ export class CustomersController {
     };
   }
 
-
   @Get('factories/:factoryId/customers/:id')
-  async findById(
-    @Param('factoryId', ParseIntPipe) factoryId: number,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
+  async findById(@Param('factoryId', ParseIntPipe) factoryId: number, @Param('id', ParseIntPipe) id: number) {
     const customer = await this.getCustomerById.execute(factoryId, id);
     return CustomerResponseDto.fromDomain(customer);
   }
 
   @Post('factories/:factoryId/customers')
   @HttpCode(HttpStatus.CREATED)
-  async create(
-    @Param('factoryId', ParseIntPipe) factoryId: number,
-    @Body() createDto: CreateCustomerDto,
-  ) {
+  async create(@Param('factoryId', ParseIntPipe) factoryId: number, @Body() createDto: CreateCustomerDto) {
     const customer = await this.createCustomer.execute(factoryId, createDto);
     return CustomerResponseDto.fromDomain(customer);
   }
@@ -109,10 +102,7 @@ export class CustomersController {
 
   @Patch('factories/:factoryId/customers/:id/deactivate')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deactivate(
-    @Param('factoryId', ParseIntPipe) factoryId: number,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
+  async deactivate(@Param('factoryId', ParseIntPipe) factoryId: number, @Param('id', ParseIntPipe) id: number) {
     await this.deactivateCustomer.execute(factoryId, id);
   }
 }

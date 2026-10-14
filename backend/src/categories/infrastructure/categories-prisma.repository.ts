@@ -2,11 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Category as CategoryRow } from '../../generated/prisma/client';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
 import { Category } from '../domain/category';
-import {
-  CategoriesRepository,
-  CategoryListParams,
-  CategoryListResult,
-} from '../domain/ports/categories.repository';
+import { CategoriesRepository, CategoryListParams, CategoryListResult } from '../domain/ports/categories.repository';
 
 @Injectable()
 export class CategoriesPrismaRepository implements CategoriesRepository {
@@ -38,9 +34,7 @@ export class CategoriesPrismaRepository implements CategoriesRepository {
   async list(params: CategoryListParams): Promise<CategoryListResult> {
     const where = {
       isActive: true,
-      ...(params.nameContains
-        ? { name: { contains: params.nameContains, mode: 'insensitive' as const } }
-        : {}),
+      ...(params.nameContains ? { name: { contains: params.nameContains, mode: 'insensitive' as const } } : {}),
     };
 
     const [rows, total] = await this.prisma.$transaction([

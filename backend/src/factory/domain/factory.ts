@@ -1,8 +1,7 @@
-import { FactoryId } from "./factory-id";
+import { FactoryId } from './factory-id';
 import { CategoryId } from '../../categories/domain/category-id';
-import { Cuit } from "../../shared/domain/cuit";
-import { DomainValidationError } from "../../shared/domain/errors/domain-validation.error";
-
+import { Cuit } from '../../shared/domain/cuit';
+import { DomainValidationError } from '../../shared/domain/errors/domain-validation.error';
 
 export class Factory {
   private constructor(
@@ -69,12 +68,7 @@ export class Factory {
   }
 
   // UPDATE (el CUIT no se modifica)
-  update(
-    name: string,
-    address: string | null,
-    paymentDescription: string | null,
-    categoryId: number,
-  ): void {
+  update(name: string, address: string | null, paymentDescription: string | null, categoryId: number): void {
     this.setName(name);
     this.setAdress(address);
     this.setPaymentDescription(paymentDescription);
@@ -122,12 +116,28 @@ export class Factory {
     return this._id ? this._id.getValue() : null;
   }
 
-  getCuit(): string { return this._cuit.getCuitValue(); }
-  getName(): string { return this._name; }
-  getAddress(): string | null { return this._address; }
-  getPaymentDescription(): string | null { return this._paymentDescription; }
-  getCategoryId(): number { return this._categoryId.getValue(); }
-  isActive(): boolean { return this._active; }
-  getCreatedAt(): Date { return this._createdAt; }
-  getUpdatedAt(): Date { return this._updatedAt; }
+  getCuit(): string {
+    return this._cuit.getCuitValue();
+  }
+  getName(): string {
+    return this._name;
+  }
+  getAddress(): string | null {
+    return this._address;
+  }
+  getPaymentDescription(): string | null {
+    return this._paymentDescription;
+  }
+  getCategoryId(): number {
+    return this._categoryId.getValue();
+  }
+  isActive(): boolean {
+    return this._active;
+  }
+  getCreatedAt(): Date {
+    return this._createdAt;
+  }
+  getUpdatedAt(): Date {
+    return this._updatedAt;
+  }
 }
