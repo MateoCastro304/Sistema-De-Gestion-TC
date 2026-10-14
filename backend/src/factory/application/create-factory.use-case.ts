@@ -1,10 +1,17 @@
 import { Injectable, BadRequestException, ConflictException } from '@nestjs/common';
 import { FactoryRepository } from '../domain/port/factory.repository';
 import { CategoriesRepository } from '../../categories/domain/ports/categories.repository';
-import { CreateFactoryDto } from '../http/dto/create-factory.dto';
 import { Factory } from '../domain/factory';
 import { FactoryAlreadyExists } from '../domain/errors/factory-already-exists.error';
 import { FactoryNameAlreadyExists } from '../domain/errors/factory-name-already-exists.error';
+
+export type CreateFactoryInput = {
+  name: string;
+  cuit: string;
+  address?: string | null;
+  payMethod?: string | null;
+  categoryId: number;
+};
 
 @Injectable()
 export class CreateFactory {
@@ -13,18 +20,18 @@ export class CreateFactory {
     private readonly categoriesRepository: CategoriesRepository,
   ) {}
 
-  async execute(dto: CreateFactoryDto): Promise<Factory> {
-    const category = await this.categoriesRepository.findById(dto.categoryId);
+  async execute(input: CreateFactoryInput): Promise<Factory> {
+    const category = await this.categoriesRepository.findById(input.categoryId);
     if (!category || !category.getActive()) {
-      throw new BadRequestException(`Category with ID ${dto.categoryId} not found or inactive`);
+      throw new BadRequestException(`Category with ID ${input.categoryId} not found or inactive`);
     }
 
     const factory = Factory.create(
-      dto.cuit,
-      dto.name,
-      dto.address ?? null,
-      dto.payMethod ?? null,
-      dto.categoryId,
+      input.cuit,
+      input.name,
+      input.address ?? null,
+      input.payMethod ?? null,
+      input.categoryId,
     );
 
     const cuitTaken = await this.factoryRepository.existsByCuit(factory.getCuit());

@@ -1,16 +1,22 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { Customer } from '../domain/customer';
 import { CustomerRepository } from '../domain/port/customer.repository';
-import { UpdateCustomerDto } from '../http/dto/update-customer.dto';
 import { CustomerAlreadyExists } from '../domain/errors/customer-already-exists.error';
 import { Mail } from '../../shared/domain/mail';
+
+export type UpdateCustomerInput = {
+  firstName?: string;
+  lastName?: string | null;
+  phone?: string | null;
+  mail?: string | null;
+};
 
 @Injectable()
 export class UpdateCustomer {
   constructor(private readonly customersRepository: CustomerRepository) {}
 
-  async execute(factoryId: number, id: number, dto: UpdateCustomerDto): Promise<Customer> {
-    if (Object.values(dto).every((value) => value === undefined)) {
+  async execute(factoryId: number, id: number, input: UpdateCustomerInput): Promise<Customer> {
+    if (Object.values(input).every((value) => value === undefined)) {
       throw new BadRequestException('At least one field must be provided');
     }
 
@@ -19,8 +25,8 @@ export class UpdateCustomer {
       throw new NotFoundException(`Customer ${id} not found in factory ${factoryId}`);
     }
 
-    if (dto.mail) {
-      const normalizedMail = Mail.create(dto.mail).getValue();
+    if (input.mail) {
+      const normalizedMail = Mail.create(input.mail).getValue();
       const mailTaken = await this.customersRepository.existsByMail(
         normalizedMail,
         factoryId,
@@ -33,10 +39,10 @@ export class UpdateCustomer {
 
     // La fábrica no se puede cambiar: forma parte de la clave primaria.
     customer.update(
-      dto.firstName ?? customer.getName(),
-      dto.lastName === undefined ? customer.getLastName() : dto.lastName,
-      dto.phone === undefined ? customer.getPhone() : dto.phone,
-      dto.mail === undefined ? customer.getMail() : dto.mail,
+      input.firstName ?? customer.getName(),
+      input.lastName === undefined ? customer.getLastName() : input.lastName,
+      input.phone === undefined ? customer.getPhone() : input.phone,
+      input.mail === undefined ? customer.getMail() : input.mail,
       customer.getFactoryId(),
     );
 

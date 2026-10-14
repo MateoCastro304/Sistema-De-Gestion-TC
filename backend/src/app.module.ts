@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import prismaConfig from '../prisma.config';
 import { PrismaModule } from './shared/infrastructure/prisma/prisma.module';
 import { HealthModule } from './health/health.module';
 import { CustomersModule } from './customers/customers.module';

@@ -1,9 +1,15 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { Customer } from '../domain/customer';
 import { CustomerRepository } from '../domain/port/customer.repository';
-import { CreateCustomerDto } from '../http/dto/create-customer.dto';
 import { FactoryRepository } from '../../factory/domain/port/factory.repository';
 import { CustomerAlreadyExists } from '../domain/errors/customer-already-exists.error';
+
+export type CreateCustomerInput = {
+  firstName: string;
+  lastName?: string | null;
+  phone?: string | null;
+  mail?: string | null;
+};
 
 @Injectable()
 export class CreateCustomer {
@@ -12,7 +18,7 @@ export class CreateCustomer {
     private readonly factoryRepository: FactoryRepository,
   ) {}
 
-  async execute(factoryId: number, dto: CreateCustomerDto): Promise<Customer> {
+  async execute(factoryId: number, input: CreateCustomerInput): Promise<Customer> {
     const factory = await this.factoryRepository.findById(factoryId);
     if (!factory) {
       throw new NotFoundException(`Factory with ID ${factoryId} not found`);
@@ -22,10 +28,10 @@ export class CreateCustomer {
     }
 
     const customer = Customer.create(
-      dto.firstName,
-      dto.lastName ?? null,
-      dto.phone ?? null,
-      dto.mail ?? null,
+      input.firstName,
+      input.lastName ?? null,
+      input.phone ?? null,
+      input.mail ?? null,
       factoryId,
     );
 

@@ -43,7 +43,7 @@ export class DomainErrorFilter implements ExceptionFilter {
 
   private mapToHttp(exception: CategoryDomainError): {
     status: HttpStatus;
-    body: Object;
+    body: object;
   } {
     if (exception instanceof CategoryNotFound) {
       return {

@@ -43,10 +43,12 @@ export class CustomerPrismaRepository implements CustomerRepository {
         return this.toDomain(row);
       } catch (error) {
         // Un mail repetido no es un choque de id: no se reintenta.
+        const target = error instanceof Prisma.PrismaClientKnownRequestError ? error.meta?.target : undefined;
+        const targetFields = Array.isArray(target) ? target : [];
         if (
           error instanceof Prisma.PrismaClientKnownRequestError &&
           error.code === 'P2002' &&
-          String(error.meta?.target ?? '').includes('mail')
+          targetFields.includes('mail')
         ) {
           throw new ConflictException(new CustomerAlreadyExists(customer.getMail() ?? '').message);
         }

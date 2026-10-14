@@ -149,6 +149,21 @@ export default tseslint.config(
     },
   },
 
+  // --- Node internals without types ----------------------------------------
+  {
+    // Patches Module._resolveFilename, an undocumented Node internal with no
+    // types in @types/node. There is no type-safe way to express this, so
+    // the unsafe-* rules are off for this one file instead of elsewhere.
+    files: ['prisma/seed.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+    },
+  },
+
   // --- JS files (this config) ----------------------------------------------
   {
     files: ['**/*.{js,mjs,cjs}'],

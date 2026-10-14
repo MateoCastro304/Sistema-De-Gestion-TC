@@ -119,8 +119,9 @@ export class FactoryPrismaRepository implements FactoryRepository {
   // las frena y acá se convierte en el mismo 409 que el chequeo.
   private translateUniqueViolation(error: unknown, factory: Factory): unknown {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      const target = String(error.meta?.target ?? '');
-      return target.includes('name')
+      const target = error.meta?.target;
+      const targetFields = Array.isArray(target) ? target : [];
+      return targetFields.includes('name')
         ? new ConflictException(new FactoryNameAlreadyExists(factory.getName()).message)
         : new ConflictException(new FactoryAlreadyExists(factory.getCuit()).message);
     }

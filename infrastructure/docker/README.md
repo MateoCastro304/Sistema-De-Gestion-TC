@@ -21,6 +21,7 @@ docker/
 ├── docker-compose.yaml        # Base compose configuration (shared by all environments)
 ├── docker-compose.dev.yaml    # Development environment overrides
 ├── docker-compose.prod.yaml   # Production environment overrides
+├── .env                       # Shared Compose interpolation defaults (development only)
 ├── .env.dev                   # Development environment variables
 ├── .env.prod                  # Production environment variables
 ├── .env.example               # Template for environment variables
@@ -221,6 +222,12 @@ make shell-db
 ```
 
 ## Development Environment Setup
+
+Compose reads `.env` for variable interpolation in the base configuration. The tracked file contains development-only defaults and matches `.env.example`; do not put production credentials in it. The `env_file` used by the development override is a separate, local-only `.env.dev` file. Create it from the template before starting Docker Compose:
+
+```bash
+cp .env.example .env.dev
+```
 
 ### How It Works
 

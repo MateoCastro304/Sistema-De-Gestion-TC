@@ -1,10 +1,6 @@
 import { Transform, Type } from 'class-transformer';
-import type { TransformFnParams } from 'class-transformer';
 import { IsString, IsNotEmpty, IsOptional, IsInt, IsPositive, MaxLength } from 'class-validator';
-
-// El frontend manda '' cuando un campo opcional queda vacío: se guarda como null.
-const emptyToNull = ({ value }: TransformFnParams) =>
-  typeof value === 'string' && value.trim() === '' ? null : value;
+import { emptyToNull } from '../../../shared/http/empty-to-null.transform';
 
 export class CreateFactoryDto {
   @IsString()
