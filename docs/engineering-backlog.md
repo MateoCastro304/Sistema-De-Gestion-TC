@@ -1,0 +1,120 @@
+# Engineering Backlog — CI/CD, Tooling and Code Quality
+
+Pending work on the delivery pipeline, tooling and code-quality debt found while setting up CI. Business features are tracked in Jira; this list is for engineering work that has no ticket yet.
+
+**Last updated:** 2026-10-15. When you finish an item, tick it and add the commit or PR. When you start one, put your name in **Owner**. Move items to Jira if the team prefers to track them there.
+
+Priority: **P1** = blocks something or hides real problems · **P2** = should be done this sprint · **P3** = improvement, when there is time.
+
+---
+
+## 0. Production readiness (blocks the first deploy to AWS)
+
+Found while preparing the EC2 deploy. Do these in order: each one is small and can be checked locally.
+
+| Done | Pri | Item | Owner |
+| :--: | :-: | ---- | ----- |
+| [ ] | P1 | **Stop the `Makefile` from leaking dev variables into prod commands.** `-include $(ENV_DEV)` + a bare `export` puts every `.env.dev` value in the environment of *every* recipe, and Compose gives shell variables precedence over `--env-file`. Result: `make prod-*` interpolates `${POSTGRES_USER}`/`${POSTGRES_PASSWORD}` with the dev values. Check: run `docker compose ... config` through Make and look at `DATABASE_URL`. | |
+| [ ] | P1 | **Add `restart: unless-stopped` to `web`.** Without it, nginx does not come back after the host reboots while the backend and the database do. | |
+| [ ] | P1 | **Graceful shutdown of the backend.** Call `app.enableShutdownHooks()` in `main.ts` (today `PrismaService.onModuleDestroy` never runs) and add `init: true` to the service, so Node is not PID 1 and `docker stop` does not end in SIGKILL after 10 s. | |
+| [ ] | P1 | **Health check.** `/health/db` returns the raw database error message to the client: log it, return only the status. Add a compose `healthcheck` to `backend` that calls it, and make `web` depend on `backend` with `condition: service_healthy`. | |
+| [ ] | P1 | **Rotate Docker logs.** Add `logging` (`json-file`, `max-size`, `max-file`) to every service through an `x-logging` anchor. A full disk stops PostgreSQL. | |
+| [ ] | P2 | **Register `ValidationPipe` once.** `main.ts` registers it again after `configureApp()` already did. | |
+| [ ] | P2 | **Use placeholders in `infrastructure/docker/.env.example`.** It has a real-looking JWT secret, the same value for both secrets, and does not list `JWT_EXPIRATION` / `JWT_REFRESH_EXPIRATION`. | |
+| [ ] | P1 | **Run the prod stack locally** (`make prod-build`) once the items above are done: all containers healthy, `migrate` exited 0, `http://localhost` serves the app. | |
+
+## 1. Get CI green and trustworthy
+
+CI is merged into `develop` but the `backend` job is red, so the Tier 2 jobs (`backend-integration`, `docker-build`) have **never actually run**. Until this section is done, a green PR to `main` is not possible.
+
+| Done | Pri | Item | Owner |
+| :--: | :-: | ---- | ----- |
+| [x] | P1 | **Fix the broken backend build:** `src/factory/domain/factory.ts` imports `../../shared/domain/cuit`, which does not exist (`cuit.ts` lives in `suppliers/domain/`). Verified 2026-10-15: `cuit.ts` is now in `shared/domain/` and `tsc` compiles clean. | |
+| [ ] | P1 | **Fix backend lint errors** (`npm run lint` in `backend/`). Includes real issues: use cases in `customers` and `factory` importing HTTP DTOs (layer violation), unused `prismaConfig` import in `app.module.ts`, `@Transform` calling `.trim()` on non-strings, `no-base-to-string` in the Prisma repositories, `Object` instead of `object` in the exception filters. Fixed in `ce302fb`; confirm the `backend` job is green on `develop` before ticking. | |
+| [x] | P1 | **Format the backend** (`npm run format`, 41 files). Coordinate with the team first: one dedicated commit, announced, to avoid conflicts with open branches. Done in `141d272`; `format:check` passes. | |
+| [ ] | P1 | **Watch the first real Tier 2 run** once `backend` is green: confirm Testcontainers starts PostgreSQL on the runner and both images build. | |
+| [ ] | P1 | **Select the required checks on `main`** (Settings → Branches): `frontend`, `backend`, `openapi-contract`, `backend-integration`, `docker-build`. They only appear in the list after running once in a PR. | Castro |
+| [ ] | P2 | **Run CI on PRs to `develop` too** (`pull_request: branches: [develop, main]`). Today only pushes to `develop` and PRs to `main` trigger it, so a PR into `develop` gets no checks. Related: the team still has to define the review rule for `develop` (I-02). | |
+| [ ] | P2 | **Only cancel superseded runs on PRs**, not on `develop`. With direct pushes, cancelling a run leaves that commit without a verdict, and when `develop` turns red you can't tell which commit broke it. Change to `cancel-in-progress: ${{ github.event_name == 'pull_request' }}`. | |
+| [ ] | P2 | **Close the intentionally red integration tests** (backend deviations from the OpenAPI contract, see `backend/test/README.md`). They block every release to `main`. | |
+
+## 2. CI hardening
+
+| Done | Pri | Item | Owner |
+| :--: | :-: | ---- | ----- |
+| [ ] | P2 | **Add Dependabot** (`.github/dependabot.yml`) for `github-actions` for npm in `frontend/`, `backend/` and `tooling/openapi/`, and for `docker` (base images in the Dockerfiles and compose files). Today nothing tells us when an action or a dependency has a security fix. | |
+| [ ] | P3 | **Pin third-party actions to a commit SHA** instead of a tag (`actions/checkout@<sha> # v7`). Tags can be moved; SHAs can't. Dependabot keeps SHAs updated. | |
+| [ ] | P3 | **Cache Docker layers** in `docker-build` (Buildx + GitHub Actions cache). Today every PR rebuilds both images from scratch. | |
+| [ ] | P3 | **Add `workflow_dispatch`** to run CI manually on any branch. | |
+| [ ] | P3 | **Add a CI status badge** to `README.md`. | |
+| [ ] | P3 | **Remove the duplicated setup steps** (checkout + setup-node repeated in every job) with a composite action, if the workflow keeps growing. | |
+
+## 3. Continuous deployment (own branch, own ADR)
+
+Defined at a high level in [ADR-009](./decisions/009-deploy-infrastructure.md) (step 4). Needs **ADR-011** before implementing.
+
+| Done | Pri | Item | Owner |
+| :--: | :-: | ---- | ----- |
+| [ ] | P2 | **Write ADR-011 — Continuous deployment.** Decisions: container registry (GHCR vs ECR), image tagging (commit SHA, no `latest` in production), what triggers a deploy (merge to `main`, tag, manual approval), how GitHub reaches EC2 (SSH vs SSM), where secrets live, how migrations run (`prisma migrate deploy` before the new backend starts), rollback strategy. | |
+| [ ] | P2 | **Build and publish images** from the commit validated in `main`. Images must be `linux/arm64` (the EC2 instance is a t4g). |
+| [ ] | P2 | **Switch the prod compose from `build:` to `image:`** and bake `nginx.prod.conf` into the web image, so the server needs neither the source code nor the repo. | |
+| [ ] | P2 | **Deploy to EC2** with `docker-compose.prod.yaml`, pulling the published images. | |
+| [ ] | P3 | **Validate compose files in CI** with `docker compose config` (would have caught the undefined `causas-network`). Needs a dummy env file for the prod compose. | |
+
+## 4. Frontend
+
+| Done | Pri | Item | Owner |
+| :--: | :-: | ---- | ----- |
+| [ ] | P2 | **Add tests.** The frontend has none. Decide the stack (Vitest + Testing Library is the usual choice with Vite; MSW is already installed for API mocks) and add `npm test` to the `frontend` job. | |
+| [ ] | P2 | **Add Prettier** (same config as the backend) and `format:check` to CI. Today formatting is inconsistent (mixed semicolons and indentation). Format in one dedicated commit. | |
+| [ ] | P2 | **Fix the floating promises** (`invalidateQueries`, `navigate`) properly: decide per case whether to `await`/return the promise or mark it with `void`. Returning `invalidateQueries` from `onSuccess` changes when the mutation resolves. | |
+| [ ] | P3 | **Review `features/` → `app/providers` dependency.** Allowed by the lint config as a deliberate exception. The alternative is moving `ToastContext` to `shared/` (there is an empty `shared/components/feedback/` for it). | |
+| [ ] | P3 | **Type `import.meta.env`** (`ImportMetaEnv` in a `vite-env.d.ts`), so `VITE_*` variables aren't `any`. | |
+| [ ] | P3 | **Code-split the bundle.** The main chunk is over 500 kB; lazy-load routes. | |
+
+## 5. Backend and tooling debt
+
+| Done | Pri | Item | Owner |
+| :--: | :-: | ---- | ----- |
+| [ ] | P2 | **Declare `dotenv` as a dependency.** `prisma.config.ts` imports `dotenv/config` but it isn't in `package.json`; it works only because another package installs it. | |
+| [ ] | P3 | **Align ESLint versions** (frontend on 10, backend on 9). | |
+| [ ] | P3 | **Fix the `backend-test` description in the `Makefile`** (says integration tests, runs unit tests). | |
+| [ ] | P3 | **Remove the unused `@eslint/eslintrc` dev dependency** from the backend (leftover from the Nest template). | |
+
+## 6. Documentation
+
+| Done | Pri | Item | Owner |
+| :--: | :-: | ---- | ----- |
+| [ ] | P2 | **Translate to English** (rule in `CONTRIBUTING`): `backend/test/README.md`, `docs/pendientes-sprint-1.md`, `docs/decisiones-clientes-fabricas.md`, `docs/inconsistencias-clientes-fabricas.md` (contents and file names). | |
+| [ ] | P2 | **Update `docs/pendientes-sprint-1.md`:** I-01 (no CI) is resolved by ADR-010; I-02 and B-17 are partially addressed. | |
+| [ ] | P3 | **Clean up `README.md`:** remove the leftover template comment ("Section to paste into the repo's main README.md") and link `CONTRIBUTING`. | |
+| [ ] | P3 | **Mention Node 22 in `SETUP.md`** for running checks outside Docker. | |
+
+## 7. Production hardening (before real data goes in)
+
+| Done | Pri | Item | Owner |
+| :--: | :-: | ---- | ----- |
+| [ ] | P2 | **Harden `nginx.prod.conf`:** `server_tokens off`, `client_max_body_size` (default 1 MB will reject uploads with 413), gzip, long cache for hashed `/assets/` and `no-cache` for `index.html`, security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`). HSTS only after HTTPS. | |
+| [ ] | P2 | **Pin base image versions** (`node`, `nginx`, `postgres`) to a minor version or digest; Dependabot (section 2) keeps them updated. | |
+| [ ] | P2 | **Structured backend logging.** Decide the library (Nest logger, `nestjs-pino`, winston), log to stdout only, add a request id, and never log passwords, tokens or `Authorization` headers. | |
+| [ ] | P1 | **Database backups.** Agree the RPO with the client (ADR-009 says weekly). Scheduled `pg_dump` with retention, later copied to S3; optionally EBS snapshots. Test a restore before calling it done. | |
+
+## 8. Dev environment and repository hygiene
+
+| Done | Pri | Item | Owner |
+| :--: | :-: | ---- | ----- |
+| [ ] | P3 | **WebSocket support in `nginx.dev.conf` (I-05).** `location /` needs `proxy_http_version 1.1` and the `Upgrade` / `Connection` headers, or Vite HMR does not work through port 80. | |
+| [ ] | P3 | **Review the `docker.sock` mount in `docker-compose.dev.yaml`.** It exists so Testcontainers can run inside the backend container, but it gives that container root-equivalent access to the host. Alternative: run integration tests from the host and drop the mount and `docker-cli` from the dev image. Team decision. | |
+| [ ] | P3 | **Delete merged remote branches (I-04)** and enable "Automatically delete head branches" in the repo settings. Decide with their owners what to do with `feat/suppliers-prisma-adapter`, `feature/tests-clients` and `feature/abmc-customers-and-factories` (not merged). | |
+| [ ] | P2 | **Commit this backlog.** | |
+
+## 9. AWS infrastructure
+
+| Done | Pri | Item | Owner |
+| :--: | :-: | ---- | ----- |
+| [ ] | P1 | **Account baseline:** MFA on root and IAM user, monthly budget with alerts (check it does not net out credits), region chosen. | |
+| [ ] | P1 | **First EC2 deploy by hand** (t4g.small, Ubuntu 24.04 arm64, port 80 open only to the team's IPs until there is authentication and HTTPS). Record every choice: it becomes the Terraform code. | |
+| [ ] | P2 | **Terraform** for what was created by hand, so it can be recreated in the client's account. | |
+| [ ] | P2 | **S3** for uploaded files and backups (replaces MinIO in dev). | |
+| [ ] | P2 | **Domain and HTTPS** before the client loads real data. | |
+| [ ] | P3 | **CloudWatch** agent for host metrics and container logs. | |

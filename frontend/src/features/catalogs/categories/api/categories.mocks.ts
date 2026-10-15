@@ -14,10 +14,10 @@ import type { Category, CategoryInput } from '../types/category'
 const SEED_DATE = '2026-08-01T12:00:00Z'
 
 let nextId = 1
-const seed = (name: string): Category => ({
+const seed = (name: string, active = true): Category => ({
   id: nextId++,
   name,
-  active: true,
+  active,
   createdAt: SEED_DATE,
   updatedAt: SEED_DATE,
 })
@@ -28,6 +28,8 @@ let categories: Category[] = [
   seed('Autopartes'),
   seed('Agroindustria'),
   seed('Petróleo y gas'),
+  // Dado de baja: crear "Fundición" lo reactiva.
+  seed('Fundición', false),
 ]
 
 /**
@@ -66,9 +68,16 @@ export const categoryHandlers = [
     const page = Number(url.searchParams.get('page') ?? 1)
     const limit = Number(url.searchParams.get('limit') ?? 20)
     const start = (page - 1) * limit
-    // Como el backend: sólo los activos.
-    const active = categories.filter((c) => c.active !== false)
-    return HttpResponse.json(active.slice(start, start + limit))
+    // Como el backend: activos por defecto, o sólo los dados de baja con
+    // ?active=false, envueltos en { items, total, page, limit }.
+    const wantActive = url.searchParams.get('active') !== 'false'
+    const matching = categories.filter((c) => (c.active !== false) === wantActive)
+    return HttpResponse.json({
+      items: matching.slice(start, start + limit),
+      total: matching.length,
+      page,
+      limit,
+    })
   }),
 
   http.get('/api/categories/:id', ({ params }) => {
@@ -79,19 +88,43 @@ export const categoryHandlers = [
 
   http.post('/api/categories', async ({ request }) => {
     const body = (await request.json()) as CategoryInput
-    if (nameTaken(body.name)) {
-      return conflict(`Ya existe un rubro llamado "${body.name}".`, '/api/categories')
+    const wanted = body.name.trim().toLocaleLowerCase()
+    const existing = categories.find((c) => c.name.toLocaleLowerCase() === wanted)
+    // Como el backend: si es de un rubro dado de baja, el 409 trae su id.
+    if (existing && existing.active === false) {
+      return HttpResponse.json(
+        {
+          statusCode: 409,
+          error: 'Conflict',
+          message: 'El rubro existe pero está dado de baja',
+          categoryId: existing.id,
+          path: '/api/categories',
+          timestamp: new Date().toISOString(),
+        },
+        { status: 409 },
+      )
+    }
+    if (existing) {
+      return conflict('Ya existe un rubro con ese nombre', '/api/categories')
     }
     const now = new Date().toISOString()
     const created: Category = {
       id: nextId++,
       name: body.name,
+      active: true,
       createdAt: now,
       updatedAt: now,
     }
     categories = [...categories, created]
     // El rubro directo, igual que el backend real.
     return HttpResponse.json(created, { status: 201 })
+  }),
+
+  http.post('/api/categories/:id/restore', ({ params }) => {
+    const category = findCategory(Number(params.id))
+    if (!category) return new HttpResponse(null, { status: 404 })
+    Object.assign(category, { active: true, updatedAt: new Date().toISOString() })
+    return HttpResponse.json(category)
   }),
 
   http.patch('/api/categories/:id', async ({ params, request }) => {
