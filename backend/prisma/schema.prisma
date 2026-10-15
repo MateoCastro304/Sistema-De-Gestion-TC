@@ -97,7 +97,7 @@ model Category {
 /// Fabrica / empresa cliente (tabla `factory_customer`)
 ///
 /// PENDIENTE: falta `code` (codigo de fabrica, unico, obligatorio, 2-4 caracteres).
-/// Ver docs/decisiones-clientes-fabricas.md, seccion 5.
+/// Ver docs/decisions/decisiones-clientes-fabricas.md, seccion 5.
 /// Unicidad (indices parciales creados a mano en la migracion
 /// 20261008000000_customers_factories_rules; Prisma no los expresa aca):
 ///  - cuit: unico entre fabricas ACTIVAS (factory_customer_cuit_active_key)

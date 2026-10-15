@@ -1,42 +1,42 @@
-# Contributing to Tornería Castro
+﻿# Contribuir a Tornería Castro
 
-This document defines the conventions the team follows when working in this monorepo. The goal is to keep the history readable, avoid conflicts, and make sure changes to shared contracts (OpenAPI, environment variables) don't silently break someone else's work.
+Este documento define las convenciones que sigue el equipo al trabajar en este monorepositorio. El objetivo es mantener un historial legible, evitar conflictos y asegurar que los cambios en contratos compartidos (OpenAPI, variables de entorno) no rompan silenciosamente el trabajo de otra persona.
 
-## Language
+## Idioma
 
-We use English for all code, comments, and documentation. This is to make it easier for new team members to onboard and to avoid confusion when searching for help online.
+Usamos inglés para todo el código y commits, los comentarios y la documentación en español. Esto facilita la incorporación de nuevos integrantes al equipo y evita confusiones al buscar ayuda en línea.
 
-## Branching
+## Ramas
 
-Branch names follow this pattern:
-
-```
-<type>/<jira-ticket>-<short-description>
-```
-
-Where `<type>` is one of: `feature`, `fix`, `chore`, `docs`, `ci`.
-
-Examples:
+Los nombres de las ramas siguen este patrón:
 
 ```
-feature/TC-12-openapi-schema-quotes
-fix/TC-34-quote-expiration-job
-chore/TC-8-update-eslint-config
+<type>/-<short-description>
 ```
 
-Keep the description short (3-5 words) and lowercase, using hyphens instead of spaces.
+Donde `<type>` es uno de: `feature`, `fix`, `chore`, `docs`, `ci`.
 
-## Commit messages
+Ejemplos:
 
-We use [Conventional Commits](https://www.conventionalcommits.org/):
+```
+feature/openapi-schema-quotes
+fix/quote-expiration-job
+chore/eslint-config
+```
+
+Mantené la descripción breve (3 a 5 palabras), en minúsculas y con guiones en lugar de espacios.
+
+## Mensajes de commit
+
+Usamos [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
 <type>(<scope>): <short summary>
 ```
 
-Types: `feat`, `fix`, `chore`, `docs`, `ci`, `refactor`, `test`.
+Tipos: `feat`, `fix`, `chore`, `docs`, `ci`, `refactor`, `test`.
 
-Examples:
+Ejemplos:
 
 ```
 feat(backend): add quote expiration scheduler
@@ -44,39 +44,39 @@ fix(openapi): correct required fields in QuoteItem schema
 ci: add spectral lint step to pull request workflow
 ```
 
-This isn't just style — it lets us generate changelogs automatically later and makes `git log` actually useful when debugging.
+Esto va más allá del estilo: permite generar registros de cambios automáticamente en el futuro y hace que `git log` sea útil al depurar.
 
 ## Pull requests
 
-Every PR must:
+Cada PR se utilizar al subir cambios a main y debe:
 
-- Reference its Jira ticket.
-- Use the PR template (`.github/PULL_REQUEST_TEMPLATE.md`) — don't delete the checklist.
-- Be reviewed and approved by at least one other team member before merging.
-- Stay focused on one concern. If you find yourself fixing something unrelated, open a separate PR.
+- Referenciar su ticket de Jira.
+- Usar la plantilla de PR (`.github/PULL_REQUEST_TEMPLATE.md`): no elimines la lista de verificación.
+- Ser revisado y aprobado por al menos otro integrante del equipo antes de fusionarse.
+- Centrarse en un solo tema. Si encontrás algo que corregir que no está relacionado, abrí otro PR.
 
-## The environment variable rule
+## La regla de las variables de entorno
 
-**If your PR introduces a new environment variable, it must update `.env.example` in the same commit.**
+**Si tu PR introduce una variable de entorno nueva, debe actualizar `.env.example` en el mismo commit.**
 
-This is the single most common source of "works on my machine" bugs in a multi-developer setup — someone adds a variable locally, forgets to tell the team, and the next person's `docker compose up` fails with a confusing error. Until we have automated validation for this (coming in Sprint 1), this is enforced by convention and PR review — reviewers should reject a PR that adds config without touching `.env.example`.
+Esta es la causa más común de errores de «en mi máquina funciona» cuando trabajan varios desarrolladores: alguien agrega una variable localmente, se olvida de avisar al equipo y el `docker compose up` de la siguiente persona falla con un error confuso. Hasta que tengamos una validación automática para esto (prevista para el Sprint 1), se exige mediante convenciones y revisión de PR: quienes revisan deben rechazar un PR que agregue configuración sin modificar `.env.example`.
 
-## Contract-first: touching the OpenAPI spec
+## Primero el contrato: cambios en la especificación OpenAPI
 
-If your change affects any API endpoint (new route, changed schema, changed response), update the relevant file under `openapi/` in the same PR as the backend change. The OpenAPI contract is the source of truth — the backend implements it, not the other way around.
+Si tu cambio afecta algún endpoint de la API (ruta nueva, esquema modificado o respuesta modificada), actualizá el archivo correspondiente en `openapi/` en el mismo PR que el cambio del backend. El contrato OpenAPI es la fuente de verdad: el backend lo implementa, y no al revés.
 
-## Code review expectations
+## Expectativas de la revisión de código
 
-- Don't approve a PR you haven't actually read.
-- If you're not sure something is correct, ask — a question in review is cheaper than a bug in production.
-- Small, frequent PRs are preferred over large ones that are hard to review meaningfully.
+- No apruebes un PR que no hayas leído realmente.
+- Si no estás seguro de que algo sea correcto, preguntá: una pregunta durante la revisión cuesta menos que un error en producción.
+- Se prefieren PR pequeños y frecuentes frente a otros grandes que sean difíciles de revisar en profundidad.
 
-## Architectural decisions
+## Decisiones de arquitectura
 
-Always document architectural decisions in ADRs (Architecture Decision Records) under `docs/adr/`. If you find yourself making a decision that affects the architecture of the system, write an ADR before implementing it. This helps the team understand why a decision was made and makes it easier to revisit later.
+Documentá siempre las decisiones de arquitectura en ADR (registros de decisiones de arquitectura) dentro de `docs/decisions/`. Si estás tomando una decisión que afecta la arquitectura del sistema, escribí un ADR antes de implementarla. Esto ayuda al equipo a comprender por qué se tomó una decisión y facilita revisarla más adelante.
 
-Also take a look at existing ADRs before making a decision — if a similar decision has already been made, you may not need to write a new one.
+También revisá los ADR existentes antes de tomar una decisión: si ya se tomó una similar, quizás no necesites escribir uno nuevo.
 
-## Questions
+## Preguntas
 
-If a convention here doesn't fit a situation you're facing, raise it with the team instead of silently working around it — conventions should evolve when they stop making sense, not get ignored.
+Si una convención no encaja con una situación que enfrentás, plantealo al equipo en lugar de eludirla sin avisar: las convenciones deben EVOLUCIONAR cuando dejan de tener sentido, en vez de ignorarse.

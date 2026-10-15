@@ -2,7 +2,7 @@
 
 Fecha: 6 de octubre de 2026. Rama: `feature/backend-customers-and-factories`.
 
-Este documento reemplaza a `docs/inconsistencias-clientes-fabricas.md`, que quedó desactualizado: ahí se tomaba la base de datos como fuente de verdad, y para las fábricas el requisito es la historia de usuario (CU-58).
+Este documento reemplaza a `docs/seguimiento/inconsistencias-clientes-fabricas.md`, que quedó desactualizado: ahí se tomaba la base de datos como fuente de verdad, y para las fábricas el requisito es la historia de usuario (CU-58).
 
 ## 1. Criterios aplicados
 
@@ -76,7 +76,7 @@ SELECT cuit, COUNT(*) FROM factory_customer GROUP BY cuit HAVING COUNT(*) > 1;
 /// Fabrica / empresa cliente (tabla `factory_customer`)
 ///
 /// PENDIENTE: falta `code` (codigo de fabrica, unico, obligatorio, 2-4 caracteres).
-/// Ver docs/decisiones-clientes-fabricas.md, seccion 5.
+/// Ver docs/decisions/decisiones-clientes-fabricas.md, seccion 5.
 model Factory {
   id         Int      @id @default(autoincrement())
   name       String   @db.VarChar(100)

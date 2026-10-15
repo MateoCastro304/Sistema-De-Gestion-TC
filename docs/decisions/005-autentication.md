@@ -1,64 +1,64 @@
-# ADR-005 — Authentication and Authorization
+﻿# ADR-005 — Autenticación y autorización
 
-**Date:** 2026-08  
-**Status:** Decision pending  
-**Decision makers:** Technical team
+**Fecha:** 2026-08  
+**Estado:** Decisión pendiente  
+**Responsables de la decisión:** Equipo técnico
 
 ---
 
-## Context
+## Contexto
 
-The system has 7 roles with different permissions, including a critical separation between administrative staff (access to costs) and shop floor staff (only process times). Authentication must be secure, simple to operate, and suitable for an internal-use application.
+El sistema tiene 7 roles con distintos permisos, incluida una separación crítica entre el personal administrativo (acceso a costos) y el personal de taller (solo tiempos de procesos). La autenticación debe ser segura, sencilla de operar y adecuada para una aplicación de uso interno.
 
-## Options evaluated
+## Opciones evaluadas
 
-### Option A: JWT (JSON Web Tokens)
+### Opción A: JWT (JSON Web Tokens)
 
-Signed tokens that contain the user payload (id, role) and are verified without querying the database.
+Tokens firmados que contienen los datos del usuario (id, rol) y se verifican sin consultar la base de datos.
 
-**Pros:**
-- Stateless on the server: scales horizontally without shared sessions.
-- Direct integration with NestJS Guards for RBAC.
-- Standard known by most devs.
-- Ideal if a mobile app is added in the future or the API is exposed to third parties.
+**Ventajas:**
+- Sin estado en el servidor: escala horizontalmente sin sesiones compartidas.
+- Integración directa con Guards de NestJS para RBAC.
+- Estándar conocido por la mayoría de los desarrolladores.
+- Ideal si en el futuro se agrega una aplicación móvil o se expone la API a terceros.
 
-**Cons:**
-- No native revocation mechanism before expiration. If a user is disabled, their token remains valid until it expires.
-- Requires explicit handling of the refresh token for long sessions.
-- The token payload travels with every request: don't store sensitive data (margins, costs) in the token.
+**Desventajas:**
+- Sin mecanismo nativo de revocación antes del vencimiento. Si se deshabilita un usuario, su token sigue siendo válido hasta que vence.
+- Requiere manejo explícito del token de renovación para sesiones largas.
+- Los datos del token viajan en cada solicitud: no almacenar información sensible (márgenes, costos) en él.
 
-**Revocation mitigation:** a blocklist of revoked tokens in memory or Redis (although it was decided not to use Redis, a table in PostgreSQL with TTL may be enough for this volume).
+**Mitigación de revocación:** una lista de tokens revocados en memoria o Redis (aunque se decidió no usar Redis, una tabla en PostgreSQL con TTL puede ser suficiente para este volumen).
 
-### Option B: Sessions (express-session / @nestjs/session)
+### Opción B: Sesiones (express-session / @nestjs/session)
 
-The server keeps session state in memory or in the database. The client receives only a session ID.
+El servidor mantiene el estado de la sesión en memoria o en la base de datos. El cliente recibe únicamente un ID de sesión.
 
-**Pros:**
-- Immediate revocation: deleting the session on the server = user logged out.
-- Simpler to reason about the authentication state.
+**Ventajas:**
+- Revocación inmediata: eliminar la sesión del servidor = usuario desconectado.
+- Más sencillo razonar sobre el estado de autenticación.
 
-**Cons:**
-- Stateful: scaling horizontally requires a shared store (Redis or another).
-- Less portable if a public API or mobile app is added in the future.
+**Desventajas:**
+- Con estado: el escalado horizontal requiere un almacenamiento compartido (Redis u otro).
+- Menos portable si en el futuro se agrega una API pública o una aplicación móvil.
 
-## Authorization model (RBAC)
+## Modelo de autorización (RBAC)
 
-Regardless of the chosen authentication mechanism, the system uses **role-based RBAC** (not granular permissions). Each endpoint declares which roles have access.
+Independientemente del mecanismo de autenticación elegido, el sistema usa **RBAC basado en roles** (no permisos granulares). Cada endpoint declara qué roles tienen acceso.
 
-| Module | Roles with access |
+| Módulo | Roles con acceso |
 |--------|-----------------|
-| Quotes (read + create) | EC, AT, AS, A |
-| Quotes (internal costs) | EC, AT, AS |
-| Work Orders (read) | JT, EC, ERP, AT, AS |
-| Work Orders (record processes/times) | JT, AT, AS |
-| Reports | ER, AT, AS |
-| System configuration | AS |
-| User management | AS |
+| Cotizaciones (lectura + creación) | EC, AT, AS, A |
+| Cotizaciones (costos internos) | EC, AT, AS |
+| Órdenes de trabajo (lectura) | JT, EC, ERP, AT, AS |
+| Órdenes de trabajo (registro de procesos/tiempos) | JT, AT, AS |
+| Reportes | ER, AT, AS |
+| Configuración del sistema | AS |
+| Gestión de usuarios | AS |
 
-The critical separation is that **JT never accesses financial data**. This must be validated both in the backend (Guard) and in the frontend (hiding the UI).
+La separación crítica es que **JT nunca accede a datos financieros**. Esto debe validarse tanto en el backend (Guard) como en el frontend (ocultando la interfaz).
 
-## Decision
+## Decisión
 
-**JWT** with refresh tokens and a table of revoked tokens in PostgreSQL for sessions terminated early. It is the most portable and standard option for this type of application.
+**JWT** con tokens de renovación y una tabla de tokens revocados en PostgreSQL para sesiones finalizadas antes de tiempo. Es la opción más portable y estándar para este tipo de aplicación.
 
-For authorization, a **role-based RBAC** will be implemented with Guards in NestJS.
+Para la autorización, se implementará **RBAC basado en roles** con Guards en NestJS.

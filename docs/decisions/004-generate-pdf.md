@@ -1,80 +1,80 @@
-# ADR-004 — PDF Generation
+﻿# ADR-004 — Generación de PDF
 
-**Date:** 2026-08  
-**Status:** Recommended (pending confirmation)  
-**Decision makers:** Technical team
+**Fecha:** 2026-08  
+**Estado:** Recomendado (pendiente de confirmación)  
+**Responsables de la decisión:** Equipo técnico
 
 ---
 
-## Context
+## Contexto
 
-The system must generate quote reports in PDF. Each customer may have a specific format (some load it into their own system, others require a particular layout). The PDFs must have professional quality with tables, logos, and structured data.
+El sistema debe generar informes de cotización en PDF. Cada cliente puede tener un formato específico (algunos lo cargan en su propio sistema y otros requieren una disposición particular). Los PDF deben tener calidad profesional, con tablas, logos y datos estructurados.
 
-## Options evaluated
+## Opciones evaluadas
 
-### Option A: Python service (WeasyPrint / ReportLab)
+### Opción A: Servicio Python (WeasyPrint / ReportLab)
 
-A separate Python process that receives structured data from the Node.js backend and returns the generated PDF.
+Un proceso Python separado que recibe datos estructurados del backend Node.js y devuelve el PDF generado.
 
-**WeasyPrint** converts HTML/CSS to PDF with high visual fidelity (ideal for design-driven templates).  
-**ReportLab** generates PDFs programmatically (more control, less declarative design).
+**WeasyPrint** convierte HTML/CSS a PDF con alta fidelidad visual (ideal para plantillas centradas en el diseño).  
+**ReportLab** genera PDF de forma programática (más control, diseño menos declarativo).
 
-**Pros:**
-- HTML/CSS as the PDF template is familiar to any frontend dev: the team can maintain the templates without learning a PDF-specific library.
-- WeasyPrint handles tables, styles, and automatic pagination — the most complex parts of the quote report.
-- Python is the most mature ecosystem for high-quality PDF generation.
-- The Python service stays isolated: if the library needs to change, it doesn't affect the Node.js backend.
+**Ventajas:**
+- HTML/CSS como plantilla de PDF es familiar para cualquier desarrollador frontend: el equipo puede mantener las plantillas sin aprender una biblioteca específica para PDF.
+- WeasyPrint maneja tablas, estilos y paginación automática: las partes más complejas del informe de cotización.
+- Python es el ecosistema más maduro para generar PDF de alta calidad.
+- El servicio Python permanece aislado: si debe cambiar la biblioteca, no afecta al backend Node.js.
 
-**Cons:**
-- Adds an additional process to the deployment.
-- HTTP communication latency between Node.js and Python (tolerable for this synchronous use case).
+**Desventajas:**
+- Agrega un proceso adicional al despliegue.
+- Latencia de comunicación HTTP entre Node.js y Python (tolerable para este caso de uso síncrono).
 
-### Option B: Node.js with Puppeteer
+### Opción B: Node.js con Puppeteer
 
-Puppeteer launches a Chromium instance, renders HTML, and exports to PDF.
+Puppeteer inicia una instancia de Chromium, renderiza HTML y lo exporta a PDF.
 
-**Pros:**
-- No additional process: everything in the same Node.js runtime.
-- HTML/CSS as the template, same as WeasyPrint.
+**Ventajas:**
+- Sin proceso adicional: todo en el mismo entorno de ejecución Node.js.
+- HTML/CSS como plantilla, al igual que WeasyPrint.
 
-**Cons:**
-- Puppeteer in production is resource-intensive (Chromium is heavy). It consumes 400MB of RAM per instance, and the chosen hosting service will have 1GB of RAM.
-- The resulting PDF can vary between Chromium versions.
-- Problematic in Docker environments with sandbox restrictions.
+**Desventajas:**
+- Puppeteer en producción consume muchos recursos (Chromium es pesado). Consume 400 MB de RAM por instancia y el servicio de alojamiento elegido tendrá 1 GB de RAM.
+- El PDF resultante puede variar entre versiones de Chromium.
+- Problemático en entornos Docker con restricciones de aislamiento.
 
 
-### Option C: Node.js with pdfmake
+### Opción C: Node.js con pdfmake
 
-Library that generates PDFs from a descriptive JSON (not HTML).
+Biblioteca que genera PDF a partir de un JSON descriptivo (no HTML).
 
-**Pros:**
-- Lightweight, no browser dependencies.
-- 100% Node.js.
+**Ventajas:**
+- Liviana, sin dependencias de navegador.
+- 100 % Node.js.
 
-**Cons:**
-- Templates are defined in JSON, not HTML/CSS. Learning curve for design.
-- Complex layouts are hard to maintain in JSON.
+**Desventajas:**
+- Las plantillas se definen en JSON, no en HTML/CSS. Curva de aprendizaje para el diseño.
+- Las disposiciones complejas son difíciles de mantener en JSON.
 
-## Decision
+## Decisión
 
-**Python service with WeasyPrint**, running as a process on the same server, with synchronous HTTP communication from the Node.js backend, with occasional use of ReportLab for special cases.
+**Servicio Python con WeasyPrint**, ejecutado como proceso en el mismo servidor, con comunicación HTTP síncrona desde el backend Node.js y uso ocasional de ReportLab para casos especiales.
 
-**Architecture:**
+**Arquitectura:**
 ```
-NestJS Backend
+Backend NestJS
     │
-    │ POST /generate-pdf (JSON data)
+    │ POST /generate-pdf (datos JSON)
     ▼
-Python service (internal port, not exposed)
+Servicio Python (puerto interno, no expuesto)
     │
-    │ WeasyPrint renders HTML template + data
+    │ WeasyPrint renderiza la plantilla HTML + datos
     ▼
-    PDF bytes → HTTP response → NestJS serves it to the client
+    Bytes del PDF → respuesta HTTP → NestJS lo entrega al cliente
 ```
 
-## Critical implementation notes
+## Notas críticas de implementación
 
-- The Python service **must not access the database directly**. It receives all the necessary data from the Node.js backend in the request. This avoids duplicating business logic and keeps a single source of truth.
-- HTML templates for each customer format are versioned in the Python service's repository.
-- In development: bring up both services with Docker Compose.
-- Do not use an async queue for PDF generation: generation is synchronous and the user waits for the file. A queue would add unnecessary complexity for this volume.
+- El servicio Python **no debe acceder directamente a la base de datos**. Recibe todos los datos necesarios del backend Node.js en la solicitud. Esto evita duplicar la lógica de negocio y mantiene una única fuente de verdad.
+- Las plantillas HTML de cada formato de cliente se versionan en el repositorio del servicio Python.
+- En desarrollo: iniciar ambos servicios con Docker Compose.
+- No usar una cola asíncrona para generar PDF: la generación es síncrona y el usuario espera el archivo. Una cola agregaría complejidad innecesaria para este volumen.
