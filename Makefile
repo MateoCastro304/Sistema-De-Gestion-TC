@@ -24,7 +24,6 @@ DC_TEST := docker compose -f $(COMPOSE_BASE) -f $(COMPOSE_TEST) --env-file $(ENV
 # Loads variables from .env.dev as Make variables (for targets like shell-db).
 # The "-" before include prevents failure if the file doesn't exist yet.
 -include $(ENV_DEV)
-export
 
 .PHONY: help \
         dev-up dev-build dev-down dev-down-v dev-logs ps clean \
