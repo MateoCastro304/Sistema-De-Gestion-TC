@@ -1,101 +1,101 @@
-# Project Setup — Tornería Castro
+﻿# Configuración del proyecto — Tornería Castro
 
-Onboarding guide: how to get the project running locally from scratch.
+Guía de incorporación: cómo poner en funcionamiento el proyecto localmente desde cero.
 
 ---
 
-## 1. Prerequisites
+## 1. Requisitos previos
 
-| Tool                            | Notes                                                                                                            |
+| Herramienta | Notas |
 | ------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **Docker** + **Docker Compose** | `docker --version` / `docker compose version`                                                                    |
-| **make**                        | Preinstalled on Linux/Mac. On Windows: use WSL, or Git Bash with `make` installed (`choco install make`).        |
-| **Node.js**                     | Only needed if you plan to run backend or frontend tooling outside Docker. Not required for the normal workflow. |
+| **Docker** + **Docker Compose** | `docker --version` / `docker compose version` |
+| **make** | Preinstalado en Linux/Mac. En Windows: usar WSL o Git Bash con `make` instalado (`choco install make`). |
+| **Node.js** | Solo es necesario si planeás ejecutar herramientas del backend o frontend fuera de Docker. No es necesario para el flujo habitual. |
 
-> The normal development workflow runs the **backend, frontend and PostgreSQL** inside Docker. Node.js does not need to be installed locally unless you want to run project tooling directly on your host machine.
+> El flujo habitual de desarrollo ejecuta el **backend, frontend y PostgreSQL** dentro de Docker. No es necesario instalar Node.js localmente, salvo que quieras ejecutar herramientas del proyecto directamente en tu máquina.
 
 ---
 
-## 2. Clone the repo and configure environment variables
+## 2. Clonar el repositorio y configurar variables de entorno
 
-Clone the repository:
+Cloná el repositorio:
 
 ```bash
 git clone <repo-url>
 cd torneria-castro
 ```
 
-Fill in the Docker environment files (these are not versioned; each developer creates their own from `.env.example`):
+Completá los archivos de entorno de Docker (no están versionados; cada desarrollador crea los suyos a partir de `.env.example`):
 
 ```bash
 cp infrastructure/docker/.env.example infrastructure/docker/.env.dev
 ```
 
-Edit `infrastructure/docker/.env.dev` with the required development values:
+Editá `infrastructure/docker/.env.dev` con los valores requeridos para desarrollo:
 
 ```env
 POSTGRES_USER=torneria_dev
-POSTGRES_PASSWORD=<choose one>
+POSTGRES_PASSWORD=<elegir uno>
 POSTGRES_DB=torneria_castro_dev
 POSTGRES_PORT=5432
 
-JWT_SECRET=<generate with the command below>
-JWT_REFRESH_SECRET=<generate with the command below>
+JWT_SECRET=<generar con el comando de abajo>
+JWT_REFRESH_SECRET=<generar con el comando de abajo>
 ```
 
-JWT secrets must be at least 32 characters long (enforced by `env.validation.ts` at startup). Generate them like this:
+Los secretos JWT deben tener al menos 32 caracteres (lo exige `env.validation.ts` al iniciar). Generalos así:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-Run this command twice: once for `JWT_SECRET` and once for `JWT_REFRESH_SECRET`.
+Ejecutá este comando dos veces: una para `JWT_SECRET` y otra para `JWT_REFRESH_SECRET`.
 
-**Do not reuse the same value for both secrets.**
+**No reutilices el mismo valor para ambos secretos.**
 
-Also add the CORS origins the backend accepts:
+Agregá también los orígenes CORS que acepta el backend:
 
 ```env
 ALLOWED_ORIGINS=http://localhost:8081
 ```
 
-`ALLOWED_ORIGINS` is optional and takes a comma-separated list. In development it must include `http://localhost:8081` so Swagger UI can send requests to the backend. Leave it unset in production: the frontend reaches the backend through Nginx on the same origin, so CORS stays disabled.
+`ALLOWED_ORIGINS` es opcional y recibe una lista separada por comas. En desarrollo debe incluir `http://localhost:8081` para que Swagger UI pueda enviar solicitudes al backend. Dejalo sin definir en producción: el frontend accede al backend mediante Nginx desde el mismo origen, por lo que CORS permanece deshabilitado.
 
-> Project rule: if you add a new environment variable, update `.env.example` in the same commit (see `docs/CONTRIBUTING.md`).
+> Regla del proyecto: si agregás una variable de entorno nueva, actualizá `.env.example` en el mismo commit (ver `docs/CONTRIBUTING.md`).
 
 ---
 
-## 3. Start the development environment with Docker
+## 3. Iniciar el entorno de desarrollo con Docker
 
-The development environment is composed of three main services:
+El entorno de desarrollo está compuesto por tres servicios principales:
 
-- **Backend** — NestJS API.
-- **Frontend** — React/Vite application.
-- **PostgreSQL** — Development database.
+- **Backend** — API NestJS.
+- **Frontend** — Aplicación React/Vite.
+- **PostgreSQL** — Base de datos de desarrollo.
 
-> In addition to these three, an auxiliary `openapi-docs` service serves the API contract documentation independently — see section 4.
+> Además de estos tres, un servicio auxiliar `openapi-docs` sirve la documentación del contrato de la API de forma independiente: ver sección 4.
 
-With the `Makefile` at the repository root, the whole development workflow is handled through short commands.
+Con el `Makefile` de la raíz del repositorio, todo el flujo de desarrollo se maneja mediante comandos breves.
 
-Start all services in the background:
+Iniciá todos los servicios en segundo plano:
 
 ```bash
 make dev-up
 ```
 
-Check the status of the containers:
+Consultá el estado de los contenedores:
 
 ```bash
 make ps
 ```
 
-Follow the logs from all services:
+Seguí los registros de todos los servicios:
 
 ```bash
 make dev-logs
 ```
 
-To see all available commands:
+Para ver todos los comandos disponibles:
 
 ```bash
 make help
@@ -103,94 +103,94 @@ make help
 
 ---
 
-## 4. First steps after starting
+## 4. Primeros pasos después de iniciar
 
-### Run Prisma migrations
+### Ejecutar migraciones Prisma
 
-Once the containers are running, apply the database migrations:
+Una vez que los contenedores estén ejecutándose, aplicá las migraciones de la base de datos:
 
 ```bash
 make migrate
 ```
 
-### Load test data
+### Cargar datos de prueba
 
-Run the Prisma seed:
+Ejecutá la carga inicial de datos de Prisma:
 
 ```bash
 make seed
 ```
 
-### Verify the backend
+### Verificar el backend
 
-The backend API is available at:
+La API del backend está disponible en:
 
 ```text
 http://localhost:3000
 ```
 
-### Verify the frontend
+### Verificar el frontend
 
-The frontend is available at:
+El frontend está disponible en:
 
 ```text
 http://localhost:5173
 ```
 
-> The frontend runs inside its own Docker container. Its source code is mounted into the container during development, allowing changes to be reflected without rebuilding the image in the normal development workflow.
+> El frontend se ejecuta dentro de su propio contenedor Docker. Su código fuente se monta dentro del contenedor durante el desarrollo, lo que permite reflejar cambios sin reconstruir la imagen en el flujo habitual de desarrollo.
 
-### Verify the OpenAPI documentation
+### Verificar la documentación OpenAPI
 
-Swagger UI serves the API contract (`docs/openapi/`) at:
+Swagger UI sirve el contrato de la API (`docs/openapi/`) en:
 
 ```text
 http://localhost:8081
 ```
 
-It runs in its own container (`openapi-docs`), separate from the backend, so the contract stays readable even if the backend is stopped or crashing.
+Se ejecuta en su propio contenedor (`openapi-docs`), separado del backend, por lo que el contrato sigue siendo legible incluso si el backend está detenido o falla.
 
-"Try it out" sends requests from your browser straight to `http://localhost:3000` (the `servers` entry in `openapi.yaml`), not through Nginx. Because the page lives on a different origin (`:8081`), the backend must allow it through CORS — see `ALLOWED_ORIGINS` in section 2.
+«Try it out» envía solicitudes desde tu navegador directamente a `http://localhost:3000` (la entrada `servers` de `openapi.yaml`), sin pasar por Nginx. Como la página se encuentra en un origen diferente (`:8081`), el backend debe permitirlo mediante CORS: ver `ALLOWED_ORIGINS` en la sección 2.
 
-After editing the contract, run `make openapi-docs-build` and reload the page with `Ctrl+F5`. There is no need to restart `openapi-docs`: it reads `build/openapi.yaml` on every load.
+Después de editar el contrato, ejecutá `make openapi-docs-build` y recargá la página con `Ctrl+F5`. No hace falta reiniciar `openapi-docs`: lee `build/openapi.yaml` en cada carga.
 
-### Accessing the stack through Nginx
+### Acceder al conjunto de servicios mediante Nginx
 
-In addition to reaching each service directly on its own port, the
-development stack includes an **Nginx reverse proxy**, exposed at:
+Además de acceder directamente a cada servicio por su propio puerto, el
+entorno de desarrollo incluye un **proxy inverso Nginx**, expuesto en:
 
     http://localhost
 
-Nginx routes incoming requests based on the URL path:
+Nginx dirige las solicitudes entrantes según la ruta de la URL:
 
-| Path     | Routed to                        |
+| Ruta | Destino |
 | -------- | -------------------------------- |
-| `/`      | `frontend-dev` (Vite dev server) |
-| `/api/*` | `backend` (API)                  |
+| `/` | `frontend-dev` (servidor de desarrollo Vite) |
+| `/api/*` | `backend` (API) |
 
-**Why this exists:** it lets the frontend and backend be reached through a
-single origin, exactly as they will be in production. This avoids CORS
-configuration in development and catches routing issues early, before they
-show up for the first time in a production deploy.
+**Por qué existe:** permite acceder al frontend y al backend mediante un
+único origen, exactamente como en producción. Esto evita configurar CORS
+en desarrollo y detecta problemas de enrutamiento de forma temprana, antes de que
+aparezcan por primera vez en un despliegue de producción.
 
-**Direct ports vs. Nginx — when to use each:**
+**Puertos directos y Nginx — cuándo usar cada uno:**
 
-- Use `localhost:3000` / `localhost:5173` directly when debugging a single
-  service in isolation (e.g. checking raw backend responses, or using
-  Vite's dev tools without the proxy in the way).
-- Use `localhost` (port 80, through Nginx) to verify that routing between
-  frontend and backend behaves as it will in production.
+- Usá `localhost:3000` / `localhost:5173` directamente cuando depures un
+  servicio de forma aislada (por ejemplo, al comprobar las respuestas directas del backend o usar
+  las herramientas de desarrollo de Vite sin el proxy de por medio).
+- Usá `localhost` (puerto 80, mediante Nginx) para verificar que el enrutamiento entre
+  frontend y backend se comporte como en producción.
 
-Both work at the same time — Nginx does not replace the direct ports, it
-is an additional way to reach the same services.
+Ambos funcionan al mismo tiempo: Nginx no reemplaza los puertos directos;
+es una forma adicional de acceder a los mismos servicios.
 
-> If `http://localhost` returns `502 Bad Gateway`, Nginx is running but the
-> service it's routing to (backend or frontend-dev) is not responding yet —
-> check with `make ps` and the corresponding `*-logs` command.
-> A `404` from `/api/*`, on the other hand, means the request reached the
-> backend successfully — the proxy is working, the route/endpoint itself
-> just doesn't exist yet.
+> Si `http://localhost` devuelve `502 Bad Gateway`, Nginx está ejecutándose, pero el
+> servicio al que dirige la solicitud (backend o frontend-dev) todavía no responde:
+> comprobalo con `make ps` y el comando `*-logs` correspondiente.
+> En cambio, un `404` desde `/api/*` significa que la solicitud llegó al
+> backend correctamente: el proxy funciona, pero la ruta o endpoint
+> todavía no existe.
 
-### Access the containers for debugging
+### Acceder a los contenedores para depurar
 
 Backend:
 
@@ -212,98 +212,98 @@ make db-shell
 
 ---
 
-## 5. Available commands (summary)
+## 5. Comandos disponibles (resumen)
 
-### Environment-wide
+### Para todo el entorno
 
-| Command           | What it does                                                                     |
+| Comando | Qué hace |
 | ----------------- | -------------------------------------------------------------------------------- |
-| `make dev-up`     | Start backend + frontend + postgres (dev)                                        |
-| `make dev-build`  | Rebuild all images and start (use after changing any Dockerfile or dependencies) |
-| `make dev-down`   | Stop the containers                                                              |
-| `make dev-down-v` | Stop containers **and delete Postgres data** (full reset)                        |
-| `make dev-logs`   | Live logs for all services                                                       |
-| `make ps`         | Container status                                                                 |
-| `make clean`      | Stop everything, remove volumes and orphaned images/containers                   |
-| `make prod-up`    | Start the production environment                                                 |
-| `make prod-build` | Rebuild all production images and start the production environment               |
-| `make prod-logs`  | Live production logs                                                             |
-| `make prod-down`  | Stop the production environment                                                  |
+| `make dev-up` | Inicia backend + frontend + postgres (desarrollo) |
+| `make dev-build` | Reconstruye todas las imágenes e inicia los servicios (usar después de cambiar un Dockerfile o dependencias) |
+| `make dev-down` | Detiene los contenedores |
+| `make dev-down-v` | Detiene los contenedores **y elimina los datos de Postgres** (reinicio completo) |
+| `make dev-logs` | Registros en vivo de todos los servicios |
+| `make ps` | Estado de los contenedores |
+| `make clean` | Detiene todo, elimina volúmenes e imágenes/contenedores huérfanos |
+| `make prod-up` | Inicia el entorno de producción |
+| `make prod-build` | Reconstruye todas las imágenes de producción e inicia el entorno de producción |
+| `make prod-logs` | Registros en vivo de producción |
+| `make prod-down` | Detiene el entorno de producción |
 
-### Backend-scoped
+### Para el backend
 
-| Command                | What it does                       |
+| Comando | Qué hace |
 | ---------------------- | ---------------------------------- |
-| `make backend-restart` | Restart the backend container only |
-| `make backend-logs`    | Live logs for the backend only     |
-| `make backend-shell`   | Shell inside the backend container |
-| `make backend-build`   | Rebuild the backend image only     |
-| `make migrate`         | Run Prisma migrations              |
-| `make seed`            | Load test data                     |
+| `make backend-restart` | Reinicia solo el contenedor del backend |
+| `make backend-logs` | Registros en vivo solo del backend |
+| `make backend-shell` | Consola dentro del contenedor del backend |
+| `make backend-build` | Reconstruye solo la imagen del backend |
+| `make migrate` | Ejecuta migraciones Prisma |
+| `make seed` | Carga datos de prueba |
 
-### OpenAPI docs-scoped
+### Para la documentación OpenAPI
 
-| Command                   | What it does                                                         |
+| Comando | Qué hace |
 | ------------------------- | -------------------------------------------------------------------- |
-| `make openapi-docs-build` | Validate and re-bundle the OpenAPI contract (then `Ctrl+F5` in Swagger) |
-| `make openapi-docs-logs`  | Live logs for the Swagger UI service                                 |
+| `make openapi-docs-build` | Valida y vuelve a empaquetar el contrato OpenAPI (luego `Ctrl+F5` en Swagger) |
+| `make openapi-docs-logs` | Registros en vivo del servicio Swagger UI |
 
-### Frontend-scoped
+### Para el frontend
 
-| Command                 | What it does                        |
+| Comando | Qué hace |
 | ----------------------- | ----------------------------------- |
-| `make frontend-restart` | Restart the frontend container only |
-| `make frontend-logs`    | Live logs for the frontend only     |
-| `make frontend-shell`   | Shell inside the frontend container |
-| `make frontend-build`   | Rebuild the frontend image only     |
+| `make frontend-restart` | Reinicia solo el contenedor del frontend |
+| `make frontend-logs` | Registros en vivo solo del frontend |
+| `make frontend-shell` | Consola dentro del contenedor del frontend |
+| `make frontend-build` | Reconstruye solo la imagen del frontend |
 
-### Database-scoped
+### Para la base de datos
 
-| Command         | What it does         |
+| Comando | Qué hace |
 | --------------- | -------------------- |
-| `make db-shell` | psql inside Postgres |
+| `make db-shell` | psql dentro de Postgres |
 
 ---
 
-## 6. Development workflow
+## 6. Flujo de desarrollo
 
-The development Docker Compose configuration is designed to provide a fast feedback loop.
+La configuración Docker Compose de desarrollo está diseñada para ofrecer un ciclo rápido de retroalimentación.
 
-The backend and frontend source directories are mounted into their respective containers using **bind mounts**. This means that the files edited on the host machine are directly available inside the corresponding container.
+Los directorios de código fuente del backend y frontend se montan en sus respectivos contenedores mediante **montajes de enlace (bind mounts)**. Esto significa que los archivos editados en la máquina anfitriona están disponibles directamente dentro del contenedor correspondiente.
 
-As a result:
+Como resultado:
 
-- Backend code changes can be detected without rebuilding the Docker image.
-- Frontend code changes can be detected by the Vite development server.
-- Dependencies and the container environment remain isolated inside Docker.
-- PostgreSQL data is stored in a Docker volume and persists across normal container restarts.
+- Los cambios de código del backend pueden detectarse sin reconstruir la imagen Docker.
+- Los cambios de código del frontend pueden detectarse mediante el servidor de desarrollo Vite.
+- Las dependencias y el entorno del contenedor permanecen aislados dentro de Docker.
+- Los datos de PostgreSQL se almacenan en un volumen Docker y persisten entre reinicios normales del contenedor.
 
-### When to rebuild
+### Cuándo reconstruir
 
-A normal code change does **not** require rebuilding the image.
+Un cambio normal de código **no** requiere reconstruir la imagen.
 
-For example:
+Por ejemplo:
 
 ```bash
 make backend-restart
 ```
 
-or:
+o:
 
 ```bash
 make frontend-restart
 ```
 
-can be used when a specific service needs to be restarted.
+pueden usarse cuando un servicio específico necesita reiniciarse.
 
-Rebuild the affected image when changing its Dockerfile or dependencies:
+Reconstruí la imagen afectada cuando cambies su Dockerfile o sus dependencias:
 
 ```bash
 make backend-build
 make frontend-build
 ```
 
-Or rebuild everything:
+O reconstruí todo:
 
 ```bash
 make dev-build
@@ -311,130 +311,130 @@ make dev-build
 
 ---
 
-## 7. Production
+## 7. Producción
 
-Start the production environment:
+Iniciá el entorno de producción:
 
 ```bash
 make prod-up
 ```
 
-If the Dockerfiles or dependencies have changed, rebuild the production images:
+Si cambiaron los Dockerfile o las dependencias, reconstruí las imágenes de producción:
 
 ```bash
 make prod-build
 ```
 
-Follow production logs:
+Seguí los registros de producción:
 
 ```bash
 make prod-logs
 ```
 
-Stop the production environment:
+Detené el entorno de producción:
 
 ```bash
 make prod-down
 ```
 
-The production environment uses:
+El entorno de producción usa:
 
 ```text
 infrastructure/docker/docker-compose.prod.yaml
 ```
 
-and:
+y:
 
 ```text
 infrastructure/docker/.env.prod
 ```
 
-The production environment differs from development in several important ways:
+El entorno de producción difiere del de desarrollo en varios aspectos importantes:
 
-- The backend uses the **production stage** of its Dockerfile.
-- Application code is built before being executed.
-- Development bind mounts are not used.
-- PostgreSQL is not exposed directly to the host.
-- PostgreSQL uses a persistent Docker volume for its data.
-- Services are configured for production rather than development workflows.
+- El backend usa la **etapa de producción** de su Dockerfile.
+- El código de la aplicación se compila antes de ejecutarse.
+- No se usan los montajes de enlace de desarrollo.
+- PostgreSQL no se expone directamente a la máquina anfitriona.
+- PostgreSQL usa un volumen Docker persistente para sus datos.
+- Los servicios están configurados para producción, en lugar de flujos de desarrollo.
 
-Real production values go in:
+Los valores reales de producción van en:
 
 ```text
 infrastructure/docker/.env.prod
 ```
 
-Never commit this file to the repository.
+Nunca incluyas este archivo en un commit del repositorio.
 
 ---
 
-## 8. Resetting the development database
+## 8. Reiniciar la base de datos de desarrollo
 
-If the local PostgreSQL database needs to be completely reset, use:
+Si necesitás reiniciar completamente la base de datos PostgreSQL local, usá:
 
 ```bash
 make dev-down-v
 ```
 
-This stops the development containers and removes their Docker volumes.
+Esto detiene los contenedores de desarrollo y elimina sus volúmenes Docker.
 
-**Warning:** this deletes the local PostgreSQL data.
+**Advertencia:** esto elimina los datos locales de PostgreSQL.
 
-After resetting, start the environment again:
+Después de reiniciar, volvé a iniciar el entorno:
 
 ```bash
 make dev-up
 ```
 
-Then run:
+Luego ejecutá:
 
 ```bash
 make migrate
 make seed
 ```
 
-to recreate the database schema and load the development data.
+para recrear el esquema de la base de datos y cargar los datos de desarrollo.
 
 ---
 
-## 9. Common issues
+## 9. Problemas comunes
 
-| Symptom                                       | Likely cause / fix                                                                                                                                                                      |
+| Síntoma | Causa probable / solución |
 | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `port is already allocated`                   | Another process is using one of the ports required by the services. Check the Docker Compose configuration and the corresponding `.env.dev` values.                                     |
-| Backend can't connect to the database         | `DATABASE_URL` must use `postgres` as the host (the service name on the Docker network), not `localhost`.                                                                               |
-| Env validation fails on startup               | Check that **all** variables required by `env.validation.ts` are set (`NODE_ENV`, `PORT`, `DATABASE_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`) and that secrets are 32+ characters long. |
-| Prisma error about `schema.prisma` not found  | Rebuild the backend image with `make backend-build` or `make dev-build` if the Docker image contains a stale or incomplete build.                                                       |
-| Code changes aren't reflected in the backend  | Confirm that the backend bind mount is active in the development Compose configuration.                                                                                                 |
-| Code changes aren't reflected in the frontend | Confirm that the frontend bind mount and Vite development server are running correctly inside the frontend container.                                                                   |
-| Dependency changes aren't reflected           | Rebuild the affected image with `make backend-build` or `make frontend-build`.                                                                                                          |
-| Database data disappeared                     | `make dev-down-v` or `make clean` may have removed the Docker volume containing the development database.                                                                               |
-| Swagger UI not reflecting a contract change   | Run `make openapi-docs-build` and reload with `Ctrl+F5`. Swagger reads `build/openapi.yaml`, which only `openapi-build` regenerates.                                                     |
-| Swagger "Try it out" fails with a CORS error  | `ALLOWED_ORIGINS` in `.env.dev` must include `http://localhost:8081`. Recreate the backend container after changing it.                                                                  |
-| Swagger "Try it out" returns `404`            | The request reached the backend but the route does not exist. Check that the `servers` URL in `openapi.yaml` has no `/api` prefix (that prefix only exists in Nginx).                    |
+| `port is already allocated` | Otro proceso usa uno de los puertos requeridos por los servicios. Revisá la configuración Docker Compose y los valores correspondientes de `.env.dev`. |
+| El backend no puede conectarse a la base de datos | `DATABASE_URL` debe usar `postgres` como host (el nombre del servicio en la red Docker), no `localhost`. |
+| Falla la validación de entorno al iniciar | Comprobá que estén definidas **todas** las variables requeridas por `env.validation.ts` (`NODE_ENV`, `PORT`, `DATABASE_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`) y que los secretos tengan 32 caracteres o más. |
+| Error de Prisma porque no encuentra `schema.prisma` | Reconstruí la imagen del backend con `make backend-build` o `make dev-build` si la imagen Docker contiene una compilación desactualizada o incompleta. |
+| Los cambios de código no se reflejan en el backend | Confirmá que el montaje de enlace del backend esté activo en la configuración Compose de desarrollo. |
+| Los cambios de código no se reflejan en el frontend | Confirmá que el montaje de enlace del frontend y el servidor de desarrollo Vite se ejecuten correctamente dentro del contenedor del frontend. |
+| Los cambios de dependencias no se reflejan | Reconstruí la imagen afectada con `make backend-build` o `make frontend-build`. |
+| Desaparecieron los datos de la base de datos | `make dev-down-v` o `make clean` pueden haber eliminado el volumen Docker que contiene la base de datos de desarrollo. |
+| Swagger UI no refleja un cambio del contrato | Ejecutá `make openapi-docs-build` y recargá con `Ctrl+F5`. Swagger lee `build/openapi.yaml`, que solo regenera `openapi-build`. |
+| «Try it out» de Swagger falla con un error de CORS | `ALLOWED_ORIGINS` en `.env.dev` debe incluir `http://localhost:8081`. Recreá el contenedor del backend después de cambiarlo. |
+| «Try it out» de Swagger devuelve `404` | La solicitud llegó al backend, pero la ruta no existe. Comprobá que la URL `servers` de `openapi.yaml` no tenga el prefijo `/api` (ese prefijo solo existe en Nginx). |
 
 ---
 
-## 10. Related conventions
+## 10. Convenciones relacionadas
 
-- Branching, commits (Conventional Commits) and PRs: see `docs/CONTRIBUTING.md`.
-- Architecture decisions: see the ADRs in `docs/architecture/`.
-- Docker infrastructure layout: see `infrastructure/docker/README.md`.
-- Docker Compose configurations are located in `infrastructure/docker/`.
-- Development environment variables are stored in `infrastructure/docker/.env.dev`.
-- Production environment variables are stored in `infrastructure/docker/.env.prod`.
+- Ramas, commits (Conventional Commits) y PR: ver `docs/CONTRIBUTING.md`.
+- Decisiones de arquitectura: ver los ADR en `docs/architecture/`.
+- Organización de infraestructura Docker: ver `infrastructure/docker/README.md`.
+- Las configuraciones Docker Compose se encuentran en `infrastructure/docker/`.
+- Las variables de entorno de desarrollo se almacenan en `infrastructure/docker/.env.dev`.
+- Las variables de entorno de producción se almacenan en `infrastructure/docker/.env.prod`.
 
 ---
 
-## 11. Quick start
+## 11. Inicio rápido
 
-For a developer who already has Docker and `make` installed, the shortest path to a working development environment is:
+Para un desarrollador que ya tiene Docker y `make` instalados, el camino más corto hacia un entorno de desarrollo funcional es:
 
 ```bash
 cp infrastructure/docker/.env.example infrastructure/docker/.env.dev
 ```
 
-Configure the required values in `.env.dev`, then:
+Configurá los valores requeridos en `.env.dev` y luego:
 
 ```bash
 make dev-build
@@ -442,17 +442,17 @@ make migrate
 make seed
 ```
 
-After that, the development environment is ready.
-Use:
+Después de eso, el entorno de desarrollo está listo.
+Usá:
 
 ```bash
 make ps
 ```
 
-to check the containers and:
+para comprobar los contenedores y:
 
 ```bash
 make dev-logs
 ```
 
-to inspect the logs.
+para inspeccionar los registros.

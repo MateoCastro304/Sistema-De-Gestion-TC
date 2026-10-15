@@ -5,7 +5,7 @@
  *
  * PENDIENTE: el código de fábrica (`code`, único, obligatorio, 2 a 4
  * caracteres) todavía no existe en la base ni en el backend, así que se dejó
- * afuera. Ver docs/decisiones-clientes-fabricas.md, sección 5.
+ * afuera. Ver docs/decisions/decisiones-clientes-fabricas.md, sección 5.
  *
  * One factory can have several contacts. `payMethod` is free text
  * ("descripcionPago" of the domain model, DB column `factory_customer.pay_method`),

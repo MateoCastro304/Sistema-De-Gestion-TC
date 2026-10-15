@@ -1,31 +1,31 @@
-# Database Migrations with Prisma
+﻿# Migraciones de base de datos con Prisma
 
-This document explains how we manage the PostgreSQL database schema in this project using Prisma Migrate, and how to use the Make commands to run migrations without entering the container shell manually.
+Este documento explica cómo gestionamos el esquema de la base de datos PostgreSQL en este proyecto con Prisma Migrate y cómo usar los comandos Make para ejecutar migraciones sin entrar manualmente a la consola del contenedor.
 
-## 1. Why we use this methodology
+## 1. Por qué usamos esta metodología
 
-Prisma Migrate lets us **version the database schema** the same way we version code. Every change to the database (new tables, columns, enums, triggers, etc.) is saved as a SQL file inside `prisma/migrations/`. This gives us:
+Prisma Migrate permite **versionar el esquema de la base de datos** de la misma manera que versionamos el código. Cada cambio en la base de datos (tablas nuevas, columnas, enums, triggers, etc.) se guarda como un archivo SQL dentro de `prisma/migrations/`. Esto nos da:
 
-- A clear history of every change made to the database.
-- The same schema across all environments (local, staging, production).
-- The ability to review database changes in pull requests, just like any other code change.
+- Un historial claro de cada cambio realizado en la base de datos.
+- El mismo esquema en todos los entornos (local, preproducción, producción).
+- La posibilidad de revisar cambios de base de datos en pull requests, igual que cualquier otro cambio de código.
 
-Prisma can generate SQL automatically for things declared in `schema.prisma` (tables, columns, relations, enums). However, Prisma **cannot** generate SQL for things like triggers, functions, or PostgreSQL extensions, because these are not part of its schema language. For these cases, we create an empty migration and write the SQL by hand. This is the standard approach recommended by Prisma itself.
+Prisma puede generar SQL automáticamente para los elementos declarados en `schema.prisma` (tablas, columnas, relaciones, enums). Sin embargo, Prisma **no puede** generar SQL para elementos como triggers, funciones o extensiones de PostgreSQL, porque no forman parte de su lenguaje de esquema. En estos casos, creamos una migración vacía y escribimos el SQL manualmente. Este es el enfoque estándar recomendado por Prisma.
 
-## 2. Two ways to run migrations
+## 2. Dos maneras de ejecutar migraciones
 
-| Command | When to use it | Behavior |
+| Comando | Cuándo usarlo | Comportamiento |
 |---|---|---|
-| `migrate dev` | Local development | Interactive. Can detect schema drift and ask to reset the database. Generates the Prisma Client. |
-| `migrate deploy` | Staging / Production / CI | Non-interactive. Only applies pending migrations. Never resets or modifies existing migrations. |
+| `migrate dev` | Desarrollo local | Interactivo. Puede detectar diferencias entre esquemas y pedir reiniciar la base de datos. Genera Prisma Client. |
+| `migrate deploy` | Preproducción / Producción / CI | No interactivo. Solo aplica las migraciones pendientes. Nunca reinicia ni modifica migraciones existentes. |
 
-We never run `migrate dev` in production or in an automated pipeline, because it can reset data if it detects an inconsistency. `migrate deploy` is always the safe choice for automated environments.
+Nunca ejecutamos `migrate dev` en producción ni en un proceso automatizado, porque puede reiniciar los datos si detecta una inconsistencia. `migrate deploy` es siempre la opción segura para entornos automatizados.
 
-## 3. Step-by-step: updating the database
+## 3. Paso a paso: actualizar la base de datos
 
-### Step 1 — Update the schema
+### Paso 1 — Actualizar el esquema
 
-Open `prisma/schema.prisma` and add or modify a model, field, or enum.
+Abrí `prisma/schema.prisma` y agregá o modificá un modelo, campo o enum.
 
 ```prisma
 model Order {
@@ -40,29 +40,29 @@ enum OrderStatus {
 }
 ```
 
-### Step 2 — Create the migration
+### Paso 2 — Crear la migración
 
-If the change only involves things Prisma understands (models, fields, enums), create and apply the migration directly:
+Si el cambio solo involucra elementos que Prisma entiende (modelos, campos, enums), creá y aplicá la migración directamente:
 
 ```
 make migrate-dev
 ```
 
-This runs `prisma migrate dev` inside the backend container, which:
-1. Compares your schema against the current database state.
-2. Generates the SQL file automatically.
-3. Applies it to the database.
-4. Regenerates the Prisma Client.
+Esto ejecuta `prisma migrate dev` dentro del contenedor del backend, que:
+1. Compara tu esquema con el estado actual de la base de datos.
+2. Genera el archivo SQL automáticamente.
+3. Lo aplica a la base de datos.
+4. Regenera Prisma Client.
 
-### Step 3 — Add custom SQL (triggers, functions, extensions)
+### Paso 3 — Agregar SQL personalizado (triggers, funciones, extensiones)
 
-If you need something Prisma cannot generate on its own (a trigger, a PostgreSQL function, an extension, or a manual `ALTER TYPE`), create the migration **without applying it**:
+Si necesitás algo que Prisma no puede generar por sí solo (un trigger, una función PostgreSQL, una extensión o un `ALTER TYPE` manual), creá la migración **sin aplicarla**:
 
 ```
 make migrate-create name=add_updated_at_trigger
 ```
 
-This creates an empty migration folder inside `prisma/migrations/`. Open the generated `migration.sql` file and add your raw SQL, for example:
+Esto crea una carpeta de migración vacía dentro de `prisma/migrations/`. Abrí el archivo `migration.sql` generado y agregá tu SQL directo, por ejemplo:
 
 ```sql
 CREATE OR REPLACE FUNCTION set_updated_at()
@@ -79,62 +79,62 @@ FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
 ```
 
-Then apply it by running:
+Luego aplicala ejecutando:
 
 ```
 make migrate-dev
 ```
 
-### Step 4 — Deploying to staging or production
+### Paso 4 — Desplegar en preproducción o producción
 
-In any non-development environment, migrations are applied with:
+En cualquier entorno que no sea de desarrollo, las migraciones se aplican con:
 
 ```
 make migrate-deploy
 ```
 
-This only applies migrations that have not been applied yet. It does not ask questions and it does not reset the database.
+Esto solo aplica las migraciones que todavía no se aplicaron. No hace preguntas ni reinicia la base de datos.
 
-## 4. Important rules
+## 4. Reglas importantes
 
-- **Never edit a migration file that has already been applied and shared with the team.** Prisma stores a checksum of every migration in the `_prisma_migrations` table. If the file changes after being applied, Prisma will detect a mismatch and fail. If you need to fix something, create a new migration instead.
-- **Keep the migration order consistent.** Migrations run in the order of their folder timestamps. If a trigger depends on a table, make sure the trigger's migration was created after the table's migration.
-- **Enums declared in the schema are handled automatically.** You only need manual SQL when adding a value to an *existing* enum (`ALTER TYPE ... ADD VALUE`), because PostgreSQL does not allow this inside the same transaction as other statements using that type.
+- **Nunca edites un archivo de migración que ya se haya aplicado y compartido con el equipo.** Prisma almacena una suma de verificación de cada migración en la tabla `_prisma_migrations`. Si el archivo cambia después de aplicarse, Prisma detectará una diferencia y fallará. Si necesitás corregir algo, creá una migración nueva.
+- **Mantené consistente el orden de las migraciones.** Se ejecutan según las marcas de tiempo de sus carpetas. Si un trigger depende de una tabla, asegurate de que su migración se haya creado después de la migración de la tabla.
+- **Los enums declarados en el esquema se manejan automáticamente.** Solo necesitás SQL manual al agregar un valor a un enum *existente* (`ALTER TYPE ... ADD VALUE`), porque PostgreSQL no lo permite dentro de la misma transacción que otras sentencias que usan ese tipo.
 
-## 5. Make commands reference
+## 5. Referencia de comandos Make
 
 ```makefile
-migrate-deploy: ## Runs Prisma migrations inside the backend container (deploy/prod)
+migrate-deploy: ## Ejecuta migraciones Prisma dentro del contenedor del backend (despliegue/producción)
 	$(DC_DEV) exec backend npm run prisma:migrate-deploy
 
-migrate-dev: ## Runs Prisma migrations inside the backend container (dev)
+migrate-dev: ## Ejecuta migraciones Prisma dentro del contenedor del backend (desarrollo)
 	$(DC_DEV) exec backend npm run prisma:migrate-dev
 
-migrate-create: ## Create Prisma migration inside the backend container (dev)
+migrate-create: ## Crea una migración Prisma dentro del contenedor del backend (desarrollo)
 	$(DC_DEV) exec backend npx prisma migrate dev --create-only --name $(name)
 ```
 
-| Command | Description |
+| Comando | Descripción |
 |---|---|
-| `make migrate-dev` | Applies all pending migrations in the local database. Use this after pulling changes from other developers, or after creating a new migration. |
-| `make migrate-create name=<migration_name>` | Creates a new empty migration file without applying it. Use this when you need to write custom SQL by hand (triggers, functions, extensions, manual enum changes). |
-| `make migrate-deploy` | Applies pending migrations in a non-interactive way. Use this in staging, production, or CI/CD pipelines. |
+| `make migrate-dev` | Aplica todas las migraciones pendientes en la base de datos local. Usalo después de traer cambios de otros desarrolladores o después de crear una migración nueva. |
+| `make migrate-create name=<migration_name>` | Crea un archivo de migración vacío sin aplicarlo. Usalo cuando necesites escribir SQL personalizado manualmente (triggers, funciones, extensiones, cambios manuales de enums). |
+| `make migrate-deploy` | Aplica migraciones pendientes de manera no interactiva. Usalo en preproducción, producción o procesos de CI/CD. |
 
-All three commands run **inside the backend container**, so you don't need to open a shell manually or install Prisma locally on your machine. The backend container must already be running (`docker compose up`) before using `migrate-dev` or `migrate-create`, since these commands rely on `docker compose exec`.
+Los tres comandos se ejecutan **dentro del contenedor del backend**, por lo que no necesitás abrir una consola manualmente ni instalar Prisma localmente. El contenedor del backend debe estar ejecutándose (`docker compose up`) antes de usar `migrate-dev` o `migrate-create`, ya que estos comandos dependen de `docker compose exec`.
 
-## 6. Typical workflow example
+## 6. Ejemplo de flujo habitual
 
 ```
-# 1. Edit prisma/schema.prisma or write your own SQL need
+# 1. Editar prisma/schema.prisma o definir el SQL personalizado necesario
 
-# 2. If it's a schema-only change:
+# 2. Si es un cambio solo de esquema:
 make migrate-dev
 
-# 3. If it needs custom SQL:
+# 3. Si necesita SQL personalizado:
 make migrate-create name=add_order_status_trigger
-# → edit the generated migration.sql file
+# → editar el archivo migration.sql generado
 make migrate-dev
 
-# 4. When deploying:
+# 4. Al desplegar:
 make migrate-deploy
 ```

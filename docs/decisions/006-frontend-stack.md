@@ -1,61 +1,61 @@
-# ADR-006 — Frontend Stack
+﻿# ADR-006 — Tecnologías del frontend
 
-**Date:** 2026-08  
-**Status:** Decision pending  
-**Decision makers:** Technical team
+**Fecha:** 2026-08  
+**Estado:** Decisión pendiente  
+**Responsables de la decisión:** Equipo técnico
 
 ---
 
-## Context
+## Contexto
 
-The system requires an internal-use web interface with the sections described in the [architecture overview](../architecture/overview.md): dashboard, quotations, work orders, clients, parts, reports, and settings. It is an application intensive in forms and tables, not a content site. Every screen is behind authentication, so there are no SEO requirements.
+El sistema requiere una interfaz web de uso interno con las secciones descritas en la [visión general de arquitectura](../architecture/overview.md): panel principal, cotizaciones, órdenes de trabajo, clientes, piezas, reportes y configuración. Es una aplicación con uso intensivo de formularios y tablas, no un sitio de contenidos. Todas las pantallas requieren autenticación, por lo que no hay requisitos de SEO.
 
-Two constraints shape the decision. First, the backend is TypeScript (NestJS, see ADR-001-backend-framework.md), so choosing the same language on the client allows sharing the API contract types. Second, the UI must reflect the RBAC defined in ADR-005-autentication.md: the JT role must not see costs or margins, hidden in the frontend and enforced in the backend.
+Dos restricciones orientan la decisión. Primero, el backend está en TypeScript (NestJS, ver ADR-001-backend-framework.md), por lo que elegir el mismo lenguaje en el cliente permite compartir los tipos del contrato de la API. Segundo, la interfaz debe reflejar el RBAC definido en ADR-005-autentication.md: el rol JT no debe ver costos ni márgenes, ocultos en el frontend y restringidos en el backend.
 
-## Options evaluated
+## Opciones evaluadas
 
-### Option A: React + TypeScript
+### Opción A: React + TypeScript
 
-Component library with the largest ecosystem in the frontend landscape, bundled with Vite and compiled to static files.
+Biblioteca de componentes con el ecosistema más grande del ámbito frontend, empaquetada con Vite y compilada a archivos estáticos.
 
-**Pros:**
-- Same language as the backend: types can be generated from the API contract, so a change breaks compilation instead of failing at runtime.
-- Largest ecosystem and hiring pool, which matters as the team rotates.
-- Conditional rendering by role is plain JavaScript: the RBAC-driven UI stays readable and easy to audit.
-- The build produces static assets served directly by Nginx, with no additional process in the deployment defined in ADR-009-deploy-infrastructure.md.
-- Recursive components fit the quotation builder's nested line items naturally.
+**Ventajas:**
+- Mismo lenguaje que el backend: los tipos pueden generarse desde el contrato de la API, de modo que un cambio produce un error de compilación en lugar de fallar durante la ejecución.
+- El ecosistema y la disponibilidad de desarrolladores más grandes, algo relevante cuando cambian los integrantes del equipo.
+- El renderizado condicional por rol es JavaScript simple: la interfaz basada en RBAC se mantiene legible y fácil de auditar.
+- La compilación produce archivos estáticos servidos directamente por Nginx, sin un proceso adicional en el despliegue definido en ADR-009-deploy-infrastructure.md.
+- Los componentes recursivos se adaptan naturalmente a los ítems anidados del constructor de cotizaciones.
 
-**Cons:**
-- It is a library, not a framework: routing, server state, and forms require external libraries.
-- It imposes no project structure, so conventions must be enforced with ESLint and code review.
+**Desventajas:**
+- Es una biblioteca, no un framework: las rutas, el estado del servidor y los formularios requieren bibliotecas externas.
+- No impone una estructura de proyecto, por lo que las convenciones deben exigirse mediante ESLint y revisión de código.
 
-### Option B: Angular + TypeScript
+### Opción B: Angular + TypeScript
 
-Complete framework, TypeScript-first, with routing, HTTP client, and forms included.
+Framework completo, centrado en TypeScript, con rutas, cliente HTTP y formularios incluidos.
 
-**Pros:**
-- Imposed structure and a decorator- and DI-based approach similar to NestJS.
-- Reactive Forms fit validation-heavy forms such as the quotation builder well.
+**Ventajas:**
+- Estructura impuesta y enfoque basado en decoradores e inyección de dependencias similar a NestJS.
+- Reactive Forms se adapta bien a formularios con muchas validaciones, como el constructor de cotizaciones.
 
-**Cons:**
-- Steepest learning curve: modules, RxJS, and change detection must be understood before becoming productive.
-- RxJS is mandatory for most asynchronous flows, a significant cost for a team that does not use it.
-- Smaller ecosystem and hiring pool than React.
+**Desventajas:**
+- Curva de aprendizaje más pronunciada: se deben comprender los módulos, RxJS y la detección de cambios antes de ser productivo.
+- RxJS es obligatorio para la mayoría de los flujos asíncronos, un costo significativo para un equipo que no lo usa.
+- Ecosistema y disponibilidad de desarrolladores menores que los de React.
 
-### Option C: Next.js
+### Opción C: Next.js
 
-React with server-side rendering and API routes. Rejected without further analysis: SSR provides no benefit for an application entirely behind authentication, it adds a Node.js runtime to production, and its API routes overlap with the existing NestJS backend.
+React con renderizado del lado del servidor y rutas de API. Se rechaza sin mayor análisis: SSR no aporta beneficios a una aplicación completamente protegida por autenticación, agrega un entorno de ejecución Node.js a producción y sus rutas de API se superponen con el backend NestJS existente.
 
-## Supporting libraries
+## Bibliotecas complementarias
 
-React does not cover routing, server state, or forms. The stack is completed with **Vite** (build), **React Router** (routing and route guards by role), **TanStack Query** (server state and caching), **React Hook Form + Zod** (forms and validation), and **Axios** (HTTP client with interceptors for the JWT).
+React no cubre las rutas, el estado del servidor ni los formularios. Las tecnologías se completan con **Vite** (compilación), **React Router** (rutas y protección de rutas por rol), **TanStack Query** (estado del servidor y caché), **React Hook Form + Zod** (formularios y validación) y **Axios** (cliente HTTP con interceptores para JWT).
 
-A global store (Redux, Zustand) is not adopted: most state is server state, already handled by TanStack Query.
+No se adopta un almacén global de estado (Redux, Zustand): la mayor parte del estado proviene del servidor y ya está cubierta por TanStack Query.
 
-## Provisional recommendation
+## Recomendación provisional
 
-**React + TypeScript**, for language continuity with the backend and for the size of its ecosystem, which reduces onboarding cost as the team rotates.
+**React + TypeScript**, por la continuidad de lenguaje con el backend y por el tamaño de su ecosistema, que reduce el costo de incorporación cuando cambian los integrantes del equipo.
 
-## Decision
+## Decisión
 
-The final decision is to adopt **React with TypeScript** as the frontend stack, built with Vite and served as static assets. The cons — the need for external libraries and the absence of an imposed structure — are considered manageable with an agreed folder structure and linting rules.
+La decisión final es adoptar **React con TypeScript** como tecnologías del frontend, compilado con Vite y servido como archivos estáticos. Las desventajas —la necesidad de bibliotecas externas y la ausencia de una estructura impuesta— se consideran manejables con una estructura de carpetas y reglas de análisis estático acordadas.

@@ -1,33 +1,33 @@
-# System Architecture — Overview
+﻿# Arquitectura del sistema — Visión general
 
-This document describes the high-level architecture of Tornería Castro SRL's management system. Detailed technical decisions are in the [ADRs](../decisions/).
+Este documento describe la arquitectura de alto nivel del sistema de gestión de Tornería Castro SRL. Las decisiones técnicas detalladas están en los [ADR](../decisions/).
 
 ---
 
-## System context (C4 Level 1)
+## Contexto del sistema (C4 nivel 1)
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                   Tornería Castro SRL                   │
-│                  Management System                      │
+│                   Tornería Castro SRL                    │
+│                   Sistema de gestión                    │
 │                                                         │
-│  ┌──────────────┐    ┌───────────────┐                  │
-│  │Administrative│    │   Workshop    │                  │
-│  │    Staff     │    │    Staff      │                  │
-│  │(EC, ERP, A,  │    │    (JT)       │                  │
-│  │  ER, AT, AS) │    │               │                  │
-│  └──────┬───────┘    └──────┬────────┘                  │
-│         │                  │                            │
-│         └────────┬─────────┘                            │
+│  ┌───────────────┐    ┌───────────────┐                  │
+│  │   Personal    │    │   Personal    │                  │
+│  │administrativo │    │  de taller    │                  │
+│  │(EC, ERP, A,   │    │    (JT)       │                  │
+│  │  ER, AT, AS)  │    │               │                  │
+│  └──────┬────────┘    └──────┬────────┘                  │
+│         │                   │                           │
+│         └────────┬──────────┘                           │
 │                  │                                      │
 │          ┌───────▼───────┐                              │
 │          │   Frontend    │                              │
 │          │ (React SPA)   │                              │
 │          └───────┬───────┘                              │
 │                  │ HTTPS / REST                         │
-│          ┌───────▼───────┐   Internal HTTP              │
-│          │   Backend     ├──────────────► PDF Service   │
-│          │  (NestJS)     │               (Python)       │
+│          ┌───────▼───────┐   HTTP interno               │
+│          │   Backend    ├──────────────► Servicio PDF   │
+│          │  (NestJS)    │               (Python)       │
 │          └───────┬───────┘                              │
 │                  │                                      │
 │          ┌───────▼───────┐                              │
@@ -35,109 +35,108 @@ This document describes the high-level architecture of Tornería Castro SRL's ma
 │          └───────────────┘                              │
 │                                                         │
 │          ┌───────────────┐                              │
-│          │  Amazon S3    │  ← Drawings, photos, 3D      │
-│          │ (object store)│    designs linked to each    │
-│          │               │    part                      │
+│          │  Amazon S3    │  ← Planos, fotos y diseños    │
+│          │ (almacén de   │    3D vinculados a cada       │
+│          │   objetos)    │    pieza                      │
 │          └───────────────┘                              │
 └─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Backend Modules
+## Módulos del backend
 
-The backend is organized into functional modules aligned with the domain:
+El backend está organizado en módulos funcionales alineados con el dominio:
 
 ### `auth`
 
-Authentication and authorization. JWT + RBAC Guards. Protects all endpoints with role validation.
+Autenticación y autorización. JWT + Guards de RBAC. Protege todos los endpoints mediante validación de roles.
 
-### `usuarios` (users)
+### `usuarios`
 
-Management of system users (creation, deactivation, role changes, password resets). Accessible only by AS.
+Gestión de usuarios del sistema (creación, desactivación, cambios de rol, restablecimiento de contraseñas). Accesible solo para AS.
 
-### `clientes` (clients)
+### `clientes`
 
-CRUD for clients (industrial companies such as EDASA, CorBlock, OxyCAM). Stores contact details and preferred quotation format.
+CRUD de clientes (empresas industriales como EDASA, CorBlock, OxyCAM). Almacena datos de contacto y formato preferido de cotización.
 
-### `piezas` (parts)
+### `piezas`
 
-Catalog of quoted and manufactured parts. Includes drawing number, internal ID (when there is no drawing), variants, attached files (PDF drawings, 3D designs).
+Catálogo de piezas cotizadas y fabricadas. Incluye número de plano, ID interno (cuando no hay plano), variantes y archivos adjuntos (planos PDF, diseños 3D).
 
-### `cotizaciones` (quotations)
+### `cotizaciones`
 
-Core module. Manages the lifecycle of a quotation: creation, breakdown by line items, dollar-rate updates, full/partial award. Implements the Quotation state machine.
+Módulo central. Gestiona el ciclo de vida de una cotización: creación, desglose por ítems, actualizaciones del tipo de cambio del dólar y adjudicación total/parcial. Implementa la máquina de estados de cotización.
 
-### `ordenes-de-trabajo` (work orders)
+### `ordenes-de-trabajo`
 
-Generation and tracking of work orders (OTs). Implements the WorkOrder state machine. Records planned and executed processes. Integrates with the reports module for profitability traceability.
+Generación y seguimiento de órdenes de trabajo (OT). Implementa la máquina de estados de WorkOrder. Registra procesos planificados y ejecutados. Se integra con el módulo de reportes para la trazabilidad de rentabilidad.
 
-### `produccion` (production)
+### `produccion`
 
-Submodule accessible by JT. Allows recording process progress and actual times. No access to economic data.
+Submódulo accesible para JT. Permite registrar avances de procesos y tiempos reales. Sin acceso a datos económicos.
 
-### `reportes` (reports)
+### `reportes`
 
-Decision-making statistics: jobs per company, budget award rates, monthly fluctuations, budgeted-vs-actual traceability.
+Estadísticas para tomar decisiones: trabajos por empresa, tasas de adjudicación de presupuestos, variaciones mensuales y trazabilidad entre lo presupuestado y lo real.
 
 ### `pdf`
 
-HTTP client that communicates with the Python PDF generation service. Receives a quotation (with all its data) and returns the PDF file to the frontend.
+Cliente HTTP que se comunica con el servicio Python de generación de PDF. Recibe una cotización (con todos sus datos) y devuelve el archivo PDF al frontend.
 
-### `notificaciones` (notifications)
+### `notificaciones`
 
-Sends the quotation PDF to the customer through email (Amazon SES or a third-party provider, see [ADR-007](../decisions/007-mail-integration.md)) and WhatsApp (AWS End User Messaging Social or a third-party BSP, see [ADR-008](../decisions/008-whatsapp-integration.md)). Triggered on quotation send (UC-21); the offer's validity period starts at this send (RN-06). Does not process or automate subsequent customer conversations.
+Envía el PDF de cotización al cliente por correo electrónico (Amazon SES o un proveedor externo, ver [ADR-007](../decisions/007-mail-integration.md)) y WhatsApp (AWS End User Messaging Social o un BSP externo, ver [ADR-008](../decisions/008-whatsapp-integration.md)). Se activa al enviar la cotización (UC-21); la vigencia de la oferta comienza con ese envío (RN-06). No procesa ni automatiza las conversaciones posteriores con el cliente.
 
 ### `scheduler`
 
-Scheduled jobs:
+Tareas programadas:
 
-- Automatic quotation expiration (daily).
-- (Future) Work order delay alerts.
-
----
-
-## Frontend Modules
-
-The frontend is a **React + TypeScript SPA** built with Vite and served as static assets through Nginx. See [ADR-006](../decisions/006-frontend-stack.md) for the full rationale and supporting libraries.
-
-The SPA is organized into the following main sections:
-
-- Dashboard — summary of active quotations and work orders
-- Quotations — listing, detail, creation, award
-- Work Orders — listing, detail, production tracking
-- Clients — client CRUD
-- Parts — catalog with history
-- Reports — statistics and metrics
-- Settings — AS only: users, roles, process types, rates
+- Vencimiento automático de cotizaciones (diario).
+- (Futuro) Alertas de demora en órdenes de trabajo.
 
 ---
 
-## Architecture Principles
+## Módulos del frontend
 
-**No over-engineering for this scale.** No Redis, Kafka, Kubernetes, or Event Sourcing. The system is a modular monolith with an auxiliary Python process for PDFs. This is sufficient and maintainable for the current team and volume (see [ADR-009](../decisions/009-deploy-infrastructure.md)).
+El frontend es una **SPA React + TypeScript** compilada con Vite y servida como archivos estáticos mediante Nginx. Ver [ADR-006](../decisions/006-frontend-stack.md) para los fundamentos completos y las bibliotecas complementarias.
 
-**Separation of public vs. private information from the backend.** Endpoints that return quotation data to the frontend have two variants: one with full data (administrative roles) and one without costs or margins (JT). Filtering is never done only on the frontend.
+La SPA se organiza en las siguientes secciones principales:
 
-**Jobs with `@nestjs/schedule`.** Sufficient for quotation expiration and future alerts. Requires no additional infrastructure.
-
-**File storage.** Amazon S3 for persistent object storage (drawings, photos, 3D designs, generated PDFs), abstracted behind a storage service so the underlying provider can change without affecting business logic. See [ADR-009](../decisions/009-deploy-infrastructure.md).
-
-**Deployment.** Docker Compose on a single Amazon EC2 instance, with Nginx as the reverse proxy/HTTPS entry point, PostgreSQL as a container with persistent storage, and GitHub Actions for CI/CD. CloudWatch handles infrastructure metrics and logs; Sentry handles application-level error tracking. See [ADR-009](../decisions/009-deploy-infrastructure.md).
+- Panel principal — resumen de cotizaciones y órdenes de trabajo activas
+- Cotizaciones — listado, detalle, creación y adjudicación
+- Órdenes de trabajo — listado, detalle y seguimiento de producción
+- Clientes — CRUD de clientes
+- Piezas — catálogo con historial
+- Reportes — estadísticas y métricas
+- Configuración — solo AS: usuarios, roles, tipos de proceso y tarifas
 
 ---
 
-## Architecture Decisions (ADRs)
+## Principios de arquitectura
 
-| Decision                 | ADR                                                  | Status                          |
+**Sin sobrediseño para esta escala.** Sin Redis, Kafka, Kubernetes ni Event Sourcing. El sistema es un monolito modular con un proceso Python auxiliar para PDF. Es suficiente y mantenible para el equipo y el volumen actuales (ver [ADR-009](../decisions/009-deploy-infrastructure.md)).
+
+**Separación de información pública y privada desde el backend.** Los endpoints que devuelven datos de cotización al frontend tienen dos variantes: una con datos completos (roles administrativos) y otra sin costos ni márgenes (JT). El filtrado nunca se realiza únicamente en el frontend.
+
+**Tareas con `@nestjs/schedule`.** Suficiente para el vencimiento de cotizaciones y futuras alertas. No requiere infraestructura adicional.
+
+**Almacenamiento de archivos.** Amazon S3 para almacenamiento persistente de objetos (planos, fotos, diseños 3D y PDF generados), abstraído mediante un servicio de almacenamiento para poder cambiar el proveedor sin afectar la lógica de negocio. Ver [ADR-009](../decisions/009-deploy-infrastructure.md).
+
+**Despliegue.** Docker Compose en una única instancia Amazon EC2, con Nginx como proxy inverso/punto de entrada HTTPS, PostgreSQL como contenedor con almacenamiento persistente y GitHub Actions para CI/CD. CloudWatch gestiona métricas y registros de infraestructura; Sentry gestiona el seguimiento de errores de la aplicación. Ver [ADR-009](../decisions/009-deploy-infrastructure.md).
+
+---
+
+## Decisiones de arquitectura (ADR)
+
+| Decisión | ADR | Estado |
 | ------------------------- | ----------------------------------------------------- | -------------------------------- |
-| Backend framework         | [ADR-001](../decisions/001-backend-framework.md)     | Approved                          |
-| Database                  | [ADR-002](../decisions/002-data-base.md)             | Approved          |
-| ORM                       | [ADR-003](../decisions/003-orm.md)                   | Approved                          |
-| PDF generation             | [ADR-004](../decisions/004-generate-pdf.md)          | Approved   |
-| Authentication             | [ADR-005](../decisions/005-autentication.md)         | Approved                          |
-| Frontend stack             | [ADR-006](../decisions/006-frontend-stack.md)        | Approved                        |
-| Mail integration            | [ADR-007](../decisions/007-mail-integration.md)      | Architectural direction approved; provider pending budget |
-| WhatsApp integration        | [ADR-008](../decisions/008-whatsapp-integration.md)  | Architectural direction approved; provider pending budget |
-| Deployment infrastructure and file storage  | [ADR-009](../decisions/009-deploy-infrastructure.md) | Approved                 |
-| Continuous integration pipeline | [ADR-010](../decisions/010-continuous-integration.md) | Accepted (partially implemented) |
+| Framework del backend | [ADR-001](../decisions/001-backend-framework.md) | Aprobado |
+| Base de datos | [ADR-002](../decisions/002-data-base.md) | Aprobado |
+| ORM | [ADR-003](../decisions/003-orm.md) | Aprobado |
+| Generación de PDF | [ADR-004](../decisions/004-generate-pdf.md) | Aprobado |
+| Autenticación | [ADR-005](../decisions/005-autentication.md) | Aprobado |
+| Tecnologías del frontend | [ADR-006](../decisions/006-frontend-stack.md) | Aprobado |
+| Integración de correo | [ADR-007](../decisions/007-mail-integration.md) | Orientación arquitectónica aprobada; proveedor pendiente de presupuesto |
+| Integración de WhatsApp | [ADR-008](../decisions/008-whatsapp-integration.md) | Orientación arquitectónica aprobada; proveedor pendiente de presupuesto |
+| Infraestructura de despliegue y almacenamiento de archivos | [ADR-009](../decisions/009-deploy-infrastructure.md) | Aprobado |

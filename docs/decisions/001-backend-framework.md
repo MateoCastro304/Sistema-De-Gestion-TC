@@ -1,49 +1,49 @@
-# ADR-001 — Backend Framework
+﻿# ADR-001 — Framework del backend
 
-**Date:** 2026-08  
-**Status:** Pending decision  
-**Decision makers:** Technical team
+**Fecha:** 2026-08  
+**Estado:** Decisión pendiente  
+**Responsables de la decisión:** Equipo técnico
 
 ---
 
-## Context
+## Contexto
 
-The system requires a Node.js/TypeScript backend that supports a rich domain: two state machines, a Composite pattern in quote items, RBAC with multiple roles, PDF generation delegated to a Python service, and scheduled jobs for quote expiration.
+El sistema requiere un backend Node.js/TypeScript que soporte un dominio rico: dos máquinas de estados, un patrón Composite en los ítems de cotización, RBAC con múltiples roles, generación de PDF delegada a un servicio Python y tareas programadas para el vencimiento de cotizaciones.
 
-## Options evaluated
+## Opciones evaluadas
 
-### Option A: NestJS
+### Opción A: NestJS
 
-Opinionated framework with a modular, layered rich-domain architecture (modules, controllers, services, guards). Includes native support for dependency injection, decorators, RBAC via Guards, TypeORM/Prisma integration, and `@nestjs/schedule` for jobs.
+Framework con convenciones definidas y una arquitectura modular por capas para un dominio rico (módulos, controladores, servicios, guards). Incluye soporte nativo para inyección de dependencias, decoradores, RBAC mediante Guards, integración con TypeORM/Prisma y `@nestjs/schedule` para tareas programadas.
 
-**Pros:**
-- Predefined structure reduces architecture decisions for the team.
-- Native Guards for RBAC simplify role-based access control.
-- `@nestjs/schedule` covers expiration and delay jobs without extra dependencies.
-- Better long-term maintainability as the team rotates.
-- Mature ecosystem with modules for nearly everything the system needs.
+**Ventajas:**
+- La estructura predefinida reduce las decisiones de arquitectura del equipo.
+- Los Guards nativos para RBAC simplifican el control de acceso por roles.
+- `@nestjs/schedule` cubre las tareas de vencimiento y demoras sin dependencias adicionales.
+- Mayor mantenibilidad a largo plazo cuando cambian los integrantes del equipo.
+- Ecosistema maduro con módulos para casi todo lo que necesita el sistema.
 
-**Cons:**
-- Learning curve if the team is unfamiliar with decorators and the DI system.
-- More initial boilerplate.
+**Desventajas:**
+- Curva de aprendizaje si el equipo no conoce los decoradores y el sistema de inyección de dependencias.
+- Más código repetitivo inicial.
 
-### Option B: Manual Express
+### Opción B: Express manual
 
-Minimalist framework with no imposed structure. Requires deciding and building the architecture from scratch (routing, middleware, DI, guards, etc.).
+Framework minimalista que no impone una estructura. Requiere decidir y construir la arquitectura desde cero (rutas, middleware, inyección de dependencias, guards, etc.).
 
-**Pros:**
-- Full control over every layer.
-- Less abstraction = easier to debug for experienced devs.
+**Ventajas:**
+- Control completo sobre cada capa.
+- Menor abstracción = depuración más sencilla para desarrolladores experimentados.
 
-**Cons:**
-- Without imposed structure, projects of this size tend to diverge in quality across modules.
-- Everything NestJS already provides must be built manually: RBAC guards, dependency injection, scheduler.
-- More initial setup time with no business value.
+**Desventajas:**
+- Sin una estructura impuesta, los proyectos de este tamaño tienden a presentar diferencias de calidad entre módulos.
+- Todo lo que NestJS ya proporciona debe construirse manualmente: guards de RBAC, inyección de dependencias y planificador de tareas.
+- Más tiempo de configuración inicial sin valor para el negocio.
 
-## Provisional recommendation
+## Recomendación provisional
 
-**NestJS**, given the team size and domain complexity. The imposed structure is an advantage, not a cost, when multiple modules must grow in parallel.
+**NestJS**, dado el tamaño del equipo y la complejidad del dominio. La estructura impuesta es una ventaja, y no un costo, cuando varios módulos deben crecer en paralelo.
 
-## Decision
+## Decisión
 
-The final decision is to adopt **NestJS** as the backend framework.
+La decisión final es adoptar **NestJS** como framework del backend.

@@ -56,6 +56,20 @@ button{cursor:pointer}
       <option value="">Ingresar como…</option>
       <sc-for list="{{ demoUsers }}" as="u" hint-placeholder-count="8"><option value="{{ u.id }}">{{ u.label }}</option></sc-for>
     </select>
+    <sc-if value="{{ conSesion }}" hint-placeholder-val="{{ false }}">
+    <span style="position:relative;display:inline-flex">
+      <button type="button" onClick="{{ togglePopRoles }}" style="border:none;border-radius:4px;padding:5px 10px;font-size:11.5px;font-weight:700;background:#3b5998;color:#ffffff" style-hover="background:#4a69ab">Roles ({{ nRolesSes }}) ▾</button>
+      <sc-if value="{{ popRoles }}">
+      <div style="position:absolute;top:calc(100% + 8px);left:0;z-index:300;width:300px;box-sizing:border-box;padding:14px;border-radius:8px;background:#ffffff;box-shadow:0 14px 36px rgba(14,23,41,.35);display:flex;flex-direction:column;gap:10px;color:#172645">
+        <span style="display:flex;flex-direction:column;gap:3px"><span style="font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#3b5998">Solo prototipo</span><span style="font-size:12.5px;font-weight:500;line-height:1.45;color:#555b66;text-wrap:pretty">Sumá o quitá roles: el menú muestra la suma de lo que permite cada uno.</span></span>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <sc-for list="{{ sesRolOpts }}" as="o" hint-placeholder-count="6"><button type="button" onClick="{{ o.toggle }}" style="display:flex;align-items:center;gap:10px;border:none;border-radius:6px;padding:8px 10px;background:{{ o.bg }};color:#172645;font-size:13px;font-weight:600;text-align:left" style-hover="background:#eef1f7"><span style="width:18px;height:18px;flex-shrink:0;box-sizing:border-box;border-radius:4px;border:1.5px solid {{ o.bc }};background:{{ o.box }};color:#ffffff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">{{ o.tick }}</span>{{ o.nombre }}</button></sc-for>
+        </div>
+        <button type="button" onClick="{{ restaurarRoles }}" style="align-self:flex-start;border:none;background:none;padding:2px 0;font-size:12px;font-weight:700;color:#3b5998;text-decoration:underline">Volver a los roles del usuario</button>
+      </div>
+      </sc-if>
+    </span>
+    </sc-if>
     <button type="button" onClick="{{ simularExpira }}" style="border:none;border-radius:4px;padding:5px 10px;font-size:11.5px;font-weight:700;background:rgba(255,255,255,.08);color:#e6e9f0" style-hover="background:rgba(255,255,255,.18)">Simular sesión expirada</button>
   </span>
   <span style="font-size:11.5px">Contraseña demo <strong style="color:#e6e9f0;letter-spacing:.04em">Castro1977</strong></span>
@@ -101,6 +115,13 @@ button{cursor:pointer}
       </div>
       <button type="submit" style="border:none;border-radius:6px;padding:16px 24px;background:#0f3483;color:#ffffff;font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;box-shadow:0 6px 16px rgba(15,52,131,.24);transition:background .2s ease,transform .2s ease" style-hover="background:#0b2766;transform:translateY(-2px)">Ingresar</button>
       <p style="margin:0;font-size:13.5px;line-height:1.6;color:#8a909c;text-wrap:pretty">Si no recordás tu contraseña, pedile al Administrador del Sistema que la restablezca.</p>
+      <div style="display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:8px;border:1.5px dashed #b9c3d8;background:#f7f8fb">
+        <span style="display:flex;flex-direction:column;gap:4px"><span style="font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#3b5998">Solo prototipo · Ingresar con roles</span><span style="font-size:13px;font-weight:500;line-height:1.5;color:#555b66;text-wrap:pretty">Elegí uno o varios roles. Se ve la suma de lo que permite cada uno.</span></span>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <sc-for list="{{ protoRolOpts }}" as="o" hint-placeholder-count="6"><button type="button" onClick="{{ o.toggle }}" style="display:inline-flex;align-items:center;gap:8px;border:1.5px solid {{ o.bc }};border-radius:999px;padding:7px 12px;background:{{ o.bg }};color:{{ o.fg }};font-size:12.5px;font-weight:700"><span style="width:16px;height:16px;flex-shrink:0;box-sizing:border-box;border-radius:4px;border:1.5px solid {{ o.bc }};background:{{ o.box }};color:#ffffff;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800">{{ o.tick }}</span>{{ o.nombre }}</button></sc-for>
+        </div>
+        <button type="button" onClick="{{ ingresarRoles }}" style="border:none;border-radius:6px;padding:12px 18px;background:#eef1f7;color:#0f3483;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase" style-hover="background:#dfe5f1">{{ protoRolesLabel }}</button>
+      </div>
     </form>
   </div>
 </div>
@@ -1219,7 +1240,7 @@ class Component extends DCLogic {
     d: semilla(), q: {}, pag: {}, fRubro: '', incEnc: false, incFabEnc: false,
     borrando: false, sel: [], form: {}, intento: false,
     modal: null, mform: {}, mIntento: false, toast: null, demo: 'normal',
-    sesion: null, lg: LG0(), menuUsu: false, incEmp: false, incUsu: false, fRol: '', fMat: '', form0: '{}', editId: null, verPass: false, drag: null
+    sesion: null, lg: LG0(), protoRoles: [], popRoles: false, menuUsu: false, incEmp: false, incUsu: false, fRol: '', fMat: '', form0: '{}', editId: null, verPass: false, drag: null
   };
 
   componentDidMount() {
@@ -1236,13 +1257,13 @@ class Component extends DCLogic {
       const g = JSON.parse(localStorage.getItem(LS) || 'null');
       if (g) {
         const u = g.uid && this.state.d.usu.find(x => x.id === g.uid && x.activo && !x.bloqueado), f = this.formIni(g.nuevo, g.editId);
-        this.setState({ pantalla: g.pantalla || 'proveedores', det: g.det || null, nuevo: g.nuevo || null, editId: g.editId || null, menuCerrado: !!g.menuCerrado, form: f, form0: JSON.stringify(f), sesion: u ? { uid: u.id } : null });
+        this.setState({ pantalla: g.pantalla || 'proveedores', det: g.det || null, nuevo: g.nuevo || null, editId: g.editId || null, menuCerrado: !!g.menuCerrado, form: f, form0: JSON.stringify(f), sesion: u ? { uid: u.id, roles: g.roles || null } : null });
       }
     } catch (e) {}
   }
   componentDidUpdate() {
     const s = this.state;
-    const snap = JSON.stringify({ pantalla: s.pantalla, det: s.det, nuevo: s.nuevo, editId: s.editId, menuCerrado: s.menuCerrado, uid: s.sesion ? s.sesion.uid : null });
+    const snap = JSON.stringify({ pantalla: s.pantalla, det: s.det, nuevo: s.nuevo, editId: s.editId, menuCerrado: s.menuCerrado, uid: s.sesion ? s.sesion.uid : null, roles: s.sesion ? s.sesion.roles || null : null });
     if (snap !== this._nav) {
       this._nav = snap;
       try { localStorage.setItem(LS, snap); } catch (e) {}
@@ -1427,16 +1448,16 @@ class Component extends DCLogic {
     return !!(s.modal && s.modal.campos && JSON.stringify(s.mform) !== JSON.stringify(s.modal.valores || {}));
   }
   cerrarSes(ses) { const uid = this.state.sesion && this.state.sesion.uid; return uid ? ses.map(x => x.uid === uid && !x.fin ? { ...x, fin: ahora() } : x) : ses; }
-  iniciarSesion(u) {
+  iniciarSesion(u, ov) {
     this.upd(d => ({ ...d, usu: d.usu.map(x => x.id === u.id ? { ...x, fallos: 0 } : x), ses: this.cerrarSes(d.ses).concat([{ uid: u.id, ini: ahora(), fin: '' }]) }));
     this.lastAct = Date.now();
-    this.go(this.home(u.roles), { sesion: { uid: u.id }, lg: LG0(), verPass: false, q: {}, pag: {} });
+    this.go(this.home(ov || u.roles), { sesion: { uid: u.id, roles: ov || null }, popRoles: false, lg: LG0(), verPass: false, q: {}, pag: {} });
   }
   cerrarSesion(motivo, user) {
     this.upd(d => ({ ...d, ses: this.cerrarSes(d.ses) }));
     clearTimeout(this.tt);
     const msg = motivo === 'expirada' ? { tipo: 'info', texto: 'Tu sesión expiró por inactividad' } : motivo === 'bloq' ? { tipo: 'error', texto: BLOQ } : motivo === 'cerro' ? { tipo: 'ok', texto: 'Cerraste sesión correctamente' } : null;
-    this.setState({ sesion: null, menuUsu: false, drawer: false, modal: null, mform: {}, editando: false, form: {}, form0: '{}', intento: false, borrando: false, sel: [], toast: null, lg: { ...LG0(), user: user || '', msg } });
+    this.setState({ sesion: null, popRoles: false, menuUsu: false, drawer: false, modal: null, mform: {}, editando: false, form: {}, form0: '{}', intento: false, borrando: false, sel: [], toast: null, lg: { ...LG0(), user: user || '', msg } });
   }
   pedirCierre() {
     this.setState({ menuUsu: false, drawer: false });
@@ -1457,6 +1478,14 @@ class Component extends DCLogic {
       if (bloq) return falla(BLOQ);
     }
     falla('Usuario o contraseña incorrectos');
+  }
+  rolesSes(nr) {
+    const s = this.state;
+    if (!nr.length) { this.aviso('Dejá al menos un rol.', 'info'); return; }
+    const ses = { ...s.sesion, roles: nr };
+    const sec = s.pantalla === 'nuevo' ? SECCION_DE[s.nuevo] : s.pantalla === 'detalle' ? SECCION_DE[s.det && s.det.t] : s.pantalla;
+    const fuera = ['inicio', 'denegado'].includes(s.pantalla) || (PERM[sec] && !this.puede(sec, nr)) || (s.pantalla === 'nuevo' && s.nuevo === 'sol' && !nr.includes('ERP'));
+    if (fuera) this.go(this.home(nr), { sesion: ses }); else this.setState({ sesion: ses });
   }
   ingresarComo(id) {
     const u = this.state.d.usu.find(x => x.id === id);
@@ -1776,7 +1805,7 @@ class Component extends DCLogic {
     const s = this.state, d = s.d, movil = s.movil;
     const setForm = (k, v) => this.setState(st => ({ form: { ...st.form, [k]: v } }));
     const setM = (k, v) => this.setState(st => ({ mform: { ...st.mform, [k]: v } }));
-    const usu = this.usuActual(), roles = usu ? usu.roles : [], home = this.home(roles), usuE = usu ? d.emp.find(e => e.id === usu.empId) : null;
+    const usu = this.usuActual(), roles = s.sesion && s.sesion.roles ? s.sesion.roles : usu ? usu.roles : [], home = this.home(roles), usuE = usu ? d.emp.find(e => e.id === usu.empId) : null;
 
     // pantalla efectiva (si el registro guardado ya no existe, vuelve al listado)
     let P = s.pantalla;
@@ -2119,6 +2148,12 @@ class Component extends DCLogic {
       },
       demoUsers: d.usu.filter(u => DEMO_IDS.includes(u.id)).map(u => { const e = d.emp.find(x => x.id === u.empId) || {}; return { id: u.id, label: e.nombre + ' ' + e.apellido + ' (' + u.nombre + ') · ' + (u.bloqueado ? 'bloqueado' : u.roles.map(r => ROL[r].nombre).join(' + ')) }; }),
       ingresarComo: e => this.ingresarComo(e.target.value),
+      protoRolOpts: ROLES.map(r => { const on = s.protoRoles.includes(r.k); return { nombre: r.nombre, tick: on ? '✓' : '', bg: on ? '#172645' : '#ffffff', fg: on ? '#ffffff' : '#172645', bc: on ? '#172645' : '#c9d0dd', box: on ? '#3b5998' : '#ffffff', toggle: () => this.setState(st => ({ protoRoles: st.protoRoles.includes(r.k) ? st.protoRoles.filter(x => x !== r.k) : st.protoRoles.concat([r.k]) })) }; }),
+      protoRolesLabel: s.protoRoles.length ? 'Ingresar con ' + s.protoRoles.length + (s.protoRoles.length === 1 ? ' rol' : ' roles') : 'Elegí al menos un rol',
+      ingresarRoles: () => { const l = ROLES.map(r => r.k).filter(k => s.protoRoles.includes(k)); if (!l.length) { this.aviso('Elegí al menos un rol.', 'info'); return; } const u = d.usu.find(x => x.id === 'u1'); if (u) this.iniciarSesion(u, l); },
+      nRolesSes: roles.length, popRoles: s.popRoles, togglePopRoles: () => this.setState(st => ({ popRoles: !st.popRoles })),
+      sesRolOpts: ROLES.map(r => { const on = roles.includes(r.k); return { nombre: r.nombre, tick: on ? '✓' : '', bg: on ? '#eef1f7' : '#ffffff', bc: on ? '#0f3483' : '#c9d0dd', box: on ? '#0f3483' : '#ffffff', toggle: () => this.rolesSes(ROLES.map(x => x.k).filter(k => k === r.k ? !on : roles.includes(k))) }; }),
+      restaurarRoles: () => { const u = this.usuActual(); if (u) this.rolesSes(u.roles); },
       simularExpira: () => { if (this.state.sesion) this.cerrarSesion('expirada'); else this.aviso('No hay ninguna sesión abierta.', 'info'); },
 
       // shell
