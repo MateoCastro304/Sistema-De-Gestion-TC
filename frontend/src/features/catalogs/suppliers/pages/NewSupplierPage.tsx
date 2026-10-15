@@ -93,151 +93,155 @@ export function NewSupplierPage() {
             </Link>
             <div>
               <h1 className="page-header__title">Nuevo proveedor</h1>
-              <p className="page-header__subtitle">Registrá los datos del proveedor.</p>
+              <p className="page-header__subtitle">Datos del proveedor a registrar.</p>
             </div>
           </div>
         </div>
       </div>
 
-      <section className="card">
-        <h2 className="card__title">Datos generales</h2>
+      {/* Una sola tarjeta con las dos secciones y los botones al pie,
+          como en el prototipo. */}
+      <section className="card card--form">
+        <div className="form-section">
+          <h2 className="card__title">Datos generales</h2>
 
-        <div className="card__grid">
-          <Input
-            id="legalName"
-            name="legalName"
-            label="Razón social"
-            full
-            maxLength={SUPPLIER_MAX_LENGTH.legalName}
-            value={form.legalName}
-            onChange={handleChange}
-            error={errors.legalName}
-          />
+          <div className="card__grid card__grid--2">
+            <Input
+              id="legalName"
+              name="legalName"
+              label="Razón social"
+              full
+              maxLength={SUPPLIER_MAX_LENGTH.legalName}
+              value={form.legalName}
+              onChange={handleChange}
+              error={errors.legalName}
+            />
 
-          <Input
-            id="cuit"
-            name="cuit"
-            label="CUIT"
-            maxLength={13}
-            value={form.cuit}
-            onChange={handleChange}
-            error={errors.cuit}
-            hint="Formato XX-XXXXXXXX-X"
-          />
+            <Input
+              id="cuit"
+              name="cuit"
+              label="CUIT"
+              maxLength={13}
+              value={form.cuit}
+              onChange={handleChange}
+              error={errors.cuit}
+              hint="Formato XX-XXXXXXXX-X"
+            />
 
-          {/* Un proveedor tiene un solo tipo: las casillas se comportan
-              como opciones excluyentes. El <label> envuelve la casilla:
-              tocar el texto también la elige. */}
-          <div
-            className={cn('form-field', 'card__full', errors.supplierType && 'form-field--error')}
-            role="group"
-            aria-labelledby="supplierType-label"
-          >
-            <span className="form-field__label" id="supplierType-label">
-              Tipo
-            </span>
-            <div className="check-group">
-              {SUPPLIER_TYPES.map((type) => (
-                <label
-                  key={type}
-                  className={cn(
-                    'check-option',
-                    form.supplierType === type && 'check-option--on',
-                  )}
-                >
-                  <CheckBox
-                    checked={form.supplierType === type}
-                    onChange={() => selectType(type)}
-                  />
-                  <EntityIcon name={TYPE_ICONS[type]} />
-                  {SUPPLIER_TYPE_LABELS[type]}
-                </label>
-              ))}
-            </div>
-            {errors.supplierType ? (
-              <span className="form-field__error">{errors.supplierType}</span>
-            ) : (
-              <span className="form-field__hint">
-                Elegí uno. Después del alta no se puede cambiar.
+            {/* Al lado del CUIT, como en el prototipo. */}
+            <Input
+              id="address"
+              name="address"
+              label="Dirección"
+              maxLength={SUPPLIER_MAX_LENGTH.address}
+              value={form.address}
+              onChange={handleChange}
+              error={errors.address}
+            />
+
+            {/* Un proveedor tiene un solo tipo: las casillas se comportan
+                como opciones excluyentes. El <label> envuelve la casilla:
+                tocar el texto también la elige. */}
+            <div
+              className={cn('form-field', 'card__full', errors.supplierType && 'form-field--error')}
+              role="group"
+              aria-labelledby="supplierType-label"
+            >
+              <span className="form-field__label" id="supplierType-label">
+                Tipo
               </span>
-            )}
+              <div className="check-group">
+                {SUPPLIER_TYPES.map((type) => (
+                  <label
+                    key={type}
+                    className={cn(
+                      'check-option',
+                      form.supplierType === type && 'check-option--on',
+                    )}
+                  >
+                    <CheckBox
+                      checked={form.supplierType === type}
+                      onChange={() => selectType(type)}
+                    />
+                    <EntityIcon name={TYPE_ICONS[type]} />
+                    {SUPPLIER_TYPE_LABELS[type]}
+                  </label>
+                ))}
+              </div>
+              {errors.supplierType ? (
+                <span className="form-field__error">{errors.supplierType}</span>
+              ) : (
+                <span className="form-field__hint">
+                  Elegí uno. Después del alta no se puede cambiar.
+                </span>
+              )}
+            </div>
+
+            <Input
+              id="observation"
+              name="observation"
+              label="Observación"
+              full
+              maxLength={SUPPLIER_MAX_LENGTH.observation}
+              value={form.observation}
+              onChange={handleChange}
+              error={errors.observation}
+            />
           </div>
+        </div>
 
-          <Input
-            id="address"
-            name="address"
-            label="Dirección"
-            full
-            maxLength={SUPPLIER_MAX_LENGTH.address}
-            value={form.address}
-            onChange={handleChange}
-            error={errors.address}
-          />
+        <div className="form-section">
+          <h2 className="card__title">Contacto</h2>
 
-          <Input
-            id="observation"
-            name="observation"
-            label="Observación"
-            full
-            maxLength={SUPPLIER_MAX_LENGTH.observation}
-            value={form.observation}
-            onChange={handleChange}
-            error={errors.observation}
-          />
+          <div className="card__grid card__grid--2">
+            <Input
+              id="contactName"
+              name="contactName"
+              label="Persona de contacto"
+              maxLength={SUPPLIER_MAX_LENGTH.contactName}
+              value={form.contactName}
+              onChange={handleChange}
+              error={errors.contactName}
+            />
+
+            <Input
+              id="contactPhone"
+              name="contactPhone"
+              type="tel"
+              label="Teléfono"
+              maxLength={SUPPLIER_MAX_LENGTH.contactPhone}
+              value={form.contactPhone}
+              onChange={handleChange}
+              error={errors.contactPhone}
+            />
+
+            <Input
+              id="contactEmail"
+              name="contactEmail"
+              type="email"
+              label="Email"
+              full
+              maxLength={SUPPLIER_MAX_LENGTH.contactEmail}
+              value={form.contactEmail}
+              onChange={handleChange}
+              error={errors.contactEmail}
+            />
+          </div>
+        </div>
+
+        <div className="form-actions">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/catalogos/proveedores')}
+            disabled={isSaving}
+          >
+            Cancelar
+          </Button>
+          <Button variant="primary" type="submit" disabled={isSaving}>
+            {isSaving ? 'Creando…' : 'Crear proveedor'}
+          </Button>
         </div>
       </section>
-
-      <section className="card">
-        <h2 className="card__title">Contacto</h2>
-
-        <div className="card__grid">
-          <Input
-            id="contactName"
-            name="contactName"
-            label="Persona de contacto"
-            maxLength={SUPPLIER_MAX_LENGTH.contactName}
-            value={form.contactName}
-            onChange={handleChange}
-            error={errors.contactName}
-          />
-
-          <Input
-            id="contactPhone"
-            name="contactPhone"
-            type="tel"
-            label="Teléfono"
-            maxLength={SUPPLIER_MAX_LENGTH.contactPhone}
-            value={form.contactPhone}
-            onChange={handleChange}
-            error={errors.contactPhone}
-          />
-
-          <Input
-            id="contactEmail"
-            name="contactEmail"
-            type="email"
-            label="Email"
-            full
-            maxLength={SUPPLIER_MAX_LENGTH.contactEmail}
-            value={form.contactEmail}
-            onChange={handleChange}
-            error={errors.contactEmail}
-          />
-        </div>
-      </section>
-
-      <div className="form-actions">
-        <Button
-          variant="outline"
-          onClick={() => navigate('/catalogos/proveedores')}
-          disabled={isSaving}
-        >
-          Cancelar
-        </Button>
-        <Button variant="primary" type="submit" disabled={isSaving}>
-          {isSaving ? 'Creando…' : 'Crear proveedor'}
-        </Button>
-      </div>
     </form>
   )
 }

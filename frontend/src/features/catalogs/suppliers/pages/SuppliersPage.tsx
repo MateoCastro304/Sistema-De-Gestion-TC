@@ -21,6 +21,7 @@ import { DEFAULT_PAGE_SIZE } from '@/shared/api/pagination'
 import { cn } from '@/shared/lib/cn'
 import { formatPhone } from '@/shared/lib/formatPhone'
 import fotoTaller from '@/assets/hero-castro.webp'
+import { PANELS } from '@/features/catalogs/panels'
 import { isApiError } from '@/shared/api/ApiError'
 import { useToast } from '@/app/providers/ToastContext'
 import { useSuppliers } from '../api/useSuppliers'
@@ -247,15 +248,22 @@ export function SuppliersPage() {
         </span>
       ),
     },
+    // Contacto y teléfono en la misma celda, uno debajo del otro, como en
+    // el prototipo. Si falta uno se muestra el otro; si faltan los dos,
+    // el guion de "sin dato".
     {
       header: 'Contacto',
-      render: (s) => <ValueOrDash value={s.contactName} className="table__cell--contacto" />,
-    },
-    // El teléfono va en texto común: la monoespaciada es sólo para el
-    // CUIT, que es un identificador y se lee en columna.
-    {
-      header: 'Teléfono',
-      render: (s) => <ValueOrDash value={formatPhone(s.contactPhone)} className="table__cell--tel" />,
+      render: (s) => {
+        const name = s.contactName?.trim()
+        const phone = formatPhone(s.contactPhone)
+        if (!name && !phone) return <ValueOrDash />
+        return (
+          <span className="table__cell--stack">
+            {name && <span className="table__cell--contacto">{name}</span>}
+            {phone && <span className="table__cell--tel-sub">{phone}</span>}
+          </span>
+        )
+      },
     },
     // En modo eliminación no hay "Ver": navegar desmonta la pantalla y la
     // selección se perdería sin ningún aviso.
@@ -283,20 +291,19 @@ export function SuppliersPage() {
     porque las columnas no son las mismas: en selección entra el
     casillero adelante y sale el botón "Ver" del final.
 
-    Las columnas de dato fijo van en px (el CUIT y el teléfono tienen
-    largo conocido y no se parten, la etiqueta de rubro tampoco y el
-    botón "Ver" es del ancho de su texto) y las dos de texto libre en
-    fr, con minmax(0,…) para que cedan en vez de desbordar. Los px son
-    algo más anchos que los del prototipo: con aquellos el teléfono
-    quedaba justo y el contacto se partía en dos líneas.
+    Son los anchos del prototipo. Las columnas de dato fijo van en px
+    (el CUIT tiene largo conocido y no se parte, la etiqueta del tipo
+    tampoco y el botón "Ver" es del ancho de su texto) y las dos de
+    texto libre en fr, con minmax(0,…) para que cedan en vez de
+    desbordar.
 
     Abajo de 1080px de ventana esto deja de usarse: el CSS pasa la fila a ficha
     apilada de una sola columna, que es donde seis columnas ya no
     entran de ninguna forma.
   */
   const gridTemplate = isSelecting
-    ? '44px minmax(0,2fr) 124px 120px minmax(0,1.3fr) 150px'
-    : 'minmax(0,2fr) 124px 120px minmax(0,1.3fr) 150px 72px'
+    ? '52px minmax(0,1.8fr) 140px 240px minmax(0,1.2fr)'
+    : 'minmax(0,1.8fr) 130px 230px minmax(0,1.2fr) 80px'
 
   // Qué va en el cuerpo de la tabla cuando no hay filas, según por qué
   // no las hay. Mientras carga queda `undefined` y la tabla muestra el
@@ -343,7 +350,13 @@ export function SuppliersPage() {
 
   return (
     <>
-      <PageHero eyebrow="Catálogo de" accent="proveedores" title="Proveedores" photo={fotoTaller}>
+      <PageHero
+        eyebrow="Catálogo de"
+        accent="proveedores"
+        title="Proveedores"
+        photo={fotoTaller}
+        back={{ to: PANELS.gestion.to, label: PANELS.gestion.label }}
+      >
         {isPending ? (
           'Cargando…'
         ) : (

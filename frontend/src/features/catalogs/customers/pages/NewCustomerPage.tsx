@@ -46,9 +46,7 @@ export function NewCustomerPage() {
             </Link>
             <div>
               <h1 className="page-header__title">Nuevo encargado</h1>
-              <p className="page-header__subtitle">
-                Registrá los datos del encargado y la fábrica a la que pertenece.
-              </p>
+              <p className="page-header__subtitle">Persona de contacto de una fábrica.</p>
             </div>
           </div>
         </div>
@@ -58,7 +56,7 @@ export function NewCustomerPage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate('/catalogos/encargados')}
         submitting={create.isPending}
-        submitLabel="Registrar encargado"
+        submitLabel="Crear encargado"
       />
     </>
   )

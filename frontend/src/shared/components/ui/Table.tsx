@@ -67,7 +67,7 @@ import { cn } from '@/shared/lib/cn'
 export interface Column<T> {
   header: ReactNode
   render: (row: T) => ReactNode
-  /** Alineación horizontal; por defecto `left`. Sólo aplica a `variant="table"`. */
+  /** Alineación horizontal; por defecto `left`. Vale para las dos variantes. */
   align?: 'left' | 'center'
   /**
    * Clase extra para la celda de esta columna, en las dos variantes.
@@ -141,7 +141,9 @@ export function Table<T>({
             porque cada fila ya se lee como ficha. */}
         <div className="table__head">
           {columns.map((col, i) => (
-            <span key={i}>{col.header}</span>
+            <span key={i} className={col.align === 'center' ? 'table__head--center' : undefined}>
+              {col.header}
+            </span>
           ))}
         </div>
 
@@ -172,7 +174,10 @@ export function Table<T>({
               }
             >
               {columns.map((col, i) => (
-                <div key={i} className={cn('table__cell', col.cellClassName)}>
+                <div
+                  key={i}
+                  className={cn('table__cell', col.align === 'center' && 'table__cell--center', col.cellClassName)}
+                >
                   {col.render(row)}
                 </div>
               ))}

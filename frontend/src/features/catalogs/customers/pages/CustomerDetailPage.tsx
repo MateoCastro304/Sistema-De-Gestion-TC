@@ -3,13 +3,14 @@ import { useParams, useNavigate, Link } from 'react-router'
 import { heroPhoto } from '@/shared/lib/heroPhoto'
 import { formatPhone } from '@/shared/lib/formatPhone'
 import fotoTaller from '@/assets/foto-fresado.webp'
-import { Avatar, Badge, Button, IconTrash, Modal, TrashButton } from '@/shared/components/ui'
+import { Avatar, Badge, Button, IconTrash, Modal } from '@/shared/components/ui'
+import { cn } from '@/shared/lib/cn'
 import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import { toneByStatus } from '@/shared/lib/rowTone'
 import { useToast } from '@/app/providers/ToastContext'
+import { useCrumbTitle } from '@/app/providers/BreadcrumbContext'
 import { isApiError } from '@/shared/api/ApiError'
 import type { Customer, CustomerInput } from '../types/customer'
-import type { Factory } from '../types/factory'
 import {
   useCustomer,
   useDeactivateCustomer,
@@ -18,7 +19,6 @@ import {
   useUpdateCustomer,
 } from '../api/customers.queries'
 import { toCustomerFormValues } from '../schemas/customer.schema'
-import { formatCuit } from '../schemas/factory.schema'
 import { CustomerForm } from '../components/CustomerForm'
 import { customerErrorMessage, customerFullName } from '../utils/errorMessages'
 
@@ -47,6 +47,9 @@ export function CustomerDetailPage() {
   const [editing, setEditing] = useState(false)
   // Eliminar pide confirmación, igual que desde el listado.
   const [confirmOpen, setConfirmOpen] = useState(false)
+
+  // Nombre del encargado en la miga de pan de la topbar.
+  useCrumbTitle(customerQuery.data ? customerFullName(customerQuery.data) : undefined)
 
   if (customerQuery.isLoading) {
     return (
@@ -121,9 +124,8 @@ export function CustomerDetailPage() {
 
   return (
     <>
-      {/* Rediseño: el encabezado es el panel azul de los otros catálogos.
-          El "← Volver" pasa a ser el botón redondo de la izquierda, que es
-          donde el resto de las pantallas lo tiene. Misma ruta, mismo link. */}
+      {/* Encabezado del detalle como en el prototipo: círculo con la
+          persona, el nombre y, debajo, de qué fábrica y rubro es. */}
       <div className="page-header page-header--foto" style={heroPhoto(fotoTaller)}>
         <div className="page-header__row">
           <div className="detail-header__left">
@@ -134,9 +136,7 @@ export function CustomerDetailPage() {
               Encargados
             </Link>
 
-            {/* El cuadrado con las iniciales, en su tamaño grande: el mismo
-                que se ve en el listado, para reconocer que es el mismo. */}
-            <Avatar name={fullName} icon="encargado" tone={toneByStatus(customer.isActive)} size="lg" />
+            <Avatar name={fullName} icon="encargado" tone={toneByStatus(customer.isActive)} size="lg" shape="round" />
 
             <div>
               <div className="detail-header__title-row">
@@ -146,9 +146,7 @@ export function CustomerDetailPage() {
                 {!customer.isActive && <Badge variant="neutral">Inactivo</Badge>}
               </div>
               <p className="page-header__subtitle">
-                {editing
-                  ? 'Modificá los datos del encargado.'
-                  : 'Datos del encargado.'}
+                {factory?.name ?? '—'} · {categoryName}
               </p>
             </div>
           </div>
@@ -174,54 +172,82 @@ export function CustomerDetailPage() {
               </>
             ) : (
               <>
-                <Button onClick={() => setEditing(true)}>Editar</Button>
                 {customer.isActive && (
-                  /* El botón de eliminar con el tacho animado. Adentro del
-                     panel oscuro va en vidrio y se pone blanco con texto rojo
-                     al pasar el mouse. */
-                  <TrashButton
-                    label={`Eliminar a ${fullName}`}
-                    onClick={() => setConfirmOpen(true)}
-                  >
+                  <Button variant="secondary" onClick={() => setConfirmOpen(true)}>
                     Eliminar
-                  </TrashButton>
+                  </Button>
                 )}
+                <Button onClick={() => setEditing(true)}>Editar</Button>
               </>
             )}
           </div>
         </div>
       </div>
 
-      {editing ? (
-        <>
-          <CustomerForm
-            // La fábrica de un encargado es inmutable (RNF-3): se muestra como
-            // dato de solo lectura y no se puede reasignar al editar.
-            lockedFactoryId={customer.factoryId}
-            defaultValues={toCustomerFormValues(customer)}
-            onSubmit={handleSubmit}
-            submitting={update.isPending}
-            // Los botones van arriba, en el panel (ver detail-header__actions).
-            formId={EDIT_FORM_ID}
-            hideActions
-          />
-          {/* Sólo en celular: los mismos botones, al pie del formulario. */}
-          <div className="form-actions form-actions--mobile">
-            <Button variant="outline" onClick={() => setEditing(false)} disabled={update.isPending}>
-              Cancelar
-            </Button>
-            <Button type="submit" form={EDIT_FORM_ID} disabled={update.isPending}>
-              {update.isPending ? 'Guardando…' : 'Guardar cambios'}
-            </Button>
-          </div>
-        </>
-      ) : (
-        <CustomerDetails
-          customer={customer}
-          factory={factory}
-          categoryName={categoryName}
-        />
-      )}
+      <div className="detail-layout">
+        <div className="detail-main">
+          {editing ? (
+            <>
+              <CustomerForm
+                title="Datos de contacto"
+                // La fábrica de un encargado es inmutable (RNF-3): se muestra como
+                // dato de solo lectura y no se puede reasignar al editar.
+                lockedFactoryId={customer.factoryId}
+                hideLockedFactory
+                defaultValues={toCustomerFormValues(customer)}
+                onSubmit={handleSubmit}
+                submitting={update.isPending}
+                // Los botones van arriba, en el panel (ver detail-header__actions).
+                formId={EDIT_FORM_ID}
+                hideActions
+              />
+              {/* Sólo en celular: los mismos botones, al pie del formulario. */}
+              <div className="form-actions form-actions--mobile">
+                <Button variant="outline" onClick={() => setEditing(false)} disabled={update.isPending}>
+                  Cancelar
+                </Button>
+                <Button type="submit" form={EDIT_FORM_ID} disabled={update.isPending}>
+                  {update.isPending ? 'Guardando…' : 'Guardar cambios'}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <CustomerDetails customer={customer} />
+          )}
+        </div>
+
+        {/* La fábrica va en la tarjeta oscura: es un dato del encargado que
+            no se edita desde acá. */}
+        <aside className="detail-aside">
+          <section className="card card--dark">
+            <h2 className="card__title">Fábrica</h2>
+            <div className="aside-list">
+              <div className="field">
+                <span className="field__label">Nombre</span>
+                <span className="field__value">{factory?.name ?? '—'}</span>
+              </div>
+              <div className="field">
+                <span className="field__label">Rubro</span>
+                <span className="field__value">{categoryName}</span>
+              </div>
+              {editing ? (
+                <span className="lock-note">
+                  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M5.5 9V6.5a4.5 4.5 0 0 1 9 0V9M4.5 9h11v8h-11z" />
+                  </svg>
+                  La fábrica no se puede modificar
+                </span>
+              ) : (
+                factory && (
+                  <Link className="aside-link" to={`/catalogos/fabricas/${factory.id}`}>
+                    Ver fábrica
+                  </Link>
+                )
+              )}
+            </div>
+          </section>
+        </aside>
+      </div>
 
       <Modal
         open={confirmOpen}
@@ -254,61 +280,34 @@ export function CustomerDetailPage() {
   )
 }
 
-/** Read-only presentation of a contact and its factory. */
-function CustomerDetails({
-  customer,
-  factory,
-  categoryName,
-}: {
-  customer: Customer
-  factory?: Factory
-  categoryName: string
-}) {
+/** Datos de contacto en lectura: dos columnas, como en el prototipo. */
+function CustomerDetails({ customer }: { customer: Customer }) {
+  const phone = formatPhone(customer.phone)
   return (
-    <>
-      <div className="card">
-        <h2 className="card__title">Datos del encargado</h2>
-        <div className="card__grid">
-          <div className="field">
-            <span className="field__label">Teléfono</span>
-            <span className="field__value">{formatPhone(customer.phone) || '—'}</span>
-          </div>
-          <div className="field">
-            <span className="field__label">Email</span>
-            <span className="field__value">{customer.mail || '—'}</span>
-          </div>
+    <section className="card">
+      <h2 className="card__title">Datos de contacto</h2>
+      <div className="card__grid card__grid--2">
+        <div className="field">
+          <span className="field__label">Nombre</span>
+          <span className="field__value">{customer.firstName}</span>
+        </div>
+        <div className="field">
+          <span className="field__label">Apellido</span>
+          <span className={cn('field__value', !customer.lastName && 'field__value--muted')}>
+            {customer.lastName || '—'}
+          </span>
+        </div>
+        <div className="field">
+          <span className="field__label">Teléfono</span>
+          <span className={cn('field__value', !phone && 'field__value--muted')}>{phone || '—'}</span>
+        </div>
+        <div className="field">
+          <span className="field__label">Email</span>
+          <span className={cn('field__value', !customer.mail && 'field__value--muted')}>
+            {customer.mail || '—'}
+          </span>
         </div>
       </div>
-
-      <div className="card">
-        <h2 className="card__title">Fábrica</h2>
-        {factory ? (
-          <div className="card__grid">
-            <div className="field">
-              <span className="field__label">Nombre</span>
-              <span className="field__value">{factory.name}</span>
-            </div>
-            <div className="field">
-              <span className="field__label">Rubro</span>
-              <span className="field__value">{categoryName}</span>
-            </div>
-            <div className="field">
-              <span className="field__label">CUIT</span>
-              <span className="field__value">{formatCuit(factory.cuit)}</span>
-            </div>
-            <div className="field card__full">
-              <span className="field__label">Dirección</span>
-              <span className="field__value">{factory.address || '—'}</span>
-            </div>
-            <div className="field card__full">
-              <span className="field__label">Formas de pago</span>
-              <p className="field__value">{factory.payMethod || '—'}</p>
-            </div>
-          </div>
-        ) : (
-          <p className="field__value">Sin fábrica asociada.</p>
-        )}
-      </div>
-    </>
+    </section>
   )
 }

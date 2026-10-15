@@ -7,6 +7,7 @@ import {
   Avatar,
   Badge,
   Button,
+  EntityIcon,
   IconTrash,
   Modal,
   Table,
@@ -14,9 +15,11 @@ import {
   ValueOrDash,
 } from '@/shared/components/ui'
 import { toneByStatus } from '@/shared/lib/rowTone'
+import { cn } from '@/shared/lib/cn'
 import type { Column } from '@/shared/components/ui'
 import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import { useToast } from '@/app/providers/ToastContext'
+import { useCrumbTitle } from '@/app/providers/BreadcrumbContext'
 import type { Customer } from '../types/customer'
 import type { Factory, FactoryInput } from '../types/factory'
 import { formatCuit, toFactoryFormValues } from '../schemas/factory.schema'
@@ -78,6 +81,9 @@ export function FactoryDetailPage() {
       window.history.replaceState({}, '')
     }
   }, [location.state])
+
+  // Nombre de la fábrica en la miga de pan de la topbar.
+  useCrumbTitle(factoriesQuery.data?.find((f) => f.id === id)?.name)
 
   if (factoriesQuery.isLoading) {
     return (
@@ -178,7 +184,7 @@ export function FactoryDetailPage() {
       header: 'Nombre',
       render: (c) => (
         <span className="table__cell--nombre">
-          <Avatar name={fullName(c)} icon="encargado" tone={toneByStatus(c.isActive)} />
+          <Avatar name={fullName(c)} icon="encargado" tone={toneByStatus(c.isActive)} shape="round" />
           <b>{fullName(c)}</b>
         </span>
       ),
@@ -187,30 +193,34 @@ export function FactoryDetailPage() {
       header: 'Teléfono',
       render: (c) => <ValueOrDash value={formatPhone(c.phone)} className="table__cell--mono" />,
     },
-    { header: 'Email', render: (c) => <ValueOrDash value={c.mail} /> },
+    {
+      header: 'Email',
+      render: (c) => (
+        <span className="table__cell--email" title={c.mail || undefined}>
+          <ValueOrDash value={c.mail} />
+        </span>
+      ),
+    },
     {
       header: '',
       align: 'center',
       cellClassName: 'table__cell--acciones',
-      // Editar y eliminar como íconos: son dos acciones por fila y con
-      // texto compiten con el nombre, que es lo que se viene a leer.
+      // Editar con texto, como "Ver" en los listados, y eliminar como
+      // ícono: borrar no puede pesar lo mismo que la acción principal.
       render: (c) => (
         <>
-            <button
-              type="button"
-              className="row-action row-action--edit"
-              onClick={() => setContactModal({ customer: c })}
-              aria-label={`Editar a ${fullName(c)}`}
-              title="Editar"
-            >
-              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-                <path d="M13.5 3.5 16.5 6.5 7 16H4v-3z" strokeLinejoin="round" />
-              </svg>
-            </button>
-            <TrashButton
-              label={`Eliminar a ${fullName(c)}`}
-              onClick={() => setToDeactivate(c)}
-            />
+          <button
+            type="button"
+            className="link-btn"
+            onClick={() => setContactModal({ customer: c })}
+            aria-label={`Editar a ${fullName(c)}`}
+          >
+            Editar
+          </button>
+          <TrashButton
+            label={`Eliminar a ${fullName(c)}`}
+            onClick={() => setToDeactivate(c)}
+          />
         </>
       ),
     },
@@ -218,9 +228,8 @@ export function FactoryDetailPage() {
 
   return (
     <>
-      {/* Rediseño: el encabezado es el panel azul de los otros catálogos.
-          El "← Volver" pasa a ser el botón redondo de la izquierda, que es
-          donde el resto de las pantallas lo tiene. Misma ruta, mismo link. */}
+      {/* Encabezado del detalle como en el prototipo: el CUIT y la
+          etiqueta del rubro debajo del nombre. */}
       <div className="page-header page-header--foto" style={heroPhoto(fotoTaller)}>
         <div className="page-header__row">
           <div className="detail-header__left">
@@ -238,7 +247,7 @@ export function FactoryDetailPage() {
                 <h1 className="page-header__title">{factory.name}</h1>
               </div>
               <p className="page-header__subtitle detail-header__meta">
-                {`CUIT: ${formatCuit(factory.cuit)}`}
+                {factory.cuit ? `CUIT ${formatCuit(factory.cuit)}` : 'Sin CUIT'}
                 <Badge variant="suave" icon="rubro">{categoryName}</Badge>
               </p>
             </div>
@@ -265,70 +274,79 @@ export function FactoryDetailPage() {
               </>
             ) : (
               <>
-                <Button onClick={() => setEditing(true)}>Editar</Button>
-                <TrashButton
-                  label={`Eliminar a ${factory.name}`}
-                  onClick={() => setConfirmFactoryOpen(true)}
-                >
+                <Button variant="secondary" onClick={() => setConfirmFactoryOpen(true)}>
                   Eliminar
-                </TrashButton>
+                </Button>
+                <Button onClick={() => setEditing(true)}>Editar</Button>
               </>
             )}
           </div>
         </div>
       </div>
 
-      {editing ? (
-        <>
-          <FactoryForm
-            lockCuit
-            defaultValues={toFactoryFormValues(factory)}
-            onSubmit={handleUpdate}
-            submitting={update.isPending}
-            // Los botones van arriba, en el panel (ver detail-header__actions).
-            formId={EDIT_FORM_ID}
-            hideActions
-          />
-          {/* Sólo en celular: los mismos botones, al pie del formulario. */}
-          <div className="form-actions form-actions--mobile">
-            <Button variant="outline" onClick={() => setEditing(false)} disabled={update.isPending}>
-              Cancelar
-            </Button>
-            <Button type="submit" form={EDIT_FORM_ID} disabled={update.isPending}>
-              {update.isPending ? 'Guardando…' : 'Guardar cambios'}
-            </Button>
+      <div className="detail-main">
+        {editing ? (
+          <>
+            <FactoryForm
+              title="Datos de la fábrica"
+              lockCuit
+              defaultValues={toFactoryFormValues(factory)}
+              onSubmit={handleUpdate}
+              submitting={update.isPending}
+              // Los botones van arriba, en el panel (ver detail-header__actions).
+              formId={EDIT_FORM_ID}
+              hideActions
+            />
+            {/* Sólo en celular: los mismos botones, al pie del formulario. */}
+            <div className="form-actions form-actions--mobile">
+              <Button variant="outline" onClick={() => setEditing(false)} disabled={update.isPending}>
+                Cancelar
+              </Button>
+              <Button type="submit" form={EDIT_FORM_ID} disabled={update.isPending}>
+                {update.isPending ? 'Guardando…' : 'Guardar cambios'}
+              </Button>
+            </div>
+          </>
+        ) : (
+          <FactoryDetails factory={factory} categoryName={categoryName} />
+        )}
+
+        {/* Encargados de esta fábrica: una sola tarjeta con el título, la
+            acción y la lista adentro, como en el prototipo. */}
+        <section className="card card--table">
+          <div className="card__head">
+            <div className="card__head-text">
+              <h2 className="card__title">Encargados</h2>
+              <p className="card__subtitle">Personas de contacto de esta fábrica.</p>
+            </div>
+            <div className="detail-header__actions">
+              <Button onClick={() => setContactModal({ customer: undefined })}>
+                + Agregar encargado
+              </Button>
+            </div>
           </div>
-        </>
-      ) : (
-        <FactoryDetails factory={factory} categoryName={categoryName} />
-      )}
 
-      {/* Encargados that belong to this factory. */}
-      <div className="content__heading">
-        <div>
-          <h2 className="card__title">Encargados</h2>
-          <p className="content__subtitle">
-            Personas de contacto de esta fábrica.
-          </p>
-        </div>
-        <div className="detail-header__actions">
-          <Button onClick={() => setContactModal({ customer: undefined })}>
-            + Agregar encargado
-          </Button>
-        </div>
+          <Table
+            variant="cards"
+            gridTemplate="minmax(0,1.3fr) 250px minmax(0,1.3fr) 170px"
+            rowClassName={(c) => `table__row--${toneByStatus(c.isActive)}`}
+            columns={contactColumns}
+            data={contacts}
+            rowKey={(c) => `${c.factoryId}-${c.id}`}
+            emptyState={
+              <div className="card__empty">
+                <span className="state__icon" aria-hidden="true">
+                  <EntityIcon name="encargado" />
+                </span>
+                <p className="card__empty-text">
+                  Esta fábrica no tiene encargados registrados; no será posible
+                  enviar informes de cotización.
+                </p>
+              </div>
+            }
+          />
+        </section>
       </div>
-
-      <Table
-        /* Mismas filas-tarjeta que los listados, para que la sección de
-           encargados de acá adentro no se lea como otra cosa. */
-        variant="cards"
-        gridTemplate="minmax(0,2fr) minmax(0,1.4fr) minmax(0,1.6fr) 112px"
-        rowClassName={(c) => `table__row--${toneByStatus(c.isActive)}`}
-        columns={contactColumns}
-        data={contacts}
-        rowKey={(c) => `${c.factoryId}-${c.id}`}
-        emptyMessage="Esta fábrica no tiene encargados registrados; no será posible enviar informes de cotización."
-      />
 
       <Modal
         open={confirmFactoryOpen}
@@ -403,7 +421,7 @@ export function FactoryDetailPage() {
   )
 }
 
-/** Read-only presentation of a factory. */
+/** Datos de la fábrica en lectura: tres columnas, como en el prototipo. */
 function FactoryDetails({
   factory,
   categoryName,
@@ -412,26 +430,32 @@ function FactoryDetails({
   categoryName: string
 }) {
   return (
-    <div className="card">
+    <section className="card">
       <h2 className="card__title">Datos de la fábrica</h2>
-      <div className="card__grid">
+      <div className="card__grid card__grid--3">
         <div className="field">
           <span className="field__label">Rubro</span>
           <span className="field__value">{categoryName}</span>
         </div>
         <div className="field">
           <span className="field__label">CUIT</span>
-          <span className="field__value">{formatCuit(factory.cuit)}</span>
+          <span className={cn('field__value', !factory.cuit && 'field__value--muted')}>
+            {factory.cuit ? formatCuit(factory.cuit) : '—'}
+          </span>
         </div>
         <div className="field card__full">
           <span className="field__label">Dirección</span>
-          <span className="field__value">{factory.address || '—'}</span>
+          <span className={cn('field__value', !factory.address && 'field__value--muted')}>
+            {factory.address || '—'}
+          </span>
         </div>
         <div className="field card__full">
           <span className="field__label">Formas de pago</span>
-          <p className="field__value">{factory.payMethod || '—'}</p>
+          <p className={cn('field__value field__value--text', !factory.payMethod && 'field__value--muted')}>
+            {factory.payMethod || 'Sin datos.'}
+          </p>
         </div>
       </div>
-    </div>
+    </section>
   )
 }

@@ -3,6 +3,7 @@ import { Button, IconTrash, Modal, PageHero, Pagination, SearchField } from '@/s
 import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import { usePagedList } from '@/shared/hooks/usePagedList'
 import fotoTaller from '@/assets/foto-disco.webp'
+import { PANELS } from '@/features/catalogs/panels'
 import { normalizeText } from '@/shared/lib/normalizeText'
 import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
@@ -76,7 +77,31 @@ export function CategoriesPage() {
 
   return (
     <>
-      <PageHero eyebrow="Catálogo de" accent="rubros" title="Rubros" photo={fotoTaller} />
+      <PageHero
+        eyebrow="Catálogo de"
+        accent="rubros"
+        title="Rubros"
+        photo={fotoTaller}
+        photoPosition="center 45%"
+        back={{ to: PANELS.clientes.to, label: PANELS.clientes.label }}
+      >
+        {categoriesQuery.isLoading ? (
+          'Cargando…'
+        ) : (
+          <>
+            {/* Con una búsqueda activa el total es el de los que coinciden,
+                no el del catálogo entero: el texto lo dice. */}
+            <strong>{total}</strong>{' '}
+            {term
+              ? total === 1
+                ? 'rubro coincide con la búsqueda'
+                : 'rubros coinciden con la búsqueda'
+              : total === 1
+                ? 'rubro registrado'
+                : 'rubros registrados'}
+          </>
+        )}
+      </PageHero>
 
       <div className="toolbar">
         <SearchField value={search} onChange={handleSearchChange} placeholder="Buscar rubro" />

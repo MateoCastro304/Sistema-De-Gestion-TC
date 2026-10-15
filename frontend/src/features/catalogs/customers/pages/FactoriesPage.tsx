@@ -5,6 +5,7 @@ import { Button, PageHero, Pagination, SearchField, Select } from '@/shared/comp
 import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import { usePagedList } from '@/shared/hooks/usePagedList'
 import fotoTaller from '@/assets/foto-ejes.webp'
+import { PANELS } from '@/features/catalogs/panels'
 import {
   useCustomers,
   useFactories,
@@ -74,7 +75,31 @@ export function FactoriesPage() {
 
   return (
     <>
-      <PageHero eyebrow="Empresas" accent="clientes" title="Fábricas" photo={fotoTaller} />
+      <PageHero
+        eyebrow="Empresas"
+        accent="clientes"
+        title="Fábricas"
+        photo={fotoTaller}
+        photoPosition="center 45%"
+        back={{ to: PANELS.clientes.to, label: PANELS.clientes.label }}
+      >
+        {factoriesQuery.isLoading ? (
+          'Cargando…'
+        ) : (
+          <>
+            {/* Con una búsqueda activa el total es el de los que coinciden,
+                no el del catálogo entero: el texto lo dice. */}
+            <strong>{total}</strong>{' '}
+            {isFiltering
+              ? total === 1
+                ? 'fábrica coincide con la búsqueda'
+                : 'fábricas coinciden con la búsqueda'
+              : total === 1
+                ? 'fábrica registrada'
+                : 'fábricas registradas'}
+          </>
+        )}
+      </PageHero>
 
       {/* Barra de herramientas: buscador, filtro por rubro y alta. Los
           filtros aparecen recién cuando el listado cargó. */}

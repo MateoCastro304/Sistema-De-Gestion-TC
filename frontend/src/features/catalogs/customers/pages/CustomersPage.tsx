@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { Button, IconTrash, Modal, PageHero, Pagination, SearchField } from '@/shared/components/ui'
 import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import fotoTaller from '@/assets/foto-cnc.webp'
+import { PANELS } from '@/features/catalogs/panels'
 import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
 import type { Customer } from '../types/customer'
@@ -92,7 +93,31 @@ export function CustomersPage() {
 
   return (
     <>
-      <PageHero eyebrow="Contactos de" accent="fábricas" title="Encargados" photo={fotoTaller} />
+      <PageHero
+        eyebrow="Contactos de"
+        accent="fábricas"
+        title="Encargados"
+        photo={fotoTaller}
+        photoPosition="center 55%"
+        back={{ to: PANELS.clientes.to, label: PANELS.clientes.label }}
+      >
+        {customersQuery.isLoading ? (
+          'Cargando…'
+        ) : (
+          <>
+            {/* Con una búsqueda activa el total es el de los que coinciden,
+                no el del catálogo entero: el texto lo dice. */}
+            <strong>{total}</strong>{' '}
+            {debouncedSearch
+              ? total === 1
+                ? 'encargado coincide con la búsqueda'
+                : 'encargados coinciden con la búsqueda'
+              : total === 1
+                ? 'encargado activo'
+                : 'encargados activos'}
+          </>
+        )}
+      </PageHero>
 
       {/* Barra de herramientas: buscador y alta. El buscador aparece
           recién cuando el listado cargó. */}

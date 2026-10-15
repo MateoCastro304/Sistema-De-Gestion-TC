@@ -56,7 +56,10 @@ export function FactoriesTable({
     {
       header: 'Encargados',
       align: 'center',
-      render: (f) => contactsByFactory[f.id] ?? 0,
+      render: (f) => {
+        const count = contactsByFactory[f.id] ?? 0
+        return <span className={cn('count-pill', count === 0 && 'count-pill--empty')}>{count}</span>
+      },
     },
     {
       header: '',
@@ -75,7 +78,7 @@ export function FactoriesTable({
       /* Rediseño: filas-tarjeta en vez de <table>. Los datos, el filtro y
          el rowKey son los mismos; lo nuevo son sólo props de presentación. */
       variant="cards"
-      gridTemplate="minmax(0,2.4fr) 136px minmax(0,1fr) 110px 72px"
+      gridTemplate="minmax(0,2fr) 150px minmax(0,1fr) 120px 80px"
       rowClassName={(f) => cn(`table__row--${toneByStatus(f.isActive)}`)}
       columns={columns}
       data={factories}

@@ -16,10 +16,11 @@ import {
   FactoryDetailPage,
 } from '@/features/catalogs/customers'
 import { CategoriesPage } from '@/features/catalogs/categories'
+import { PanelPage } from '@/features/catalogs/panels'
 
 export const router = createBrowserRouter([
-  // The app has no landing page yet: send "/" to the customers catalog.
-  { index: true, element: <Navigate to="/catalogos/encargados" replace /> },
+  // The app has no landing page yet: send "/" to the Clientes panel.
+  { index: true, element: <Navigate to="/catalogos/clientes" replace /> },
   {
     // Un solo layout para toda la app. Antes cada sección montaba el suyo y
     // al cambiar de sección el menú se volvía a crear (perdía, por ejemplo,
@@ -34,6 +35,9 @@ export const router = createBrowserRouter([
         // sigue a la vista y se puede salir del error navegando.
         errorElement: <ErrorPage />,
         children: [
+          // Paneles de tarjetas: la puerta a los listados de cada grupo.
+          { path: '/catalogos/clientes', element: <PanelPage panel="clientes" /> },
+          { path: '/catalogos/gestion', element: <PanelPage panel="gestion" /> },
           {
             path: '/catalogos/proveedores',
             children: [

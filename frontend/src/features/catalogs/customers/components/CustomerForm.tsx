@@ -34,6 +34,13 @@ interface CustomerFormProps {
   formId?: string
   /** Esconde Cancelar/Guardar del pie: el que llama los pone en otro lado. */
   hideActions?: boolean
+  /** Título de la tarjeta (en el detalle: "Datos de contacto"). */
+  title?: string
+  /**
+   * Con lockedFactoryId, esconde el campo fijo de la fábrica. El detalle
+   * del encargado ya la muestra en su tarjeta oscura.
+   */
+  hideLockedFactory?: boolean
 }
 
 /**
@@ -50,6 +57,8 @@ export function CustomerForm({
   lockedFactoryId,
   formId,
   hideActions = false,
+  title,
+  hideLockedFactory = false,
 }: CustomerFormProps) {
   const {
     register,
@@ -75,7 +84,8 @@ export function CustomerForm({
   return (
     <>
     <form id={formId} className="card" onSubmit={submit} noValidate>
-      <div className="card__grid">
+      {title && <h2 className="card__title">{title}</h2>}
+      <div className="card__grid card__grid--2">
         <div className="form-field">
           <Input
             label="Nombre"
@@ -114,6 +124,7 @@ export function CustomerForm({
 
         {/* Factory: read-only when fixed by the context (immutable, RNF-3). */}
         {lockedFactoryId ? (
+          !hideLockedFactory && (
           <div className="form-field--full">
             <label className="form-field__label" htmlFor="factoryId">
               Fábrica
@@ -131,6 +142,7 @@ export function CustomerForm({
               disabled
             />
           </div>
+          )
         ) : (
           <div className="form-field--full">
             <label className="form-field__label" htmlFor="factoryId">

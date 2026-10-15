@@ -35,7 +35,7 @@ export function CategoriesTable({
       header: 'Nombre',
       render: (c) => (
         <span className="table__cell--nombre">
-          <Avatar name={c.name} icon="rubro" />
+          <Avatar name={c.name} icon="rubro" tone="suave" />
           <b>{c.name}</b>
         </span>
       ),
@@ -61,8 +61,8 @@ export function CategoriesTable({
             aria-label={`Editar ${c.name}`}
             title="Editar"
           >
-            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-              <path d="M13.5 3.5 16.5 6.5 7 16H4v-3z" strokeLinejoin="round" />
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M13.5 3.5l3 3L7 16H4v-3zM11.5 5.5l3 3" />
             </svg>
           </button>
           <TrashButton label={`Dar de baja ${c.name}`} onClick={() => onDelete(c)} />
@@ -75,7 +75,7 @@ export function CategoriesTable({
     <Table
       /* Filas-tarjeta, como el resto de los catálogos. */
       variant="cards"
-      gridTemplate="minmax(0,2fr) 180px 112px"
+      gridTemplate="minmax(0,1fr) 220px 120px"
       columns={columns}
       data={categories}
       rowKey={(c) => c.id}

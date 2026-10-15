@@ -27,6 +27,8 @@ interface FactoryFormProps {
   hideActions?: boolean
   /** El CUIT no se puede modificar: al editar se muestra de solo lectura. */
   lockCuit?: boolean
+  /** Título de la tarjeta (en el detalle: "Datos de la fábrica"). */
+  title?: string
 }
 
 /**
@@ -43,6 +45,7 @@ export function FactoryForm({
   formId,
   hideActions = false,
   lockCuit = false,
+  title,
 }: FactoryFormProps) {
   const { data: categories = [], isLoading: loadingCategories } = useCategories()
 
@@ -61,7 +64,8 @@ export function FactoryForm({
   return (
     <>
       <form id={formId} className="card" onSubmit={submit} noValidate>
-        <div className="card__grid">
+        {title && <h2 className="card__title">{title}</h2>}
+        <div className="card__grid card__grid--3">
           <div className="form-field--full">
             <Input
               label="Nombre"

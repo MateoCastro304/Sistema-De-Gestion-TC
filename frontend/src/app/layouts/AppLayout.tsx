@@ -1,5 +1,8 @@
-import { useEffect, useState } from 'react'
-import { Outlet, NavLink, useLocation } from 'react-router'
+import { Fragment, useEffect, useState } from 'react'
+import { Outlet, Link, useLocation } from 'react-router'
+import { BreadcrumbContext } from '@/app/providers/BreadcrumbContext'
+import { PANELS, panelOf } from '@/features/catalogs/panels'
+import { cn } from '@/shared/lib/cn'
 import logoBlanco from '@/assets/logo-castro-white.png'
 import logoMarino from '@/assets/logo-castro-navy.png'
 
@@ -23,32 +26,57 @@ import logoMarino from '@/assets/logo-castro-navy.png'
  * contenido y se cierra sola al navegar.
  */
 
-/** Rótulo de la topbar según el segmento de la URL. Sin cambios. */
-const SECTION_LABELS: Record<string, string> = {
-  encargados: 'Encargados',
-  fabricas: 'Fábricas',
-  rubros: 'Rubros',
-  proveedores: 'Proveedores',
-}
+/**
+ * El menú va agrupado y cada ítem es un panel de tarjetas, no un
+ * listado: "Clientes" lleva a Encargados, Fábricas y Rubros; "Gestión",
+ * a Proveedores. Un listado marca en el menú el panel del que cuelga.
+ * Cotizaciones y Administración son del sprint 2: se suman acá como
+ * grupos nuevos.
+ */
+const NAV_GROUPS = [
+  {
+    label: 'Catálogos',
+    items: [
+      { panel: PANELS.clientes, icon: IconFabrica },
+      { panel: PANELS.gestion, icon: IconEngranaje },
+    ],
+  },
+]
 
-function sectionLabel(pathname: string): string {
-  const segment = pathname.match(/^\/catalogos\/([^/]+)/)?.[1]
-  return (segment && SECTION_LABELS[segment]) || 'Catálogos'
-}
+/** Un tramo de la miga de pan. Con `to` es un enlace. */
+type Crumb = { label: string; to?: string }
 
 /**
- * Ítems del menú en un array: agregar una sección nueva es una línea
- * acá, no tres bloques de JSX repetidos.
+ * La miga de pan sale de la URL, como en el prototipo:
+ *   panel    → CATÁLOGOS / CLIENTES
+ *   listado  → CLIENTES / ENCARGADOS
+ *   alta     → CLIENTES / ENCARGADOS / NUEVO
+ *   detalle  → CLIENTES / ENCARGADOS / Laura Gómez
+ * El nombre del detalle lo publica la pantalla (useCrumbTitle).
  */
-const NAV_ITEMS = [
-  { to: '/catalogos/encargados', label: 'Encargados', icon: IconPersona },
-  { to: '/catalogos/fabricas', label: 'Fábricas', icon: IconFabrica },
-  { to: '/catalogos/rubros', label: 'Rubros', icon: IconEtiqueta },
-  { to: '/catalogos/proveedores', label: 'Proveedores', icon: IconCaja },
-]
+function breadcrumb(pathname: string, title: string | null): Crumb[] {
+  const panel = panelOf(pathname)
+  if (!panel) return [{ label: 'Sistema' }, { label: 'Página no encontrada' }]
+  if (pathname === panel.to) return [{ label: 'Catálogos' }, { label: panel.label }]
+
+  const item = panel.items.find((i) => pathname === i.to || pathname.startsWith(i.to + '/'))
+  if (!item || pathname === item.to) return [{ label: panel.label }, { label: item?.label ?? '' }]
+
+  const last = pathname.endsWith('/nuevo') ? 'Nuevo' : title
+  return [
+    { label: panel.label },
+    { label: item.label, to: item.to },
+    ...(last ? [{ label: last }] : []),
+  ]
+}
 
 export function AppLayout() {
   const { pathname } = useLocation()
+  const activePanel = panelOf(pathname)
+
+  /** Nombre del registro abierto, para la miga de pan (ver BreadcrumbContext). */
+  const [crumbTitle, setCrumbTitle] = useState<string | null>(null)
+  const crumbs = breadcrumb(pathname, crumbTitle)
 
   /** Escritorio: barra ancha o riel de íconos. */
   const [collapsed, setCollapsed] = useState(false)
@@ -56,7 +84,7 @@ export function AppLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   /* Al navegar el cajón se cierra solo (ver el onClick de los
-     NavLink más abajo). Se hace en el evento y no en un useEffect
+     Link del menú más abajo). Se hace en el evento y no en un useEffect
      sobre `pathname` porque llamar a setState dentro de un efecto
      dispara un render en cascada, y el lint del proyecto lo marca
      como error (react-hooks/set-state-in-effect). */
@@ -113,33 +141,36 @@ export function AppLayout() {
         </div>
 
         <nav className="sidebar__nav">
-          <div className="sidebar__section">
-            <span className="sidebar__section-label">Catálogos</span>
-            <ul className="sidebar__list">
-              {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
-                <li key={to}>
-                  <NavLink
-                    to={to}
-                    /* El title es lo que queda cuando la barra está
-                       colapsada y sólo se ve el ícono. */
-                    title={label}
-                    /* En celular, entrar a una sección cierra el
-                       cajón; en escritorio no hay cajón abierto, así
-                       que esto no hace nada. */
-                    onClick={() => setDrawerOpen(false)}
-                    className={({ isActive }) =>
-                      isActive ? 'sidebar__link sidebar__link--active' : 'sidebar__link'
-                    }
-                  >
-                    <Icon />
-                    {/* El span es necesario: el CSS lo esconde en modo
-                        riel sin tocar el ícono. */}
-                    <span className="sidebar__link-text">{label}</span>
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {NAV_GROUPS.map((group) => (
+            <div key={group.label} className="sidebar__section">
+              <span className="sidebar__section-label">{group.label}</span>
+              <ul className="sidebar__list">
+                {group.items.map(({ panel, icon: Icon }) => (
+                  <li key={panel.to}>
+                    <Link
+                      to={panel.to}
+                      /* El title es lo que queda cuando la barra está
+                         colapsada y sólo se ve el ícono. */
+                      title={panel.label}
+                      /* En celular, entrar a una sección cierra el
+                         cajón; en escritorio no hay cajón abierto, así
+                         que esto no hace nada. */
+                      onClick={() => setDrawerOpen(false)}
+                      /* Activo también dentro de sus listados: en
+                         Encargados queda marcado "Clientes". */
+                      aria-current={activePanel === panel ? 'page' : undefined}
+                      className={cn('sidebar__link', activePanel === panel && 'sidebar__link--active')}
+                    >
+                      <Icon />
+                      {/* El span es necesario: el CSS lo esconde en modo
+                          riel sin tocar el ícono. */}
+                      <span className="sidebar__link-text">{panel.label}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </nav>
 
         <span className="sidebar__tagline">
@@ -163,11 +194,21 @@ export function AppLayout() {
         <header className="topbar">
           {/* Escritorio: dónde estás. Celular: el CSS lo esconde y muestra
               el logo, porque ahí el menú (y su logo) está guardado. */}
-          <div className="topbar__breadcrumb">
-            <span>Catálogos</span>
-            <span aria-hidden="true">/</span>
-            <span className="topbar__breadcrumb-item--current">{sectionLabel(pathname)}</span>
-          </div>
+          <nav className="topbar__breadcrumb" aria-label="Estás en">
+            {crumbs.map((crumb, i) => {
+              const last = i === crumbs.length - 1
+              return (
+                <Fragment key={i}>
+                  {i > 0 && <span aria-hidden="true">/</span>}
+                  {crumb.to ? (
+                    <Link to={crumb.to} className="topbar__breadcrumb-link">{crumb.label}</Link>
+                  ) : (
+                    <span className={last ? 'topbar__breadcrumb-item--current' : undefined}>{crumb.label}</span>
+                  )}
+                </Fragment>
+              )
+            })}
+          </nav>
           <img className="topbar__logo" src={logoMarino} alt="Castro Tornería S.R.L." />
           {/* Este botón sólo se ve en celular (display:none arriba de
               900px). El de escritorio vive dentro de la barra lateral. */}
@@ -184,50 +225,35 @@ export function AppLayout() {
         </header>
 
         <div className="content">
-          <Outlet />
+          <BreadcrumbContext.Provider value={setCrumbTitle}>
+            <Outlet />
+          </BreadcrumbContext.Provider>
         </div>
       </div>
     </div>
   )
 }
 
+
 /* ---- Íconos ----
    Inline y con stroke="currentColor" para que tomen el color del
    estado (claro normal, azul en el activo) sin CSS extra. Están
    declarados con `function` (no const) para poder referenciarlos
-   desde NAV_ITEMS, que está más arriba en el archivo. */
-
-function IconPersona() {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-      <circle cx="10" cy="7" r="3.2" />
-      <path d="M4 16.5c.9-2.8 3.2-4.2 6-4.2s5.1 1.4 6 4.2" strokeLinecap="round" />
-    </svg>
-  )
-}
+   desde NAV_GROUPS, que está más arriba en el archivo. Son los mismos
+   trazos del prototipo: Clientes usa la fábrica; Gestión, el engranaje. */
 
 function IconFabrica() {
   return (
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-      <path d="M3 17V8.5l4.5 3V8.5l4.5 3V5h5v12z" strokeLinejoin="round" />
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 17V8.5l4.5 3V8.5l4.5 3V5h5v12z" />
     </svg>
   )
 }
 
-function IconEtiqueta() {
+function IconEngranaje() {
   return (
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-      <path d="M3 3h6.5l7.5 7.5-6.5 6.5L3 9.5z" strokeLinejoin="round" />
-      <circle cx="6.8" cy="6.8" r="1.2" />
-    </svg>
-  )
-}
-
-function IconCaja() {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.9" aria-hidden="true">
-      <path d="M10 2.6 17 6v8l-7 3.4L3 14V6z" strokeLinejoin="round" />
-      <path d="M3 6l7 3.4L17 6M10 9.4v8" strokeLinejoin="round" />
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M10 7a3 3 0 1 1 0 6a3 3 0 1 1 0-6M10 2.5V5M10 15v2.5M2.5 10H5M15 10h2.5M4.7 4.7l1.8 1.8M13.5 13.5l1.8 1.8M4.7 15.3l1.8-1.8M13.5 6.5l1.8-1.8" />
     </svg>
   )
 }

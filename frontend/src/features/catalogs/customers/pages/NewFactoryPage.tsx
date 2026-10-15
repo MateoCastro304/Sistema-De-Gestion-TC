@@ -48,8 +48,7 @@ export function NewFactoryPage() {
             <div>
               <h1 className="page-header__title">Nueva fábrica</h1>
               <p className="page-header__subtitle">
-                Registrá los datos de la fábrica. Después vas a poder agregarle
-                sus encargados.
+                Después de crearla podés cargar sus encargados.
               </p>
             </div>
           </div>
@@ -60,7 +59,7 @@ export function NewFactoryPage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate('/catalogos/fabricas')}
         submitting={create.isPending}
-        submitLabel="Registrar fábrica"
+        submitLabel="Crear fábrica"
       />
     </>
   )

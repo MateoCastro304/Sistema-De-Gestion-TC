@@ -14,6 +14,7 @@ import { useUpdateSupplier } from '../api/useUpdateSupplier'
 import { buildSupplierPatch } from '../utils/buildSupplierPatch'
 import { TYPE_ICONS, TYPE_TONES, supplierIcon, supplierTone } from '../utils/supplierTone'
 import { useToast } from '@/app/providers/ToastContext'
+import { useCrumbTitle } from '@/app/providers/BreadcrumbContext'
 import { conflictErrors, supplierErrorMessage, validateSupplierForm } from '../utils/validateSupplierForm'
 import type { SupplierFormErrors } from '../utils/validateSupplierForm'
 /** ISO 8601 -> "22 ago 2026". Las fechas viajan como string, no como Date. */
@@ -106,6 +107,9 @@ export function SupplierDetailPage() {
   const { mutate, isPending:isSaving } = useUpdateSupplier(supplierId)
   const [errors, setErrors] = useState<SupplierFormErrors>({})
   const showToast = useToast()
+
+  // Razón social en la miga de pan de la topbar.
+  useCrumbTitle(supplier?.legalName)
 
   const isEditing = form !== null
   const notFound = !Number.isInteger(supplierId) || (isApiError(error) && error.isNotFound)
@@ -228,7 +232,7 @@ export function SupplierDetailPage() {
                   un punto: es el mismo dato, pero se reconoce de un
                   vistazo igual que en el listado. */}
               <span className="page-header__subtitle detail-header__meta">
-                {supplier.cuit ? `CUIT: ${supplier.cuit}` : null}
+                {supplier.cuit ? `CUIT ${supplier.cuit}` : 'Sin CUIT'}
                 <TypeBadge type={supplier.supplierType} />
               </span>
             </div>
@@ -268,7 +272,7 @@ export function SupplierDetailPage() {
         <div className="detail-main">
           <section className="card">
             <h2 className="card__title">Datos generales</h2>
-            <div className="card__grid">
+            <div className="card__grid card__grid--3">
               <Field
                 label="Razón social"
                 name="legalName"
@@ -348,7 +352,7 @@ export function SupplierDetailPage() {
 
           <section className="card">
             <h2 className="card__title">Contacto</h2>
-            <div className="card__grid">
+            <div className="card__grid card__grid--3">
               <Field
                 label="Persona de contacto"
                 name="contactName"
@@ -386,12 +390,12 @@ export function SupplierDetailPage() {
         <aside className="detail-aside">
           <section className="card card--dark">
             <h2 className="card__title">Registro</h2>
-            <div className="card__grid">
-              <div className="field card__full">
+            <div className="aside-list">
+              <div className="field">
                 <span className="field__label">Alta</span>
                 <span className="field__value">{formatDate(supplier.createdAt)}</span>
               </div>
-              <div className="field card__full">
+              <div className="field">
                 <span className="field__label">Última modificación</span>
                 <span className="field__value">{formatDate(supplier.updatedAt)}</span>
               </div>

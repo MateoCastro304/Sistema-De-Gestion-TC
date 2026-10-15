@@ -37,7 +37,7 @@ import type { EntityIconName } from './EntityIcon'
  */
 
 /** Tonos de categoría. Mismos nombres que las variantes de Badge. */
-export type AvatarTone = 'azul' | 'ambar' | 'verde' | 'neutral'
+export type AvatarTone = 'azul' | 'ambar' | 'verde' | 'neutral' | 'suave'
 
 interface AvatarProps {
   /** Nombre completo; de acá salen las iniciales. */
@@ -47,6 +47,11 @@ interface AvatarProps {
   tone?: AvatarTone
   /** `lg` es la versión grande del encabezado de detalle. */
   size?: 'md' | 'lg'
+  /**
+   * Las personas (encargados) van en círculo suave; las empresas y los
+   * proveedores, en el cuadrado marino. Así lo distingue el prototipo.
+   */
+  shape?: 'square' | 'round'
 }
 
 /**
@@ -63,10 +68,15 @@ function initials(name: string): string {
     .join('')
 }
 
-export function Avatar({ name, icon, tone = 'azul', size = 'md' }: AvatarProps) {
+export function Avatar({ name, icon, tone = 'azul', size = 'md', shape = 'square' }: AvatarProps) {
   return (
     <span
-      className={cn('avatar', tone !== 'azul' && `avatar--${tone}`, size === 'lg' && 'avatar--lg')}
+      className={cn(
+        'avatar',
+        tone !== 'azul' && `avatar--${tone}`,
+        size === 'lg' && 'avatar--lg',
+        shape === 'round' && 'avatar--round',
+      )}
       aria-hidden="true"
     >
       {icon ? <EntityIcon name={icon} /> : initials(name)}

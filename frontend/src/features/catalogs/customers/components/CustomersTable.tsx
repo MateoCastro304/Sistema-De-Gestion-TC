@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
-import { Avatar, Badge, Table, TrashButton, ValueOrDash } from '@/shared/components/ui'
+import { Avatar, Badge, EntityIcon, Table, TrashButton, ValueOrDash } from '@/shared/components/ui'
 import type { Column } from '@/shared/components/ui'
 import { toneByStatus } from '@/shared/lib/rowTone'
 import { cn } from '@/shared/lib/cn'
@@ -40,7 +40,7 @@ export function CustomersTable({
       header: 'Nombre',
       render: (c) => (
         <span className="table__cell--nombre">
-          <Avatar name={customerFullName(c)} icon="encargado" tone={toneByStatus(c.isActive)} />
+          <Avatar name={customerFullName(c)} icon="encargado" tone={toneByStatus(c.isActive)} shape="round" />
           <b>
             {customerFullName(c)}
           </b>
@@ -66,15 +66,30 @@ export function CustomersTable({
     },
     {
       header: 'Fábrica',
-      render: (c) => (
-        <ValueOrDash value={factoryById(c.factoryId)?.name} className="table__cell--contacto" />
-      ),
+      render: (c) => {
+        const name = factoryById(c.factoryId)?.name
+        return name ? (
+          <span className="cell-icon table__cell--contacto">
+            <EntityIcon name="fabrica" />
+            <span className="cell-icon__text">{name}</span>
+          </span>
+        ) : (
+          <ValueOrDash />
+        )
+      },
     },
     {
       header: 'Rubro',
       render: (c) => {
         const factory = factoryById(c.factoryId)
-        return factory ? <Badge variant="suave" icon="rubro">{categoryName(factory.categoryId)}</Badge> : <ValueOrDash />
+        return factory ? (
+          <span className="cell-icon cell-icon--soft">
+            <EntityIcon name="rubro" />
+            {categoryName(factory.categoryId)}
+          </span>
+        ) : (
+          <ValueOrDash />
+        )
       },
     },
     {
@@ -104,9 +119,9 @@ export function CustomersTable({
       /* Rediseño: filas-tarjeta en vez de <table>. Los datos, el filtro y
          el rowKey son los mismos; lo nuevo son sólo props de presentación. */
       variant="cards"
-      /* Teléfono, rubro y acciones van fijos: el teléfono no se parte
-         (nowrap) y con 1.4fr se montaba sobre el email. */
-      gridTemplate="minmax(0,1.7fr) 150px minmax(0,1.2fr) minmax(0,1fr) 130px 150px"
+      /* Las columnas del prototipo: teléfono, fábrica, rubro y acciones
+         van fijos; nombre y email se reparten el resto. */
+      gridTemplate="minmax(0,1.4fr) 220px minmax(0,1.3fr) 150px 140px 190px"
       rowClassName={(c) => cn(`table__row--${toneByStatus(c.isActive)}`)}
       columns={columns}
       data={customers}
