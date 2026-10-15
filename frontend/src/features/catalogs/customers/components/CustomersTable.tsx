@@ -4,6 +4,7 @@ import { Avatar, Badge, Table, TrashButton, ValueOrDash } from '@/shared/compone
 import type { Column } from '@/shared/components/ui'
 import { toneByStatus } from '@/shared/lib/rowTone'
 import { cn } from '@/shared/lib/cn'
+import { formatPhone } from '@/shared/lib/formatPhone'
 import type { Customer } from '../types/customer'
 import type { Factory } from '../types/factory'
 import type { Category } from '../types/category'
@@ -51,7 +52,7 @@ export function CustomersTable({
     },
     {
       header: 'Teléfono',
-      render: (c) => <ValueOrDash value={c.phone} className="table__cell--mono" />,
+      render: (c) => <ValueOrDash value={formatPhone(c.phone)} className="table__cell--mono" />,
     },
     {
       header: 'Email',
