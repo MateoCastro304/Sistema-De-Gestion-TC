@@ -1,6 +1,6 @@
 ﻿# Arquitectura del sistema — Visión general
 
-Este documento describe la arquitectura de alto nivel del sistema de gestión de Tornería Castro SRL. Las decisiones técnicas detalladas están en los [ADR](../decisions/).
+Este documento describe la arquitectura de alto nivel del sistema de gestión de Tornería Castro SRL siguendo el progreso por sprint. Actualmente estamos en el sprint 2. Las decisiones técnicas detalladas están en los [ADR](../decisions/).
 
 ---
 
@@ -46,54 +46,29 @@ Este documento describe la arquitectura de alto nivel del sistema de gestión de
 
 ## Módulos del backend
 
-El backend está organizado en módulos funcionales alineados con el dominio:
+El backend está organizado en módulos funcionales alineados con el dominio. En este sprint 2 tenemos hasta: 
 
-### `auth`
 
-Autenticación y autorización. JWT + Guards de RBAC. Protege todos los endpoints mediante validación de roles.
+### `identity`
 
-### `usuarios`
+Gestión de usuarios del sistema, Autenticación y autorización. (creación, desactivación, cambios de rol, restablecimiento de contraseñas, guards de RBC)..
 
-Gestión de usuarios del sistema (creación, desactivación, cambios de rol, restablecimiento de contraseñas). Accesible solo para AS.
+### `customers`
 
-### `clientes`
+Subsistema conformado por las entidades/componentes Rubro, Encargados, Fabricas.
 
-CRUD de clientes (empresas industriales como EDASA, CorBlock, OxyCAM). Almacena datos de contacto y formato preferido de cotización.
+### `employees`
 
-### `piezas`
+Employees.  
 
-Catálogo de piezas cotizadas y fabricadas. Incluye número de plano, ID interno (cuando no hay plano), variantes y archivos adjuntos (planos PDF, diseños 3D).
+### `supplier`
 
-### `cotizaciones`
+Supplier
 
-Módulo central. Gestiona el ciclo de vida de una cotización: creación, desglose por ítems, actualizaciones del tipo de cambio del dólar y adjudicación total/parcial. Implementa la máquina de estados de cotización.
+### `technicalCatalog`
 
-### `ordenes-de-trabajo`
+technicalCatalog va a contener Materiales y TipoProcesos
 
-Generación y seguimiento de órdenes de trabajo (OT). Implementa la máquina de estados de WorkOrder. Registra procesos planificados y ejecutados. Se integra con el módulo de reportes para la trazabilidad de rentabilidad.
-
-### `produccion`
-
-Submódulo accesible para JT. Permite registrar avances de procesos y tiempos reales. Sin acceso a datos económicos.
-
-### `reportes`
-
-Estadísticas para tomar decisiones: trabajos por empresa, tasas de adjudicación de presupuestos, variaciones mensuales y trazabilidad entre lo presupuestado y lo real.
-
-### `pdf`
-
-Cliente HTTP que se comunica con el servicio Python de generación de PDF. Recibe una cotización (con todos sus datos) y devuelve el archivo PDF al frontend.
-
-### `notificaciones`
-
-Envía el PDF de cotización al cliente por correo electrónico (Amazon SES o un proveedor externo, ver [ADR-007](../decisions/007-mail-integration.md)) y WhatsApp (AWS End User Messaging Social o un BSP externo, ver [ADR-008](../decisions/008-whatsapp-integration.md)). Se activa al enviar la cotización (UC-21); la vigencia de la oferta comienza con ese envío (RN-06). No procesa ni automatiza las conversaciones posteriores con el cliente.
-
-### `scheduler`
-
-Tareas programadas:
-
-- Vencimiento automático de cotizaciones (diario).
-- (Futuro) Alertas de demora en órdenes de trabajo.
 
 ---
 
@@ -103,13 +78,13 @@ El frontend es una **SPA React + TypeScript** compilada con Vite y servida como 
 
 La SPA se organiza en las siguientes secciones principales:
 
-- Panel principal — resumen de cotizaciones y órdenes de trabajo activas
-- Cotizaciones — listado, detalle, creación y adjudicación
-- Órdenes de trabajo — listado, detalle y seguimiento de producción
-- Clientes — CRUD de clientes
-- Piezas — catálogo con historial
-- Reportes — estadísticas y métricas
-- Configuración — solo AS: usuarios, roles, tipos de proceso y tarifas
+
+- Solicitud de Cotizaciones — Listado, detalle, creación y adjudicación.
+
+- Clientes — CRUD de encargado, fabrica y rubros.
+
+- Gestion — CRUD de proveedores, CRUD de materiales, CRUD de Tipo de Proceso.
+- Administracion — CRUD  de usuarios, CRUD de empleados. 
 
 ---
 
@@ -119,7 +94,6 @@ La SPA se organiza en las siguientes secciones principales:
 
 **Separación de información pública y privada desde el backend.** Los endpoints que devuelven datos de cotización al frontend tienen dos variantes: una con datos completos (roles administrativos) y otra sin costos ni márgenes (JT). El filtrado nunca se realiza únicamente en el frontend.
 
-**Tareas con `@nestjs/schedule`.** Suficiente para el vencimiento de cotizaciones y futuras alertas. No requiere infraestructura adicional.
 
 **Almacenamiento de archivos.** Amazon S3 para almacenamiento persistente de objetos (planos, fotos, diseños 3D y PDF generados), abstraído mediante un servicio de almacenamiento para poder cambiar el proveedor sin afectar la lógica de negocio. Ver [ADR-009](../decisions/009-deploy-infrastructure.md).
 
