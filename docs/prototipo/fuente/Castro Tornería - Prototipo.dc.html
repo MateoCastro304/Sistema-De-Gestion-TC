@@ -256,6 +256,7 @@ button{cursor:pointer}
           <div style="position:absolute;inset:0;background:linear-gradient(90deg,#15223e 0%,#15223e 40%,rgba(21,34,62,.75) 62%,rgba(21,34,62,.15) 100%)"></div>
           <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1px);background-size:22px 22px"></div>
           <div style="position:relative;height:100%;box-sizing:border-box;padding:0 clamp(20px,4vw,40px) 26px;display:flex;flex-direction:column;justify-content:center;gap:14px">
+            <sc-if value="{{ lista.hayVolver }}"><button type="button" onClick="{{ lista.volver }}" style="align-self:flex-start;display:inline-flex;align-items:center;gap:8px;border:none;background:none;padding:0;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#c9d2e6;transition:color .2s ease,transform .2s ease" style-hover="color:#ffffff;transform:translateX(-3px)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><path d="M10 3 5 8l5 5" stroke-linecap="round" stroke-linejoin="round"></path></svg>{{ lista.volverLabel }}</button></sc-if>
             <span style="font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#e6e9f0">{{ lista.ey1 }} <span style="color:#7f9bd6">{{ lista.ey2 }}</span></span>
             <span style="width:90px;height:3px;background:#3b5998;transform-origin:left;animation:lineGrow .7s .2s ease both"></span>
             <h1 style="margin:0;font-size:var(--h1);font-weight:800;line-height:1.05;text-transform:uppercase;color:#ffffff">{{ lista.titulo }}</h1>
@@ -264,6 +265,11 @@ button{cursor:pointer}
         </div>
 
         <div style="margin:-48px var(--bar-mx) 0;position:relative;background:#ffffff;border-radius:8px;box-shadow:0 14px 36px rgba(23,38,69,.12);padding:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;animation:fadeUp .5s .1s ease both">
+          <sc-if value="{{ hayTabsEmp }}">
+          <span style="flex-shrink:0;display:flex;gap:4px;padding:4px;border-radius:6px;background:#eef1f7">
+            <sc-for list="{{ tabsEmp }}" as="t" hint-placeholder-count="2"><button type="button" onClick="{{ t.go }}" style="border:none;border-radius:4px;padding:11px 18px;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:{{ t.bg }};color:{{ t.fg }};box-shadow:{{ t.sh }};transition:background .2s ease">{{ t.label }}</button></sc-for>
+          </span>
+          </sc-if>
           <label style="flex:1 1 260px;min-width:0;display:flex;align-items:center;gap:12px;border:1.5px solid #e1e5ec;border-radius:6px;padding:0 16px;color:#8a909c;transition:border-color .2s ease,box-shadow .2s ease" style-hover="border-color:#3b5998;box-shadow:0 0 0 4px rgba(59,89,152,.10)">
             <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" style="width:19px;height:19px;flex-shrink:0"><circle cx="9" cy="9" r="6"></circle><path d="m14 14 4 4" stroke-linecap="round"></path></svg>
             <input type="search" value="{{ q }}" onChange="{{ setQ }}" placeholder="{{ lista.ph }}" aria-label="Buscar" style="flex:1;min-width:0;border:none;outline:none;background:transparent;padding:14px 0;font-size:15px;font-weight:500;color:#172645">
@@ -464,11 +470,12 @@ button{cursor:pointer}
           </sc-if>
 
           <sc-if value="{{ esEmp }}">
-          <div style="min-width:940px">
-            <div style="display:grid;grid-template-columns:minmax(0,1.3fr) 170px minmax(0,1.7fr) 130px 80px;gap:14px;padding:15px 22px;background:#f5f6f9;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#172645"><span>Empleado</span><span>Usuario</span><span>Roles</span><span>Estado</span><span></span></div>
+          <div style="min-width:1080px">
+            <div style="display:grid;grid-template-columns:minmax(0,1.3fr) 150px 150px minmax(0,1.5fr) 120px 80px;gap:14px;padding:15px 22px;background:#f5f6f9;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#172645"><span>Empleado</span><span>Puesto</span><span>Usuario</span><span>Roles</span><span>Estado</span><span></span></div>
             <sc-for list="{{ empRows }}" as="r" hint-placeholder-count="6">
-            <div onClick="{{ r.ver }}" style="display:grid;grid-template-columns:minmax(0,1.3fr) 170px minmax(0,1.7fr) 130px 80px;gap:14px;align-items:center;padding:14px 22px;border-top:1px solid #eef0f3;transition:background .2s ease,box-shadow .2s ease;cursor:pointer;opacity:{{ r.op }}" style-hover="background:#f6f8fc;box-shadow:inset 4px 0 0 #3b5998">
-              <span style="display:flex;align-items:center;gap:13px;min-width:0"><span style="width:40px;height:40px;flex-shrink:0;border-radius:6px;background:#eef1f7;color:#3b5998;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="{{ r.icon }}"></path></svg></span><span style="font-size:15px;font-weight:700;color:#172645">{{ r.nombre }}</span></span>
+            <div onClick="{{ r.ver }}" style="display:grid;grid-template-columns:minmax(0,1.3fr) 150px 150px minmax(0,1.5fr) 120px 80px;gap:14px;align-items:center;padding:14px 22px;border-top:1px solid #eef0f3;transition:background .2s ease,box-shadow .2s ease;cursor:pointer;opacity:{{ r.op }}" style-hover="background:#f6f8fc;box-shadow:inset 4px 0 0 #3b5998">
+              <span style="display:flex;align-items:center;gap:13px;min-width:0"><span style="width:40px;height:40px;flex-shrink:0;border-radius:6px;background:#eef1f7;color:#3b5998;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="{{ r.icon }}"></path></svg></span><span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:15px;font-weight:700;color:#172645">{{ r.nombre }}</span><span style="font-size:13px;font-weight:500;color:#8a909c">DNI {{ r.dni }}</span></span></span>
+              <span style="font-size:14px;font-weight:600;color:#172645">{{ r.puesto }}</span>
               <span style="font-size:14px;font-weight:{{ r.usuFw }};color:{{ r.usuFg }}">{{ r.usuario }}</span>
               <span style="display:flex;flex-wrap:wrap;gap:6px;min-width:0"><sc-for list="{{ r.roles }}" as="t" hint-placeholder-count="1"><span style="padding:5px 9px;border-radius:4px;font-size:11.5px;font-weight:700;color:#172645;background:#eef1f7;white-space:nowrap">{{ t.name }}</span></sc-for><sc-if value="{{ r.sinRoles }}"><span style="font-size:14px;color:#b0b5be">—</span></sc-if></span>
               <span style="justify-self:start;display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:{{ r.estFg }};background:{{ r.estBg }};white-space:nowrap"><span style="width:6px;height:6px;border-radius:99px;background:{{ r.estDot }}"></span>{{ r.estado }}</span>
@@ -567,6 +574,223 @@ button{cursor:pointer}
       </div>
       </sc-if>
 
+      <!-- ══════ PANELES (Clientes / Gestión) ══════ -->
+      <sc-if value="{{ esPanel }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:28px;min-width:0">
+        <div style="position:relative;overflow:hidden;flex-shrink:0;height:var(--hero-h);border-radius:8px;background:#172645;animation:fadeUp .5s ease both">
+          <div style="position:absolute;top:0;right:0;bottom:0;width:60%;background:{{ panel.foto }};animation:slowZoom 18s ease-in-out infinite alternate"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(90deg,#15223e 0%,#15223e 40%,rgba(21,34,62,.75) 62%,rgba(21,34,62,.15) 100%)"></div>
+          <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1px);background-size:22px 22px"></div>
+          <div style="position:relative;height:100%;box-sizing:border-box;padding:0 clamp(20px,4vw,40px);display:flex;flex-direction:column;justify-content:center;gap:14px">
+            <span style="font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#e6e9f0">{{ panel.ey1 }} <span style="color:#7f9bd6">{{ panel.ey2 }}</span></span>
+            <span style="width:90px;height:3px;background:#3b5998;transform-origin:left;animation:lineGrow .7s .2s ease both"></span>
+            <h1 style="margin:0;font-size:var(--h1);font-weight:800;line-height:1.05;text-transform:uppercase;color:#ffffff">{{ panel.titulo }}</h1>
+            <p style="margin:0;font-size:16px;color:#d4d9e4">{{ panel.texto }}</p>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:22px">
+          <sc-for list="{{ panel.items }}" as="it" hint-placeholder-count="3">
+          <button type="button" onClick="{{ it.go }}" style="display:flex;flex-direction:column;border:none;padding:0;border-radius:8px;overflow:hidden;background:#ffffff;box-shadow:0 4px 18px rgba(23,38,69,.06);text-align:left;transition:transform .2s ease,box-shadow .2s ease;animation:fadeUp .5s .1s ease both" style-hover="transform:translateY(-4px);box-shadow:0 18px 36px rgba(23,38,69,.14)">
+            <span style="position:relative;display:block;height:clamp(150px,13vw,240px);background:{{ it.foto }};background-color:#172645">
+              <span style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(21,34,62,0) 30%,rgba(21,34,62,.6) 100%)"></span>
+              <span style="position:absolute;left:22px;bottom:-24px;width:56px;height:56px;box-sizing:border-box;border-radius:8px;border:3px solid #ffffff;background:#172645;color:#ffffff;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 8px 18px rgba(23,38,69,.25)"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;flex-shrink:0"><path d="{{ it.d }}"></path></svg></span>
+            </span>
+            <span style="display:flex;flex-direction:column;gap:10px;padding:38px 22px 22px">
+              <span style="font-size:18px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:#172645">{{ it.label }}</span>
+              <span style="width:40px;height:3px;background:#3b5998"></span>
+              <span style="font-size:14.5px;line-height:1.55;color:#555b66;text-wrap:pretty">{{ it.desc }}</span>
+              <span style="margin-top:6px;display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#0f3483">Ingresar<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M7.5 4.5 13 10l-5.5 5.5"></path></svg></span>
+            </span>
+          </button>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ══════ COTIZACIÓN ══════ -->
+      <sc-if value="{{ esCot }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:24px;min-width:0">
+        <div style="position:relative;overflow:hidden;border-radius:8px;background:#172645;padding:var(--hero-pad);display:flex;flex-direction:column;gap:12px">
+          <div style="position:absolute;top:0;right:0;bottom:0;width:46%;background:url(assets/foto-cnc.png) center 55%/cover no-repeat;opacity:.6"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(90deg,#172645 48%,rgba(23,38,69,.35) 100%)"></div>
+          <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1px);background-size:22px 22px"></div>
+          <button type="button" onClick="{{ cz.volver }}" style="position:relative;align-self:flex-start;display:inline-flex;align-items:center;gap:8px;border:none;background:none;padding:0;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#c9d2e6;transition:color .2s ease,transform .2s ease" style-hover="color:#ffffff;transform:translateX(-3px)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><path d="M10 3 5 8l5 5" stroke-linecap="round" stroke-linejoin="round"></path></svg>{{ cz.volverLabel }}</button>
+          <span style="position:relative;width:80px;height:3px;background:#3b5998;transform-origin:left;animation:lineGrow .6s ease both"></span>
+          <div style="position:relative;display:flex;align-items:center;gap:12px;flex-wrap:wrap"><h2 style="margin:0;font-size:var(--h2);font-weight:800;text-transform:uppercase;color:#ffffff">Registrar cotización</h2><span title="Pantalla de referencia para el próximo sprint" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">Próximo sprint</span></div>
+          <p style="position:relative;margin:0;font-size:16px;color:#d4d9e4">{{ cz.sub }}</p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:{{ cz.cols }};gap:24px;align-items:start">
+          <div style="display:flex;flex-direction:column;gap:24px;min-width:0">
+
+            <section style="background:#ffffff;border-radius:8px;box-shadow:0 4px 18px rgba(23,38,69,.06);padding:var(--sec-pad);display:flex;flex-direction:column;gap:22px;animation:fadeUp .5s ease both">
+              <div style="display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font-size:19px;font-weight:800;text-transform:uppercase;color:#172645">Datos generales</h3><span style="width:50px;height:3px;background:#3b5998"></span></div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:20px 24px">
+                <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+                  <label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">Solicitud de origen</label>
+                  <span style="display:flex;align-items:center;gap:10px;min-height:52px;box-sizing:border-box;padding:0 15px;border-radius:6px;background:#f5f6f9;font-size:16px;font-weight:700;color:#0f3483">{{ cz.solTxt }}</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+                  <label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">Cliente</label>
+                  <span style="display:flex;flex-direction:column;justify-content:center;gap:2px;min-height:52px;box-sizing:border-box;padding:6px 15px;border-radius:6px;background:#f5f6f9"><span style="font-size:15px;font-weight:700;color:#172645">{{ cz.cliente }}</span><span style="font-size:12.5px;font-weight:600;color:#8a909c">{{ cz.fab }}</span></span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+                  <label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">Fecha de cotización<span style="color:#b3261e"> *</span></label>
+                  <input type="date" value="{{ cz.f.fecha }}" onChange="{{ cz.h.fecha }}" max="{{ cz.maxF }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ cz.bc.fecha }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;box-shadow:{{ cz.sh.fecha }}" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)">
+                  <sc-if value="{{ cz.he.fecha }}"><span style="display:inline-flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:600;line-height:1.4;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ cz.e.fecha }}</span></sc-if>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+                  <label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">Moneda<span style="color:#b3261e"> *</span></label>
+                  <select value="{{ cz.f.moneda }}" onChange="{{ cz.h.moneda }}" style="box-sizing:border-box;width:100%;border:1.5px solid #e1e5ec;border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none"><option value="ARS">Pesos (ARS)</option><option value="USD">Dólares (USD)</option></select>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+                  <label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">Valor del dólar<span style="color:#b3261e"> *</span></label>
+                  <span style="display:flex;align-items:center;gap:10px;box-sizing:border-box;width:100%;border:1.5px solid {{ cz.bc.dolar }};border-radius:6px;background:#ffffff;box-shadow:{{ cz.sh.dolar }};padding:0 15px"><span style="font-size:15px;font-weight:700;color:#8a909c">$</span><input inputMode="decimal" value="{{ cz.f.dolar }}" onChange="{{ cz.h.dolar }}" placeholder="0,00" style="flex:1;min-width:0;border:none;outline:none;background:transparent;padding:14px 0;font-size:16px;font-weight:600;color:#172645;font-variant-numeric:tabular-nums"></span>
+                  <span style="font-size:13.5px;line-height:1.5;color:#8a909c">{{ cz.tcAyuda }}</span>
+                  <sc-if value="{{ cz.he.dolar }}"><span style="display:inline-flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:600;line-height:1.4;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ cz.e.dolar }}</span></sc-if>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+                  <label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">Plazo de validez<span style="color:#b3261e"> *</span></label>
+                  <span style="display:flex;align-items:center;gap:10px;box-sizing:border-box;width:100%;border:1.5px solid {{ cz.bc.validez }};border-radius:6px;background:#ffffff;box-shadow:{{ cz.sh.validez }};padding:0 15px"><input inputMode="numeric" value="{{ cz.f.validez }}" onChange="{{ cz.h.validez }}" placeholder="7" style="flex:1;min-width:0;border:none;outline:none;background:transparent;padding:14px 0;font-size:16px;font-weight:600;color:#172645;font-variant-numeric:tabular-nums"><span style="font-size:13px;font-weight:600;color:#8a909c">días</span></span>
+                  <span style="font-size:13.5px;line-height:1.5;color:#8a909c">La oferta vence el {{ cz.vence }}.</span>
+                  <sc-if value="{{ cz.he.validez }}"><span style="display:inline-flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:600;line-height:1.4;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ cz.e.validez }}</span></sc-if>
+                </div>
+                <div style="grid-column:1 / -1;display:flex;flex-direction:column;gap:8px;min-width:0">
+                  <span style="display:flex;align-items:baseline;gap:8px 12px;flex-wrap:wrap"><label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">Observaciones generales</label><span style="font-size:14px;color:#8a909c">Opcional</span></span>
+                  <textarea rows="2" value="{{ cz.f.obs }}" onChange="{{ cz.h.obs }}" placeholder="Se imprimen en el informe de cotización." style="box-sizing:border-box;width:100%;border:1.5px solid #e1e5ec;border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;line-height:1.6;color:#172645;background:#ffffff;outline:none;resize:vertical" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)"></textarea>
+                </div>
+              </div>
+            </section>
+
+            <section style="background:#ffffff;border-radius:8px;box-shadow:0 4px 18px rgba(23,38,69,.06);padding:var(--sec-pad);display:flex;flex-direction:column;gap:22px;animation:fadeUp .5s .05s ease both">
+              <div style="display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font-size:19px;font-weight:800;text-transform:uppercase;color:#172645">Pieza a cotizar</h3><span style="width:50px;height:3px;background:#3b5998"></span></div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">Tipo de ítem</label>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                  <sc-for list="{{ cz.tipos }}" as="t" hint-placeholder-count="3"><button type="button" onClick="{{ t.go }}" style="display:inline-flex;align-items:center;gap:8px;border:1.5px solid {{ t.bd }};border-radius:6px;padding:12px 16px;background:{{ t.bg }};color:{{ t.fg }};font-size:14px;font-weight:700;transition:border-color .2s ease" style-hover="border-color:#3b5998">{{ t.label }}<sc-if value="{{ t.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></button></sc-for>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:20px 24px">
+                <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+                  <label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">Plano de la solicitud</label>
+                  <select value="{{ cz.f.plano }}" onChange="{{ cz.h.plano }}" style="box-sizing:border-box;width:100%;border:1.5px solid #e1e5ec;border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none"><option value="">{{ cz.planoPh }}</option><sc-for list="{{ cz.planos }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+                  <label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">N.º de plano<span style="color:#b3261e"> *</span></label>
+                  <input value="{{ cz.f.nroPlano }}" onChange="{{ cz.h.nroPlano }}" placeholder="Ej: EDA-PL-1043" style="box-sizing:border-box;width:100%;border:1.5px solid {{ cz.bc.nroPlano }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;box-shadow:{{ cz.sh.nroPlano }}" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)">
+                  <sc-if value="{{ cz.he.nroPlano }}"><span style="display:inline-flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:600;line-height:1.4;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ cz.e.nroPlano }}</span></sc-if>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+                  <label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">Cantidad<span style="color:#b3261e"> *</span></label>
+                  <span style="display:flex;align-items:center;gap:10px;box-sizing:border-box;width:100%;border:1.5px solid {{ cz.bc.cant }};border-radius:6px;background:#ffffff;box-shadow:{{ cz.sh.cant }};padding:0 15px"><input inputMode="numeric" value="{{ cz.f.cant }}" onChange="{{ cz.h.cant }}" placeholder="1" style="flex:1;min-width:0;border:none;outline:none;background:transparent;padding:14px 0;font-size:16px;font-weight:600;color:#172645;font-variant-numeric:tabular-nums"><span style="font-size:13px;font-weight:600;color:#8a909c">unidades</span></span>
+                  <sc-if value="{{ cz.he.cant }}"><span style="display:inline-flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:600;line-height:1.4;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ cz.e.cant }}</span></sc-if>
+                </div>
+                <div style="grid-column:1 / -1;display:flex;flex-direction:column;gap:8px;min-width:0">
+                  <label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">Descripción<span style="color:#b3261e"> *</span></label>
+                  <textarea rows="2" value="{{ cz.f.desc }}" onChange="{{ cz.h.desc }}" placeholder="Ej: Eje de transmisión Ø 40 × 320 mm" style="box-sizing:border-box;width:100%;border:1.5px solid {{ cz.bc.desc }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;line-height:1.6;color:#172645;background:#ffffff;outline:none;resize:vertical;box-shadow:{{ cz.sh.desc }}" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)"></textarea>
+                  <sc-if value="{{ cz.he.desc }}"><span style="display:inline-flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:600;line-height:1.4;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ cz.e.desc }}</span></sc-if>
+                </div>
+              </div>
+            </section>
+
+            <section style="background:#ffffff;border-radius:8px;box-shadow:0 4px 18px rgba(23,38,69,.06);padding:var(--sec-pad);display:flex;flex-direction:column;gap:22px;animation:fadeUp .5s .1s ease both">
+              <div style="display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font-size:19px;font-weight:800;text-transform:uppercase;color:#172645">Material</h3><span style="width:50px;height:3px;background:#3b5998"></span></div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">Material<span style="color:#b3261e"> *</span></label>
+                <sc-if value="{{ cz.hayMat }}">
+                <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 16px;border-radius:8px;background:#f5f7fb;box-shadow:inset 3px 0 0 #3b5998;animation:fadeUp .3s ease both">
+                  <span style="width:44px;height:44px;flex-shrink:0;border-radius:6px;background:#172645;color:#ffffff;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:21px;height:21px;flex-shrink:0"><path d="{{ cz.matIcon }}"></path></svg></span>
+                  <span style="display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 160px"><span style="font-size:17px;font-weight:800;color:#172645">{{ cz.matNombre }}</span><span style="font-size:14px;font-weight:600;color:#3b5998">Calidad {{ cz.matCalidad }}</span></span>
+                  <button type="button" onClick="{{ cz.elegirMat }}" style="border:none;border-radius:6px;padding:12px 18px;background:#ffffff;color:#0f3483;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease" style-hover="background:#e1e7f2">Cambiar</button>
+                </div>
+                </sc-if>
+                <sc-if value="{{ cz.sinMat }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px;border-radius:8px;border:1.5px dashed {{ cz.matBd }};background:#fafbfd">
+                  <button type="button" onClick="{{ cz.elegirMat }}" style="display:inline-flex;align-items:center;gap:10px;border:none;border-radius:6px;padding:13px 18px;background:#0f3483;color:#ffffff;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;box-shadow:0 6px 16px rgba(15,52,131,.24);transition:background .2s ease" style-hover="background:#0b2766"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:17px;height:17px;flex-shrink:0"><circle cx="9" cy="9" r="6"></circle><path d="m14 14 4 4"></path></svg>Seleccionar material</button>
+                  <button type="button" onClick="{{ cz.nuevoMat }}" style="border:none;border-radius:6px;padding:13px 18px;background:#eef1f7;color:#0f3483;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease" style-hover="background:#e1e7f2">+ Registrar nuevo</button>
+                  <span style="font-size:13.5px;color:#8a909c">Elegilo del catálogo o cargalo si no existe.</span>
+                </div>
+                </sc-if>
+                <sc-if value="{{ cz.he.matId }}"><span style="display:inline-flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:600;line-height:1.4;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ cz.e.matId }}</span></sc-if>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:20px 24px">
+                <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+                  <label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">Presentación</label>
+                  <select value="{{ cz.f.pres }}" onChange="{{ cz.h.pres }}" style="box-sizing:border-box;width:100%;border:1.5px solid #e1e5ec;border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none"><option value="">Elegí la presentación</option><sc-for list="{{ cz.presOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+                  <label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">Proveedor</label>
+                  <select value="{{ cz.f.provId }}" onChange="{{ cz.h.provId }}" style="box-sizing:border-box;width:100%;border:1.5px solid #e1e5ec;border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none"><option value="">Elegí el proveedor</option><sc-for list="{{ cz.provOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+                  <label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">Cantidad requerida<span style="color:#b3261e"> *</span></label>
+                  <span style="display:flex;align-items:center;gap:10px;box-sizing:border-box;width:100%;border:1.5px solid {{ cz.bc.kg }};border-radius:6px;background:#ffffff;box-shadow:{{ cz.sh.kg }};padding:0 15px"><input inputMode="decimal" value="{{ cz.f.kg }}" onChange="{{ cz.h.kg }}" placeholder="0,00" style="flex:1;min-width:0;border:none;outline:none;background:transparent;padding:14px 0;font-size:16px;font-weight:600;color:#172645;font-variant-numeric:tabular-nums"><span style="font-size:13px;font-weight:600;color:#8a909c">kg</span></span>
+                  <sc-if value="{{ cz.he.kg }}"><span style="display:inline-flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:600;line-height:1.4;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ cz.e.kg }}</span></sc-if>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+                  <label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">Costo por kg<span style="color:#b3261e"> *</span></label>
+                  <span style="display:flex;align-items:center;gap:10px;box-sizing:border-box;width:100%;border:1.5px solid {{ cz.bc.costoKg }};border-radius:6px;background:#ffffff;box-shadow:{{ cz.sh.costoKg }};padding:0 15px"><span style="font-size:15px;font-weight:700;color:#8a909c">{{ cz.sim }}</span><input inputMode="decimal" value="{{ cz.f.costoKg }}" onChange="{{ cz.h.costoKg }}" placeholder="0,00" style="flex:1;min-width:0;border:none;outline:none;background:transparent;padding:14px 0;font-size:16px;font-weight:600;color:#172645;font-variant-numeric:tabular-nums"></span>
+                  <sc-if value="{{ cz.he.costoKg }}"><span style="display:inline-flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:600;line-height:1.4;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ cz.e.costoKg }}</span></sc-if>
+                </div>
+              </div>
+            </section>
+
+            <section style="background:#ffffff;border-radius:8px;box-shadow:0 4px 18px rgba(23,38,69,.06);padding:var(--sec-pad);display:flex;flex-direction:column;gap:18px;animation:fadeUp .5s .15s ease both">
+              <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap">
+                <div style="display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font-size:19px;font-weight:800;text-transform:uppercase;color:#172645">Procesos propios</h3><span style="width:50px;height:3px;background:#3b5998"></span><span style="font-size:14.5px;color:#555b66">El costo por hora sale del tipo de proceso, en la moneda de la cotización.</span></div>
+                <button type="button" onClick="{{ cz.addProc }}" style="border:none;border-radius:6px;padding:13px 18px;background:#eef1f7;color:#0f3483;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease" style-hover="background:#e1e7f2">+ Agregar proceso</button>
+              </div>
+              <div style="overflow-x:auto;margin:0 calc(var(--sec-pad) * -1)">
+              <div style="min-width:780px">
+                <div style="display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.3fr) 100px 120px 130px 44px;gap:12px;padding:13px var(--sec-pad);background:#f5f6f9;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#172645"><span>Tipo de proceso<span style="color:#b3261e"> *</span></span><span>Descripción</span><span>Horas<span style="color:#b3261e"> *</span></span><span>Costo hora</span><span>Subtotal</span><span></span></div>
+                <sc-for list="{{ cz.procs }}" as="p" hint-placeholder-count="1">
+                <div style="display:flex;flex-direction:column;gap:8px;padding:12px var(--sec-pad);border-top:1px solid #eef0f3">
+                  <div style="display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.3fr) 100px 120px 130px 44px;gap:12px;align-items:center">
+                    <select value="{{ p.tpId }}" onChange="{{ p.setTp }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ p.bcTp }};border-radius:6px;padding:12px;font-size:15px;font-weight:500;color:#172645;background:#ffffff;outline:none"><option value="">Elegí el proceso</option><sc-for list="{{ p.tpOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select>
+                    <input value="{{ p.desc }}" onChange="{{ p.setDesc }}" placeholder="Opcional" style="box-sizing:border-box;width:100%;border:1.5px solid #e1e5ec;border-radius:6px;padding:12px;font-size:15px;font-weight:500;color:#172645;background:#ffffff;outline:none" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)">
+                    <input inputMode="decimal" value="{{ p.horas }}" onChange="{{ p.setHoras }}" placeholder="0" style="box-sizing:border-box;width:100%;border:1.5px solid {{ p.bcH }};border-radius:6px;padding:12px;font-size:15px;font-weight:600;color:#172645;background:#ffffff;outline:none;font-variant-numeric:tabular-nums" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)">
+                    <span style="font-size:14px;font-weight:600;color:#555b66;font-variant-numeric:tabular-nums">{{ p.costo }}</span>
+                    <span style="font-size:15px;font-weight:800;color:#172645;font-variant-numeric:tabular-nums">{{ p.sub }}</span>
+                    <sc-if value="{{ p.puedeBorrar }}"><button type="button" onClick="{{ p.borrar }}" title="Quitar proceso" style="width:40px;height:40px;padding:0;border:none;border-radius:6px;background:#f3f4f7;color:#8a909c;display:inline-flex;align-items:center;justify-content:center;transition:color .18s ease,background .18s ease" style-hover="color:#b3261e;background:#fbe9e7"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9"></path></svg></button></sc-if>
+                  </div>
+                  <sc-if value="{{ p.hayErr }}"><span style="display:inline-flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:600;line-height:1.4;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ p.err }}</span></sc-if>
+                </div>
+                </sc-for>
+              </div>
+              </div>
+            </section>
+
+            <section style="background:#ffffff;border-radius:8px;box-shadow:0 4px 18px rgba(23,38,69,.06);padding:var(--sec-pad);display:flex;flex-direction:column;gap:18px;animation:fadeUp .5s .2s ease both">
+              <div style="display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font-size:19px;font-weight:800;text-transform:uppercase;color:#172645">Otros componentes</h3><span style="width:50px;height:3px;background:#3b5998"></span></div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px;border-radius:6px;border:1.5px dashed #d6dce8;background:#fafbfd;font-size:14px;font-weight:700;color:#8a909c">Procesos tercerizados<span style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px;border-radius:6px;border:1.5px dashed #d6dce8;background:#fafbfd;font-size:14px;font-weight:700;color:#8a909c">Repuestos<span style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px;border-radius:6px;border:1.5px dashed #d6dce8;background:#fafbfd;font-size:14px;font-weight:700;color:#8a909c">Tratamientos superficiales<span style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px;border-radius:6px;border:1.5px dashed #d6dce8;background:#fafbfd;font-size:14px;font-weight:700;color:#8a909c">Pintura<span style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></div>
+              </div>
+            </section>
+          </div>
+
+          <aside style="position:sticky;top:20px;overflow:hidden;background:#172645;border-radius:8px;padding:var(--sec-pad);display:flex;flex-direction:column;gap:20px;box-shadow:0 14px 34px rgba(23,38,69,.22);animation:fadeUp .5s .16s ease both">
+            <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1px);background-size:22px 22px;pointer-events:none"></div>
+            <div style="position:relative;display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font-size:19px;font-weight:800;text-transform:uppercase;color:#ffffff">Resumen</h3><span style="width:50px;height:3px;background:#3b5998"></span></div>
+            <div style="position:relative;display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;justify-content:space-between;gap:12px;font-size:14.5px;color:#d4d9e4"><span>Material</span><strong style="color:#ffffff;font-variant-numeric:tabular-nums">{{ cz.res.material }}</strong></div>
+              <div style="display:flex;justify-content:space-between;gap:12px;font-size:14.5px;color:#d4d9e4"><span>Mano de obra</span><strong style="color:#ffffff;font-variant-numeric:tabular-nums">{{ cz.res.mo }}</strong></div>
+              <div style="height:1px;background:rgba(255,255,255,.16)"></div>
+              <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9aa7c2">Precio unitario</span><span style="font-size:24px;font-weight:800;color:#ffffff;font-variant-numeric:tabular-nums">{{ cz.res.unit }}</span></div>
+              <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9aa7c2">Precio total · {{ cz.res.cantTxt }}</span><span style="font-size:30px;font-weight:800;color:#ffffff;font-variant-numeric:tabular-nums">{{ cz.res.total }}</span></div>
+              <span style="font-size:13px;line-height:1.55;color:#9aa7c2">Vence el {{ cz.vence }}. Tercerizados, repuestos, tratamientos y pintura se suman cuando estén disponibles.</span>
+            </div>
+            <div style="position:relative;display:flex;flex-direction:column;gap:10px">
+              <button type="button" onClick="{{ cz.guardar }}" style="border:none;border-radius:6px;padding:15px 24px;background:#ffffff;color:#0f3483;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;box-shadow:0 10px 24px rgba(0,0,0,.25);transition:transform .2s ease" style-hover="transform:translateY(-2px)">Confirmar cotización</button>
+              <button type="button" onClick="{{ cz.volver }}" style="border:none;border-radius:6px;padding:14px 22px;background:rgba(255,255,255,.12);color:#ffffff;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease" style-hover="background:rgba(255,255,255,.22)">Cancelar</button>
+            </div>
+          </aside>
+        </div>
+      </div>
+      </sc-if>
+
       <!-- ══════ ALTA ══════ -->
       <sc-if value="{{ esNuevo }}" hint-placeholder-val="{{ false }}">
       <div style="display:flex;flex-direction:column;gap:24px;min-width:0">
@@ -587,16 +811,30 @@ button{cursor:pointer}
             <div style="display:grid;grid-template-columns:repeat({{ s.cols }},minmax(0,1fr));gap:20px 24px">
               <sc-for list="{{ s.campos }}" as="c" hint-placeholder-count="4">
               <div style="grid-column:{{ c.span }};display:flex;flex-direction:column;gap:8px;min-width:0">
-                <sc-if value="{{ c.conLabel }}"><span style="display:flex;align-items:baseline;gap:8px 12px;flex-wrap:wrap"><label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">{{ c.label }}</label><sc-if value="{{ c.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if><sc-if value="{{ c.hayNota }}"><span style="font-size:14px;color:#8a909c">{{ c.nota }}</span></sc-if></span></sc-if>
+                <sc-if value="{{ c.conLabel }}"><span style="display:flex;align-items:baseline;gap:8px 12px;flex-wrap:wrap"><label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">{{ c.label }}<sc-if value="{{ c.req }}"><span style="color:#b3261e"> *</span></sc-if></label><sc-if value="{{ c.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if><sc-if value="{{ c.hayNota }}"><span style="font-size:14px;color:#8a909c">{{ c.nota }}</span></sc-if></span></sc-if>
                 <sc-if value="{{ c.esText }}"><input value="{{ c.value }}" onChange="{{ c.onChange }}" placeholder="{{ c.ph }}" maxLength="{{ c.max }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;text-transform:{{ c.tt }};box-shadow:{{ c.sh }};transition:border-color .2s ease,box-shadow .2s ease" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)"></sc-if>
                 <sc-if value="{{ c.esArea }}"><textarea rows="3" value="{{ c.value }}" onChange="{{ c.onChange }}" placeholder="{{ c.ph }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;line-height:1.6;color:#172645;background:#ffffff;outline:none;resize:vertical;box-shadow:{{ c.sh }}" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)"></textarea></sc-if>
                 <sc-if value="{{ c.esSelect }}"><select value="{{ c.value }}" onChange="{{ c.onChange }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;box-shadow:{{ c.sh }}" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)"><option value="">{{ c.phSel }}</option><sc-for list="{{ c.opciones }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select></sc-if>
                 <sc-if value="{{ c.esCheck }}"><button type="button" onClick="{{ c.toggle }}" style="align-self:flex-start;display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;border:none;background:none;padding:2px 0;font-size:15px;font-weight:600;color:#172645;text-align:left"><span style="width:34px;height:34px;flex-shrink:0;box-sizing:border-box;border-radius:6px;border:2px solid {{ c.boxBd }};background:{{ c.boxBg }};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;transition:background .15s ease">{{ c.mark }}</span>{{ c.label }}<sc-if value="{{ c.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></button></sc-if>
                 <sc-if value="{{ c.esTipos }}"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px"><sc-for list="{{ c.tipoOpts }}" as="o" hint-placeholder-count="4"><button type="button" onClick="{{ o.toggle }}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid {{ o.bd }};border-radius:6px;background:{{ o.bg }};text-align:left;transition:background .2s ease,border-color .2s ease" style-hover="border-color:#3b5998"><span style="width:34px;height:34px;flex-shrink:0;box-sizing:border-box;border-radius:6px;border:2px solid {{ o.boxBd }};background:{{ o.boxBg }};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700">{{ o.mark }}</span><span style="display:inline-flex;color:#3b5998"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="{{ o.icon }}"></path></svg></span><span style="font-size:15px;font-weight:700;color:#172645">{{ o.name }}</span></button></sc-for></div></sc-if>
                 <sc-if value="{{ c.esFecha }}"><input type="date" value="{{ c.value }}" onChange="{{ c.onChange }}" max="{{ c.maxF }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;box-shadow:{{ c.sh }};max-width:280px" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)"></sc-if>
-                <sc-if value="{{ c.esMoney }}"><span style="display:flex;align-items:center;gap:10px;box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;background:#ffffff;box-shadow:{{ c.sh }};padding:0 15px"><span style="font-size:15px;font-weight:700;color:#8a909c">{{ c.prefijo }}</span><input inputMode="decimal" value="{{ c.value }}" onChange="{{ c.onChange }}" placeholder="{{ c.ph }}" style="flex:1;min-width:0;border:none;outline:none;background:transparent;padding:14px 0;font-size:16px;font-weight:600;color:#172645;font-variant-numeric:tabular-nums"><span style="font-size:13px;font-weight:600;color:#8a909c;white-space:nowrap">por hora</span></span></sc-if>
-                <sc-if value="{{ c.esPass }}"><div style="display:flex;gap:10px;flex-wrap:wrap"><span style="display:flex;align-items:center;gap:10px;box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;background:#ffffff;box-shadow:{{ c.sh }};flex:1 1 220px;width:auto;min-width:0;gap:4px;padding:0 6px 0 15px"><input type="{{ c.ptype }}" autoComplete="new-password" value="{{ c.value }}" onChange="{{ c.onChange }}" placeholder="{{ c.ph }}" style="flex:1;min-width:0;border:none;outline:none;background:transparent;padding:14px 0;font-size:16px;font-weight:600;color:#172645"><button type="button" onClick="{{ c.toggleVer }}" title="{{ c.verTitle }}" style="width:42px;height:42px;flex-shrink:0;border:none;border-radius:6px;background:transparent;color:#3b5998;display:inline-flex;align-items:center;justify-content:center" style-hover="background:#eef1f7"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="{{ c.verIcon }}"></path></svg></button></span><button type="button" onClick="{{ c.generar }}" style="border:none;border-radius:6px;padding:12px 18px;background:#eef1f7;color:#0f3483;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease" style-hover="background:#e1e7f2">Generar</button></div></sc-if>
+                <sc-if value="{{ c.esMoney }}"><span style="display:flex;align-items:center;gap:10px;box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;background:#ffffff;box-shadow:{{ c.sh }};padding:0 15px"><span style="font-size:15px;font-weight:700;color:#8a909c">{{ c.prefijo }}</span><input inputMode="decimal" value="{{ c.value }}" onChange="{{ c.onChange }}" placeholder="{{ c.ph }}" style="flex:1;min-width:0;border:none;outline:none;background:transparent;padding:14px 0;font-size:16px;font-weight:600;color:#172645;font-variant-numeric:tabular-nums"><sc-if value="{{ c.haySufijo }}"><span style="font-size:13px;font-weight:600;color:#8a909c;white-space:nowrap">{{ c.sufijo }}</span></sc-if></span></sc-if>
+                <sc-if value="{{ c.esPass }}"><div style="display:flex;gap:10px;flex-wrap:wrap"><span style="display:flex;align-items:center;gap:10px;box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;background:#ffffff;box-shadow:{{ c.sh }};flex:1 1 220px;width:auto;min-width:0;gap:4px;padding:0 6px 0 15px"><input type="{{ c.ptype }}" autoComplete="new-password" value="{{ c.value }}" onChange="{{ c.onChange }}" placeholder="{{ c.ph }}" style="flex:1;min-width:0;border:none;outline:none;background:transparent;padding:14px 0;font-size:16px;font-weight:600;color:#172645"><button type="button" onClick="{{ c.toggleVer }}" title="{{ c.verTitle }}" style="width:42px;height:42px;flex-shrink:0;border:none;border-radius:6px;background:transparent;color:#3b5998;display:inline-flex;align-items:center;justify-content:center" style-hover="background:#eef1f7"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="{{ c.verIcon }}"></path></svg></button></span><sc-if value="{{ c.hayGenerar }}"><button type="button" onClick="{{ c.generar }}" style="border:none;border-radius:6px;padding:12px 18px;background:#eef1f7;color:#0f3483;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease" style-hover="background:#e1e7f2">Generar</button></sc-if></div></sc-if>
                 <sc-if value="{{ c.esRoles }}"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:12px"><sc-for list="{{ c.rolOpts }}" as="o" hint-placeholder-count="6"><button type="button" onClick="{{ o.toggle }}" style="display:flex;align-items:flex-start;gap:12px;padding:14px;border:1.5px solid {{ o.bd }};border-radius:6px;background:{{ o.bg }};text-align:left;transition:background .2s ease,border-color .2s ease" style-hover="border-color:#3b5998"><span style="width:34px;height:34px;flex-shrink:0;box-sizing:border-box;border-radius:6px;border:2px solid {{ o.boxBd }};background:{{ o.boxBg }};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700">{{ o.mark }}</span><span style="display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font-size:15px;font-weight:700;color:#172645">{{ o.name }}</span><span style="font-size:13px;line-height:1.5;color:#555b66">{{ o.desc }}</span><sc-if value="{{ o.hayNota }}"><span style="font-size:12.5px;font-weight:700;line-height:1.45;color:#0f3483">{{ o.nota }}</span></sc-if></span></button></sc-for></div></sc-if>
+                <sc-if value="{{ c.esRolesSel }}">
+                <div style="display:flex;flex-direction:column;gap:10px">
+                  <button type="button" onClick="{{ c.rs.toggle }}" style="box-sizing:border-box;width:100%;min-height:54px;display:flex;align-items:center;gap:10px;border:1.5px solid {{ c.bc }};border-radius:6px;padding:8px 12px 8px 15px;background:#ffffff;box-shadow:{{ c.sh }};text-align:left" style-hover="border-color:#3b5998">
+                    <span style="flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:6px"><sc-if value="{{ c.rs.vacio }}"><span style="font-size:16px;font-weight:500;color:#8a909c">Elegí uno o más roles</span></sc-if><sc-for list="{{ c.rs.sel }}" as="t" hint-placeholder-count="1"><span style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:4px;font-size:12.5px;font-weight:700;color:#172645;background:#eef1f7"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="M10 2.5l6 2.5v4.5c0 3.6-2.6 6.3-6 7.5-3.4-1.2-6-3.9-6-7.5V5z"></path></svg>{{ t.name }}</span></sc-for></span>
+                    <span style="color:#3b5998;display:inline-flex"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0"><path d="{{ c.rs.chev }}"></path></svg></span>
+                  </button>
+                  <sc-if value="{{ c.rs.abierto }}">
+                  <div style="border:1.5px solid #e1e5ec;border-radius:6px;background:#ffffff;box-shadow:0 14px 30px rgba(23,38,69,.10);overflow:hidden;animation:toastIn .2s ease both">
+                    <sc-for list="{{ c.rolOpts }}" as="o" hint-placeholder-count="6"><button type="button" onClick="{{ o.toggle }}" style="width:100%;box-sizing:border-box;display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:none;border-bottom:1px solid #eef0f3;background:{{ o.bg }};text-align:left" style-hover="background:#f6f8fc"><span style="width:28px;height:28px;flex-shrink:0;box-sizing:border-box;border-radius:6px;border:2px solid {{ o.boxBd }};background:{{ o.boxBg }};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:700">{{ o.mark }}</span><span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:15px;font-weight:700;color:#172645">{{ o.name }}</span><span style="font-size:13px;line-height:1.5;color:#555b66">{{ o.desc }}</span><sc-if value="{{ o.hayNota }}"><span style="font-size:12.5px;font-weight:700;line-height:1.45;color:#0f3483">{{ o.nota }}</span></sc-if></span></button></sc-for>
+                    <div style="display:flex;justify-content:flex-end;padding:10px 14px;background:#f5f6f9"><button type="button" onClick="{{ c.rs.toggle }}" style="border:none;border-radius:6px;padding:10px 16px;background:#0f3483;color:#ffffff;font-size:12.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase">Listo</button></div>
+                  </div>
+                  </sc-if>
+                </div>
+                </sc-if>
                 <sc-if value="{{ c.esPick }}">
                 <div style="display:flex;flex-direction:column;gap:10px">
                   <sc-if value="{{ c.pk.sinSel }}">
@@ -732,7 +970,7 @@ button{cursor:pointer}
               <div style="display:grid;grid-template-columns:repeat({{ s.cols }},minmax(0,1fr));gap:20px">
                 <sc-for list="{{ s.campos }}" as="c" hint-placeholder-count="3">
                 <div style="grid-column:{{ c.span }};display:flex;flex-direction:column;gap:8px;min-width:0">
-                  <sc-if value="{{ c.conLabel }}"><span style="display:flex;align-items:baseline;gap:8px 12px;flex-wrap:wrap"><label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">{{ c.label }}</label><sc-if value="{{ c.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></span></sc-if>
+                  <sc-if value="{{ c.conLabel }}"><span style="display:flex;align-items:baseline;gap:8px 12px;flex-wrap:wrap"><label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">{{ c.label }}<sc-if value="{{ c.req }}"><span style="color:#b3261e"> *</span></sc-if></label><sc-if value="{{ c.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></span></sc-if>
                   <sc-if value="{{ c.esText }}"><input value="{{ c.value }}" onChange="{{ c.onChange }}" placeholder="{{ c.ph }}" maxLength="{{ c.max }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:13px 14px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;text-transform:{{ c.tt }};box-shadow:{{ c.sh }}" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)"></sc-if>
                   <sc-if value="{{ c.esArea }}"><textarea rows="3" value="{{ c.value }}" onChange="{{ c.onChange }}" placeholder="{{ c.ph }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:13px 14px;font-size:16px;font-weight:500;line-height:1.6;color:#172645;background:#ffffff;outline:none;resize:vertical;box-shadow:{{ c.sh }}" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)"></textarea></sc-if>
                   <sc-if value="{{ c.esSelect }}"><select value="{{ c.value }}" onChange="{{ c.onChange }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:13px 14px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;box-shadow:{{ c.sh }}"><option value="">{{ c.phSel }}</option><sc-for list="{{ c.opciones }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select></sc-if>
@@ -851,7 +1089,7 @@ button{cursor:pointer}
           <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:16px 18px;border-radius:8px;background:#f8f9fb;box-shadow:inset 3px 0 0 #3b5998">
             <span style="width:44px;height:44px;flex-shrink:0;border-radius:6px;background:#eef1f7;color:#3b5998;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;flex-shrink:0"><path d="M17 10a7 7 0 1 1-14 0a7 7 0 1 1 14 0M10 6.5V10l2.5 2"></path></svg></span>
             <span style="display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 260px"><span style="font-size:16px;font-weight:800;color:#172645">{{ q.titulo }}</span><span style="font-size:14px;color:#555b66">{{ q.sub }}</span></span>
-            <sc-if value="{{ q.puedeCotizar }}"><button type="button" onClick="{{ q.cotizar }}" style="flex-shrink:0;display:inline-flex;align-items:center;gap:10px;border:none;border-radius:6px;padding:14px 20px;background:#0f3483;color:#ffffff;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.85">Cotizar<span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></button></sc-if>
+            <sc-if value="{{ q.puedeCotizar }}"><button type="button" onClick="{{ q.cotizar }}" style="flex-shrink:0;display:inline-flex;align-items:center;gap:10px;border:none;border-radius:6px;padding:14px 20px;background:#0f3483;color:#ffffff;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;box-shadow:0 6px 16px rgba(15,52,131,.24);transition:background .2s ease,transform .2s ease" style-hover="background:#0b2766;transform:translateY(-2px)">Cotizar</button></sc-if>
           </div>
           </sc-for>
         </section>
@@ -951,7 +1189,7 @@ button{cursor:pointer}
     <div style="display:grid;grid-template-columns:repeat({{ md.cols }},minmax(0,1fr));gap:18px 20px">
       <sc-for list="{{ md.campos }}" as="c" hint-placeholder-count="2">
       <div style="grid-column:{{ c.span }};display:flex;flex-direction:column;gap:8px;min-width:0">
-        <sc-if value="{{ c.conLabel }}"><span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">{{ c.label }}</label><sc-if value="{{ c.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></span></sc-if>
+        <sc-if value="{{ c.conLabel }}"><span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">{{ c.label }}<sc-if value="{{ c.req }}"><span style="color:#b3261e"> *</span></sc-if></label><sc-if value="{{ c.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></span></sc-if>
         <sc-if value="{{ c.esText }}"><input value="{{ c.value }}" onChange="{{ c.onChange }}" placeholder="{{ c.ph }}" maxLength="{{ c.max }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;text-transform:{{ c.tt }};box-shadow:{{ c.sh }}" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)"></sc-if>
         <sc-if value="{{ c.esSelect }}"><select value="{{ c.value }}" onChange="{{ c.onChange }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;box-shadow:{{ c.sh }}"><option value="">{{ c.phSel }}</option><sc-for list="{{ c.opciones }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select></sc-if>
         <sc-if value="{{ c.esCheck }}"><button type="button" onClick="{{ c.toggle }}" style="align-self:flex-start;display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;border:none;background:none;padding:2px 0;font-size:15px;font-weight:600;color:#172645;text-align:left"><span style="width:34px;height:34px;flex-shrink:0;box-sizing:border-box;border-radius:6px;border:2px solid {{ c.boxBd }};background:{{ c.boxBg }};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700">{{ c.mark }}</span>{{ c.label }}<sc-if value="{{ c.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></button></sc-if>
@@ -966,6 +1204,64 @@ button{cursor:pointer}
       <button type="button" onClick="{{ cerrarModal }}" style="border:none;border-radius:6px;padding:15px 22px;background:#eef1f7;color:#172645;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease" style-hover="background:#e1e7f2">{{ md.cancelLabel }}</button>
       <sc-if value="{{ md.hayOk }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ md.ok }}" style="{{ md.okCss }}">{{ md.okLabel }}</button></sc-if>
     </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ hayMp }}">
+<div onClick="{{ mp.cerrar }}" style="position:fixed;inset:0;z-index:55;background:rgba(21,34,62,.55);display:flex;align-items:{{ mAlign }};justify-content:center;padding:{{ mPad }};box-sizing:border-box;overflow-y:auto;animation:fadeIn .2s ease both">
+  <div onClick="{{ stop }}" style="width:660px;max-width:100%;box-sizing:border-box;background:#ffffff;border-radius:{{ mRad }};box-shadow:0 30px 70px rgba(0,0,0,.3);padding:32px 28px;display:flex;flex-direction:column;gap:18px;animation:{{ mAnim }}">
+    <div style="display:flex;align-items:center;gap:16px">
+      <span style="width:56px;height:56px;flex-shrink:0;border-radius:10px;background:#eef1f7;color:#3b5998;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px;flex-shrink:0"><path d="{{ mp.icon }}"></path></svg></span>
+      <div style="display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font-size:22px;font-weight:800;text-transform:uppercase;color:#172645">{{ mp.titulo }}</h3><span style="width:50px;height:3px;background:#3b5998"></span></div>
+    </div>
+
+    <sc-if value="{{ mp.esLista }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <label style="flex:1 1 240px;min-width:0;display:flex;align-items:center;gap:12px;border:1.5px solid #e1e5ec;border-radius:6px;padding:0 16px;color:#8a909c;transition:border-color .2s ease,box-shadow .2s ease" style-hover="border-color:#3b5998;box-shadow:0 0 0 4px rgba(59,89,152,.10)">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" style="width:19px;height:19px;flex-shrink:0"><circle cx="9" cy="9" r="6"></circle><path d="m14 14 4 4" stroke-linecap="round"></path></svg>
+        <input type="search" value="{{ mp.q }}" onChange="{{ mp.setQ }}" placeholder="Buscar por material o calidad" aria-label="Buscar material" style="flex:1;min-width:0;border:none;outline:none;background:transparent;padding:14px 0;font-size:15px;font-weight:500;color:#172645">
+      </label>
+      <button type="button" onClick="{{ mp.agregar }}" style="flex-shrink:0;border:none;border-radius:6px;padding:15px 20px;background:#0f3483;color:#ffffff;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;box-shadow:0 6px 16px rgba(15,52,131,.24);transition:background .2s ease" style-hover="background:#0b2766">+ Agregar material</button>
+    </div>
+    <div style="border:1.5px solid #e1e5ec;border-radius:8px;overflow:hidden">
+      <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) 96px;gap:12px;padding:12px 16px;background:#f5f6f9;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#172645"><span>Material</span><span>Calidad</span><span></span></div>
+      <div style="max-height:min(44vh,360px);overflow-y:auto">
+        <sc-for list="{{ mp.rows }}" as="r" hint-placeholder-count="5">
+        <div onClick="{{ r.elegir }}" style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) 96px;gap:12px;align-items:center;padding:10px 16px;border-top:1px solid #eef0f3;cursor:pointer;background:{{ r.bg }};box-shadow:{{ r.sh }};transition:background .2s ease,box-shadow .2s ease" style-hover="background:#f6f8fc;box-shadow:inset 4px 0 0 #3b5998">
+          <span style="display:flex;align-items:center;gap:12px;min-width:0"><span style="width:36px;height:36px;flex-shrink:0;border-radius:6px;background:#172645;color:#ffffff;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0"><path d="{{ mp.icon }}"></path></svg></span><span style="font-size:15px;font-weight:700;color:#172645">{{ r.nombre }}</span><sc-if value="{{ r.hayTag }}"><span style="padding:4px 8px;border-radius:4px;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#0f3483;background:#dfe6f5">Elegido</span></sc-if></span>
+          <span style="font-size:15px;font-weight:600;color:#3b5998">{{ r.calidad }}</span>
+          <button type="button" onClick="{{ r.editar }}" style="justify-self:end;border:none;display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 12px;border-radius:6px;background:#eef1f7;font-size:12.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#0f3483;transition:background .2s ease,color .2s ease" style-hover="background:#0f3483;color:#ffffff"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;flex-shrink:0"><path d="M13.5 3.5l3 3L7 16H4v-3zM11.5 5.5l3 3"></path></svg>Editar</button>
+        </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{ mp.vacio }}"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:18px 16px;border-top:1px solid #eef0f3;font-size:14.5px;color:#555b66">No hay materiales que coincidan con la búsqueda.<button type="button" onClick="{{ mp.agregar }}" style="border:none;background:none;padding:0;font-size:14.5px;font-weight:800;color:#0f3483">Registrar uno nuevo</button></div></sc-if>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <span style="font-size:13.5px;color:#8a909c">Tocá un material para cargarlo en la cotización.</span>
+      <button type="button" onClick="{{ mp.cerrar }}" style="border:none;border-radius:6px;padding:15px 22px;background:#eef1f7;color:#172645;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease" style-hover="background:#e1e7f2">Cerrar</button>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ mp.esForm }}">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:18px 20px">
+      <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+        <label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">Material<span style="color:#b3261e"> *</span></label>
+        <input list="dl-mp-nombre" value="{{ mp.f.nombre }}" onChange="{{ mp.setNombre }}" placeholder="Ej: Acero" style="box-sizing:border-box;width:100%;border:1.5px solid {{ mp.bcN }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;box-shadow:{{ mp.shN }}" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)"><datalist id="dl-mp-nombre"><sc-for list="{{ mp.nombres }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}"></option></sc-for></datalist>
+        <span style="font-size:13.5px;line-height:1.5;color:#8a909c">Elegí uno de la lista o escribí uno nuevo.</span>
+        <sc-if value="{{ mp.hayErrN }}"><span style="display:inline-flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:600;line-height:1.4;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ mp.errN }}</span></sc-if>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+        <label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">Calidad<span style="color:#b3261e"> *</span></label>
+        <input value="{{ mp.f.calidad }}" onChange="{{ mp.setCalidad }}" placeholder="Ej: 1045" style="box-sizing:border-box;width:100%;border:1.5px solid {{ mp.bcC }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;box-shadow:{{ mp.shC }}" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)">
+        <sc-if value="{{ mp.hayErrC }}"><span style="display:inline-flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:600;line-height:1.4;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ mp.errC }}</span></sc-if>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-top:6px">
+      <button type="button" onClick="{{ mp.volver }}" style="border:none;border-radius:6px;padding:15px 22px;background:#eef1f7;color:#172645;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease" style-hover="background:#e1e7f2">{{ mp.volverLabel }}</button>
+      <button type="button" onClick="{{ mp.guardar }}" style="border:none;border-radius:6px;padding:15px 26px;background:#0f3483;color:#ffffff;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;box-shadow:0 6px 16px rgba(15,52,131,.24);transition:background .2s ease" style-hover="background:#0b2766">{{ mp.okLabel }}</button>
+    </div>
+    </sc-if>
   </div>
 </div>
 </sc-if>
@@ -1028,8 +1324,12 @@ const ROLES = [
   { k: 'AS', nombre: 'Administrador del Sistema', desc: 'Gestiona empleados y usuarios, y asigna sus roles.' }
 ];
 const ROL = {}; ROLES.forEach(r => { ROL[r.k] = r; });
-const PERM = { solicitudes: ['ERP', 'EC'], encargados: ['ERP'], fabricas: ['ERP'], rubros: ['ERP'], proveedores: ['AT', 'EC'], materiales: ['AT', 'EC'], tipos: ['AT', 'EC'], empleados: ['AS'], usuarios: ['AS'] };
+const PERM = { clientes: ['ERP'], gestion: ['AT', 'EC'], administracion: ['AS'], cotizacion: ['EC'], solicitudes: ['ERP', 'EC'], encargados: ['ERP'], fabricas: ['ERP'], rubros: ['ERP'], proveedores: ['AT', 'EC'], materiales: ['AT', 'EC'], tipos: ['AT', 'EC'], empleados: ['AS'], usuarios: ['AS'] };
 const PASS_DEMO = 'Castro1977';
+const PUESTOS = ['Administración', 'Jefe de taller', 'Jefe', 'Empleado'];
+const TC = { valor: 1385.5, fh: '15/10/2026 09:30' };
+const TIPOS_ITEM = ['Pieza individual', 'Conjunto', 'Reparación'];
+const PRESENT = ['Barra redonda', 'Barra hexagonal', 'Barra cuadrada', 'Planchuela', 'Tubo', 'Chapa'];
 const BLOQ = 'Tu usuario fue bloqueado por intentos fallidos. Contactá al Administrador del Sistema.';
 const INACT = 30 * 60 * 1000;
 const DEMO_IDS = ['u1', 'u2', 'u3', 'u4', 'u5', 'u6', 'u7', 'u8'];
@@ -1143,19 +1443,19 @@ const semilla = () => ({
     { id: 'p12', razon: 'Cromados San Vicente', cuit: '27-30111222-8', tipos: ['Tercerizado', 'Pintura'], contacto: 'Raúl Medina', tel: '+54 9 351 488-2121', mail: 'cromados@sanvicente.com', direccion: 'Sargento Cabral 1450, Córdoba', alta: '09/09/2026', mod: '09/09/2026' }
   ],
   emp: [
-    { id: 'em1', nombre: 'Walter', apellido: 'Castro', activo: true },
-    { id: 'em2', nombre: 'Mónica', apellido: 'Ríos', activo: true },
-    { id: 'em3', nombre: 'Federico', apellido: 'Paz', activo: true },
-    { id: 'em4', nombre: 'Lucía', apellido: 'Benítez', activo: true },
-    { id: 'em5', nombre: 'Raúl', apellido: 'Sánchez', activo: true },
-    { id: 'em6', nombre: 'Gabriela', apellido: 'Torres', activo: true },
-    { id: 'em7', nombre: 'Daniel', apellido: 'Castro', activo: true },
-    { id: 'em8', nombre: 'Hugo', apellido: 'Funes', activo: true },
-    { id: 'em9', nombre: 'Matías', apellido: 'Castro', activo: true },
-    { id: 'em10', nombre: 'Ezequiel', apellido: 'Moreno', activo: true },
-    { id: 'em11', nombre: 'Carla', apellido: 'Videla', activo: true },
-    { id: 'em12', nombre: 'Omar', apellido: 'Giménez', activo: false }
-  ],
+    ['em1', 'Walter', 'Castro', 'Jefe', '20112233', 'Av. Colón 1820, Córdoba', 'wcastro@castrotorneria.com.ar', '+54 351 555-1001', true],
+    ['em2', 'Mónica', 'Ríos', 'Administración', '27234567', '', 'mrios@castrotorneria.com.ar', '+54 351 555-1002', true],
+    ['em3', 'Federico', 'Paz', 'Administración', '30456789', '', 'fpaz@castrotorneria.com.ar', '', true],
+    ['em4', 'Lucía', 'Benítez', 'Administración', '33567890', '', 'lbenitez@castrotorneria.com.ar', '', true],
+    ['em5', 'Raúl', 'Sánchez', 'Jefe de taller', '22678901', 'Bv. San Juan 640, Córdoba', '', '+54 351 555-1005', true],
+    ['em6', 'Gabriela', 'Torres', 'Administración', '28789012', '', 'gtorres@castrotorneria.com.ar', '', true],
+    ['em7', 'Daniel', 'Castro', 'Jefe', '25890123', '', 'dcastro@castrotorneria.com.ar', '+54 351 555-1007', true],
+    ['em8', 'Hugo', 'Funes', 'Administración', '31901234', '', '', '', true],
+    ['em9', 'Matías', 'Castro', 'Empleado', '38012345', '', '', '+54 351 555-1009', true],
+    ['em10', 'Ezequiel', 'Moreno', 'Empleado', '40123456', 'Rivera Indarte 220, Córdoba', '', '', true],
+    ['em11', 'Carla', 'Videla', 'Empleado', '41234567', '', '', '', true],
+    ['em12', 'Omar', 'Giménez', 'Empleado', '6123456', '', '', '', false]
+  ].map(a => ({ id: a[0], nombre: a[1], apellido: a[2], puesto: a[3], dni: a[4], direccion: a[5], mail: a[6], tel: a[7], activo: a[8] })),
   usu: [
     { id: 'u1', nombre: 'wcastro', pass: PASS_DEMO, activo: true, bloqueado: false, fallos: 0, empId: 'em1', roles: ['AS'] },
     { id: 'u2', nombre: 'mrios', pass: PASS_DEMO, activo: true, bloqueado: false, fallos: 0, empId: 'em2', roles: ['ERP'] },
@@ -1218,7 +1518,7 @@ Object.assign(LISTAS, {
   solicitudes: { ey1: 'Pedidos de', ey2: 'cotización', titulo: 'Solicitudes', art: 'las', foto: 'url(assets/hero-bloque.png) center/cover no-repeat', ph: 'Buscar por cliente, fábrica, N.º de pedido o descripción', nuevoLabel: '+ Registrar solicitud', plur: 'solicitudes', reg: 'solicitudes registradas', vacioT: 'Todavía no hay solicitudes registradas.', vacioS: 'Cuando registres la primera va a aparecer acá.', sinresS: 'Revisá cómo está escrito o buscá por N.º de pedido.', icon: IC.sol },
   materiales: { ey1: 'Catálogo de', ey2: 'materiales', titulo: 'Materiales', foto: 'url(assets/foto-ejes.png) center 45%/cover no-repeat', ph: 'Buscar por calidad', nuevoLabel: '+ Nuevo material', plur: 'materiales', reg: 'materiales registrados', vacioT: 'Todavía no hay materiales registrados.', vacioS: 'Cuando cargues el primero va a aparecer acá.', sinresT: 'No se encontraron materiales con ese criterio', sinresS: 'Revisá la calidad o cambiá el material elegido.', icon: IC.mat },
   tipos: { ey1: 'Procesos', ey2: 'propios', titulo: 'Tipos de proceso', foto: 'url(assets/foto-cnc.png) center 55%/cover no-repeat', ph: 'Buscar por nombre', nuevoLabel: '+ Nuevo tipo de proceso', plur: 'tipos de proceso', reg: 'tipos de proceso registrados', vacioT: 'Todavía no hay tipos de proceso registrados.', vacioS: 'Cuando cargues el primero va a aparecer acá.', sinresT: 'No se encontraron tipos de proceso con ese criterio', sinresS: 'Revisá cómo está escrito.', icon: IC.tp },
-  empleados: { ey1: 'Personal de', ey2: 'la empresa', titulo: 'Empleados', foto: 'url(assets/foto-prensa.png) center 40%/cover no-repeat', ph: 'Buscar por nombre o apellido', nuevoLabel: '+ Nuevo empleado', plur: 'empleados', reg: 'empleados activos', vacioT: 'Todavía no hay empleados registrados.', vacioS: 'Cuando cargues el primero va a aparecer acá.', sinresS: 'Revisá cómo está escrito o incluí los dados de baja.', icon: IC.emp },
+  empleados: { ey1: 'Personal de', ey2: 'la empresa', titulo: 'Empleados', foto: 'url(assets/foto-prensa.png) center 40%/cover no-repeat', ph: 'Buscar por nombre, apellido, DNI o puesto', nuevoLabel: '+ Nuevo empleado', plur: 'empleados', reg: 'empleados activos', vacioT: 'Todavía no hay empleados registrados.', vacioS: 'Cuando cargues el primero va a aparecer acá.', sinresS: 'Revisá cómo está escrito o incluí los dados de baja.', icon: IC.emp },
   usuarios: { ey1: 'Acceso al', ey2: 'sistema', titulo: 'Usuarios', foto: 'url(assets/foto-dispositivo.png) center 45%/cover no-repeat', ph: 'Buscar por usuario o empleado', nuevoLabel: '+ Nuevo usuario', plur: 'usuarios', reg: 'usuarios activos', vacioT: 'Todavía no hay usuarios registrados.', vacioS: 'Cuando crees el primero va a aparecer acá.', sinresT: 'No se encontraron usuarios con ese criterio', sinresS: 'Probá con otro rol o incluí los dados de baja.', icon: IC.usu }
 });
 LISTAS.fabricas.art = 'las';
@@ -1226,10 +1526,27 @@ const SECCION_DE = { prov: 'proveedores', enc: 'encargados', fab: 'fabricas', so
 const SIS_LBL = { '404': 'Página no encontrada', error: 'Error', denegado: 'Acceso denegado', inicio: 'Inicio' };
 const NAV_G = [
   { label: 'Cotizaciones', items: [{ key: 'solicitudes', label: 'Solicitudes', d: IC.sol }] },
-  { label: 'Clientes', items: [{ key: 'encargados', label: 'Encargados', d: IC.enc }, { key: 'fabricas', label: 'Fábricas', d: IC.fab }, { key: 'rubros', label: 'Rubros', d: IC.rub }] },
-  { label: 'Catálogos técnicos', items: [{ key: 'proveedores', label: 'Proveedores', d: IC.prov }, { key: 'materiales', label: 'Materiales', d: IC.mat }, { key: 'tipos', label: 'Tipos de proceso', d: IC.tp }] },
-  { label: 'Administración', items: [{ key: 'empleados', label: 'Empleados', d: IC.emp }, { key: 'usuarios', label: 'Usuarios', d: IC.usu }] }
+  { label: 'Catálogos', items: [{ key: 'clientes', label: 'Clientes', d: IC.fab }, { key: 'gestion', label: 'Gestión', d: IC.tp }] },
+  { label: 'Administración', items: [{ key: 'administracion', label: 'Administración', d: IC.rol }] }
 ];
+const PANELES = {
+  clientes: { ey1: 'Catálogo de', ey2: 'clientes', titulo: 'Clientes', foto: 'url(assets/foto-ejes.png) center 45%/cover no-repeat', texto: 'Fábricas cliente, sus encargados y los rubros.', items: [
+    { key: 'encargados', label: 'Encargados', d: IC.enc, desc: 'Personas de contacto de cada fábrica.', foto: 'url(assets/foto-cono.png) center 40%/cover no-repeat' },
+    { key: 'fabricas', label: 'Fábricas', d: IC.fab, desc: 'Empresas cliente con su CUIT, rubro y formas de pago.', foto: 'url(assets/foto-prensa.png) center 40%/cover no-repeat' },
+    { key: 'rubros', label: 'Rubros', d: IC.rub, desc: 'Rubros para clasificar a las fábricas.', foto: 'url(assets/foto-disco.png) center 45%/cover no-repeat' }
+  ] },
+  gestion: { ey1: 'Catálogo', ey2: 'técnico', titulo: 'Gestión', foto: 'url(assets/hero-castro.png) 65% center/cover no-repeat', texto: 'Datos técnicos que se usan al cotizar.', items: [
+    { key: 'proveedores', label: 'Proveedores', d: IC.prov, desc: 'Proveedores de material, repuestos, pintura y servicios tercerizados.', foto: 'url(assets/foto-piezas-bronce.png) center 60%/cover no-repeat' },
+    { key: 'materiales', label: 'Materiales', d: IC.mat, desc: 'Materiales con su calidad, para cargar en las cotizaciones.', foto: 'url(assets/foto-brida.png) center/cover no-repeat' },
+    { key: 'tipos', label: 'Tipos de proceso', d: IC.tp, desc: 'Procesos propios del taller con su precio por hora.', foto: 'url(assets/foto-cnc.png) center 55%/cover no-repeat' }
+  ] },
+  administracion: { ey1: 'Personal y', ey2: 'accesos', titulo: 'Administración', foto: 'url(assets/foto-prensa.png) center 40%/cover no-repeat', texto: 'Empleados de la empresa y sus usuarios del sistema.', items: [
+    { key: 'empleados', label: 'Empleados', d: IC.emp, desc: 'Personal de la empresa con su puesto, DNI y datos de contacto.', foto: 'url(assets/foto-prensa.png) center 40%/cover no-repeat' },
+    { key: 'usuarios', label: 'Usuarios', d: IC.usu, desc: 'Cuentas de acceso al sistema de cada empleado y sus roles.', foto: 'url(assets/foto-dispositivo.png) center 45%/cover no-repeat' }
+  ] }
+};
+const PADRE = { encargados: 'clientes', fabricas: 'clientes', rubros: 'clientes', proveedores: 'gestion', materiales: 'gestion', tipos: 'gestion', empleados: 'administracion', usuarios: 'administracion' };
+const LBL = { solicitudes: 'Solicitudes', encargados: 'Encargados', fabricas: 'Fábricas', rubros: 'Rubros', proveedores: 'Proveedores', materiales: 'Materiales', tipos: 'Tipos de proceso', empleados: 'Empleados', usuarios: 'Usuarios', clientes: 'Clientes', gestion: 'Gestión', administracion: 'Administración' };
 const NAV = [];
 NAV_G.forEach(g => g.items.forEach(i => NAV.push({ ...i, grupo: g.label })));
 
@@ -1240,7 +1557,7 @@ class Component extends DCLogic {
     d: semilla(), q: {}, pag: {}, fRubro: '', incEnc: false, incFabEnc: false,
     borrando: false, sel: [], form: {}, intento: false,
     modal: null, mform: {}, mIntento: false, toast: null, demo: 'normal',
-    sesion: null, lg: LG0(), protoRoles: [], popRoles: false, menuUsu: false, incEmp: false, incUsu: false, fRol: '', fMat: '', form0: '{}', editId: null, verPass: false, drag: null
+    sesion: null, lg: LG0(), protoRoles: [], popRoles: false, menuUsu: false, incEmp: false, incUsu: false, fRol: '', fMat: '', form0: '{}', editId: null, verPass: false, drag: null, cot: null, mp: null
   };
 
   componentDidMount() {
@@ -1257,13 +1574,13 @@ class Component extends DCLogic {
       const g = JSON.parse(localStorage.getItem(LS) || 'null');
       if (g) {
         const u = g.uid && this.state.d.usu.find(x => x.id === g.uid && x.activo && !x.bloqueado), f = this.formIni(g.nuevo, g.editId);
-        this.setState({ pantalla: g.pantalla || 'proveedores', det: g.det || null, nuevo: g.nuevo || null, editId: g.editId || null, menuCerrado: !!g.menuCerrado, form: f, form0: JSON.stringify(f), sesion: u ? { uid: u.id, roles: g.roles || null } : null });
+        this.setState({ pantalla: g.pantalla || 'proveedores', det: g.det || null, nuevo: g.nuevo || null, editId: g.editId || null, menuCerrado: !!g.menuCerrado, form: f, form0: JSON.stringify(f), sesion: u ? { uid: u.id, roles: g.roles || null } : null, cot: g.cotSol ? this.cotIni(g.cotSol) : null });
       }
     } catch (e) {}
   }
   componentDidUpdate() {
     const s = this.state;
-    const snap = JSON.stringify({ pantalla: s.pantalla, det: s.det, nuevo: s.nuevo, editId: s.editId, menuCerrado: s.menuCerrado, uid: s.sesion ? s.sesion.uid : null, roles: s.sesion ? s.sesion.roles || null : null });
+    const snap = JSON.stringify({ pantalla: s.pantalla, det: s.det, nuevo: s.nuevo, editId: s.editId, menuCerrado: s.menuCerrado, uid: s.sesion ? s.sesion.uid : null, roles: s.sesion ? s.sesion.roles || null : null, cotSol: s.pantalla === 'cotizacion' && s.cot ? s.cot.solId : null });
     if (snap !== this._nav) {
       this._nav = snap;
       try { localStorage.setItem(LS, snap); } catch (e) {}
@@ -1274,7 +1591,7 @@ class Component extends DCLogic {
   // ── navegación y utilidades ──
   go(pantalla, extra) {
     const f0 = (extra && extra.form) || {};
-    this.setState({ pantalla, editando: false, borrando: false, sel: [], intento: false, drawer: false, modal: null, menuUsu: false, editId: null, form: {}, ...(extra || {}), form0: JSON.stringify(f0) });
+    this.setState({ pantalla, editando: false, borrando: false, sel: [], intento: false, drawer: false, modal: null, menuUsu: false, editId: null, form: {}, mp: null, ...(extra || {}), form0: JSON.stringify(f0) });
     try { window.scrollTo(0, 0); } catch (e) {}
   }
   verDet(t, id) { this.go('detalle', { det: { t, id } }); }
@@ -1318,6 +1635,12 @@ class Component extends DCLogic {
     if (t === 'emp') {
       if (!tr(v.nombre)) e.nombre = 'Ingresá el nombre';
       if (!tr(v.apellido)) e.apellido = 'Ingresá el apellido';
+      if (!v.puesto) e.puesto = 'Elegí el puesto';
+      const dni = tr(v.dni);
+      if (!dni) e.dni = 'Ingresá el DNI';
+      else if (!/^\d{7,8}$/.test(dni)) e.dni = 'El DNI tiene que tener 7 u 8 números';
+      else if (d.emp.some(x => x.id !== id && x.dni === dni)) e.dni = 'Ya existe un empleado con ese DNI';
+      if (tr(v.mail) && !MAIL_RE.test(tr(v.mail))) e.mail = 'Revisá el formato del email';
     }
     if (t === 'usu') {
       if (!v.empId) e.empId = 'Elegí el empleado';
@@ -1326,6 +1649,8 @@ class Component extends DCLogic {
       else if (d.usu.some(u => norm(u.nombre) === norm(tr(v.nombre)))) e.nombre = 'El nombre de usuario ya está en uso';
       if (!v.pass) e.pass = 'Ingresá una contraseña';
       else if (v.pass.length < 8) e.pass = 'La contraseña debe tener al menos 8 caracteres';
+      if (!v.pass2) e.pass2 = 'Repetí la contraseña';
+      else if (v.pass2 !== v.pass) e.pass2 = 'Las contraseñas no coinciden';
       if (!(v.roles || []).length) e.roles = 'Asigná al menos un rol';
     }
     if (t === 'tp') {
@@ -1337,11 +1662,12 @@ class Component extends DCLogic {
         else if (r.err === 'num') e[k] = 'El precio hora en ' + mon + ' tiene que ser un número mayor a 0';
         else if (r.err === 'dec') e[k] = 'El precio hora en ' + mon + ' admite como máximo dos decimales';
       });
+      if (parseMonto(v.tc).err) e.tc = 'Ingresá un tipo de cambio mayor a 0, con hasta dos decimales';
     }
     if (t === 'mat') {
       if (!tr(v.nombre)) e.nombre = 'Ingresá el material';
       if (!tr(v.calidad)) e.calidad = 'Ingresá la calidad';
-      if (!e.nombre && !e.calidad && d.mat.some(x => norm(x.nombre) === norm(tr(v.nombre)) && norm(x.calidad) === norm(tr(v.calidad)))) e.calidad = 'Ya existe un material registrado con ese nombre y calidad';
+      if (!e.nombre && !e.calidad && d.mat.some(x => x.id !== id && norm(x.nombre) === norm(tr(v.nombre)) && norm(x.calidad) === norm(tr(v.calidad)))) e.calidad = 'Ya existe un material registrado con ese nombre y calidad';
     }
     if (t === 'sol') {
       if (!v.encId) e.encId = 'Elegí el cliente solicitante';
@@ -1400,24 +1726,51 @@ class Component extends DCLogic {
   }
 
   defsEmp() {
-    return [{ titulo: '', cols: 2, campos: [{ k: 'nombre', label: 'Nombre', ph: 'Ej: Matías' }, { k: 'apellido', label: 'Apellido', ph: 'Ej: Castro' }] }];
+    return [
+      { titulo: 'Datos personales', cols: 2, campos: [
+        { k: 'nombre', label: 'Nombre', req: true, ph: 'Ej: Matías' },
+        { k: 'apellido', label: 'Apellido', req: true, ph: 'Ej: Castro' },
+        { k: 'dni', label: 'DNI', req: true, digits: true, max: 8, ph: 'Ej: 38012345', ayuda: 'Solo números, sin puntos.' },
+        { k: 'puesto', label: 'Puesto', req: true, tipo: 'select', phSel: 'Elegí el puesto', opciones: PUESTOS.map(p => ({ v: p, l: p })) }
+      ] },
+      { titulo: 'Contacto', cols: 2, campos: [
+        { k: 'direccion', label: 'Dirección', nota: 'Opcional', full: true, ph: 'Calle, número y ciudad' },
+        { k: 'mail', label: 'Email', nota: 'Opcional', ph: 'nombre@castrotorneria.com.ar' },
+        { k: 'tel', label: 'Teléfono', nota: 'Opcional', ph: '+54 351 000-0000' }
+      ] }
+    ];
   }
-  defsTp(editar) {
-    return [{ titulo: '', cols: 2, aviso: editar ? 'Si cambió el dólar, actualizá solo el valor en dólares: el precio en pesos se mantiene. Las cotizaciones ya cargadas conservan el precio hora con el que se cotizaron.' : '', campos: [
-      { k: 'nombre', label: 'Nombre', full: true, ph: 'Ej: Mecanizado Torno CNC' },
+  defsTp(editar, vals) {
+    const tcN = parseMonto((vals || {}).tc).n, mod = tcN && tcN !== TC.valor;
+    return [{ titulo: '', cols: 2, aviso: editar ? 'Si cambió el dólar, actualizá el tipo de cambio: el precio en pesos se mantiene y se recalcula el valor en dólares. Las cotizaciones ya cargadas conservan el precio hora con el que se cotizaron.' : '', campos: [
+      { k: 'nombre', label: 'Nombre', req: true, full: true, ph: 'Ej: Mecanizado Torno CNC' },
       { k: 'desc', label: 'Descripción', nota: 'Opcional', tipo: 'area', full: true, ph: 'Qué incluye este proceso.' },
-      { k: 'ars', label: 'Precio hora en pesos', tipo: 'money', prefijo: '$', ph: '0,00' },
-      { k: 'usd', label: 'Precio hora en dólares', tipo: 'money', prefijo: 'US$', ph: '0,00' }
+      { k: 'ars', label: 'Precio hora en pesos', req: true, tipo: 'money', prefijo: '$', ph: '0,00', vinc: true },
+      { k: 'usd', label: 'Precio hora en dólares', req: true, tipo: 'money', prefijo: 'US$', ph: '0,00', vinc: true, ayuda: 'Se calcula con el tipo de cambio. Si lo editás, se recalcula el precio en pesos.' },
+      { k: 'tc', label: 'Tipo de cambio (USD → ARS)', req: true, tipo: 'money', prefijo: 'US$ 1 = $', sufijo: '', ph: '0,00', vinc: true,
+        ayuda: mod ? 'Valor modificado. Cotización actual: ' + fmtARS(TC.valor) + ' (actualizada al ' + TC.fh + ').' : 'Cotización actualizada al ' + TC.fh + '.',
+        link: { label: '↺ Restablecer cotización actual', go: () => this.setTp('tc', fmtNum(TC.valor, 2)) } }
     ] }];
+  }
+  setTp(k, val) {
+    this.setState(st => {
+      const f = { ...st.form, [k]: val }, tc = parseMonto(f.tc).n, r2 = n => Math.round(n * 100) / 100;
+      if (tc) {
+        if (k === 'ars' || k === 'tc') { const a = parseMonto(f.ars).n; if (a) f.usd = fmtNum(r2(a / tc), 2); }
+        if (k === 'usd') { const u = parseMonto(f.usd).n; if (u) f.ars = fmtNum(r2(u * tc), 2); }
+      }
+      return { form: f };
+    });
   }
   defsUsu() {
     return [
       { titulo: 'Empleado y acceso', cols: 2, campos: [
-        { k: 'empId', label: 'Empleado', tipo: 'pick', pick: 'emp', full: true, ph: 'Buscar empleado por nombre o apellido' },
-        { k: 'nombre', label: 'Nombre de usuario', ph: 'Ej: mcastro', ayuda: 'Se propone a partir del empleado. Lo podés cambiar.' },
-        { k: 'pass', label: 'Contraseña', tipo: 'pass', ph: 'Mínimo 8 caracteres' }
+        { k: 'empId', label: 'Empleado', req: true, tipo: 'pick', pick: 'emp', full: true, ph: 'Buscar empleado por nombre o apellido', link: { label: '+ Registrar empleado', go: () => this.modalNuevoEmp() } },
+        { k: 'nombre', label: 'Nombre de usuario', req: true, full: true, ph: 'Ej: mcastro', ayuda: 'Se propone a partir del empleado. Lo podés cambiar.' },
+        { k: 'pass', label: 'Contraseña', req: true, tipo: 'pass', par: 'pass2', ph: 'Mínimo 8 caracteres' },
+        { k: 'pass2', label: 'Repetir contraseña', req: true, tipo: 'pass', sinGenerar: true, ph: 'Escribila de nuevo' }
       ] },
-      { titulo: 'Roles', cols: 1, campos: [{ k: 'roles', label: 'Roles asignados', nota: 'Elegí al menos uno.', tipo: 'roles', full: true }] }
+      { titulo: 'Permisos', cols: 1, campos: [{ k: 'roles', label: 'Permisos', req: true, nota: 'Podés asignar más de un rol.', tipo: 'rolesSel', full: true }] }
     ];
   }
   defsSol() {
@@ -1438,7 +1791,8 @@ class Component extends DCLogic {
   home(roles) { const n = NAV.find(x => this.puede(x.key, roles)); return n ? n.key : 'inicio'; }
   ultimoAcceso(d, uid) { const l = d.ses.filter(x => x.uid === uid); return l.length ? l[l.length - 1].ini : ''; }
   formIni(t, editId) {
-    if (t === 'tp' && editId) { const x = this.state.d.tp.find(y => y.id === editId); if (x) return { nombre: x.nombre, desc: x.desc, ars: fmtNum(x.ars, 2), usd: fmtNum(x.usd, 2) }; }
+    if (t === 'tp' && editId) { const x = this.state.d.tp.find(y => y.id === editId); if (x) return { nombre: x.nombre, desc: x.desc, ars: fmtNum(x.ars, 2), usd: fmtNum(x.usd, 2), tc: fmtNum(TC.valor, 2) }; }
+    if (t === 'tp') return { tc: fmtNum(TC.valor, 2) };
     if (t === 'sol') return { fecha: HOY_ISO, arch: {} };
     return ({ prov: { tipos: [] }, enc: { wa: false }, usu: { roles: [] } })[t] || {};
   }
@@ -1507,7 +1861,7 @@ class Component extends DCLogic {
         selObj = { icon: IC.emp, titulo: e.nombre + ' ' + e.apellido, sub: u ? 'Empleado activo · con usuario' : 'Empleado activo · sin usuario', datos: [] };
         if (u) { alerta = 'Este empleado ya tiene el usuario «' + u.nombre + '»'; alertaGo = () => this.verDet('usu', u.id); }
       }
-      hint = '¿No aparece? Primero hay que registrar al empleado en'; hintLink = 'Empleados'; hintGo = () => this.go('empleados');
+      hint = '¿No aparece?'; hintLink = '+ Registrar empleado'; hintGo = () => this.modalNuevoEmp();
       vacioTxt = 'No hay empleados activos con ese nombre.';
     }
     if (c.pick === 'enc') {
@@ -1550,7 +1904,7 @@ class Component extends DCLogic {
   }
   nuevoUsu(empId) {
     const e = empId ? this.state.d.emp.find(x => x.id === empId) : null, prop = this.proponerUsuario(e, this.state.d);
-    this.go('nuevo', { nuevo: 'usu', verPass: false, form: { empId: empId || '', roles: [], nombre: prop, _prop: prop, pass: '' } });
+    this.go('nuevo', { nuevo: 'usu', verPass: false, form: { empId: empId || '', roles: [], nombre: prop, _prop: prop, pass: '', pass2: '' } });
   }
 
   // ── documentación de la solicitud ──
@@ -1610,6 +1964,23 @@ class Component extends DCLogic {
       ok: v => { this.upd(d => ({ ...d, mat: d.mat.concat([{ id: 'mat' + Date.now(), nombre: tr(v.nombre), calidad: tr(v.calidad) }]) })); this.cerrar(); this.aviso('Material registrado correctamente'); }
     });
   }
+  modalNuevoEmp() {
+    const campos = [].concat(...this.defsEmp().map(s => s.campos)).map(c => ({ ...c, full: c.full || false }));
+    this.abrir({
+      icon: IC.emp, titulo: 'Registrar empleado', ancho: '680px', cols: 2, validar: 'emp', valores: {},
+      pre: 'Los campos marcados con * son obligatorios. Al registrarlo queda elegido para este usuario.',
+      campos, okLabel: 'Registrar empleado',
+      ok: v => {
+        const id = 'emp' + Date.now(), e = { id, nombre: tr(v.nombre), apellido: tr(v.apellido), dni: tr(v.dni), puesto: v.puesto, direccion: tr(v.direccion), mail: tr(v.mail), tel: tr(v.tel), activo: true };
+        this.setState(st => {
+          const d = { ...st.d, emp: [e].concat(st.d.emp) }, prop = this.proponerUsuario(e, d), f = { ...st.form, empId: id, _q_empId: '', _o_empId: false };
+          if (!tr(f.nombre) || f.nombre === f._prop) { f.nombre = prop; f._prop = prop; }
+          return { d, form: f };
+        });
+        this.cerrar(); this.aviso('Empleado registrado y elegido para el usuario.');
+      }
+    });
+  }
   modalBajaEmp(x) {
     const u = this.state.d.usu.find(y => y.empId === x.id && y.activo);
     this.abrir({
@@ -1622,21 +1993,70 @@ class Component extends DCLogic {
     });
   }
 
+  // ── cotización (CU-14, próximo sprint) ──
+  cotIni(solId) {
+    return { solId, intento: false, f: { fecha: HOY_ISO, moneda: 'ARS', dolar: fmtNum(TC.valor, 2), validez: '7', obs: '', tipoItem: TIPOS_ITEM[0], plano: '', nroPlano: '', desc: '', cant: '1', matId: '', pres: '', provId: '', kg: '', costoKg: '', procs: [{ tpId: '', desc: '', horas: '' }] } };
+  }
+  setCot(k, v) { this.setState(st => ({ cot: { ...st.cot, f: { ...st.cot.f, [k]: v } } })); }
+  setProc(i, k, v) { this.setState(st => ({ cot: { ...st.cot, f: { ...st.cot.f, procs: st.cot.f.procs.map((p, j) => j === i ? { ...p, [k]: v } : p) } } })); }
+  addProc() { this.setState(st => ({ cot: { ...st.cot, f: { ...st.cot.f, procs: st.cot.f.procs.concat([{ tpId: '', desc: '', horas: '' }]) } } })); }
+  delProc(i) { this.setState(st => ({ cot: { ...st.cot, f: { ...st.cot.f, procs: st.cot.f.procs.filter((p, j) => j !== i) } } })); }
+  validarCot(f) {
+    const e = {}, rows = {};
+    if (!f.fecha) e.fecha = 'Ingresá la fecha de cotización'; else if (f.fecha > HOY_ISO) e.fecha = 'La fecha de cotización no puede ser futura';
+    if (parseMonto(f.dolar).err) e.dolar = 'Ingresá el valor del dólar (mayor a 0)';
+    if (!(parseInt(f.validez, 10) > 0)) e.validez = 'Ingresá el plazo de validez en días';
+    if (!tr(f.nroPlano)) e.nroPlano = 'Ingresá el número de plano';
+    if (!tr(f.desc)) e.desc = 'Describí la pieza a cotizar';
+    if (!(parseInt(f.cant, 10) > 0)) e.cant = 'La cantidad tiene que ser mayor a 0';
+    if (!f.matId) e.matId = 'Seleccioná el material o registrá uno nuevo';
+    if (parseMonto(f.kg).err) e.kg = 'Ingresá la cantidad de material en kg';
+    if (parseMonto(f.costoKg).err) e.costoKg = 'Ingresá el costo por kg';
+    f.procs.forEach((p, i) => { if (!p.tpId) rows[i] = 'Elegí el tipo de proceso'; else if (parseMonto(p.horas).err) rows[i] = 'Ingresá las horas estimadas (mayor a 0, hasta dos decimales)'; });
+    if (Object.keys(rows).length) e.procRows = rows;
+    return e;
+  }
+  guardarCot(datos, solId) {
+    const C = this.state.cot, e = this.validarCot(C.f);
+    if (Object.keys(e).length) { this.setState({ cot: { ...C, intento: true } }); this.aviso('Revisá los campos marcados.', 'error'); return; }
+    this.abrir({ icon: IC.sol, titulo: 'Confirmar cotización', ancho: '640px', pre: 'Revisá el resumen antes de registrar la cotización.', dcols: 2, datos, okLabel: 'Registrar cotización',
+      ok: () => { this.verDet('sol', solId); this.aviso('Vista previa: el registro de cotizaciones (CU-14) se completa en el próximo sprint.', 'info'); } });
+  }
+  abrirMat(modo) { this.setState({ mp: { q: '', modo, directo: modo === 'form', editId: null, f: { nombre: '', calidad: '' }, intento: false } }); }
+  elegirMat(id) { this.setState(st => ({ mp: null, cot: st.cot ? { ...st.cot, f: { ...st.cot.f, matId: id } } : st.cot })); }
+  guardarMat() {
+    const M = this.state.mp, e = this.validar('mat', M.f, M.editId, this.state.d);
+    if (Object.keys(e).length) { this.setState({ mp: { ...M, intento: true } }); return; }
+    const v = { nombre: tr(M.f.nombre), calidad: tr(M.f.calidad) };
+    if (M.editId) {
+      this.upd(d => ({ ...d, mat: d.mat.map(x => x.id === M.editId ? { ...x, ...v } : x) }));
+      this.setState({ mp: { ...M, modo: 'lista', directo: false, editId: null, intento: false } }); this.aviso('Material actualizado.'); return;
+    }
+    const id = 'mat' + Date.now();
+    this.upd(d => ({ ...d, mat: d.mat.concat([{ id, ...v }]) }));
+    this.elegirMat(id); this.aviso('Material registrado y cargado en la cotización.');
+  }
+
   campo(c, vals, set, errs) {
     const t = c.tipo || 'text', v = vals[c.k], err = errs[c.k] || '';
     const o = {
-      label: c.label, futuro: !!c.futuro, nota: c.nota || '', hayNota: !!c.nota,
+      label: c.label, futuro: !!c.futuro, req: !!c.req, nota: c.nota || '', hayNota: !!c.nota,
       conLabel: t !== 'check' && !c.sinLabel, span: c.full ? '1 / -1' : 'auto',
       esText: t === 'text', esArea: t === 'area', esSelect: t === 'select', esCheck: t === 'check', esTipos: t === 'tipos', esLock: t === 'lock',
       value: v == null ? '' : v, ph: c.ph || '', max: c.max || 200, tt: c.upper ? 'uppercase' : 'none',
-      onChange: e => set(c.k, c.upper ? e.target.value.toUpperCase() : e.target.value),
+      onChange: c.vinc ? e => this.setTp(c.k, e.target.value) : e => set(c.k, c.upper ? e.target.value.toUpperCase() : c.digits ? e.target.value.replace(/\D/g, '') : e.target.value),
       hayErr: !!err, err, bc: err ? '#b3261e' : '#e1e5ec', sh: err ? '0 0 0 4px rgba(179,38,30,.10)' : 'none',
       opciones: c.opciones || [], phSel: c.phSel || 'Elegí una opción',
       hayLink: !!c.link, linkLabel: c.link ? c.link.label : '', linkGo: c.link ? c.link.go : null, linkFuturo: !!(c.link && c.link.futuro),
       chips: [], tipoOpts: [], mark: '', boxBg: '#fff', boxBd: '#c3c9d6', toggle: null
     };
-    Object.assign(o, { esFecha: t === 'fecha', esMoney: t === 'money', esPass: t === 'pass', esRoles: t === 'roles', esPick: t === 'pick', esArchivos: t === 'archivos', esCombo: t === 'combo', dl: 'dl-' + c.k, maxF: HOY_ISO, prefijo: c.prefijo || '', ayuda: c.ayuda || '', hayAyuda: !!c.ayuda, pk: { res: [], sel: { datos: [] } }, grupos: [], rolOpts: [] });
-    if (t === 'pass') { const ver = this.state.verPass; Object.assign(o, { ptype: ver ? 'text' : 'password', verIcon: ver ? IC.ojoNo : IC.ojo, verTitle: ver ? 'Ocultar contraseña' : 'Mostrar contraseña', toggleVer: () => this.setState(st => ({ verPass: !st.verPass })), generar: () => { set(c.k, genPass()); this.setState({ verPass: true }); } }); }
+    Object.assign(o, { esFecha: t === 'fecha', esMoney: t === 'money', esPass: t === 'pass', esRoles: t === 'roles', esPick: t === 'pick', esArchivos: t === 'archivos', esCombo: t === 'combo', esRolesSel: t === 'rolesSel', rs: { sel: [] }, sufijo: c.sufijo != null ? c.sufijo : 'por hora', haySufijo: c.sufijo !== '', hayGenerar: !c.sinGenerar, dl: 'dl-' + c.k, maxF: HOY_ISO, prefijo: c.prefijo || '', ayuda: c.ayuda || '', hayAyuda: !!c.ayuda, pk: { res: [], sel: { datos: [] } }, grupos: [], rolOpts: [] });
+    if (t === 'pass') { const ver = this.state.verPass; Object.assign(o, { ptype: ver ? 'text' : 'password', verIcon: ver ? IC.ojoNo : IC.ojo, verTitle: ver ? 'Ocultar contraseña' : 'Mostrar contraseña', toggleVer: () => this.setState(st => ({ verPass: !st.verPass })), generar: () => { const p = genPass(); set(c.k, p); if (c.par) set(c.par, p); this.setState({ verPass: true }); } }); }
+    if (t === 'rolesSel') {
+      const arr = v || [], ab = !!vals['_o_' + c.k];
+      o.rolOpts = ROLES.map(r => { const on = arr.includes(r.k); return { name: r.nombre, desc: r.desc, nota: r.nota || '', hayNota: !!r.nota, ...box(on), bg: on ? '#eef2fa' : '#ffffff', toggle: () => set(c.k, ROLES.map(z => z.k).filter(z => z === r.k ? !on : arr.includes(z))) }; });
+      o.rs = { abierto: ab, toggle: () => set('_o_' + c.k, !ab), vacio: !arr.length, sel: arr.map(k => ({ name: ROL[k].nombre })), chev: ab ? 'M5.5 12l4.5-4.5 4.5 4.5' : 'M5.5 8l4.5 4.5L14.5 8' };
+    }
     if (t === 'roles') { const arr = v || []; o.rolOpts = ROLES.map(r => { const on = arr.includes(r.k); return { name: r.nombre, desc: r.desc, nota: r.nota || '', hayNota: !!r.nota, ...box(on), bg: on ? '#eef2fa' : '#ffffff', bd: on ? '#0f3483' : '#e1e5ec', toggle: () => set(c.k, ROLES.map(z => z.k).filter(z => z === r.k ? !on : arr.includes(z))) }; }); }
     if (t === 'pick') o.pk = this.pick(c, vals);
     if (t === 'archivos') o.grupos = this.archivos(c, vals);
@@ -1670,7 +2090,7 @@ class Component extends DCLogic {
       this.verDet('fab', id); this.aviso('Fábrica creada. Ya podés cargar sus encargados.');
     }
     if (t === 'emp') {
-      this.upd(d => ({ ...d, emp: [{ id, nombre: tr(v.nombre), apellido: tr(v.apellido), activo: true }].concat(d.emp) }));
+      this.upd(d => ({ ...d, emp: [{ id, nombre: tr(v.nombre), apellido: tr(v.apellido), dni: tr(v.dni), puesto: v.puesto, direccion: tr(v.direccion), mail: tr(v.mail), tel: tr(v.tel), activo: true }].concat(d.emp) }));
       this.verDet('emp', id); this.aviso('Empleado registrado correctamente');
     }
     if (t === 'usu') {
@@ -1678,7 +2098,7 @@ class Component extends DCLogic {
       this.verDet('usu', id); this.setState({ verPass: false }); this.aviso('Usuario registrado correctamente');
     }
     if (t === 'tp') {
-      const nv = { nombre: tr(v.nombre), desc: tr(v.desc), ars: parseMonto(v.ars).n, usd: parseMonto(v.usd).n };
+      const nv = { nombre: tr(v.nombre), desc: tr(v.desc), ars: parseMonto(v.ars).n, usd: parseMonto(v.usd).n, tc: parseMonto(v.tc).n };
       const x = s.editId ? s.d.tp.find(y => y.id === s.editId) : null;
       if (!x) { this.upd(d => ({ ...d, tp: d.tp.concat([{ id, ...nv, alta: ahora(), hist: [] }]) })); this.verDet('tp', id); this.aviso('Tipo de proceso registrado correctamente'); return; }
       const cambios = TP_CAMPOS.filter(k => x[k] !== nv[k]);
@@ -1812,16 +2232,18 @@ class Component extends DCLogic {
     const detEnt = P === 'detalle' && s.det ? (d[s.det.t] || []).find(x => x.id === s.det.id) : null;
     if (P === 'detalle' && !detEnt) P = s.det ? SECCION_DE[s.det.t] || home : home;
     if (P === 'nuevo' && !SECCION_DE[s.nuevo]) P = home;
-    if (!LISTAS[P] && !['nuevo', 'detalle', '404', 'error', 'denegado', 'inicio'].includes(P)) P = home;
+    if (P === 'cotizacion' && !(s.cot && d.sol.find(x => x.id === s.cot.solId))) P = 'solicitudes';
+    if (!LISTAS[P] && !PANELES[P] && !['nuevo', 'detalle', 'cotizacion', '404', 'error', 'denegado', 'inicio'].includes(P)) P = home;
     if (P === 'inicio' && home !== 'inicio') P = home;
     const secDe = P === 'nuevo' ? SECCION_DE[s.nuevo] : P === 'detalle' ? SECCION_DE[s.det.t] : P;
     if (PERM[secDe] && !this.puede(secDe, roles)) P = 'denegado';
     else if (P === 'nuevo' && s.nuevo === 'sol' && !roles.includes('ERP')) P = 'denegado';
     const esL = !!LISTAS[P];
-    const seccion = esL ? P : P === 'nuevo' ? SECCION_DE[s.nuevo] : P === 'detalle' ? SECCION_DE[s.det.t] : '';
+    const seccion = esL || PANELES[P] ? P : P === 'nuevo' ? SECCION_DE[s.nuevo] : P === 'detalle' ? SECCION_DE[s.det.t] : P === 'cotizacion' ? 'solicitudes' : '';
+    const navSec = PADRE[seccion] || seccion;
 
     const nav = NAV.map(n => {
-      const on = n.key === seccion;
+      const on = n.key === navSec;
       return { ...n, on, off: !on, go: () => this.go(n.key), mBg: on ? '#fcfcfc' : 'transparent', mFg: on ? '#0f3483' : '#e6e9f0', mFw: on ? '800' : '700', mSh: on ? '0 10px 24px rgba(0,0,0,.25)' : 'none' };
     });
 
@@ -1842,7 +2264,7 @@ class Component extends DCLogic {
     if (P === 'solicitudes') { todas = d.sol.slice().sort((a, b) => b.id - a.id); totalHero = todas.length; filas = todas.filter(x => { const e = encDe(x.encId), f = fabDe(e.fabricaId); return !q || norm([e.nombre, e.apellido, f.nombre, x.pedido, x.desc].join(' ')).includes(q); }); }
     if (P === 'materiales') { todas = d.mat.slice().sort(porMat); totalHero = todas.length; filas = todas.filter(m => (!s.fMat || m.nombre === s.fMat) && (!q || norm(m.calidad).includes(q))); }
     if (P === 'tipos') { todas = d.tp.slice().sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')); totalHero = todas.length; filas = todas.filter(x => !q || norm(x.nombre).includes(q)); }
-    if (P === 'empleados') { todas = d.emp.slice().sort(porApe); totalHero = todas.filter(x => x.activo).length; filas = todas.filter(x => (x.activo || s.incEmp) && (!q || norm(x.nombre + ' ' + x.apellido).includes(q))); }
+    if (P === 'empleados') { todas = d.emp.slice().sort(porApe); totalHero = todas.filter(x => x.activo).length; filas = todas.filter(x => (x.activo || s.incEmp) && (!q || norm([x.nombre, x.apellido, x.dni, x.puesto].join(' ')).includes(q))); }
     if (P === 'usuarios') { todas = d.usu.slice().sort((a, b) => a.nombre.localeCompare(b.nombre)); totalHero = todas.filter(x => x.activo).length; filas = todas.filter(u => { const e = d.emp.find(y => y.id === u.empId) || {}; return (u.activo || s.incUsu) && (!s.fRol || u.roles.includes(s.fRol)) && (!q || norm([u.nombre, e.nombre, e.apellido].join(' ')).includes(q)); }); }
     const paginas = Math.max(1, Math.ceil(filas.length / PAGE));
     const pg = Math.min(s.pag[P] || 1, paginas);
@@ -1867,7 +2289,7 @@ class Component extends DCLogic {
       rubros: () => this.modalRubro(null),
       solicitudes: () => this.go('nuevo', { nuevo: 'sol', form: this.formIni('sol') }),
       materiales: () => this.modalMaterial(),
-      tipos: () => this.go('nuevo', { nuevo: 'tp' }),
+      tipos: () => this.go('nuevo', { nuevo: 'tp', form: this.formIni('tp') }),
       empleados: () => this.go('nuevo', { nuevo: 'emp' }),
       usuarios: () => this.nuevoUsu(null)
     };
@@ -1911,7 +2333,7 @@ class Component extends DCLogic {
     const solRows = P === 'solicitudes' ? vis.map(x => { const e = encDe(x.encId), f = fabDe(e.fabricaId); return { id: x.id, fecha: isoAFecha(x.fecha), enc: (e.nombre || '') + ' ' + (e.apellido || ''), fab: f.nombre || '—', pedido: x.pedido || '—', pedFg: x.pedido ? '#172645' : '#b0b5be', desc: corto(x.desc, 88), adj: adjDe(x), estado: 'Pendiente de cotización', ver: () => this.verDet('sol', x.id) }; }) : [];
     const matRows = P === 'materiales' ? vis.map(m => ({ icon: IC.mat, nombre: m.nombre, calidad: m.calidad })) : [];
     const tpRows = P === 'tipos' ? vis.map(x => ({ icon: IC.tp, nombre: x.nombre, desc: x.desc || 'Sin descripción', descFg: x.desc ? '#8a909c' : '#b0b5be', ars: fmtARS(x.ars), usd: fmtUSD(x.usd), ult: fechaHoraLarga(ultTp(x)), ver: () => this.verDet('tp', x.id) })) : [];
-    const empRows = P === 'empleados' ? vis.map(x => { const u = usuDe(x.id); return { icon: IC.emp, nombre: x.apellido + ', ' + x.nombre, usuario: u ? u.nombre : 'Sin usuario', usuFg: u ? '#172645' : '#b0b5be', usuFw: u ? '700' : '500', roles: rolesChips(u), sinRoles: !u, ...chipEst(x.activo ? 'Activo' : 'Inactivo'), op: x.activo ? 1 : .6, ver: () => this.verDet('emp', x.id) }; }) : [];
+    const empRows = P === 'empleados' ? vis.map(x => { const u = usuDe(x.id); return { icon: IC.emp, nombre: x.apellido + ', ' + x.nombre, dni: x.dni || '—', puesto: x.puesto || '—', usuario: u ? u.nombre : 'Sin usuario', usuFg: u ? '#172645' : '#b0b5be', usuFw: u ? '700' : '500', roles: rolesChips(u), sinRoles: !u, ...chipEst(x.activo ? 'Activo' : 'Inactivo'), op: x.activo ? 1 : .6, ver: () => this.verDet('emp', x.id) }; }) : [];
     const usuRows = P === 'usuarios' ? vis.map(u => { const e = empDe(u.empId) || {}, ult = this.ultimoAcceso(d, u.id); return { icon: IC.usu, nombre: u.nombre, emp: (e.nombre || '—') + ' ' + (e.apellido || ''), roles: rolesChips(u), sinRoles: !u.roles.length, ...chipEst(estUsu(u)), ult: ult ? fechaHoraLarga(ult) : 'Nunca ingresó', ultFg: ult ? '#555b66' : '#b0b5be', op: u.activo ? 1 : .6, ver: () => this.verDet('usu', u.id) }; }) : [];
 
     const cards = !movil || !esL ? [] : vis.map(x => {
@@ -1934,7 +2356,7 @@ class Component extends DCLogic {
       if (P === 'solicitudes') { const e = encDe(x.encId), f = fabDe(e.fabricaId); Object.assign(c, { icon: IC.sol, titulo: 'Solicitud #' + x.id, sub: (e.nombre || '') + ' ' + (e.apellido || '') + ' · ' + (f.nombre || '—') + ' · ' + isoAFecha(x.fecha), linea: corto(x.desc, 110), chips: [{ name: 'Pendiente de cotización', icon: IC.reloj }].concat(adjDe(x)), verLabel: 'Ver solicitud', ver: () => this.verDet('sol', x.id) }); }
       if (P === 'materiales') Object.assign(c, { icon: IC.mat, titulo: x.nombre, sub: 'Calidad ' + x.calidad, hayBotones: false });
       if (P === 'tipos') Object.assign(c, { icon: IC.tp, ibg: '#eef1f7', ifg: '#3b5998', titulo: x.nombre, sub: x.desc || 'Sin descripción', linea: fmtARS(x.ars) + ' / h · ' + fmtUSD(x.usd) + ' / h', verLabel: 'Ver tipo de proceso', ver: () => this.verDet('tp', x.id) });
-      if (P === 'empleados') { const u = usuDe(x.id); Object.assign(c, { icon: IC.emp, ibg: '#eef1f7', ifg: '#3b5998', titulo: x.apellido + ', ' + x.nombre, sub: u ? 'Usuario ' + u.nombre : 'Sin usuario', chips: rolesChips(u), inactivo: !x.activo, op: x.activo ? 1 : .7, verLabel: 'Ver empleado', ver: () => this.verDet('emp', x.id) }); }
+      if (P === 'empleados') { const u = usuDe(x.id); Object.assign(c, { icon: IC.emp, ibg: '#eef1f7', ifg: '#3b5998', titulo: x.apellido + ', ' + x.nombre, sub: (x.puesto || '—') + ' · ' + (u ? 'Usuario ' + u.nombre : 'Sin usuario'), chips: rolesChips(u), inactivo: !x.activo, op: x.activo ? 1 : .7, verLabel: 'Ver empleado', ver: () => this.verDet('emp', x.id) }); }
       if (P === 'usuarios') { const e = empDe(x.empId) || {}, est = estUsu(x), ce = chipEst(est), ult = this.ultimoAcceso(d, x.id); Object.assign(c, { icon: IC.usu, titulo: x.nombre, sub: (e.nombre || '') + ' ' + (e.apellido || ''), chips: rolesChips(x), linea: 'Último acceso: ' + (ult ? fechaHoraLarga(ult) : 'nunca'), hayBadge: est !== 'Activo', badge: est, badgeFg: ce.estFg, badgeBg: ce.estBg, op: x.activo ? 1 : .7, verLabel: 'Ver usuario', ver: () => this.verDet('usu', x.id) }); }
       c.hayChips = c.chips.length > 0; c.hayLinea = !!c.linea;
       return c;
@@ -1948,16 +2370,17 @@ class Component extends DCLogic {
     let nv = null;
     if (P === 'nuevo') {
       const t = s.nuevo, errs = s.intento ? this.validar(t, s.form, s.editId || null, d) : {};
+      if (t === 'usu' && s.form.pass2 && s.form.pass2.length >= (s.form.pass || '').length && s.form.pass2 !== s.form.pass) errs.pass2 = 'Las contraseñas no coinciden';
       const tpEd = t === 'tp' && s.editId ? d.tp.find(y => y.id === s.editId) : null;
       const C = {
         prov: { foto: 'url(assets/foto-brida.png) center/cover no-repeat', volverLabel: 'Proveedores', volverA: 'proveedores', titulo: 'Nuevo proveedor', sub: 'Datos del proveedor a registrar.', submit: 'Crear proveedor', defs: this.defsProv('nuevo') },
         enc: { foto: 'url(assets/foto-cono.png) center 45%/cover no-repeat', volverLabel: 'Encargados', volverA: 'encargados', titulo: 'Nuevo encargado', sub: 'Persona de contacto de una fábrica.', submit: 'Crear encargado', defs: this.defsEnc('nuevo', d) },
         fab: { foto: 'url(assets/foto-dispositivo.png) center 45%/cover no-repeat', volverLabel: 'Fábricas', volverA: 'fabricas', titulo: 'Nueva fábrica', sub: 'Después de crearla podés cargar sus encargados.', submit: 'Crear fábrica', defs: this.defsFab(d) },
-        emp: { foto: 'url(assets/foto-prensa.png) center 40%/cover no-repeat', volverLabel: 'Empleados', volverA: 'empleados', titulo: 'Nuevo empleado', sub: 'Después le podés crear un usuario para ingresar al sistema.', submit: 'Registrar empleado', defs: this.defsEmp() },
-        usu: { foto: 'url(assets/foto-dispositivo.png) center 45%/cover no-repeat', volverLabel: 'Usuarios', volverA: 'usuarios', titulo: 'Nuevo usuario', sub: 'Cuenta de acceso para un empleado ya registrado.', submit: 'Registrar usuario', defs: this.defsUsu() },
+        emp: { foto: 'url(assets/foto-prensa.png) center 40%/cover no-repeat', volverLabel: 'Empleados', volverA: 'empleados', titulo: 'Nuevo empleado', sub: 'Los campos marcados con * son obligatorios. Después le podés crear un usuario.', submit: 'Registrar empleado', defs: this.defsEmp() },
+        usu: { foto: 'url(assets/foto-dispositivo.png) center 45%/cover no-repeat', volverLabel: 'Usuarios', volverA: 'usuarios', titulo: 'Nuevo usuario', sub: 'Cuenta de acceso para un empleado ya registrado. Los campos con * son obligatorios.', submit: 'Registrar usuario', defs: this.defsUsu() },
         tp: tpEd
-          ? { foto: 'url(assets/foto-cnc.png) center 55%/cover no-repeat', volverLabel: tpEd.nombre, volver: () => this.verDet('tp', tpEd.id), crumb: 'Modificar', titulo: 'Modificar tipo de proceso', sub: tpEd.nombre, submit: 'Guardar cambios', defs: this.defsTp(true) }
-          : { foto: 'url(assets/foto-cnc.png) center 55%/cover no-repeat', volverLabel: 'Tipos de proceso', volverA: 'tipos', titulo: 'Nuevo tipo de proceso', sub: 'Proceso propio del taller con su precio por hora.', submit: 'Registrar tipo de proceso', defs: this.defsTp(false) },
+          ? { foto: 'url(assets/foto-cnc.png) center 55%/cover no-repeat', volverLabel: tpEd.nombre, volver: () => this.verDet('tp', tpEd.id), crumb: 'Modificar', titulo: 'Modificar tipo de proceso', sub: tpEd.nombre, submit: 'Guardar cambios', defs: this.defsTp(true, s.form) }
+          : { foto: 'url(assets/foto-cnc.png) center 55%/cover no-repeat', volverLabel: 'Tipos de proceso', volverA: 'tipos', titulo: 'Nuevo tipo de proceso', sub: 'Proceso propio del taller con su precio por hora.', submit: 'Registrar tipo de proceso', defs: this.defsTp(false, s.form) },
         sol: { foto: 'url(assets/hero-bloque.png) center/cover no-repeat', volverLabel: 'Solicitudes', volver: () => this.cancelarSol(), crumb: 'Registrar', titulo: 'Registrar solicitud de cotización', sub: 'Pedido recibido por mail o WhatsApp.', submit: 'Confirmar', defs: this.defsSol() }
       }[t];
       nv = { ...C, volver: C.volver || (() => this.go(C.volverA)), secciones: this.mk(C.defs, s.form, setForm, errs, movil), crear: () => this.crear() };
@@ -2029,10 +2452,13 @@ class Component extends DCLogic {
       if (t === 'emp') {
         const u = usuDe(x.id);
         dt = { ...base, foto: 'url(assets/foto-prensa.png) center 40%/cover no-repeat', volverLabel: 'Empleados', icon: IC.emp,
-          titulo: x.nombre + ' ' + x.apellido, sub: u ? 'Usuario ' + u.nombre : 'Sin usuario en el sistema', inactivo: !x.activo,
+          titulo: x.nombre + ' ' + x.apellido, sub: (x.puesto || '—') + ' · ' + (u ? 'Usuario ' + u.nombre : 'Sin usuario en el sistema'), inactivo: !x.activo,
           banner: 'Este empleado está dado de baja.' + (u ? ' Su usuario quedó desactivado.' : ''),
           acciones: !x.activo ? [] : ed ? enEdicion : [{ label: 'Dar de baja', css: S.hGhost, go: () => this.modalBajaEmp(x) }, empezar],
-          secciones: ed ? editar(this.defsEmp()).map(z => ({ ...z, titulo: 'Datos del empleado' })) : [leer('Datos del empleado', 3, [{ label: 'Nombre', valor: x.nombre }, { label: 'Apellido', valor: x.apellido }, { label: 'Estado', valor: x.activo ? 'Activo' : 'Inactivo' }])],
+          secciones: ed ? editar(this.defsEmp()) : [
+            leer('Datos personales', 2, [{ label: 'Nombre', valor: x.nombre }, { label: 'Apellido', valor: x.apellido }, { label: 'DNI', valor: x.dni || '—', muted: !x.dni }, { label: 'Puesto', valor: x.puesto || '—', muted: !x.puesto }]),
+            leer('Contacto', 2, [{ label: 'Dirección', valor: x.direccion || 'Sin dirección', muted: !x.direccion, full: true }, { label: 'Email', valor: x.mail || 'Sin email', muted: !x.mail }, { label: 'Teléfono', valor: x.tel || 'Sin teléfono', muted: !x.tel }])
+          ],
           hayAside: true, asTitulo: 'Usuario del sistema',
           asItems: u ? [{ label: 'Nombre de usuario', valor: u.nombre }, { label: 'Roles', chips: rolesChips(u) }, { label: 'Estado', valor: estUsu(u) }] : [],
           hayAsTexto: !u, asTexto: x.activo ? 'Este empleado todavía no tiene usuario.' : 'Este empleado no tiene usuario.',
@@ -2081,7 +2507,7 @@ class Component extends DCLogic {
               fotos: esF ? l.map(fl => ({ nombre: fl.nombre, thumb: 'url("' + fl.url + '") center/cover no-repeat', ver: () => this.visor(fl) })) : [],
               otros: esF ? [] : l.map(fl => { const pdf = fl.ext === 'pdf'; return { nombre: fl.nombre, meta: fmtTam(fl.tam) + ' · ' + fl.ext.toUpperCase(), icon: EXT_ICON[fl.ext] || IC.pdf, accion: pdf ? 'Ver' : 'Descargar', accIcon: pdf ? IC.ojo : IC.bajar, go: pdf ? () => this.visor(fl) : () => this.aviso('Descarga simulada: ' + fl.nombre, 'info') }; }) };
           }),
-          cots: x.cots.map(cq => ({ titulo: 'Pendiente de cotización — sin número todavía', sub: 'Se creó el ' + fechaLarga(cq.creada) + ', al registrar la solicitud.', puedeCotizar: roles.includes('EC'), cotizar: () => this.aviso('Registrar cotización (CU-14) todavía no está disponible.', 'info') }))
+          cots: x.cots.map(cq => ({ titulo: 'Pendiente de cotización — sin número todavía', sub: 'Se creó el ' + fechaLarga(cq.creada) + ', al registrar la solicitud.', puedeCotizar: roles.includes('EC'), cotizar: () => this.go('cotizacion', { cot: this.cotIni(x.id) }) }))
         };
       }
       dt.hayIconAcc = true;
@@ -2129,9 +2555,90 @@ class Component extends DCLogic {
     if (m) Object.assign(md, { hayDatos: !!(m.datos && m.datos.length), datos: (m.datos || []).map(it => ({ label: it.label, valor: it.valor, span: it.full ? '1 / -1' : 'auto' })), dcols: movil ? 1 : (m.dcols || 2), hayVisor: !!m.visor, visor: m.visor || { lineas: [] }, hayOk: !m.sinOk, cancelLabel: m.cancelLabel || 'Cancelar' });
 
     const T = s.toast;
-    const crumbSec = (NAV.find(n => n.key === seccion) || { label: '' }).label;
-    const crumbGrupo = seccion ? ((NAV.find(n => n.key === seccion) || {}).grupo || '') : 'Sistema';
-    const crumbAct = P === 'nuevo' ? ((nv && nv.crumb) || 'Nuevo') : P === 'detalle' ? (dt ? dt.titulo : '') : '';
+    const crumbSec = LBL[seccion] || '';
+    const crumbGrupo = seccion ? (PADRE[seccion] ? LBL[PADRE[seccion]] : ((NAV.find(n => n.key === seccion) || {}).grupo || '')) : 'Sistema';
+    const crumbAct = P === 'nuevo' ? ((nv && nv.crumb) || 'Nuevo') : P === 'detalle' ? (dt ? dt.titulo : '') : P === 'cotizacion' ? 'Cotizar solicitud #' + s.cot.solId : '';
+
+    // ── paneles Clientes / Gestión ──
+    const pan = PANELES[P];
+    const panel = pan ? { ...pan, items: pan.items.filter(it => this.puede(it.key, roles)).map(it => ({ ...it, go: () => this.go(it.key) })) } : { items: [] };
+    const tabsEmp = [];
+
+    // ── cotización ──
+    let cz = null;
+    if (P === 'cotizacion') {
+      const C = s.cot, f = C.f, sol = d.sol.find(x => x.id === C.solId), en = encDe(sol.encId), fb = fabDe(en.fabricaId);
+      const er = C.intento ? this.validarCot(f) : {}, rows = er.procRows || {};
+      const RED = '#b3261e', SH = '0 0 0 4px rgba(179,38,30,.10)';
+      const h = {}, bc = {}, sh = {}, he = {}, ee = {};
+      ['fecha', 'moneda', 'dolar', 'validez', 'obs', 'plano', 'nroPlano', 'desc', 'cant', 'pres', 'provId', 'kg', 'costoKg', 'matId'].forEach(k => { h[k] = ev => this.setCot(k, ev.target.value); bc[k] = er[k] ? RED : '#e1e5ec'; sh[k] = er[k] ? SH : 'none'; he[k] = !!er[k]; ee[k] = er[k] || ''; });
+      h.validez = ev => this.setCot('validez', ev.target.value.replace(/\D/g, ''));
+      h.cant = ev => this.setCot('cant', ev.target.value.replace(/\D/g, ''));
+      const usd = f.moneda === 'USD', fmtM = usd ? fmtUSD : fmtARS, num = x => parseMonto(x).n || 0;
+      const matCost = num(f.kg) * num(f.costoKg);
+      const tpOpts = d.tp.slice().sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')).map(x => ({ v: x.id, l: x.nombre }));
+      const procs = f.procs.map((p, i) => {
+        const tp = d.tp.find(x => x.id === p.tpId), ch = tp ? (usd ? tp.usd : tp.ars) : 0, hs = num(p.horas), pe = rows[i] || '';
+        return { tpId: p.tpId, desc: p.desc, horas: p.horas, tpOpts, costo: tp ? fmtM(ch) : '—', sub: tp && hs ? fmtM(ch * hs) : '—', _sub: ch * hs,
+          setTp: ev => this.setProc(i, 'tpId', ev.target.value), setDesc: ev => this.setProc(i, 'desc', ev.target.value), setHoras: ev => this.setProc(i, 'horas', ev.target.value),
+          borrar: () => this.delProc(i), puedeBorrar: f.procs.length > 1, hayErr: !!pe, err: pe, bcTp: pe && !p.tpId ? RED : '#e1e5ec', bcH: pe && p.tpId ? RED : '#e1e5ec' };
+      });
+      const mo = procs.reduce((a, p) => a + p._sub, 0), unit = matCost + mo, cant = parseInt(f.cant, 10) || 0;
+      let vence = '—';
+      const dias = parseInt(f.validez, 10);
+      if (f.fecha && dias > 0) { const t0 = new Date(f.fecha + 'T00:00:00'); t0.setDate(t0.getDate() + dias); vence = fechaLarga(String(t0.getDate()).padStart(2, '0') + '/' + String(t0.getMonth() + 1).padStart(2, '0') + '/' + t0.getFullYear()); }
+      const m = d.mat.find(x => x.id === f.matId), cliente = (en.nombre || '') + ' ' + (en.apellido || '');
+      const planos = (sol.arch.planos || []).map(p => ({ v: p.nombre, l: p.nombre }));
+      const datos = [
+        { label: 'Solicitud de origen', valor: 'Solicitud #' + sol.id }, { label: 'Cliente', valor: cliente + ' · ' + (fb.nombre || '—') },
+        { label: 'Moneda', valor: usd ? 'Dólares (USD)' : 'Pesos (ARS)' }, { label: 'Vencimiento de la oferta', valor: vence },
+        { label: 'Pieza', valor: tr(f.nroPlano) + ' · ' + tr(f.desc), full: true },
+        { label: 'Material', valor: m ? m.nombre + ' ' + m.calidad + ' · ' + f.kg + ' kg' : '—' }, { label: 'Procesos propios', valor: String(f.procs.length) },
+        { label: 'Precio unitario', valor: fmtM(unit) }, { label: 'Precio total (' + cant + ' u.)', valor: fmtM(unit * cant) }
+      ];
+      cz = {
+        volverLabel: 'Solicitud #' + sol.id, volver: () => this.verDet('sol', sol.id),
+        sub: 'Solicitud #' + sol.id + ' · ' + cliente + ' · ' + (fb.nombre || '—'),
+        solTxt: 'Solicitud #' + sol.id, cliente, fab: fb.nombre || '—',
+        f, h, bc, sh, he, e: ee, maxF: HOY_ISO, tcAyuda: 'Cotización actualizada al ' + TC.fh + '.', vence, sim: usd ? 'US$' : '$',
+        tipos: TIPOS_ITEM.map((t, i) => { const on = f.tipoItem === t; return { label: t, futuro: i > 0, bg: on ? '#0f3483' : '#ffffff', fg: on ? '#ffffff' : '#172645', bd: on ? '#0f3483' : '#e1e5ec', go: i === 0 ? () => this.setCot('tipoItem', t) : () => this.aviso(t + ': se cotiza en el próximo sprint.', 'info') }; }),
+        planos, planoPh: planos.length ? 'Elegí el plano' : 'La solicitud no tiene planos',
+        presOpts: PRESENT.map(p => ({ v: p, l: p })), provOpts: d.prov.filter(p => p.tipos.includes('Material')).map(p => ({ v: p.id, l: p.razon })),
+        hayMat: !!m, sinMat: !m, matNombre: m ? m.nombre : '', matCalidad: m ? m.calidad : '', matIcon: IC.mat, matBd: er.matId ? RED : '#c9d1e0',
+        elegirMat: () => this.abrirMat('lista'), nuevoMat: () => this.abrirMat('form'),
+        procs, addProc: () => this.addProc(),
+        res: { material: fmtM(matCost), mo: fmtM(mo), unit: fmtM(unit), total: fmtM(unit * cant), cantTxt: cant === 1 ? '1 unidad' : cant + ' unidades' },
+        guardar: () => this.guardarCot(datos, sol.id),
+        cols: movil ? 'minmax(0,1fr)' : 'minmax(0,2fr) minmax(0,1fr)'
+      };
+    }
+
+    // ── selector de materiales ──
+    let mpv = { rows: [], nombres: [], f: {} };
+    if (s.mp) {
+      const M = s.mp, nq = norm(M.q), selId = s.cot ? s.cot.f.matId : '';
+      const lista = d.mat.slice().sort(porMat).filter(x => !nq || norm(x.nombre + ' ' + x.calidad).includes(nq));
+      const er = M.intento ? this.validar('mat', M.f, M.editId, d) : {};
+      const setF = k => ev => { const v = ev.target.value; this.setState(st => ({ mp: { ...st.mp, f: { ...st.mp.f, [k]: v } } })); };
+      const RED = '#b3261e', SH = '0 0 0 4px rgba(179,38,30,.10)';
+      mpv = {
+        esLista: M.modo === 'lista', esForm: M.modo === 'form', icon: IC.mat,
+        titulo: M.modo === 'lista' ? 'Seleccionar material' : M.editId ? 'Editar material' : 'Nuevo material',
+        q: M.q, setQ: ev => { const v = ev.target.value; this.setState(st => ({ mp: { ...st.mp, q: v } })); },
+        rows: lista.map(x => { const on = x.id === selId; return { nombre: x.nombre, calidad: x.calidad, hayTag: on, bg: on ? '#eef2fa' : '#ffffff', sh: on ? 'inset 4px 0 0 #0f3483' : 'none', elegir: () => this.elegirMat(x.id),
+          editar: ev => { ev.stopPropagation(); this.setState(st => ({ mp: { ...st.mp, modo: 'form', directo: false, editId: x.id, f: { nombre: x.nombre, calidad: x.calidad }, intento: false } })); } }; }),
+        vacio: !lista.length,
+        agregar: () => this.setState(st => ({ mp: { ...st.mp, modo: 'form', directo: false, editId: null, f: { nombre: '', calidad: '' }, intento: false } })),
+        nombres: Array.from(new Set(d.mat.map(x => x.nombre))).sort((a, b) => a.localeCompare(b, 'es')).map(n => ({ v: n })),
+        f: M.f, setNombre: setF('nombre'), setCalidad: setF('calidad'),
+        hayErrN: !!er.nombre, errN: er.nombre || '', bcN: er.nombre ? RED : '#e1e5ec', shN: er.nombre ? SH : 'none',
+        hayErrC: !!er.calidad, errC: er.calidad || '', bcC: er.calidad ? RED : '#e1e5ec', shC: er.calidad ? SH : 'none',
+        okLabel: M.editId ? 'Guardar cambios' : 'Registrar material', guardar: () => this.guardarMat(),
+        volverLabel: M.directo ? 'Cancelar' : 'Volver al listado',
+        volver: M.directo ? () => this.setState({ mp: null }) : () => this.setState(st => ({ mp: { ...st.mp, modo: 'lista', editId: null, intento: false } })),
+        cerrar: () => this.setState({ mp: null })
+      };
+    }
 
     return {
       // chrome del prototipo
@@ -2164,7 +2671,7 @@ class Component extends DCLogic {
 
       // listados
       esLista: esL, esProv: P === 'proveedores', esEnc: P === 'encargados', esFab: P === 'fabricas', esRub: P === 'rubros',
-      lista: { ...L, total: totalHero, totalTxt: L.reg, nuevo: nuevoDe[P], puedeNuevo },
+      lista: { ...L, total: totalHero, totalTxt: L.reg, nuevo: nuevoDe[P], puedeNuevo, hayVolver: !!(PADRE[P] && this.puede(PADRE[P], roles)), volverLabel: LBL[PADRE[P]] || '', volver: () => this.go(PADRE[P]) },
       q: s.q[P] || '', setQ: e => { const v = e.target.value; this.setState(st => ({ q: { ...st.q, [P]: v }, pag: { ...st.pag, [P]: 1 } })); },
       incEnc: box(s.incEnc), toggleIncEnc: () => this.setState(st => ({ incEnc: !st.incEnc, pag: { ...st.pag, encargados: 1 } })),
       fRubro: s.fRubro, setFRubro: e => { const v = e.target.value; this.setState(st => ({ fRubro: v, pag: { ...st.pag, fabricas: 1 } })); },
@@ -2218,6 +2725,9 @@ class Component extends DCLogic {
       esNuevo: !!nv, nv: nv || { secciones: [] },
       esDetalle: !!dt, dt: dt || { secciones: [], acciones: [], chips: [], asItems: [] }, fe: fe || { filas: [], inc: box(false) },
       esSistema: ['404', 'error', 'denegado', 'inicio'].includes(P), sis,
+      esPanel: !!pan, panel, hayTabsEmp: tabsEmp.length > 0, tabsEmp,
+      esCot: !!cz, cz: cz || { f: {}, h: {}, bc: {}, sh: {}, he: {}, e: {}, tipos: [], planos: [], presOpts: [], provOpts: [], procs: [], res: {} },
+      hayMp: !!s.mp, mp: mpv,
 
       // modal y aviso
       hayModal: !!m, md, cerrarModal: () => this.cerrar(), stop: e => e.stopPropagation(),

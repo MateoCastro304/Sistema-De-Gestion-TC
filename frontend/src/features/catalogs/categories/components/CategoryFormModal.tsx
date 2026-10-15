@@ -28,7 +28,10 @@ interface CategoryFormModalProps {
 
 const FORM_ID = 'category-form'
 
-/** Create / edit modal for a rubro (CU-41 Registrar, CU-42 Modificar). */
+/**
+ * Create / edit modal for a rubro (CU-41 Registrar, CU-42 Modificar). Crear
+ * un nombre que pertenece a un rubro dado de baja lo reactiva.
+ */
 export function CategoryFormModal({
   open,
   onClose,
@@ -58,13 +61,8 @@ export function CategoryFormModal({
     }
   }, [open, category, reset])
 
-  const onSuccess = (saved: Category) => {
-    showToast(
-      'success',
-      isEdit
-        ? `Rubro "${saved.name}" actualizado.`
-        : `Rubro "${saved.name}" creado.`,
-    )
+  const done = (saved: Category, message: string) => {
+    showToast('success', message)
     onSaved?.(saved)
     onClose()
   }
@@ -82,9 +80,21 @@ export function CategoryFormModal({
   const submit = handleSubmit((values) => {
     const input = toCategoryInput(values)
     if (category) {
-      update.mutate({ id: category.id, input }, { onSuccess, onError })
+      update.mutate(
+        { id: category.id, input },
+        { onSuccess: (saved) => done(saved, `Rubro "${saved.name}" actualizado.`), onError },
+      )
     } else {
-      create.mutate(input, { onSuccess, onError })
+      create.mutate(input, {
+        onSuccess: ({ category: saved, reactivated }) =>
+          done(
+            saved,
+            reactivated
+              ? `El rubro "${saved.name}" estaba dado de baja y se reactivó.`
+              : `Rubro "${saved.name}" creado.`,
+          ),
+        onError,
+      })
     }
   })
 

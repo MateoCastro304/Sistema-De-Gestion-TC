@@ -6,6 +6,7 @@ import { configureApp } from './app.setup';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Pipes y filtros globales: ver app.setup.ts (lo comparten los tests).
   configureApp(app);
 
   const config = app.get(ConfigService);

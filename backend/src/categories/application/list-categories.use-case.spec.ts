@@ -27,6 +27,25 @@ describe('ListCategories (use case)', () => {
     expect(result.total).toBe(0);
   });
 
+  it('returns only inactive categories when active is false', async () => {
+    await seed('Metalurgica');
+    await seed('Petrolera', false);
+
+    const result = await useCase.execute({ page: 1, limit: 10, active: false });
+
+    expect(result.items.map((c) => c.getName())).toEqual(['Petrolera']);
+    expect(result.total).toBe(1);
+  });
+
+  it('returns only active categories when active is true', async () => {
+    await seed('Metalurgica');
+    await seed('Petrolera', false);
+
+    const result = await useCase.execute({ page: 1, limit: 10, active: true });
+
+    expect(result.items.map((c) => c.getName())).toEqual(['Metalurgica']);
+  });
+
   it('returns only active categories', async () => {
     await seed('Metalurgica');
     await seed('Petrolera', false);
