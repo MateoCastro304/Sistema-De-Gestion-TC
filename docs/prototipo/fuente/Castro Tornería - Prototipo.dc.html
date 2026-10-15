@@ -51,10 +51,62 @@ button{cursor:pointer}
       <button type="button" onClick="{{ irError }}" style="border:none;border-radius:4px;padding:5px 10px;font-size:11.5px;font-weight:700;background:rgba(255,255,255,.08);color:#e6e9f0" style-hover="background:rgba(255,255,255,.18)">Error</button>
     </span>
   </span>
+  <span style="display:flex;align-items:center;gap:8px">Sesión
+    <select value="" onChange="{{ ingresarComo }}" aria-label="Ingresar como" style="border:none;border-radius:4px;padding:5px 8px;font-size:11.5px;font-weight:700;background:#24324f;color:#e6e9f0;outline:none;max-width:280px">
+      <option value="">Ingresar como…</option>
+      <sc-for list="{{ demoUsers }}" as="u" hint-placeholder-count="8"><option value="{{ u.id }}">{{ u.label }}</option></sc-for>
+    </select>
+    <button type="button" onClick="{{ simularExpira }}" style="border:none;border-radius:4px;padding:5px 10px;font-size:11.5px;font-weight:700;background:rgba(255,255,255,.08);color:#e6e9f0" style-hover="background:rgba(255,255,255,.18)">Simular sesión expirada</button>
+  </span>
+  <span style="font-size:11.5px">Contraseña demo <strong style="color:#e6e9f0;letter-spacing:.04em">Castro1977</strong></span>
   <button type="button" onClick="{{ reiniciar }}" style="border:none;border-radius:4px;padding:5px 10px;font-size:11.5px;font-weight:700;background:transparent;color:#9aa7c2;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)" style-hover="color:#ffffff">Reiniciar datos</button>
-  <span style="margin-left:auto;font-size:11px;opacity:.8">jueves 08 · 10 · 2026</span>
+  <span style="margin-left:auto;font-size:11px;opacity:.8">jueves 15 · 10 · 2026</span>
 </div>
 
+<sc-if value="{{ esLogin }}" hint-placeholder-val="{{ false }}">
+<div style="min-height:calc(100vh - 40px);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));background:#fcfcfc">
+  <div style="position:relative;overflow:hidden;min-height:280px;background:#172645">
+    <div style="position:absolute;inset:0;background:url(assets/hero-castro.png) 60% center/cover no-repeat;animation:slowZoom 18s ease-in-out infinite alternate"></div>
+    <div style="position:absolute;inset:0;background:linear-gradient(165deg,rgba(21,34,62,.95) 0%,rgba(21,34,62,.8) 50%,rgba(21,34,62,.35) 100%)"></div>
+    <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1px);background-size:22px 22px"></div>
+    <div style="position:relative;height:100%;box-sizing:border-box;padding:clamp(28px,5vw,56px);display:flex;flex-direction:column;justify-content:space-between;gap:40px">
+      <img src="assets/logo-castro-white.png" alt="Castro Tornería S.R.L." style="height:56px;max-width:200px;object-fit:contain;object-position:left;align-self:flex-start">
+      <div style="display:flex;flex-direction:column;gap:16px;max-width:480px;animation:fadeUp .6s ease both">
+        <span style="font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#e6e9f0">Sistema de gestión <span style="color:#7f9bd6">interno</span></span>
+        <span style="width:90px;height:3px;background:#3b5998;transform-origin:left;animation:lineGrow .7s .2s ease both"></span>
+        <h1 style="margin:0;font-size:var(--h1);font-weight:800;line-height:1.08;text-transform:uppercase;color:#ffffff;text-wrap:balance">Transformando metales con precisión</h1>
+        <p style="margin:0;font-size:16px;color:#d4d9e4">Castro Tornería S.R.L. · Córdoba, desde 1977.</p>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:center;padding:clamp(28px,5vw,56px) 16px">
+    <form onSubmit="{{ lgSubmit }}" noValidate="{{ true }}" style="width:100%;max-width:440px;box-sizing:border-box;display:flex;flex-direction:column;gap:22px;background:#ffffff;border-radius:8px;box-shadow:0 14px 36px rgba(23,38,69,.10);padding:var(--card-pad);animation:fadeUp .5s .1s ease both">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <h2 style="margin:0;font-size:var(--h2);font-weight:800;text-transform:uppercase;color:#172645">Ingresar</h2>
+        <span style="width:50px;height:3px;background:#3b5998"></span>
+      </div>
+      <sc-if value="{{ lg.hayMsg }}"><div role="alert" style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:6px;background:{{ lg.msgBg }};font-size:14.5px;font-weight:700;line-height:1.5;color:{{ lg.msgFg }};animation:toastIn .3s ease both"><span style="width:22px;height:22px;flex-shrink:0;border-radius:999px;background:{{ lg.msgFg }};color:#ffffff;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="{{ lg.msgIcon }}"></path></svg></span><span>{{ lg.msgTxt }}</span></div></sc-if>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">Nombre de usuario</label>
+        <input value="{{ lg.user }}" onChange="{{ lg.setUser }}" autoComplete="username" placeholder="Ej: mrios" style="box-sizing:border-box;width:100%;border:1.5px solid {{ lg.bcU }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;box-shadow:{{ lg.shU }}" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)">
+        <sc-if value="{{ lg.hayErrU }}"><span style="display:inline-flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:600;line-height:1.4;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ lg.errU }}</span></sc-if>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <label style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#172645">Contraseña</label>
+        <span style="display:flex;align-items:center;gap:4px;box-sizing:border-box;width:100%;border:1.5px solid {{ lg.bcP }};border-radius:6px;padding:0 6px 0 15px;background:#ffffff;box-shadow:{{ lg.shP }}">
+          <input type="{{ lg.ptype }}" value="{{ lg.pass }}" onChange="{{ lg.setPass }}" autoComplete="current-password" style="flex:1;min-width:0;border:none;outline:none;background:transparent;padding:14px 0;font-size:16px;font-weight:500;color:#172645">
+          <button type="button" onClick="{{ lg.toggleVer }}" title="{{ lg.verTitle }}" style="width:42px;height:42px;flex-shrink:0;border:none;border-radius:6px;background:transparent;color:#3b5998;display:inline-flex;align-items:center;justify-content:center" style-hover="background:#eef1f7"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="{{ lg.verIcon }}"></path></svg></button>
+        </span>
+        <sc-if value="{{ lg.hayErrP }}"><span style="display:inline-flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:600;line-height:1.4;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ lg.errP }}</span></sc-if>
+      </div>
+      <button type="submit" style="border:none;border-radius:6px;padding:16px 24px;background:#0f3483;color:#ffffff;font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;box-shadow:0 6px 16px rgba(15,52,131,.24);transition:background .2s ease,transform .2s ease" style-hover="background:#0b2766;transform:translateY(-2px)">Ingresar</button>
+      <p style="margin:0;font-size:13.5px;line-height:1.6;color:#8a909c;text-wrap:pretty">Si no recordás tu contraseña, pedile al Administrador del Sistema que la restablezca.</p>
+    </form>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ conSesion }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;align-items:stretch;min-height:calc(100vh - 40px)">
 
   <sc-if value="{{ railAbierto }}" hint-placeholder-val="{{ true }}">
@@ -68,25 +120,29 @@ button{cursor:pointer}
         <span style="width:18px;height:2.5px;border-radius:2px;background:#ffffff;display:block"></span>
       </button>
     </div>
-    <nav style="position:relative;display:flex;flex-direction:column;gap:14px">
-      <span style="padding:0 14px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#9aa7c2">Catálogos</span>
-      <span style="margin:0 0 4px 14px;width:40px;height:3px;background:#3b5998"></span>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <sc-for list="{{ nav }}" as="it" hint-placeholder-count="4">
+    <nav style="position:relative;flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;margin:-22px 0;padding:22px 0;display:flex;flex-direction:column;gap:26px">
+      <sc-for list="{{ navG }}" as="g" hint-placeholder-count="2">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <span style="padding:0 14px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#9aa7c2">{{ g.label }}</span>
+        <span style="margin:0 0 4px 14px;width:40px;height:3px;background:#3b5998"></span>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="2">
           <sc-if value="{{ it.on }}">
-          <button type="button" onClick="{{ it.go }}" style="position:relative;display:flex;align-items:center;gap:14px;padding:17px 18px 17px 16px;border:none;border-radius:24px 0 0 24px;background:#fcfcfc;font-size:14px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#0f3483;text-align:left">
+          <button type="button" onClick="{{ it.go }}" style="position:relative;display:flex;align-items:center;gap:14px;padding:15px 18px 15px 16px;border:none;border-radius:24px 0 0 24px;background:#fcfcfc;font-size:14px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#0f3483;text-align:left">
             <svg viewBox="0 0 22 22" preserveAspectRatio="none" style="position:absolute;right:0;top:-21px;width:22px;height:22px;pointer-events:none"><path d="M22 0Q22 22 0 22L22 22Z" fill="#fcfcfc"></path></svg>
             <svg viewBox="0 0 22 22" preserveAspectRatio="none" style="position:absolute;right:0;bottom:-21px;width:22px;height:22px;pointer-events:none"><path d="M22 22Q22 0 0 0L22 0Z" fill="#fcfcfc"></path></svg>
             <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="{{ it.d }}"></path></svg>{{ it.label }}
           </button>
           </sc-if>
           <sc-if value="{{ it.off }}">
-          <button type="button" onClick="{{ it.go }}" style="display:flex;align-items:center;gap:14px;margin-right:18px;padding:16px;border:none;border-radius:8px;background:transparent;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#e6e9f0;text-align:left;transition:background .2s ease,transform .2s ease" style-hover="background:rgba(255,255,255,.10);transform:translateX(4px)">
+          <button type="button" onClick="{{ it.go }}" style="display:flex;align-items:center;gap:14px;margin-right:18px;padding:14px 16px;border:none;border-radius:8px;background:transparent;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#e6e9f0;text-align:left;transition:background .2s ease,transform .2s ease" style-hover="background:rgba(255,255,255,.10);transform:translateX(4px)">
             <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="{{ it.d }}"></path></svg>{{ it.label }}
           </button>
           </sc-if>
-        </sc-for>
+          </sc-for>
+        </div>
       </div>
+      </sc-for>
     </nav>
     <span style="position:relative;margin-top:auto;padding:0 18px 0 14px;font-size:12px;line-height:1.6;color:#9aa7c2">Transformando metales con precisión desde 1977.</span>
   </aside>
@@ -100,20 +156,23 @@ button{cursor:pointer}
       <span style="width:19px;height:2.5px;border-radius:2px;background:#ffffff;display:block"></span>
       <span style="width:19px;height:2.5px;border-radius:2px;background:#ffffff;display:block"></span>
     </button>
-    <nav style="position:relative;display:flex;flex-direction:column;gap:8px">
-      <sc-for list="{{ nav }}" as="it" hint-placeholder-count="4">
+    <nav style="position:relative;flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;margin:-20px 0;padding:20px 0;display:flex;flex-direction:column;gap:8px">
+      <sc-for list="{{ navG }}" as="g" hint-placeholder-count="2">
+      <sc-if value="{{ g.sep }}"><span style="height:1px;margin:6px 28px 6px 14px;background:rgba(255,255,255,.16)"></span></sc-if>
+      <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="2">
         <sc-if value="{{ it.on }}">
-        <button type="button" onClick="{{ it.go }}" title="{{ it.label }}" style="position:relative;height:58px;display:flex;align-items:center;justify-content:center;border:none;border-radius:22px 0 0 22px;background:#fcfcfc;color:#0f3483">
+        <button type="button" onClick="{{ it.go }}" title="{{ it.label }}" style="position:relative;height:56px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:none;border-radius:22px 0 0 22px;background:#fcfcfc;color:#0f3483">
           <svg viewBox="0 0 20 20" preserveAspectRatio="none" style="position:absolute;right:0;top:-19px;width:20px;height:20px;pointer-events:none"><path d="M20 0Q20 20 0 20L20 20Z" fill="#fcfcfc"></path></svg>
           <svg viewBox="0 0 20 20" preserveAspectRatio="none" style="position:absolute;right:0;bottom:-19px;width:20px;height:20px;pointer-events:none"><path d="M20 20Q20 0 0 0L20 0Z" fill="#fcfcfc"></path></svg>
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="{{ it.d }}"></path></svg>
         </button>
         </sc-if>
         <sc-if value="{{ it.off }}">
-        <button type="button" onClick="{{ it.go }}" title="{{ it.label }}" style="height:54px;margin-right:14px;display:flex;align-items:center;justify-content:center;border:none;border-radius:8px;background:transparent;color:#e6e9f0;transition:background .2s ease" style-hover="background:rgba(255,255,255,.10)">
+        <button type="button" onClick="{{ it.go }}" title="{{ it.label }}" style="height:52px;flex-shrink:0;margin-right:14px;display:flex;align-items:center;justify-content:center;border:none;border-radius:8px;background:transparent;color:#e6e9f0;transition:background .2s ease" style-hover="background:rgba(255,255,255,.10)">
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="{{ it.d }}"></path></svg>
         </button>
         </sc-if>
+      </sc-for>
       </sc-for>
     </nav>
   </aside>
@@ -124,14 +183,34 @@ button{cursor:pointer}
     <sc-if value="{{ escritorio }}" hint-placeholder-val="{{ true }}">
     <header style="height:72px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 40px;border-bottom:1px solid #eceef3">
       <span style="display:flex;align-items:center;gap:8px;min-width:0;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8a909c;white-space:nowrap;overflow:hidden">
-        <span>Catálogos</span><span>/</span>
+        <span>{{ crumbGrupo }}</span><span>/</span>
         <sc-if value="{{ crumb2 }}">
           <button type="button" onClick="{{ crumbGo }}" style="border:none;background:none;padding:0;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8a909c" style-hover="color:#0f3483">{{ crumbSec }}</button><span>/</span>
           <strong style="color:#172645;overflow:hidden;text-overflow:ellipsis">{{ crumbAct }}</strong>
         </sc-if>
         <sc-if value="{{ crumb1 }}" hint-placeholder-val="{{ true }}"><strong style="color:#172645">{{ crumbSec }}</strong></sc-if>
       </span>
-      <span style="display:flex;align-items:center;gap:10px;flex-shrink:0"><span style="width:38px;height:38px;border-radius:6px;background:#eef1f7;color:#172645;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">WC</span><span style="font-size:14px;font-weight:600;color:#172645">Walter Castro</span></span>
+      <span style="position:relative;flex-shrink:0">
+        <button type="button" onClick="{{ toggleUsu }}" aria-label="Menú de usuario" style="display:flex;align-items:center;gap:10px;border:none;background:{{ usr.btnBg }};padding:6px 10px 6px 6px;border-radius:8px;text-align:left;transition:background .2s ease" style-hover="background:#f3f5f9">
+          <span style="width:38px;height:38px;flex-shrink:0;border-radius:6px;background:#172645;color:#ffffff;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">{{ usr.ini }}</span>
+          <span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:14px;font-weight:700;color:#172645;white-space:nowrap">{{ usr.nombre }}</span><span style="max-width:240px;font-size:12px;font-weight:500;color:#8a909c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ usr.rolCorto }}</span></span>
+          <span style="color:#8a909c;display:inline-flex"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M5.5 8l4.5 4.5L14.5 8"></path></svg></span>
+        </button>
+        <sc-if value="{{ menuUsu }}">
+        <div onClick="{{ cerrarUsu }}" style="position:fixed;inset:0;z-index:30"></div>
+        <div style="position:absolute;right:0;top:calc(100% + 10px);z-index:31;width:330px;box-sizing:border-box;background:#ffffff;border-radius:8px;box-shadow:0 18px 44px rgba(23,38,69,.2);padding:20px;display:flex;flex-direction:column;gap:18px;animation:popIn .2s ease both">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="width:46px;height:46px;flex-shrink:0;border-radius:8px;background:#172645;color:#ffffff;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:700">{{ usr.ini }}</span>
+            <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:16px;font-weight:800;color:#172645">{{ usr.nombre }}</span><span style="font-size:13px;font-weight:500;color:#8a909c">Usuario {{ usr.usuario }}</span></span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8a909c">Roles</span><span style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ usr.roles }}" as="r" hint-placeholder-count="1"><span style="padding:5px 9px;border-radius:4px;font-size:11.5px;font-weight:700;color:#172645;background:#eef1f7">{{ r.name }}</span></sc-for></span></div>
+          <div style="display:flex;flex-direction:column;gap:4px;padding-top:12px;border-top:1px solid #eef0f3">
+            <button type="button" onClick="{{ cambiarPass }}" style="display:flex;align-items:center;gap:12px;border:none;background:none;padding:11px 8px;border-radius:6px;font-size:14px;font-weight:700;color:#8a909c;text-align:left" style-hover="background:#f6f8fc"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0"><path d="M5.5 9V6.5a4.5 4.5 0 0 1 9 0V9M4.5 9h11v8h-11z"></path></svg>Cambiar contraseña<span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></button>
+            <button type="button" onClick="{{ salir }}" style="display:flex;align-items:center;gap:12px;border:none;background:none;padding:11px 8px;border-radius:6px;font-size:14px;font-weight:700;color:#172645;text-align:left" style-hover="background:#fbe9e7;color:#b3261e"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0"><path d="M8 3.5H4v13h4M12.5 6.5 16 10l-3.5 3.5M16 10H7.5"></path></svg>Cerrar sesión</button>
+          </div>
+        </div>
+        </sc-if>
+      </span>
     </header>
     </sc-if>
 
@@ -180,13 +259,31 @@ button{cursor:pointer}
             <sc-for list="{{ rubroOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for>
           </select>
           </sc-if>
+          <sc-if value="{{ esMat }}">
+          <select value="{{ fMat }}" onChange="{{ setFMat }}" aria-label="Filtrar por material" style="flex:0 1 220px;min-width:180px;box-sizing:border-box;border:1.5px solid #e1e5ec;border-radius:6px;padding:14px 16px;font-size:15px;font-weight:600;color:#172645;background:#ffffff;outline:none">
+            <option value="">Todos los materiales</option>
+            <sc-for list="{{ matOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for>
+          </select>
+          </sc-if>
+          <sc-if value="{{ esUsu }}">
+          <select value="{{ fRol }}" onChange="{{ setFRol }}" aria-label="Filtrar por rol" style="flex:0 1 220px;min-width:180px;box-sizing:border-box;border:1.5px solid #e1e5ec;border-radius:6px;padding:14px 16px;font-size:15px;font-weight:600;color:#172645;background:#ffffff;outline:none">
+            <option value="">Todos los roles</option>
+            <sc-for list="{{ rolOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for>
+          </select>
+          </sc-if>
+          <sc-if value="{{ hayIncBaja }}">
+          <button type="button" onClick="{{ toggleIncBaja }}" style="flex-shrink:0;display:inline-flex;align-items:center;gap:10px;border:none;background:none;padding:6px 4px;font-size:15px;font-weight:600;color:#172645">
+            <span style="width:34px;height:34px;box-sizing:border-box;border-radius:6px;border:2px solid {{ incBaja.boxBd }};background:{{ incBaja.boxBg }};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;transition:background .15s ease">{{ incBaja.mark }}</span>
+            Incluir dados de baja
+          </button>
+          </sc-if>
           <sc-if value="{{ provNormal }}">
           <button type="button" onClick="{{ entrarBorrado }}" style="flex-shrink:0;border:none;border-radius:6px;padding:15px 20px;background:#eef1f7;color:#172645;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease,transform .2s ease" style-hover="background:#e1e7f2;transform:translateY(-2px)">Eliminar proveedores</button>
           </sc-if>
           <sc-if value="{{ borrando }}">
           <button type="button" onClick="{{ salirBorrado }}" style="flex-shrink:0;border:none;border-radius:6px;padding:15px 20px;background:#fbe9e7;color:#b3261e;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;box-shadow:inset 0 0 0 2px #b3261e">Eliminando proveedores</button>
           </sc-if>
-          <button type="button" onClick="{{ lista.nuevo }}" disabled="{{ borrando }}" style="flex-shrink:0;border:none;border-radius:6px;padding:15px 24px;background:#0f3483;color:#ffffff;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;box-shadow:0 6px 16px rgba(15,52,131,.24);opacity:{{ nuevoOp }};transition:background .2s ease,transform .2s ease,box-shadow .2s ease" style-hover="background:#0b2766;transform:translateY(-2px);box-shadow:0 12px 24px rgba(15,52,131,.32)">{{ lista.nuevoLabel }}</button>
+          <sc-if value="{{ lista.puedeNuevo }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ lista.nuevo }}" disabled="{{ borrando }}" style="flex-shrink:0;border:none;border-radius:6px;padding:15px 24px;background:#0f3483;color:#ffffff;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;box-shadow:0 6px 16px rgba(15,52,131,.24);opacity:{{ nuevoOp }};transition:background .2s ease,transform .2s ease,box-shadow .2s ease" style-hover="background:#0b2766;transform:translateY(-2px);box-shadow:0 12px 24px rgba(15,52,131,.32)">{{ lista.nuevoLabel }}</button></sc-if>
         </div>
 
         <sc-if value="{{ borrando }}">
@@ -300,6 +397,82 @@ button{cursor:pointer}
           </div>
           </sc-if>
 
+          <sc-if value="{{ esSol }}">
+          <div style="min-width:1240px">
+            <div style="display:grid;grid-template-columns:96px 118px minmax(0,1.3fr) 140px minmax(0,1.6fr) 150px 200px 80px;gap:14px;padding:15px 22px;background:#f5f6f9;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#172645"><span>Solicitud</span><span>Fecha</span><span>Cliente</span><span>N.º de pedido</span><span>Descripción</span><span>Adjuntos</span><span>Estado de la cotización</span><span></span></div>
+            <sc-for list="{{ solRows }}" as="r" hint-placeholder-count="6">
+            <div onClick="{{ r.ver }}" style="display:grid;grid-template-columns:96px 118px minmax(0,1.3fr) 140px minmax(0,1.6fr) 150px 200px 80px;gap:14px;align-items:center;padding:14px 22px;border-top:1px solid #eef0f3;transition:background .2s ease,box-shadow .2s ease;cursor:pointer" style-hover="background:#f6f8fc;box-shadow:inset 4px 0 0 #3b5998">
+              <span style="font-size:15px;font-weight:800;color:#0f3483">#{{ r.id }}</span>
+              <span style="font-size:14px;font-weight:500;color:#555b66">{{ r.fecha }}</span>
+              <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:15px;font-weight:700;color:#172645">{{ r.enc }}</span><span style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#8a909c"><span style="color:#3b5998;display:inline-flex"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="M3 17V8.5l4.5 3V8.5l4.5 3V5h5v12z"></path></svg></span>{{ r.fab }}</span></span>
+              <span style="font-size:14px;font-weight:600;color:{{ r.pedFg }}">{{ r.pedido }}</span>
+              <span style="font-size:14px;line-height:1.5;color:#555b66;min-width:0">{{ r.desc }}</span>
+              <span style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ r.adj }}" as="a" hint-placeholder-count="2"><span title="{{ a.t }}" style="display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:4px;background:#eef1f7;color:#172645;font-size:12px;font-weight:800"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="{{ a.icon }}"></path></svg>{{ a.n }}</span></sc-for></span>
+              <span style="justify-self:start;display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border-radius:4px;font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#3b5998;background:#eef1f7"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="M17 10a7 7 0 1 1-14 0a7 7 0 1 1 14 0M10 6.5V10l2.5 2"></path></svg>{{ r.estado }}</span>
+              <button type="button" onClick="{{ r.ver }}" style="justify-self:end;border:none;display:inline-flex;align-items:center;min-height:40px;padding:0 18px;border-radius:6px;background:#eef1f7;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#0f3483;transition:background .2s ease,color .2s ease" style-hover="background:#0f3483;color:#ffffff">Ver</button>
+            </div>
+            </sc-for>
+          </div>
+          </sc-if>
+
+          <sc-if value="{{ esMat }}">
+          <div style="min-width:520px">
+            <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px;padding:15px 22px;background:#f5f6f9;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#172645"><span>Material</span><span>Calidad</span></div>
+            <sc-for list="{{ matRows }}" as="r" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px;align-items:center;padding:14px 22px;border-top:1px solid #eef0f3;transition:background .2s ease,box-shadow .2s ease" style-hover="background:#f6f8fc;box-shadow:inset 4px 0 0 #3b5998">
+              <span style="display:flex;align-items:center;gap:13px;min-width:0"><span style="width:40px;height:40px;flex-shrink:0;border-radius:6px;background:#172645;color:#ffffff;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="{{ r.icon }}"></path></svg></span><span style="font-size:15px;font-weight:700;color:#172645">{{ r.nombre }}</span></span>
+              <span style="font-size:15px;font-weight:600;color:#3b5998">{{ r.calidad }}</span>
+            </div>
+            </sc-for>
+          </div>
+          </sc-if>
+
+          <sc-if value="{{ esTp }}">
+          <div style="min-width:940px">
+            <div style="display:grid;grid-template-columns:minmax(0,2fr) 170px 160px 200px 80px;gap:14px;padding:15px 22px;background:#f5f6f9;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#172645"><span>Nombre</span><span>Precio hora en pesos</span><span>Precio hora en dólares</span><span>Última actualización</span><span></span></div>
+            <sc-for list="{{ tpRows }}" as="r" hint-placeholder-count="6">
+            <div onClick="{{ r.ver }}" style="display:grid;grid-template-columns:minmax(0,2fr) 170px 160px 200px 80px;gap:14px;align-items:center;padding:14px 22px;border-top:1px solid #eef0f3;transition:background .2s ease,box-shadow .2s ease;cursor:pointer" style-hover="background:#f6f8fc;box-shadow:inset 4px 0 0 #3b5998">
+              <span style="display:flex;align-items:center;gap:13px;min-width:0"><span style="width:40px;height:40px;flex-shrink:0;border-radius:6px;background:#eef1f7;color:#3b5998;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="{{ r.icon }}"></path></svg></span><span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:15px;font-weight:700;color:#172645">{{ r.nombre }}</span><span style="font-size:13px;line-height:1.45;color:{{ r.descFg }}">{{ r.desc }}</span></span></span>
+              <span style="font-size:15px;font-weight:700;color:#172645;font-variant-numeric:tabular-nums">{{ r.ars }}</span>
+              <span style="font-size:15px;font-weight:700;color:#172645;font-variant-numeric:tabular-nums">{{ r.usd }}</span>
+              <span style="font-size:14px;font-weight:500;color:#555b66">{{ r.ult }}</span>
+              <button type="button" onClick="{{ r.ver }}" style="justify-self:end;border:none;display:inline-flex;align-items:center;min-height:40px;padding:0 18px;border-radius:6px;background:#eef1f7;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#0f3483;transition:background .2s ease,color .2s ease" style-hover="background:#0f3483;color:#ffffff">Ver</button>
+            </div>
+            </sc-for>
+          </div>
+          </sc-if>
+
+          <sc-if value="{{ esEmp }}">
+          <div style="min-width:940px">
+            <div style="display:grid;grid-template-columns:minmax(0,1.3fr) 170px minmax(0,1.7fr) 130px 80px;gap:14px;padding:15px 22px;background:#f5f6f9;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#172645"><span>Empleado</span><span>Usuario</span><span>Roles</span><span>Estado</span><span></span></div>
+            <sc-for list="{{ empRows }}" as="r" hint-placeholder-count="6">
+            <div onClick="{{ r.ver }}" style="display:grid;grid-template-columns:minmax(0,1.3fr) 170px minmax(0,1.7fr) 130px 80px;gap:14px;align-items:center;padding:14px 22px;border-top:1px solid #eef0f3;transition:background .2s ease,box-shadow .2s ease;cursor:pointer;opacity:{{ r.op }}" style-hover="background:#f6f8fc;box-shadow:inset 4px 0 0 #3b5998">
+              <span style="display:flex;align-items:center;gap:13px;min-width:0"><span style="width:40px;height:40px;flex-shrink:0;border-radius:6px;background:#eef1f7;color:#3b5998;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="{{ r.icon }}"></path></svg></span><span style="font-size:15px;font-weight:700;color:#172645">{{ r.nombre }}</span></span>
+              <span style="font-size:14px;font-weight:{{ r.usuFw }};color:{{ r.usuFg }}">{{ r.usuario }}</span>
+              <span style="display:flex;flex-wrap:wrap;gap:6px;min-width:0"><sc-for list="{{ r.roles }}" as="t" hint-placeholder-count="1"><span style="padding:5px 9px;border-radius:4px;font-size:11.5px;font-weight:700;color:#172645;background:#eef1f7;white-space:nowrap">{{ t.name }}</span></sc-for><sc-if value="{{ r.sinRoles }}"><span style="font-size:14px;color:#b0b5be">—</span></sc-if></span>
+              <span style="justify-self:start;display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:{{ r.estFg }};background:{{ r.estBg }};white-space:nowrap"><span style="width:6px;height:6px;border-radius:99px;background:{{ r.estDot }}"></span>{{ r.estado }}</span>
+              <button type="button" onClick="{{ r.ver }}" style="justify-self:end;border:none;display:inline-flex;align-items:center;min-height:40px;padding:0 18px;border-radius:6px;background:#eef1f7;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#0f3483;transition:background .2s ease,color .2s ease" style-hover="background:#0f3483;color:#ffffff">Ver</button>
+            </div>
+            </sc-for>
+          </div>
+          </sc-if>
+
+          <sc-if value="{{ esUsu }}">
+          <div style="min-width:1060px">
+            <div style="display:grid;grid-template-columns:170px minmax(0,1.2fr) minmax(0,1.7fr) 130px 190px 80px;gap:14px;padding:15px 22px;background:#f5f6f9;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#172645"><span>Nombre de usuario</span><span>Empleado</span><span>Roles</span><span>Estado</span><span>Último acceso</span><span></span></div>
+            <sc-for list="{{ usuRows }}" as="r" hint-placeholder-count="6">
+            <div onClick="{{ r.ver }}" style="display:grid;grid-template-columns:170px minmax(0,1.2fr) minmax(0,1.7fr) 130px 190px 80px;gap:14px;align-items:center;padding:14px 22px;border-top:1px solid #eef0f3;transition:background .2s ease,box-shadow .2s ease;cursor:pointer;opacity:{{ r.op }}" style-hover="background:#f6f8fc;box-shadow:inset 4px 0 0 #3b5998">
+              <span style="display:flex;align-items:center;gap:12px;min-width:0"><span style="width:40px;height:40px;flex-shrink:0;border-radius:6px;background:#172645;color:#ffffff;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="{{ r.icon }}"></path></svg></span><span style="font-size:15px;font-weight:700;color:#172645;overflow:hidden;text-overflow:ellipsis">{{ r.nombre }}</span></span>
+              <span style="font-size:15px;font-weight:600;color:#172645">{{ r.emp }}</span>
+              <span style="display:flex;flex-wrap:wrap;gap:6px;min-width:0"><sc-for list="{{ r.roles }}" as="t" hint-placeholder-count="1"><span style="padding:5px 9px;border-radius:4px;font-size:11.5px;font-weight:700;color:#172645;background:#eef1f7;white-space:nowrap">{{ t.name }}</span></sc-for><sc-if value="{{ r.sinRoles }}"><span style="font-size:14px;color:#b0b5be">—</span></sc-if></span>
+              <span style="justify-self:start;display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:{{ r.estFg }};background:{{ r.estBg }};white-space:nowrap"><span style="width:6px;height:6px;border-radius:99px;background:{{ r.estDot }}"></span>{{ r.estado }}</span>
+              <span style="font-size:14px;font-weight:500;color:{{ r.ultFg }}">{{ r.ult }}</span>
+              <button type="button" onClick="{{ r.ver }}" style="justify-self:end;border:none;display:inline-flex;align-items:center;min-height:40px;padding:0 18px;border-radius:6px;background:#eef1f7;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#0f3483;transition:background .2s ease,color .2s ease" style-hover="background:#0f3483;color:#ffffff">Ver</button>
+            </div>
+            </sc-for>
+          </div>
+          </sc-if>
+
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 22px;border-top:1px solid #eef0f3;background:#fcfdfe">
             <span style="font-size:14px;color:#555b66">Mostrando <strong style="color:#172645;font-weight:700">{{ pag.rango }}</strong> de <strong style="color:#172645;font-weight:700">{{ pag.total }}</strong></span>
@@ -323,16 +496,16 @@ button{cursor:pointer}
                 <span style="font-size:17px;font-weight:700;color:#172645;line-height:1.25">{{ k.titulo }}</span>
                 <span style="font-size:14px;font-weight:500;color:#555b66;overflow-wrap:anywhere">{{ k.sub }}</span>
               </span>
-              <sc-if value="{{ k.inactivo }}"><span style="padding:4px 9px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6b7280;background:#f1f2f4">Inactivo</span></sc-if>
+              <sc-if value="{{ k.hayBadge }}"><span style="flex-shrink:0;padding:4px 9px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:{{ k.badgeFg }};background:{{ k.badgeBg }}">{{ k.badge }}</span></sc-if><sc-if value="{{ k.inactivo }}"><span style="padding:4px 9px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6b7280;background:#f1f2f4">Inactivo</span></sc-if>
             </div>
             <sc-if value="{{ k.hayChips }}"><span style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ k.chips }}" as="t" hint-placeholder-count="1"><span style="display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#172645;background:#eef1f7"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="{{ t.icon }}"></path></svg>{{ t.name }}</span></sc-for></span></sc-if>
             <sc-if value="{{ k.hayLinea }}"><span style="font-size:15px;color:#555b66;overflow-wrap:anywhere">{{ k.linea }}</span></sc-if>
             <sc-if value="{{ noBorrando }}" hint-placeholder-val="{{ true }}">
-            <div style="display:flex;gap:10px">
+            <sc-if value="{{ k.hayBotones }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:10px">
               <button type="button" onClick="{{ k.ver }}" style="flex:1;min-height:50px;border:none;border-radius:6px;background:#eef1f7;font-size:15px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#0f3483">{{ k.verLabel }}</button>
               <sc-if value="{{ k.puedeBorrar }}"><button type="button" onClick="{{ k.borrar }}" title="Eliminar" style="width:50px;height:50px;flex-shrink:0;border:none;border-radius:6px;background:#f3f4f7;color:#8a909c;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M3 5.6h14M7.8 5.6V4.3a1.3 1.3 0 0 1 1.3-1.3h1.8a1.3 1.3 0 0 1 1.3 1.3v1.3M5.1 5.6h9.8l-.7 9.6a1.6 1.6 0 0 1-1.6 1.5H7.4a1.6 1.6 0 0 1-1.6-1.5zM8.4 8.8v4.6M11.6 8.8v4.6"></path></svg></button></sc-if>
               <sc-if value="{{ k.puedeReact }}"><button type="button" onClick="{{ k.reactivar }}" style="min-height:50px;flex-shrink:0;padding:0 16px;border:none;border-radius:6px;background:#e6f4ec;color:#1f7a45;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase">Reactivar</button></sc-if>
-            </div>
+            </div></sc-if>
             </sc-if>
           </div>
           </sc-for>
@@ -389,6 +562,7 @@ button{cursor:pointer}
           <sc-for list="{{ nv.secciones }}" as="s" hint-placeholder-count="1">
           <section style="display:flex;flex-direction:column;gap:20px">
             <sc-if value="{{ s.hayTitulo }}"><div style="display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font-size:20px;font-weight:800;text-transform:uppercase;color:#172645">{{ s.titulo }}</h3><span style="width:50px;height:3px;background:#3b5998"></span></div></sc-if>
+            <sc-if value="{{ s.hayAviso }}"><div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:8px;background:#eef1f7;font-size:14.5px;font-weight:600;line-height:1.55;color:#172645"><span style="color:#3b5998;display:inline-flex;margin-top:1px"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="M10 9v5M10 6.2v.01M17 10a7 7 0 1 1-14 0a7 7 0 1 1 14 0"></path></svg></span><span>{{ s.aviso }}</span></div></sc-if>
             <div style="display:grid;grid-template-columns:repeat({{ s.cols }},minmax(0,1fr));gap:20px 24px">
               <sc-for list="{{ s.campos }}" as="c" hint-placeholder-count="4">
               <div style="grid-column:{{ c.span }};display:flex;flex-direction:column;gap:8px;min-width:0">
@@ -398,6 +572,80 @@ button{cursor:pointer}
                 <sc-if value="{{ c.esSelect }}"><select value="{{ c.value }}" onChange="{{ c.onChange }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;box-shadow:{{ c.sh }}" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)"><option value="">{{ c.phSel }}</option><sc-for list="{{ c.opciones }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select></sc-if>
                 <sc-if value="{{ c.esCheck }}"><button type="button" onClick="{{ c.toggle }}" style="align-self:flex-start;display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;border:none;background:none;padding:2px 0;font-size:15px;font-weight:600;color:#172645;text-align:left"><span style="width:34px;height:34px;flex-shrink:0;box-sizing:border-box;border-radius:6px;border:2px solid {{ c.boxBd }};background:{{ c.boxBg }};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;transition:background .15s ease">{{ c.mark }}</span>{{ c.label }}<sc-if value="{{ c.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></button></sc-if>
                 <sc-if value="{{ c.esTipos }}"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px"><sc-for list="{{ c.tipoOpts }}" as="o" hint-placeholder-count="4"><button type="button" onClick="{{ o.toggle }}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid {{ o.bd }};border-radius:6px;background:{{ o.bg }};text-align:left;transition:background .2s ease,border-color .2s ease" style-hover="border-color:#3b5998"><span style="width:34px;height:34px;flex-shrink:0;box-sizing:border-box;border-radius:6px;border:2px solid {{ o.boxBd }};background:{{ o.boxBg }};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700">{{ o.mark }}</span><span style="display:inline-flex;color:#3b5998"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="{{ o.icon }}"></path></svg></span><span style="font-size:15px;font-weight:700;color:#172645">{{ o.name }}</span></button></sc-for></div></sc-if>
+                <sc-if value="{{ c.esFecha }}"><input type="date" value="{{ c.value }}" onChange="{{ c.onChange }}" max="{{ c.maxF }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;box-shadow:{{ c.sh }};max-width:280px" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)"></sc-if>
+                <sc-if value="{{ c.esMoney }}"><span style="display:flex;align-items:center;gap:10px;box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;background:#ffffff;box-shadow:{{ c.sh }};padding:0 15px"><span style="font-size:15px;font-weight:700;color:#8a909c">{{ c.prefijo }}</span><input inputMode="decimal" value="{{ c.value }}" onChange="{{ c.onChange }}" placeholder="{{ c.ph }}" style="flex:1;min-width:0;border:none;outline:none;background:transparent;padding:14px 0;font-size:16px;font-weight:600;color:#172645;font-variant-numeric:tabular-nums"><span style="font-size:13px;font-weight:600;color:#8a909c;white-space:nowrap">por hora</span></span></sc-if>
+                <sc-if value="{{ c.esPass }}"><div style="display:flex;gap:10px;flex-wrap:wrap"><span style="display:flex;align-items:center;gap:10px;box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;background:#ffffff;box-shadow:{{ c.sh }};flex:1 1 220px;width:auto;min-width:0;gap:4px;padding:0 6px 0 15px"><input type="{{ c.ptype }}" autoComplete="new-password" value="{{ c.value }}" onChange="{{ c.onChange }}" placeholder="{{ c.ph }}" style="flex:1;min-width:0;border:none;outline:none;background:transparent;padding:14px 0;font-size:16px;font-weight:600;color:#172645"><button type="button" onClick="{{ c.toggleVer }}" title="{{ c.verTitle }}" style="width:42px;height:42px;flex-shrink:0;border:none;border-radius:6px;background:transparent;color:#3b5998;display:inline-flex;align-items:center;justify-content:center" style-hover="background:#eef1f7"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="{{ c.verIcon }}"></path></svg></button></span><button type="button" onClick="{{ c.generar }}" style="border:none;border-radius:6px;padding:12px 18px;background:#eef1f7;color:#0f3483;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease" style-hover="background:#e1e7f2">Generar</button></div></sc-if>
+                <sc-if value="{{ c.esRoles }}"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:12px"><sc-for list="{{ c.rolOpts }}" as="o" hint-placeholder-count="6"><button type="button" onClick="{{ o.toggle }}" style="display:flex;align-items:flex-start;gap:12px;padding:14px;border:1.5px solid {{ o.bd }};border-radius:6px;background:{{ o.bg }};text-align:left;transition:background .2s ease,border-color .2s ease" style-hover="border-color:#3b5998"><span style="width:34px;height:34px;flex-shrink:0;box-sizing:border-box;border-radius:6px;border:2px solid {{ o.boxBd }};background:{{ o.boxBg }};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700">{{ o.mark }}</span><span style="display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font-size:15px;font-weight:700;color:#172645">{{ o.name }}</span><span style="font-size:13px;line-height:1.5;color:#555b66">{{ o.desc }}</span><sc-if value="{{ o.hayNota }}"><span style="font-size:12.5px;font-weight:700;line-height:1.45;color:#0f3483">{{ o.nota }}</span></sc-if></span></button></sc-for></div></sc-if>
+                <sc-if value="{{ c.esPick }}">
+                <div style="display:flex;flex-direction:column;gap:10px">
+                  <sc-if value="{{ c.pk.sinSel }}">
+                  <label style="display:flex;align-items:center;gap:10px;box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;background:#ffffff;box-shadow:{{ c.sh }};gap:12px;padding:0 15px;color:#8a909c"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px;flex-shrink:0"><path d="M14.5 9a5.5 5.5 0 1 1-11 0a5.5 5.5 0 1 1 11 0M13 13l4.5 4.5"></path></svg><input type="search" value="{{ c.pk.q }}" onChange="{{ c.pk.setQ }}" onFocus="{{ c.pk.abrir }}" placeholder="{{ c.ph }}" style="flex:1;min-width:0;border:none;outline:none;background:transparent;padding:14px 0;font-size:16px;font-weight:500;color:#172645"></label>
+                  <sc-if value="{{ c.pk.abierto }}">
+                  <div style="border:1.5px solid #e1e5ec;border-radius:6px;background:#ffffff;box-shadow:0 14px 30px rgba(23,38,69,.10);overflow:hidden;animation:toastIn .2s ease both">
+                    <div style="max-height:312px;overflow-y:auto">
+                    <sc-for list="{{ c.pk.res }}" as="o" hint-placeholder-count="3">
+                    <button type="button" onClick="{{ o.elegir }}" style="width:100%;box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:11px 14px;border:none;border-bottom:1px solid #eef0f3;background:#ffffff;text-align:left" style-hover="background:#f6f8fc">
+                      <span style="width:36px;height:36px;flex-shrink:0;border-radius:999px;background:#eef1f7;color:#172645;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0"><path d="{{ o.icon }}"></path></svg></span>
+                      <span style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1"><span style="font-size:15px;font-weight:700;color:#172645">{{ o.titulo }}</span><span style="font-size:13px;color:#8a909c;overflow-wrap:anywhere">{{ o.sub }}</span></span>
+                      <sc-if value="{{ o.hayTag }}"><span style="flex-shrink:0;padding:4px 9px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6b7280;background:#f1f2f4">{{ o.tag }}</span></sc-if>
+                    </button>
+                    </sc-for>
+                    </div>
+                    <sc-if value="{{ c.pk.vacio }}"><div style="padding:16px 14px;font-size:14px;color:#555b66">{{ c.pk.vacioTxt }}</div></sc-if>
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:12px 14px;background:#f5f6f9;font-size:13.5px;line-height:1.5;color:#555b66">{{ c.pk.hint }}<button type="button" onClick="{{ c.pk.hintGo }}" style="border:none;background:none;padding:0;font-size:13.5px;font-weight:800;color:#0f3483" style-hover="color:#3b5998">{{ c.pk.hintLink }}</button></div>
+                  </div>
+                  </sc-if>
+                  </sc-if>
+                  <sc-if value="{{ c.pk.conSel }}">
+                  <div style="display:flex;flex-direction:column;gap:16px;padding:18px;border-radius:8px;background:#f5f7fb;box-shadow:inset 3px 0 0 #3b5998;animation:fadeUp .3s ease both">
+                    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+                      <span style="width:46px;height:46px;flex-shrink:0;border-radius:999px;background:#172645;color:#ffffff;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:21px;height:21px;flex-shrink:0"><path d="{{ c.pk.sel.icon }}"></path></svg></span>
+                      <span style="display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 180px"><span style="font-size:17px;font-weight:800;color:#172645">{{ c.pk.sel.titulo }}</span><span style="font-size:14px;color:#555b66;overflow-wrap:anywhere">{{ c.pk.sel.sub }}</span></span>
+                      <button type="button" onClick="{{ c.pk.limpiar }}" style="border:none;border-radius:6px;padding:12px 18px;background:#eef1f7;color:#0f3483;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease;background:#ffffff" style-hover="background:#e1e7f2">Cambiar</button>
+                    </div>
+                    <sc-if value="{{ c.pk.hayDatos }}">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:14px 20px">
+                      <sc-for list="{{ c.pk.sel.datos }}" as="it" hint-placeholder-count="3"><div style="grid-column:{{ it.span }};display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8a909c">{{ it.label }}</span><span style="font-size:15px;font-weight:600;line-height:1.5;color:{{ it.fg }};overflow-wrap:anywhere">{{ it.valor }}</span></div></sc-for>
+                    </div>
+                    </sc-if>
+                  </div>
+                  </sc-if>
+                  <sc-if value="{{ c.pk.hayAlerta }}">
+                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-radius:6px;background:#fbe9e7;font-size:14px;font-weight:700;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ c.pk.alerta }}<button type="button" onClick="{{ c.pk.alertaGo }}" style="border:none;background:none;padding:0;font-size:14px;font-weight:800;color:#0f3483;text-decoration:underline">Ver</button></div>
+                  </sc-if>
+                </div>
+                </sc-if>
+                <sc-if value="{{ c.esArchivos }}">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:16px">
+                  <sc-for list="{{ c.grupos }}" as="g" hint-placeholder-count="4">
+                  <div onDragOver="{{ g.over }}" onDragLeave="{{ g.leave }}" onDrop="{{ g.drop }}" style="display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:8px;border:1.5px dashed {{ g.bd }};background:{{ g.bg }};transition:background .2s ease,border-color .2s ease">
+                    <div style="display:flex;align-items:center;gap:12px">
+                      <span style="width:40px;height:40px;flex-shrink:0;border-radius:6px;background:#eef1f7;color:#3b5998;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="{{ g.icon }}"></path></svg></span>
+                      <span style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1"><span style="font-size:15px;font-weight:800;color:#172645">{{ g.titulo }}</span><span style="font-size:12.5px;font-weight:600;color:#8a909c">{{ g.formatos }}</span></span>
+                    </div>
+                    <sc-if value="{{ g.hayAyuda }}"><span style="font-size:13px;line-height:1.5;color:#555b66">{{ g.ayuda }}</span></sc-if>
+                    <sc-if value="{{ g.hayArch }}">
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                      <sc-for list="{{ g.arch }}" as="a" hint-placeholder-count="1">
+                      <div style="display:flex;align-items:center;gap:12px;padding:8px 8px 8px 10px;border-radius:6px;background:#ffffff;box-shadow:0 2px 8px rgba(23,38,69,.07);animation:fadeUp .3s ease both">
+                        <sc-if value="{{ a.esFoto }}"><span style="width:44px;height:44px;flex-shrink:0;border-radius:4px;background:{{ a.thumb }};background-color:#eef1f7"></span></sc-if>
+                        <sc-if value="{{ a.noFoto }}"><span style="width:44px;height:44px;flex-shrink:0;border-radius:4px;background:#172645;color:#ffffff;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="{{ a.icon }}"></path></svg></span></sc-if>
+                        <span style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1"><span style="font-size:14px;font-weight:700;color:#172645;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ a.nombre }}</span><span style="font-size:12.5px;color:#8a909c">{{ a.meta }}</span></span>
+                        <button type="button" onClick="{{ a.quitar }}" title="Quitar {{ a.nombre }}" style="width:40px;height:40px;flex-shrink:0;border:none;border-radius:6px;background:#f3f4f7;color:#8a909c;display:inline-flex;align-items:center;justify-content:center;transition:color .18s ease,background .18s ease" style-hover="color:#b3261e;background:#fbe9e7"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9"></path></svg></button>
+                      </div>
+                      </sc-for>
+                    </div>
+                    </sc-if>
+                    <sc-if value="{{ g.hayErr }}"><span style="display:inline-flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:600;line-height:1.4;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ g.err }}</span></sc-if>
+                    <div style="display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap">
+                      <label style="display:inline-flex;align-items:center;gap:8px;border-radius:6px;padding:12px 16px;background:#eef1f7;color:#0f3483;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background .2s ease" style-hover="background:#e1e7f2"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;flex-shrink:0"><path d="M10 13V3.5M6 7.5l4-4 4 4M3.5 16.5h13"></path></svg>{{ g.btn }}<input type="file" multiple="{{ g.multi }}" accept="{{ g.accept }}" onChange="{{ g.elegir }}" style="display:none"></label>
+                      <span style="font-size:12.5px;color:#8a909c">o arrastralos acá · hasta 50 MB por archivo</span>
+                    </div>
+                  </div>
+                  </sc-for>
+                </div>
+                </sc-if>
+                <sc-if value="{{ c.hayAyuda }}"><span style="font-size:13.5px;line-height:1.5;color:#8a909c">{{ c.ayuda }}</span></sc-if>
                 <sc-if value="{{ c.esLock }}"><span style="display:flex;flex-wrap:wrap;gap:6px;opacity:.75"><sc-for list="{{ c.chips }}" as="t" hint-placeholder-count="1"><span style="display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#172645;background:#eef1f7"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="{{ t.icon }}"></path></svg>{{ t.name }}</span></sc-for></span><span style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#8a909c"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="M5.5 9V6.5a4.5 4.5 0 0 1 9 0V9M4.5 9h11v8h-11z"></path></svg>No se puede modificar</span></sc-if>
                 <sc-if value="{{ c.hayErr }}"><span style="display:inline-flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:600;line-height:1.4;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ c.err }}</span></sc-if>
                 <sc-if value="{{ c.hayLink }}"><span style="display:flex;align-items:center;gap:8px"><button type="button" onClick="{{ c.linkGo }}" style="border:none;background:none;padding:4px 0;font-size:14px;font-weight:700;color:#0f3483;transition:color .2s ease" style-hover="color:#3b5998">{{ c.linkLabel }}</button><sc-if value="{{ c.linkFuturo }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></span></sc-if>
@@ -433,19 +681,20 @@ button{cursor:pointer}
                 </div>
               </div>
               <div style="display:flex;gap:12px;flex-wrap:wrap">
-                <sc-for list="{{ dt.acciones }}" as="a" hint-placeholder-count="2"><button type="button" onClick="{{ a.go }}" style="{{ a.css }}"><sc-if value="{{ a.hayIcon }}"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0"><path d="{{ a.icon }}"></path></svg></sc-if>{{ a.label }}</button></sc-for>
+                <sc-for list="{{ dt.acciones }}" as="a" hint-placeholder-count="2"><button type="button" onClick="{{ a.go }}" style="{{ a.css }}"><sc-if value="{{ a.hayIcon }}"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0"><path d="{{ a.icon }}"></path></svg></sc-if>{{ a.label }}<sc-if value="{{ a.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></button></sc-for>
               </div>
             </div>
           </div>
         </div>
 
-        <sc-if value="{{ dt.inactivo }}"><div style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:8px;background:#f1f2f4;font-size:15px;font-weight:600;line-height:1.5;color:#555b66"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="M10 9v5M10 6.2v.01M17 10a7 7 0 1 1-14 0a7 7 0 1 1 14 0"></path></svg>{{ dt.banner }}</div></sc-if>
+        <sc-if value="{{ dt.hayBanner }}"><div style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:8px;background:#f1f2f4;font-size:15px;font-weight:600;line-height:1.5;color:#555b66"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="M10 9v5M10 6.2v.01M17 10a7 7 0 1 1-14 0a7 7 0 1 1 14 0"></path></svg>{{ dt.banner }}</div></sc-if>
 
         <div style="display:grid;grid-template-columns:{{ dt.cols }};gap:24px;align-items:start;opacity:{{ dt.op }}">
           <div style="display:flex;flex-direction:column;gap:24px;min-width:0">
             <sc-for list="{{ dt.secciones }}" as="s" hint-placeholder-count="2">
             <section style="background:#ffffff;border-radius:8px;box-shadow:0 4px 18px rgba(23,38,69,.06);padding:var(--sec-pad);display:flex;flex-direction:column;gap:22px;animation:fadeUp .5s ease both">
               <div style="display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font-size:19px;font-weight:800;text-transform:uppercase;color:#172645;display:flex;align-items:center;gap:10px">{{ s.titulo }}<sc-if value="{{ s.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></h3><span style="width:50px;height:3px;background:#3b5998"></span></div>
+              <sc-if value="{{ s.hayAviso }}"><div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:8px;background:#eef1f7;font-size:14.5px;font-weight:600;line-height:1.55;color:#172645"><span style="color:#3b5998;display:inline-flex;margin-top:1px"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="M10 9v5M10 6.2v.01M17 10a7 7 0 1 1-14 0a7 7 0 1 1 14 0"></path></svg></span><span>{{ s.aviso }}</span></div></sc-if>
               <sc-if value="{{ s.leer }}" hint-placeholder-val="{{ true }}">
               <div style="display:grid;grid-template-columns:repeat({{ s.cols }},minmax(0,1fr));gap:22px 20px">
                 <sc-for list="{{ s.items }}" as="it" hint-placeholder-count="3">
@@ -453,6 +702,7 @@ button{cursor:pointer}
                   <sc-if value="{{ it.hayLabel }}"><span style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8a909c">{{ it.label }}<sc-if value="{{ it.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></span></sc-if>
                   <sc-if value="{{ it.hayValor }}"><span style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:16px;font-weight:{{ it.fw }};line-height:1.65;color:{{ it.fg }};overflow-wrap:anywhere">{{ it.valor }}<sc-if value="{{ it.wa }}"><span style="display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:4px;font-size:11px;font-weight:700;line-height:1.3;color:#1f7a45;background:#e6f4ec"><span style="width:6px;height:6px;border-radius:99px;background:#25a35a"></span>WhatsApp</span><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;line-height:1.3;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></span></sc-if>
                   <sc-if value="{{ it.hayChips }}"><span style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ it.chips }}" as="t" hint-placeholder-count="1"><span style="display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#172645;background:#eef1f7"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="{{ t.icon }}"></path></svg>{{ t.name }}</span></sc-for></span></sc-if>
+                  <sc-if value="{{ it.hayLink }}"><button type="button" onClick="{{ it.linkGo }}" style="align-self:flex-start;display:inline-flex;align-items:center;gap:6px;border:none;background:none;padding:0;font-size:16px;font-weight:700;line-height:1.65;color:#0f3483;text-align:left;transition:color .2s ease" style-hover="color:#3b5998">{{ it.linkLabel }}<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M7.5 4.5 13 10l-5.5 5.5"></path></svg></button></sc-if>
                 </div>
                 </sc-for>
               </div>
@@ -472,6 +722,20 @@ button{cursor:pointer}
                 </sc-for>
               </div>
               </sc-if>
+            <sc-if value="{{ s.hayTabla }}">
+              <div style="overflow-x:auto;margin:0 calc(var(--sec-pad) * -1)">
+              <div style="min-width:{{ s.tabla.min }}">
+                <div style="display:grid;grid-template-columns:{{ s.tabla.cols }};gap:14px;padding:13px var(--sec-pad);background:#f5f6f9;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#172645"><sc-for list="{{ s.tabla.head }}" as="x" hint-placeholder-count="5"><span>{{ x.t }}</span></sc-for></div>
+                <sc-for list="{{ s.tabla.rows }}" as="r" hint-placeholder-count="3">
+                <div style="display:grid;grid-template-columns:{{ s.tabla.cols }};gap:14px;align-items:center;padding:13px var(--sec-pad);border-top:1px solid #eef0f3;font-size:14px">
+                  <sc-for list="{{ r.cells }}" as="x" hint-placeholder-count="5"><span style="min-width:0;font-weight:{{ x.fw }};color:{{ x.fg }};overflow-wrap:anywhere;font-variant-numeric:tabular-nums">{{ x.t }}</span></sc-for>
+                </div>
+                </sc-for>
+                <sc-if value="{{ s.tabla.vacio }}"><div style="padding:22px var(--sec-pad);border-top:1px solid #eef0f3;font-size:14.5px;color:#8a909c">{{ s.tabla.vacioTxt }}</div></sc-if>
+              </div>
+              </div>
+              </sc-if>
+              <sc-if value="{{ s.hayPie }}"><span style="display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#8a909c"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="M5.5 9V6.5a4.5 4.5 0 0 1 9 0V9M4.5 9h11v8h-11z"></path></svg>{{ s.pie }}</span></sc-if>
             </section>
             </sc-for>
           </div>
@@ -480,7 +744,8 @@ button{cursor:pointer}
             <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1px);background-size:22px 22px"></div>
             <div style="position:relative;display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font-size:19px;font-weight:800;text-transform:uppercase;color:#ffffff">{{ dt.asTitulo }}</h3><span style="width:50px;height:3px;background:#3b5998"></span></div>
             <div style="position:relative;display:flex;flex-direction:column;gap:18px">
-              <sc-for list="{{ dt.asItems }}" as="it" hint-placeholder-count="2"><div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9aa7c2">{{ it.label }}</span><span style="font-size:16px;font-weight:600;color:#ffffff">{{ it.valor }}</span></div></sc-for>
+              <sc-for list="{{ dt.asItems }}" as="it" hint-placeholder-count="2"><div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9aa7c2">{{ it.label }}</span><sc-if value="{{ it.hayValor }}" hint-placeholder-val="{{ true }}"><span style="font-size:16px;font-weight:600;color:#ffffff">{{ it.valor }}</span></sc-if><sc-if value="{{ it.hayChips }}"><span style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ it.chips }}" as="t" hint-placeholder-count="1"><span style="padding:5px 10px;border-radius:4px;font-size:11.5px;font-weight:700;color:#ffffff;background:rgba(255,255,255,.14)">{{ t.name }}</span></sc-for></span></sc-if></div></sc-for>
+              <sc-if value="{{ dt.hayAsTexto }}"><span style="font-size:15px;line-height:1.6;color:#d4d9e4">{{ dt.asTexto }}</span></sc-if>
               <sc-if value="{{ dt.asLock }}"><span style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#9aa7c2"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="M5.5 9V6.5a4.5 4.5 0 0 1 9 0V9M4.5 9h11v8h-11z"></path></svg>La fábrica no se puede modificar</span></sc-if>
               <sc-if value="{{ dt.asLink }}"><button type="button" onClick="{{ dt.asLinkGo }}" style="align-self:flex-start;border:none;display:inline-flex;align-items:center;padding:12px 18px;border-radius:6px;background:rgba(255,255,255,.12);font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#ffffff;transition:background .2s ease" style-hover="background:rgba(255,255,255,.22)">{{ dt.asLinkLabel }}</button></sc-if>
             </div>
@@ -535,6 +800,41 @@ button{cursor:pointer}
           </sc-if>
         </section>
         </sc-if>
+        <sc-if value="{{ dt.esSol }}">
+        <section style="background:#ffffff;border-radius:8px;box-shadow:0 4px 18px rgba(23,38,69,.06);padding:var(--sec-pad);display:flex;flex-direction:column;gap:22px;animation:fadeUp .5s .08s ease both">
+          <div style="display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font-size:19px;font-weight:800;text-transform:uppercase;color:#172645">Documentación</h3><span style="width:50px;height:3px;background:#3b5998"></span><span style="font-size:15px;color:#555b66">{{ sd.totalTxt }}</span></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px">
+            <sc-for list="{{ sd.grupos }}" as="g" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:8px;background:#f8f9fb">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="width:36px;height:36px;flex-shrink:0;border-radius:6px;background:#eef1f7;color:#3b5998;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0"><path d="{{ g.icon }}"></path></svg></span>
+                <span style="flex:1;font-size:15px;font-weight:800;color:#172645">{{ g.titulo }}</span>
+                <span style="min-width:28px;height:28px;box-sizing:border-box;padding:0 8px;border-radius:999px;background:{{ g.nBg }};color:{{ g.nFg }};display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800">{{ g.n }}</span>
+              </div>
+              <sc-if value="{{ g.vacio }}"><span style="font-size:14px;color:#8a909c">Sin archivos.</span></sc-if>
+              <sc-if value="{{ g.hayFotos }}"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px"><sc-for list="{{ g.fotos }}" as="a" hint-placeholder-count="2"><button type="button" onClick="{{ a.ver }}" title="Ver {{ a.nombre }}" style="display:flex;flex-direction:column;gap:6px;min-width:0;border:none;background:none;padding:0;text-align:left"><span style="display:block;width:100%;aspect-ratio:1;border-radius:6px;background:{{ a.thumb }};background-color:#eef1f7;box-shadow:0 2px 8px rgba(23,38,69,.12);transition:transform .2s ease,box-shadow .2s ease" style-hover="transform:translateY(-2px);box-shadow:0 8px 18px rgba(23,38,69,.2)"></span><span style="font-size:12px;font-weight:600;color:#172645;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ a.nombre }}</span></button></sc-for></div></sc-if>
+              <sc-for list="{{ g.otros }}" as="a" hint-placeholder-count="1">
+              <div style="display:flex;align-items:center;gap:12px;padding:8px 8px 8px 10px;border-radius:6px;background:#ffffff;box-shadow:0 2px 8px rgba(23,38,69,.06)">
+                <span style="width:40px;height:40px;flex-shrink:0;border-radius:4px;background:#172645;color:#ffffff;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px;flex-shrink:0"><path d="{{ a.icon }}"></path></svg></span>
+                <span style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1"><span style="font-size:14px;font-weight:700;color:#172645;overflow-wrap:anywhere">{{ a.nombre }}</span><span style="font-size:12.5px;color:#8a909c">{{ a.meta }}</span></span>
+                <button type="button" onClick="{{ a.go }}" style="flex-shrink:0;border:none;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:6px;background:#eef1f7;font-size:12.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#0f3483;transition:background .2s ease,color .2s ease" style-hover="background:#0f3483;color:#ffffff"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="{{ a.accIcon }}"></path></svg>{{ a.accion }}</button>
+              </div>
+              </sc-for>
+            </div>
+            </sc-for>
+          </div>
+        </section>
+        <section style="background:#ffffff;border-radius:8px;box-shadow:0 4px 18px rgba(23,38,69,.06);padding:var(--sec-pad);display:flex;flex-direction:column;gap:22px;animation:fadeUp .5s .12s ease both">
+          <div style="display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font-size:19px;font-weight:800;text-transform:uppercase;color:#172645">Cotizaciones</h3><span style="width:50px;height:3px;background:#3b5998"></span><span style="font-size:15px;color:#555b66">Una solicitud puede tener una o más cotizaciones.</span></div>
+          <sc-for list="{{ sd.cots }}" as="q" hint-placeholder-count="1">
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:16px 18px;border-radius:8px;background:#f8f9fb;box-shadow:inset 3px 0 0 #3b5998">
+            <span style="width:44px;height:44px;flex-shrink:0;border-radius:6px;background:#eef1f7;color:#3b5998;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;flex-shrink:0"><path d="M17 10a7 7 0 1 1-14 0a7 7 0 1 1 14 0M10 6.5V10l2.5 2"></path></svg></span>
+            <span style="display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 260px"><span style="font-size:16px;font-weight:800;color:#172645">{{ q.titulo }}</span><span style="font-size:14px;color:#555b66">{{ q.sub }}</span></span>
+            <sc-if value="{{ q.puedeCotizar }}"><button type="button" onClick="{{ q.cotizar }}" style="flex-shrink:0;display:inline-flex;align-items:center;gap:10px;border:none;border-radius:6px;padding:14px 20px;background:#0f3483;color:#ffffff;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.85">Cotizar<span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></button></sc-if>
+          </div>
+          </sc-for>
+        </section>
+        </sc-if>
       </div>
       </sc-if>
 
@@ -543,13 +843,14 @@ button{cursor:pointer}
       <div style="flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:48px;align-items:center;padding:24px 16px">
         <div style="display:flex;flex-direction:column;gap:16px;animation:fadeUp .5s ease both">
           <sc-if value="{{ sis.es404 }}"><span style="font-size:96px;font-weight:800;line-height:1;color:#172645;letter-spacing:-0.02em">404</span></sc-if>
+          <sc-if value="{{ sis.hayIcon }}"><span style="width:72px;height:72px;flex-shrink:0;border-radius:10px;background:{{ sis.ibg }};color:{{ sis.ifg }};display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:33px;height:33px;flex-shrink:0"><path d="{{ sis.icon }}"></path></svg></span></sc-if>
           <sc-if value="{{ sis.esErr }}"><span style="width:72px;height:72px;flex-shrink:0;border-radius:10px;background:#fbe9e7;color:#b3261e;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:33px;height:33px;flex-shrink:0"><path d="M10 3 18 17H2zM10 8.5v3.5M10 14.6v.01"></path></svg></span></sc-if>
           <span style="width:80px;height:3px;background:{{ sis.bar }}"></span>
           <h1 style="margin:0;font-size:34px;font-weight:800;text-transform:uppercase;color:#172645">{{ sis.titulo }}</h1>
           <p style="margin:0;max-width:460px;font-size:17px;line-height:1.7;color:#555b66">{{ sis.texto }}</p>
           <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
-            <button type="button" onClick="{{ sis.b1go }}" style="border:none;border-radius:6px;padding:15px 26px;background:#0f3483;color:#fff;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;box-shadow:0 6px 16px rgba(15,52,131,.24);transition:background .2s ease" style-hover="background:#0b2766">{{ sis.b1 }}</button>
-            <button type="button" onClick="{{ sis.b2go }}" style="border:none;border-radius:6px;padding:15px 22px;background:#eef1f7;color:#172645;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease" style-hover="background:#e1e7f2">{{ sis.b2 }}</button>
+            <sc-if value="{{ sis.hayB1 }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ sis.b1go }}" style="border:none;border-radius:6px;padding:15px 26px;background:#0f3483;color:#fff;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;box-shadow:0 6px 16px rgba(15,52,131,.24);transition:background .2s ease" style-hover="background:#0b2766">{{ sis.b1 }}</button></sc-if>
+            <sc-if value="{{ sis.hayB2 }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ sis.b2go }}" style="border:none;border-radius:6px;padding:15px 22px;background:#eef1f7;color:#172645;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease" style-hover="background:#e1e7f2">{{ sis.b2 }}</button></sc-if>
           </div>
         </div>
         <div style="height:min(420px,50vw);min-height:220px;border-radius:8px;background:{{ sis.foto }};box-shadow:0 20px 44px rgba(23,38,69,.2)"></div>
@@ -559,17 +860,29 @@ button{cursor:pointer}
     </main>
   </div>
 </div>
+</sc-if>
 
 <sc-if value="{{ drawer }}">
 <div style="position:fixed;inset:0;z-index:40;display:flex;animation:fadeIn .2s ease both">
-  <aside style="position:relative;box-sizing:border-box;width:272px;background:linear-gradient(185deg,#1b2d52,#13203b);padding:24px 0 24px 16px;display:flex;flex-direction:column;gap:32px;animation:slideIn .28s ease both">
+  <aside style="position:relative;box-sizing:border-box;width:272px;background:linear-gradient(185deg,#1b2d52,#13203b);padding:24px 0 20px 16px;display:flex;flex-direction:column;gap:24px;animation:slideIn .28s ease both">
     <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1px);background-size:22px 22px;pointer-events:none"></div>
     <img src="assets/logo-castro-white.png" alt="Castro Tornería S.R.L." style="position:relative;height:44px;align-self:flex-start">
-    <nav style="position:relative;display:flex;flex-direction:column;gap:8px;padding-right:16px">
-      <sc-for list="{{ nav }}" as="it" hint-placeholder-count="4">
-        <button type="button" onClick="{{ it.go }}" style="display:flex;align-items:center;gap:14px;padding:17px 16px;border:none;border-radius:8px;background:{{ it.mBg }};font-size:15px;font-weight:{{ it.mFw }};letter-spacing:.04em;text-transform:uppercase;color:{{ it.mFg }};box-shadow:{{ it.mSh }};text-align:left"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="{{ it.d }}"></path></svg>{{ it.label }}</button>
+    <nav style="position:relative;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:20px;padding-right:16px">
+      <sc-for list="{{ navG }}" as="g" hint-placeholder-count="2">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <span style="padding:0 6px 4px;font-size:11.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#9aa7c2">{{ g.label }}</span>
+        <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="2">
+        <button type="button" onClick="{{ it.go }}" style="display:flex;align-items:center;gap:14px;padding:15px 16px;border:none;border-radius:8px;background:{{ it.mBg }};font-size:15px;font-weight:{{ it.mFw }};letter-spacing:.04em;text-transform:uppercase;color:{{ it.mFg }};box-shadow:{{ it.mSh }};text-align:left"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0"><path d="{{ it.d }}"></path></svg>{{ it.label }}</button>
+        </sc-for>
+      </div>
       </sc-for>
     </nav>
+    <div style="position:relative;margin-right:16px;padding:16px;border-radius:8px;background:rgba(255,255,255,.08);display:flex;flex-direction:column;gap:12px">
+      <span style="display:flex;align-items:center;gap:12px"><span style="width:40px;height:40px;flex-shrink:0;border-radius:6px;background:#ffffff;color:#172645;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800">{{ usr.ini }}</span><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;font-weight:800;color:#ffffff">{{ usr.nombre }}</span><span style="font-size:12.5px;color:#9aa7c2">Usuario {{ usr.usuario }}</span></span></span>
+      <span style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ usr.roles }}" as="r" hint-placeholder-count="1"><span style="padding:5px 9px;border-radius:4px;font-size:11.5px;font-weight:700;color:#ffffff;background:rgba(255,255,255,.14)">{{ r.name }}</span></sc-for></span>
+      <button type="button" onClick="{{ cambiarPass }}" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:44px;border:none;background:none;padding:0;font-size:14px;font-weight:700;color:#9aa7c2;text-align:left"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0"><path d="M5.5 9V6.5a4.5 4.5 0 0 1 9 0V9M4.5 9h11v8h-11z"></path></svg>Cambiar contraseña<span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></button>
+      <button type="button" onClick="{{ salir }}" style="display:flex;align-items:center;justify-content:center;gap:10px;min-height:48px;border:none;border-radius:6px;background:#ffffff;color:#172645;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0"><path d="M8 3.5H4v13h4M12.5 6.5 16 10l-3.5 3.5M16 10H7.5"></path></svg>Cerrar sesión</button>
+    </div>
   </aside>
   <button type="button" onClick="{{ cerrarDrawer }}" title="Cerrar el menú" style="flex:1;background:rgba(21,34,62,.6);border:none;display:flex;align-items:flex-start;justify-content:center;padding-top:24px">
     <span style="width:46px;height:46px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:#ffffff;color:#172645;font-size:24px;font-weight:600">×</span>
@@ -596,6 +909,23 @@ button{cursor:pointer}
     </div>
     </sc-if>
     <sc-if value="{{ md.hayAviso }}"><div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:6px;background:#fbe9e7;font-size:14px;font-weight:700;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ md.aviso }}</div></sc-if>
+    <sc-if value="{{ md.hayDatos }}"><div style="display:grid;grid-template-columns:repeat({{ md.dcols }},minmax(0,1fr));gap:16px 20px;padding:18px;border-radius:8px;background:#f5f6f9;max-height:52vh;overflow-y:auto"><sc-for list="{{ md.datos }}" as="it" hint-placeholder-count="4"><div style="grid-column:{{ it.span }};display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8a909c">{{ it.label }}</span><span style="font-size:15px;font-weight:600;line-height:1.5;color:#172645;overflow-wrap:anywhere">{{ it.valor }}</span></div></sc-for></div></sc-if>
+    <sc-if value="{{ md.hayVisor }}">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <sc-if value="{{ md.visor.esFoto }}"><div style="width:100%;height:min(58vh,520px);border-radius:8px;background:{{ md.visor.img }};background-color:#0e1729"></div></sc-if>
+      <sc-if value="{{ md.visor.esPdf }}">
+      <div style="height:min(58vh,520px);overflow-y:auto;border-radius:8px;background:#e9ecf2;padding:22px;box-sizing:border-box">
+        <div style="max-width:420px;margin:0 auto;aspect-ratio:1/1.414;box-sizing:border-box;background:#ffffff;box-shadow:0 6px 20px rgba(23,38,69,.15);padding:30px 32px;display:flex;flex-direction:column;gap:12px">
+          <span style="font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#172645;overflow-wrap:anywhere">{{ md.visor.nombre }}</span>
+          <span style="width:40px;height:3px;background:#3b5998"></span>
+          <sc-for list="{{ md.visor.lineas }}" as="l" hint-placeholder-count="4"><span style="display:block;height:7px;border-radius:3px;background:#e6e9f0;width:{{ l.w }}"></span></sc-for>
+          <span style="display:block;flex:1;min-height:90px;margin-top:6px;border:1.5px solid #d6dce8;border-radius:4px;background-image:linear-gradient(#eef1f7 1px,transparent 1px),linear-gradient(90deg,#eef1f7 1px,transparent 1px);background-size:16px 16px"></span>
+        </div>
+      </div>
+      </sc-if>
+      <span style="font-size:13px;color:#8a909c">{{ md.visor.pie }}</span>
+    </div>
+    </sc-if>
     <sc-if value="{{ md.hayCampos }}">
     <div style="display:grid;grid-template-columns:repeat({{ md.cols }},minmax(0,1fr));gap:18px 20px">
       <sc-for list="{{ md.campos }}" as="c" hint-placeholder-count="2">
@@ -604,14 +934,16 @@ button{cursor:pointer}
         <sc-if value="{{ c.esText }}"><input value="{{ c.value }}" onChange="{{ c.onChange }}" placeholder="{{ c.ph }}" maxLength="{{ c.max }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;text-transform:{{ c.tt }};box-shadow:{{ c.sh }}" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)"></sc-if>
         <sc-if value="{{ c.esSelect }}"><select value="{{ c.value }}" onChange="{{ c.onChange }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;box-shadow:{{ c.sh }}"><option value="">{{ c.phSel }}</option><sc-for list="{{ c.opciones }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select></sc-if>
         <sc-if value="{{ c.esCheck }}"><button type="button" onClick="{{ c.toggle }}" style="align-self:flex-start;display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;border:none;background:none;padding:2px 0;font-size:15px;font-weight:600;color:#172645;text-align:left"><span style="width:34px;height:34px;flex-shrink:0;box-sizing:border-box;border-radius:6px;border:2px solid {{ c.boxBd }};background:{{ c.boxBg }};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700">{{ c.mark }}</span>{{ c.label }}<sc-if value="{{ c.futuro }}"><span title="El sistema todavía no lo soporta" style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a5a12;background:#fbf1d9;border:1px dashed #d9b968;white-space:nowrap">A futuro</span></sc-if></button></sc-if>
+        <sc-if value="{{ c.esCombo }}"><input list="{{ c.dl }}" value="{{ c.value }}" onChange="{{ c.onChange }}" placeholder="{{ c.ph }}" style="box-sizing:border-box;width:100%;border:1.5px solid {{ c.bc }};border-radius:6px;padding:14px 15px;font-size:16px;font-weight:500;color:#172645;background:#ffffff;outline:none;box-shadow:{{ c.sh }}" style-focus="border-color:#0f3483;box-shadow:0 0 0 4px rgba(15,52,131,.12)"><datalist id="{{ c.dl }}"><sc-for list="{{ c.opciones }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}"></option></sc-for></datalist></sc-if>
+        <sc-if value="{{ c.hayAyuda }}"><span style="font-size:13.5px;line-height:1.5;color:#8a909c">{{ c.ayuda }}</span></sc-if>
         <sc-if value="{{ c.hayErr }}"><span style="display:inline-flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:600;line-height:1.4;color:#b3261e"><span style="width:20px;height:20px;flex-shrink:0;border-radius:999px;background:#b3261e;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</span>{{ c.err }}</span></sc-if>
       </div>
       </sc-for>
     </div>
     </sc-if>
     <div style="display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-top:6px">
-      <button type="button" onClick="{{ cerrarModal }}" style="border:none;border-radius:6px;padding:15px 22px;background:#eef1f7;color:#172645;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease" style-hover="background:#e1e7f2">Cancelar</button>
-      <button type="button" onClick="{{ md.ok }}" style="{{ md.okCss }}">{{ md.okLabel }}</button>
+      <button type="button" onClick="{{ cerrarModal }}" style="border:none;border-radius:6px;padding:15px 22px;background:#eef1f7;color:#172645;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:background .2s ease" style-hover="background:#e1e7f2">{{ md.cancelLabel }}</button>
+      <sc-if value="{{ md.hayOk }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ md.ok }}" style="{{ md.okCss }}">{{ md.okLabel }}</button></sc-if>
     </div>
   </div>
 </div>
@@ -647,8 +979,79 @@ const TIPO_ICON = {
   Tercerizado: 'M1.5 5.5h10v7.5h-10zM11.5 8.5h3.5l3 3v1.5h-6.5M5 15.6a1.6 1.6 0 1 1 0-.01M14.5 15.6a1.6 1.6 0 1 1 0-.01'
 };
 const TIPOS = ['Material', 'Tercerizado', 'Repuesto', 'Pintura'];
+Object.assign(IC, {
+  sol: 'M7 3h6v2.5H7zM5.5 4.2H4v13.3h12V4.2h-1.5M7 9.5h6M7 12.5h6M7 15.5h3.5',
+  mat: TIPO_ICON.Material,
+  tp: 'M10 7a3 3 0 1 1 0 6a3 3 0 1 1 0-6M10 2.5V5M10 15v2.5M2.5 10H5M15 10h2.5M4.7 4.7l1.8 1.8M13.5 13.5l1.8 1.8M4.7 15.3l1.8-1.8M13.5 6.5l1.8-1.8',
+  emp: 'M2.5 4.5h15v11h-15zM8.6 8.7a1.8 1.8 0 1 1-3.6 0a1.8 1.8 0 1 1 3.6 0M4.5 13c.4-1.3 1.3-2 2.3-2s1.9.7 2.3 2M11.5 8.5h3.5M11.5 11.5h3.5',
+  usu: 'M7 13.5a3.5 3.5 0 1 1 0-7a3.5 3.5 0 1 1 0 7M10.5 10h7M15 10v2.5M17.5 10v2',
+  rol: 'M10 2.5l6 2.5v4.5c0 3.6-2.6 6.3-6 7.5-3.4-1.2-6-3.9-6-7.5V5z',
+  salir: 'M8 3.5H4v13h4M12.5 6.5 16 10l-3.5 3.5M16 10H7.5',
+  ojo: 'M1.8 10S5 4.5 10 4.5 18.2 10 18.2 10 15 15.5 10 15.5 1.8 10 1.8 10zM12.5 10a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0',
+  ojoNo: 'M1.8 10S5 4.5 10 4.5 18.2 10 18.2 10 15 15.5 10 15.5 1.8 10 1.8 10zM12.5 10a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0M3 3l14 14',
+  pdf: 'M5 2.5h6.5L15 6v11.5H5zM11.5 2.5V6H15M7.5 10.5h5M7.5 13.5h5',
+  plano: 'M3 3.5h14v13H3zM3 7.5h14M7.5 7.5v9M10.5 10.5h4M10.5 13.5h4',
+  foto: 'M2.5 4.5h15v11h-15zM7.3 8.3a1.3 1.3 0 1 1-2.6 0a1.3 1.3 0 1 1 2.6 0M2.5 13l4-3.5 3 2.5 3-3 5 4.5',
+  d3: 'M6.5 3.5h10v10h-10zM3.5 6.5h10v10h-10zM3.5 6.5l3-3M13.5 6.5l3-3M13.5 16.5l3-3',
+  bajar: 'M10 3v9.5M6 9l4 4 4-4M3.5 16.5h13',
+  casa: 'M3 9.5 10 3.5l7 6V17H3zM8 17v-4.5h4V17',
+  escudo: 'M10 2.5 16.5 5v5c0 3.8-2.8 6.5-6.5 7.5-3.7-1-6.5-3.7-6.5-7.5V5zM7.5 10h5',
+  reloj: 'M17 10a7 7 0 1 1-14 0a7 7 0 1 1 14 0M10 6.5V10l2.5 2'
+});
+const ROLES = [
+  { k: 'JT', nombre: 'Jefe de Taller', desc: 'Coordina y supervisa las órdenes de trabajo en el taller. No ve precios ni costos.' },
+  { k: 'ERP', nombre: 'Encargado de Recepción', desc: 'Registra las solicitudes de cotización y mantiene clientes, fábricas y rubros.' },
+  { k: 'EC', nombre: 'Encargado de Cotización', desc: 'Elabora y administra las cotizaciones solicitadas por los clientes.', nota: 'Incluye los permisos del Administrativo Técnico.' },
+  { k: 'ER', nombre: 'Encargado de Reportes', desc: 'Obtiene información estadística y gerencial de la actividad.' },
+  { k: 'AT', nombre: 'Administrativo Técnico', desc: 'Administra los catálogos de materiales, tipos de proceso y proveedores.' },
+  { k: 'AS', nombre: 'Administrador del Sistema', desc: 'Gestiona empleados y usuarios, y asigna sus roles.' }
+];
+const ROL = {}; ROLES.forEach(r => { ROL[r.k] = r; });
+const PERM = { solicitudes: ['ERP', 'EC'], encargados: ['ERP'], fabricas: ['ERP'], rubros: ['ERP'], proveedores: ['AT', 'EC'], materiales: ['AT', 'EC'], tipos: ['AT', 'EC'], empleados: ['AS'], usuarios: ['AS'] };
+const PASS_DEMO = 'Castro1977';
+const BLOQ = 'Tu usuario fue bloqueado por intentos fallidos. Contactá al Administrador del Sistema.';
+const INACT = 30 * 60 * 1000;
+const DEMO_IDS = ['u1', 'u2', 'u3', 'u4', 'u5', 'u6', 'u7', 'u8'];
+const LG0 = () => ({ user: '', pass: '', ver: false, errU: '', errP: '', msg: null });
+const GRUPOS = [
+  { k: 'pdf', titulo: 'PDF de la solicitud', ext: ['pdf'], fmt: 'PDF', formatos: 'PDF · un solo archivo · opcional', multi: false, icon: IC.pdf },
+  { k: 'planos', titulo: 'Planos', ext: ['pdf', 'dwg'], fmt: 'PDF o AutoCAD (DWG)', formatos: 'PDF o AutoCAD (DWG) · varios archivos', multi: true, icon: IC.plano },
+  { k: 'fotos', titulo: 'Fotos de pieza patrón', ext: ['jpg', 'jpeg', 'png'], fmt: 'JPG o PNG', formatos: 'JPG o PNG · varios archivos', multi: true, icon: IC.foto, ayuda: 'Se usan cuando no hay plano.' },
+  { k: 'd3', titulo: 'Diseños 3D', ext: ['step', 'stp', 'sldprt'], fmt: 'STEP, STP o SLDPRT', formatos: 'STEP, STP o SLDPRT · varios archivos', multi: true, icon: IC.d3 }
+];
+const FOTO_EXT = ['jpg', 'jpeg', 'png'];
+const EXT_ICON = { pdf: IC.pdf, dwg: IC.plano, jpg: IC.foto, jpeg: IC.foto, png: IC.foto, step: IC.d3, stp: IC.d3, sldprt: IC.d3 };
+const MAX_MB = 50;
+const TP_CAMPOS = ['nombre', 'desc', 'ars', 'usd'];
+const TP_LBL = { nombre: 'Nombre', desc: 'Descripción', ars: 'Precio hora en pesos', usd: 'Precio hora en dólares' };
+const fmtNum = (n, dec) => Number(n).toLocaleString('es-AR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+const fmtARS = n => '$ ' + fmtNum(n, 2);
+const fmtUSD = n => 'US$ ' + fmtNum(n, 2);
+const fmtTp = (k, v) => k === 'ars' ? fmtARS(v) : k === 'usd' ? fmtUSD(v) : (v || '(vacío)');
+const parseMonto = s => {
+  let t = (s == null ? '' : String(s)).trim().replace(/\s/g, '').replace(/^(US)?\$/i, '');
+  if (!t) return { err: 'vacio' };
+  if (t.indexOf(',') >= 0) t = t.replace(/\./g, '').replace(',', '.');
+  else if (/^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '');
+  if (!/^\d+(\.\d+)?$/.test(t)) return { err: 'num' };
+  if ((t.split('.')[1] || '').length > 2) return { err: 'dec' };
+  const n = parseFloat(t);
+  return n > 0 ? { n } : { err: 'num' };
+};
+const isoAFecha = iso => { const p = (iso || '').split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : (iso || ''); };
+const fmtTam = b => b >= 1048576 ? fmtNum(b / 1048576, 1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
+const ahora = () => { const t = new Date(), p = n => String(n).padStart(2, '0'); return HOY + ' ' + p(t.getHours()) + ':' + p(t.getMinutes()); };
+const fechaHoraLarga = fh => { const p = (fh || '').split(' '); return fechaLarga(p[0]) + (p[1] ? ' · ' + p[1] : ''); };
+const iniciales = (n, a) => ((n || '').charAt(0) + (a || '').charAt(0)).toUpperCase();
+const corto = (s, n) => !s || s.length <= n ? (s || '') : s.slice(0, n).replace(/\s+\S*$/, '') + '…';
+const porApe = (a, b) => (a.apellido + ' ' + a.nombre).localeCompare(b.apellido + ' ' + b.nombre, 'es');
+const porMat = (a, b) => a.nombre.localeCompare(b.nombre, 'es') || a.calidad.localeCompare(b.calidad, 'es', { numeric: true });
+const estUsu = u => !u.activo ? 'Inactivo' : u.bloqueado ? 'Bloqueado' : 'Activo';
+const chipEst = e => ({ estado: e, ...({ Activo: { estFg: '#1f7a45', estBg: '#e6f4ec', estDot: '#25a35a' }, Inactivo: { estFg: '#6b7280', estBg: '#f1f2f4', estDot: '#9ca3af' }, Bloqueado: { estFg: '#b3261e', estBg: '#fbe9e7', estDot: '#b3261e' } })[e] });
+const genPass = () => { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ', a = 'abcdefghijkmnpqrstuvwxyz', n = '23456789', all = A + a + n, r = s => s[Math.floor(Math.random() * s.length)]; let p = r(A) + r(a) + r(a) + r(n) + r(n); while (p.length < 10) p += r(all); return p.split('').sort(() => Math.random() - .5).join(''); };
 const PAGE = 8;
-const HOY = '08/10/2026';
+const HOY = '15/10/2026';
+const HOY_ISO = '2026-10-15';
 const LS = 'castro-prototipo-nav';
 const MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 const fechaLarga = f => { const p = (f || '').split('/'); return p.length === 3 ? (+p[0]) + ' ' + MES[+p[1] - 1] + ' ' + p[2] : f; };
@@ -717,7 +1120,71 @@ const semilla = () => ({
     { id: 'p10', razon: 'Tratamientos Térmicos del Centro', cuit: '30-71666777-2', tipos: ['Tercerizado'], contacto: 'Ana Bertoldi', tel: '+54 9 353 420-5566', mail: 'abertoldi@ttcentro.com', direccion: 'Parque Industrial, Villa María', alta: '25/09/2026', mod: '25/09/2026' },
     { id: 'p11', razon: 'Abrasivos Norte', cuit: '30-70777888-5', tipos: ['Material', 'Repuesto'], contacto: '', tel: '+54 9 381 455-7070', mail: '', direccion: '', alta: '30/04/2026', mod: '30/04/2026' },
     { id: 'p12', razon: 'Cromados San Vicente', cuit: '27-30111222-8', tipos: ['Tercerizado', 'Pintura'], contacto: 'Raúl Medina', tel: '+54 9 351 488-2121', mail: 'cromados@sanvicente.com', direccion: 'Sargento Cabral 1450, Córdoba', alta: '09/09/2026', mod: '09/09/2026' }
-  ]
+  ],
+  emp: [
+    { id: 'em1', nombre: 'Walter', apellido: 'Castro', activo: true },
+    { id: 'em2', nombre: 'Mónica', apellido: 'Ríos', activo: true },
+    { id: 'em3', nombre: 'Federico', apellido: 'Paz', activo: true },
+    { id: 'em4', nombre: 'Lucía', apellido: 'Benítez', activo: true },
+    { id: 'em5', nombre: 'Raúl', apellido: 'Sánchez', activo: true },
+    { id: 'em6', nombre: 'Gabriela', apellido: 'Torres', activo: true },
+    { id: 'em7', nombre: 'Daniel', apellido: 'Castro', activo: true },
+    { id: 'em8', nombre: 'Hugo', apellido: 'Funes', activo: true },
+    { id: 'em9', nombre: 'Matías', apellido: 'Castro', activo: true },
+    { id: 'em10', nombre: 'Ezequiel', apellido: 'Moreno', activo: true },
+    { id: 'em11', nombre: 'Carla', apellido: 'Videla', activo: true },
+    { id: 'em12', nombre: 'Omar', apellido: 'Giménez', activo: false }
+  ],
+  usu: [
+    { id: 'u1', nombre: 'wcastro', pass: PASS_DEMO, activo: true, bloqueado: false, fallos: 0, empId: 'em1', roles: ['AS'] },
+    { id: 'u2', nombre: 'mrios', pass: PASS_DEMO, activo: true, bloqueado: false, fallos: 0, empId: 'em2', roles: ['ERP'] },
+    { id: 'u3', nombre: 'fpaz', pass: PASS_DEMO, activo: true, bloqueado: false, fallos: 0, empId: 'em3', roles: ['EC'] },
+    { id: 'u4', nombre: 'lbenitez', pass: PASS_DEMO, activo: true, bloqueado: false, fallos: 0, empId: 'em4', roles: ['AT'] },
+    { id: 'u5', nombre: 'rsanchez', pass: PASS_DEMO, activo: true, bloqueado: false, fallos: 0, empId: 'em5', roles: ['JT'] },
+    { id: 'u6', nombre: 'gtorres', pass: PASS_DEMO, activo: true, bloqueado: false, fallos: 0, empId: 'em6', roles: ['ER'] },
+    { id: 'u7', nombre: 'dcastro', pass: PASS_DEMO, activo: true, bloqueado: false, fallos: 0, empId: 'em7', roles: ['ERP', 'EC'] },
+    { id: 'u8', nombre: 'hfunes', pass: PASS_DEMO, activo: true, bloqueado: true, fallos: 5, empId: 'em8', roles: ['AT'] },
+    { id: 'u9', nombre: 'ogimenez', pass: PASS_DEMO, activo: false, bloqueado: false, fallos: 0, empId: 'em12', roles: ['ERP'] }
+  ],
+  ses: [
+    { uid: 'u9', ini: '03/08/2026 08:05', fin: '03/08/2026 13:10' },
+    { uid: 'u6', ini: '30/09/2026 09:12', fin: '30/09/2026 11:40' },
+    { uid: 'u8', ini: '06/10/2026 08:40', fin: '06/10/2026 12:02' },
+    { uid: 'u5', ini: '13/10/2026 07:31', fin: '13/10/2026 07:50' },
+    { uid: 'u4', ini: '13/10/2026 10:15', fin: '13/10/2026 13:30' },
+    { uid: 'u7', ini: '14/10/2026 08:02', fin: '14/10/2026 12:45' },
+    { uid: 'u3', ini: '14/10/2026 08:47', fin: '14/10/2026 17:05' },
+    { uid: 'u2', ini: '14/10/2026 09:05', fin: '14/10/2026 13:58' },
+    { uid: 'u1', ini: '14/10/2026 17:20', fin: '14/10/2026 18:02' }
+  ],
+  tp: [
+    { id: 't1', nombre: 'Mecanizado Torno Manual', desc: 'Torneado convencional: cilindrado, refrentado, roscado y ranurado.', ars: 1557, usd: 1.13, alta: '12/03/2026 09:10', hist: [{ fh: '01/10/2026 10:22', usr: 'lbenitez', campo: 'usd', ant: 1.21, nue: 1.13 }, { fh: '04/07/2026 11:05', usr: 'fpaz', campo: 'ars', ant: 1380, nue: 1557 }] },
+    { id: 't2', nombre: 'Mecanizado Torno CNC', desc: 'Torneado por control numérico para series y piezas de precisión.', ars: 2547, usd: 1.85, alta: '12/03/2026 09:14', hist: [{ fh: '01/10/2026 10:24', usr: 'lbenitez', campo: 'usd', ant: 1.98, nue: 1.85 }, { fh: '04/07/2026 11:08', usr: 'fpaz', campo: 'ars', ant: 2260, nue: 2547 }] },
+    { id: 't3', nombre: 'Fresado', desc: 'Fresado de caras, chaveteros y engranajes.', ars: 1890, usd: 1.37, alta: '12/03/2026 09:20', hist: [{ fh: '01/10/2026 10:26', usr: 'lbenitez', campo: 'usd', ant: 1.47, nue: 1.37 }] },
+    { id: 't4', nombre: 'Soldadura / Herrería', desc: 'Soldadura eléctrica y MIG, armado de estructuras.', ars: 1420, usd: 1.03, alta: '15/04/2026 14:02', hist: [] },
+    { id: 't5', nombre: 'Rectificado', desc: 'Rectificado cilíndrico y plano para tolerancias finas.', ars: 2210, usd: 1.6, alta: '15/04/2026 14:10', hist: [{ fh: '22/08/2026 16:40', usr: 'fpaz', campo: 'desc', ant: 'Rectificado cilíndrico.', nue: 'Rectificado cilíndrico y plano para tolerancias finas.' }] },
+    { id: 't6', nombre: 'Ensamblaje', desc: 'Armado final de conjuntos.', ars: 1250, usd: 0.91, alta: '02/06/2026 08:30', hist: [] },
+    { id: 't7', nombre: 'Armado / Desarmado', desc: 'Desarme, inspección y rearmado en trabajos de reparación.', ars: 1180, usd: 0.86, alta: '02/06/2026 08:34', hist: [] }
+  ],
+  mat: [
+    ['Acero', '1010'], ['Acero', '1045'], ['Acero', 'F-24'], ['Acero inoxidable', 'AISI 304'], ['Acero inoxidable', 'AISI 316'],
+    ['Aluminio', '6061'], ['Aluminio', '7075'], ['Bronce', 'SAE 62'], ['Bronce', 'SAE 65'], ['Fundición gris', 'FG 20'],
+    ['Nylon', 'PA 6'], ['POM', 'Acetal'], ['Teflón', 'PTFE']
+  ].map((m, i) => ({ id: 'ma' + (i + 1), nombre: m[0], calidad: m[1] })),
+  sol: (() => {
+    const A = (nombre, kb, url) => ({ id: 'f-' + nombre, nombre, tam: kb * 1024, ext: nombre.split('.').pop().toLowerCase(), url: url || '' });
+    const S0 = (id, fecha, encId, pedido, desc, arch, hora) => ({ id, fecha, encId, pedido, desc, arch: { pdf: [], planos: [], fotos: [], d3: [], ...arch }, cots: [{ id: 'c' + id, creada: isoAFecha(fecha) }], alta: isoAFecha(fecha) + ' ' + hora });
+    return [
+      S0(12, '2026-10-14', 'e1', '4512', 'Eje de transmisión para la línea de envasado, según plano EDA-PL-1043.', { pdf: [A('Pedido 4512.pdf', 240)], planos: [A('EDA-PL-1043 Eje transmisión.pdf', 1820), A('EDA-PL-1043 Eje transmisión.dwg', 610)] }, '09:41'),
+      S0(11, '2026-10-13', 'e2', 'OC-2026-118', 'Brida de 120 mm para cabezal de pozo. Mandaron plano y modelo 3D.', { planos: [A('OXY-PL-120 Brida.pdf', 950)], d3: [A('brida-120.step', 4300)] }, '15:12'),
+      S0(10, '2026-10-09', 'e4', '', 'Pedido por WhatsApp: reparación de cubo de rueda de tolva. Mandaron una foto y un croquis.', { planos: [A('Croquis cubo tolva.dwg', 380)], fotos: [A('cubo-rueda-tolva.jpg', 2100, 'assets/pieza-construccion.png')] }, '11:30'),
+      S0(9, '2026-10-06', 'e3', '4498', 'Piñón y corona para el reductor de una cinta transportadora.', { pdf: [A('Pedido 4498.pdf', 210)], planos: [A('EDA-PL-0987 Piñón.pdf', 1340), A('EDA-PL-0988 Corona.pdf', 1410)] }, '10:05'),
+      S0(8, '2026-10-01', 'e4', 'AP-7731', 'Bujes de bronce para sembradora. No hay plano: se cotiza a partir de la pieza patrón.', { fotos: [A('buje-patron.jpg', 1850, 'assets/foto-piezas-bronce.png'), A('buje-patron-medidas.jpg', 1620, 'assets/foto-ejes.png')] }, '08:52'),
+      S0(7, '2026-09-29', 'e1', '4475', 'Soporte de rodamiento para la prensa de la línea 3.', { pdf: [A('Pedido 4475.pdf', 190)], planos: [A('EDA-PL-1011 Soporte rodamiento.pdf', 1100)], d3: [A('soporte-rodamiento.sldprt', 5200)] }, '14:20'),
+      S0(6, '2026-09-24', 'e2', 'OC-2026-102', 'Camisa para bomba de extracción. Envían el plano en AutoCAD y en PDF.', { planos: [A('OXY-PL-334 Camisa bomba.dwg', 720), A('OXY-PL-334 Camisa bomba.pdf', 1250)] }, '09:15'),
+      S0(5, '2026-09-22', 'e3', '4460', 'Polea de transmisión con desgaste en el canal. Adjuntan plano y una foto del estado actual.', { planos: [A('EDA-PL-0950 Polea.pdf', 980)], fotos: [A('polea-desgaste.png', 2400, 'assets/foto-disco.png')] }, '16:48')
+    ];
+  })()
 });
 
 const LISTAS = {
@@ -726,13 +1193,24 @@ const LISTAS = {
   fabricas: { ey1: 'Empresas', ey2: 'clientes', titulo: 'Fábricas', foto: 'url(assets/foto-ejes.png) center 45%/cover no-repeat', ph: 'Buscar por nombre, código o CUIT', nuevoLabel: '+ Nueva fábrica', plur: 'fábricas', reg: 'fábricas registradas', vacioT: 'Todavía no hay fábricas registradas.', vacioS: 'Cuando cargues la primera va a aparecer acá.', sinresS: 'Revisá cómo está escrito o cambiá el rubro.', icon: IC.fab },
   rubros: { ey1: 'Catálogo de', ey2: 'rubros', titulo: 'Rubros', foto: 'url(assets/foto-disco.png) center 45%/cover no-repeat', ph: 'Buscar rubro', nuevoLabel: '+ Nuevo rubro', plur: 'rubros', reg: 'rubros registrados', vacioT: 'Todavía no hay rubros registrados.', vacioS: 'Cuando cargues el primero va a aparecer acá.', sinresS: 'Revisá cómo está escrito.', icon: IC.rub }
 };
-const SECCION_DE = { prov: 'proveedores', enc: 'encargados', fab: 'fabricas' };
-const NAV = [
-  { key: 'encargados', label: 'Encargados', d: IC.enc },
-  { key: 'fabricas', label: 'Fábricas', d: IC.fab },
-  { key: 'rubros', label: 'Rubros', d: IC.rub },
-  { key: 'proveedores', label: 'Proveedores', d: IC.prov }
+Object.assign(LISTAS, {
+  solicitudes: { ey1: 'Pedidos de', ey2: 'cotización', titulo: 'Solicitudes', art: 'las', foto: 'url(assets/hero-bloque.png) center/cover no-repeat', ph: 'Buscar por cliente, fábrica, N.º de pedido o descripción', nuevoLabel: '+ Registrar solicitud', plur: 'solicitudes', reg: 'solicitudes registradas', vacioT: 'Todavía no hay solicitudes registradas.', vacioS: 'Cuando registres la primera va a aparecer acá.', sinresS: 'Revisá cómo está escrito o buscá por N.º de pedido.', icon: IC.sol },
+  materiales: { ey1: 'Catálogo de', ey2: 'materiales', titulo: 'Materiales', foto: 'url(assets/foto-ejes.png) center 45%/cover no-repeat', ph: 'Buscar por calidad', nuevoLabel: '+ Nuevo material', plur: 'materiales', reg: 'materiales registrados', vacioT: 'Todavía no hay materiales registrados.', vacioS: 'Cuando cargues el primero va a aparecer acá.', sinresT: 'No se encontraron materiales con ese criterio', sinresS: 'Revisá la calidad o cambiá el material elegido.', icon: IC.mat },
+  tipos: { ey1: 'Procesos', ey2: 'propios', titulo: 'Tipos de proceso', foto: 'url(assets/foto-cnc.png) center 55%/cover no-repeat', ph: 'Buscar por nombre', nuevoLabel: '+ Nuevo tipo de proceso', plur: 'tipos de proceso', reg: 'tipos de proceso registrados', vacioT: 'Todavía no hay tipos de proceso registrados.', vacioS: 'Cuando cargues el primero va a aparecer acá.', sinresT: 'No se encontraron tipos de proceso con ese criterio', sinresS: 'Revisá cómo está escrito.', icon: IC.tp },
+  empleados: { ey1: 'Personal de', ey2: 'la empresa', titulo: 'Empleados', foto: 'url(assets/foto-prensa.png) center 40%/cover no-repeat', ph: 'Buscar por nombre o apellido', nuevoLabel: '+ Nuevo empleado', plur: 'empleados', reg: 'empleados activos', vacioT: 'Todavía no hay empleados registrados.', vacioS: 'Cuando cargues el primero va a aparecer acá.', sinresS: 'Revisá cómo está escrito o incluí los dados de baja.', icon: IC.emp },
+  usuarios: { ey1: 'Acceso al', ey2: 'sistema', titulo: 'Usuarios', foto: 'url(assets/foto-dispositivo.png) center 45%/cover no-repeat', ph: 'Buscar por usuario o empleado', nuevoLabel: '+ Nuevo usuario', plur: 'usuarios', reg: 'usuarios activos', vacioT: 'Todavía no hay usuarios registrados.', vacioS: 'Cuando crees el primero va a aparecer acá.', sinresT: 'No se encontraron usuarios con ese criterio', sinresS: 'Probá con otro rol o incluí los dados de baja.', icon: IC.usu }
+});
+LISTAS.fabricas.art = 'las';
+const SECCION_DE = { prov: 'proveedores', enc: 'encargados', fab: 'fabricas', sol: 'solicitudes', tp: 'tipos', emp: 'empleados', usu: 'usuarios', mat: 'materiales' };
+const SIS_LBL = { '404': 'Página no encontrada', error: 'Error', denegado: 'Acceso denegado', inicio: 'Inicio' };
+const NAV_G = [
+  { label: 'Cotizaciones', items: [{ key: 'solicitudes', label: 'Solicitudes', d: IC.sol }] },
+  { label: 'Clientes', items: [{ key: 'encargados', label: 'Encargados', d: IC.enc }, { key: 'fabricas', label: 'Fábricas', d: IC.fab }, { key: 'rubros', label: 'Rubros', d: IC.rub }] },
+  { label: 'Catálogos técnicos', items: [{ key: 'proveedores', label: 'Proveedores', d: IC.prov }, { key: 'materiales', label: 'Materiales', d: IC.mat }, { key: 'tipos', label: 'Tipos de proceso', d: IC.tp }] },
+  { label: 'Administración', items: [{ key: 'empleados', label: 'Empleados', d: IC.emp }, { key: 'usuarios', label: 'Usuarios', d: IC.usu }] }
 ];
+const NAV = [];
+NAV_G.forEach(g => g.items.forEach(i => NAV.push({ ...i, grupo: g.label })));
 
 class Component extends DCLogic {
   state = {
@@ -740,7 +1218,8 @@ class Component extends DCLogic {
     menuCerrado: false, drawer: false, movil: false,
     d: semilla(), q: {}, pag: {}, fRubro: '', incEnc: false, incFabEnc: false,
     borrando: false, sel: [], form: {}, intento: false,
-    modal: null, mform: {}, mIntento: false, toast: null, demo: 'normal'
+    modal: null, mform: {}, mIntento: false, toast: null, demo: 'normal',
+    sesion: null, lg: LG0(), menuUsu: false, incEmp: false, incUsu: false, fRol: '', fMat: '', form0: '{}', editId: null, verPass: false, drag: null
   };
 
   componentDidMount() {
@@ -748,24 +1227,33 @@ class Component extends DCLogic {
     this.onMq = () => this.setState({ movil: this.mq.matches, drawer: false });
     this.onMq();
     this.mq.addEventListener('change', this.onMq);
+    this.lastAct = Date.now();
+    this.onAct = () => { this.lastAct = Date.now(); };
+    this.evs = ['pointerdown', 'keydown', 'mousemove', 'wheel', 'touchstart'];
+    this.evs.forEach(ev => window.addEventListener(ev, this.onAct, { passive: true }));
+    this.iv = setInterval(() => { if (this.state.sesion && Date.now() - this.lastAct > INACT) this.cerrarSesion('expirada'); }, 15000);
     try {
       const g = JSON.parse(localStorage.getItem(LS) || 'null');
-      if (g) this.setState({ pantalla: g.pantalla || 'proveedores', det: g.det || null, nuevo: g.nuevo || null, menuCerrado: !!g.menuCerrado, form: g.nuevo === 'prov' ? { tipos: [] } : {} });
+      if (g) {
+        const u = g.uid && this.state.d.usu.find(x => x.id === g.uid && x.activo && !x.bloqueado), f = this.formIni(g.nuevo, g.editId);
+        this.setState({ pantalla: g.pantalla || 'proveedores', det: g.det || null, nuevo: g.nuevo || null, editId: g.editId || null, menuCerrado: !!g.menuCerrado, form: f, form0: JSON.stringify(f), sesion: u ? { uid: u.id } : null });
+      }
     } catch (e) {}
   }
   componentDidUpdate() {
     const s = this.state;
-    const snap = JSON.stringify({ pantalla: s.pantalla, det: s.det, nuevo: s.nuevo, menuCerrado: s.menuCerrado });
+    const snap = JSON.stringify({ pantalla: s.pantalla, det: s.det, nuevo: s.nuevo, editId: s.editId, menuCerrado: s.menuCerrado, uid: s.sesion ? s.sesion.uid : null });
     if (snap !== this._nav) {
       this._nav = snap;
       try { localStorage.setItem(LS, snap); } catch (e) {}
     }
   }
-  componentWillUnmount() { if (this.mq) this.mq.removeEventListener('change', this.onMq); clearTimeout(this.tt); }
+  componentWillUnmount() { if (this.mq) this.mq.removeEventListener('change', this.onMq); clearTimeout(this.tt); clearInterval(this.iv); (this.evs || []).forEach(ev => window.removeEventListener(ev, this.onAct)); }
 
   // ── navegación y utilidades ──
   go(pantalla, extra) {
-    this.setState({ pantalla, editando: false, borrando: false, sel: [], intento: false, drawer: false, modal: null, form: {}, ...(extra || {}) });
+    const f0 = (extra && extra.form) || {};
+    this.setState({ pantalla, editando: false, borrando: false, sel: [], intento: false, drawer: false, modal: null, menuUsu: false, editId: null, form: {}, ...(extra || {}), form0: JSON.stringify(f0) });
     try { window.scrollTo(0, 0); } catch (e) {}
   }
   verDet(t, id) { this.go('detalle', { det: { t, id } }); }
@@ -805,6 +1293,42 @@ class Component extends DCLogic {
     if (t === 'rub') {
       if (tr(v.nombre).length < 3) e.nombre = 'El nombre debe tener al menos 3 caracteres';
       else if (d.rub.some(r => r.id !== id && norm(r.nombre) === norm(tr(v.nombre)))) e.nombre = 'Ya existe un rubro con ese nombre';
+    }
+    if (t === 'emp') {
+      if (!tr(v.nombre)) e.nombre = 'Ingresá el nombre';
+      if (!tr(v.apellido)) e.apellido = 'Ingresá el apellido';
+    }
+    if (t === 'usu') {
+      if (!v.empId) e.empId = 'Elegí el empleado';
+      else if (d.usu.some(u => u.empId === v.empId)) e.empId = ''; // el aviso «ya tiene el usuario» se muestra en el buscador
+      if (!tr(v.nombre)) e.nombre = 'Ingresá el nombre de usuario';
+      else if (d.usu.some(u => norm(u.nombre) === norm(tr(v.nombre)))) e.nombre = 'El nombre de usuario ya está en uso';
+      if (!v.pass) e.pass = 'Ingresá una contraseña';
+      else if (v.pass.length < 8) e.pass = 'La contraseña debe tener al menos 8 caracteres';
+      if (!(v.roles || []).length) e.roles = 'Asigná al menos un rol';
+    }
+    if (t === 'tp') {
+      if (!tr(v.nombre)) e.nombre = 'Ingresá el nombre del tipo de proceso';
+      else if (d.tp.some(x => x.id !== id && norm(x.nombre) === norm(tr(v.nombre)))) e.nombre = 'Ya existe un tipo de proceso con ese nombre';
+      [['ars', 'pesos'], ['usd', 'dólares']].forEach(([k, mon]) => {
+        const r = parseMonto(v[k]);
+        if (r.err === 'vacio') e[k] = 'Ingresá el precio hora en ' + mon;
+        else if (r.err === 'num') e[k] = 'El precio hora en ' + mon + ' tiene que ser un número mayor a 0';
+        else if (r.err === 'dec') e[k] = 'El precio hora en ' + mon + ' admite como máximo dos decimales';
+      });
+    }
+    if (t === 'mat') {
+      if (!tr(v.nombre)) e.nombre = 'Ingresá el material';
+      if (!tr(v.calidad)) e.calidad = 'Ingresá la calidad';
+      if (!e.nombre && !e.calidad && d.mat.some(x => norm(x.nombre) === norm(tr(v.nombre)) && norm(x.calidad) === norm(tr(v.calidad)))) e.calidad = 'Ya existe un material registrado con ese nombre y calidad';
+    }
+    if (t === 'sol') {
+      if (!v.encId) e.encId = 'Elegí el cliente solicitante';
+      if (!v.fecha) e.fecha = 'Ingresá la fecha de solicitud';
+      else if (v.fecha > HOY_ISO) e.fecha = 'La fecha de solicitud no puede ser futura';
+      if (!tr(v.desc)) e.desc = 'Describí el trabajo solicitado';
+      const a = v.arch || {};
+      if (!((a.planos || []).length + (a.fotos || []).length + (a.d3 || []).length)) e.arch = 'Adjuntá al menos un plano, una foto de la pieza patrón o un diseño 3D.';
     }
     return e;
   }
@@ -854,6 +1378,221 @@ class Component extends DCLogic {
     ] }];
   }
 
+  defsEmp() {
+    return [{ titulo: '', cols: 2, campos: [{ k: 'nombre', label: 'Nombre', ph: 'Ej: Matías' }, { k: 'apellido', label: 'Apellido', ph: 'Ej: Castro' }] }];
+  }
+  defsTp(editar) {
+    return [{ titulo: '', cols: 2, aviso: editar ? 'Si cambió el dólar, actualizá solo el valor en dólares: el precio en pesos se mantiene. Las cotizaciones ya cargadas conservan el precio hora con el que se cotizaron.' : '', campos: [
+      { k: 'nombre', label: 'Nombre', full: true, ph: 'Ej: Mecanizado Torno CNC' },
+      { k: 'desc', label: 'Descripción', nota: 'Opcional', tipo: 'area', full: true, ph: 'Qué incluye este proceso.' },
+      { k: 'ars', label: 'Precio hora en pesos', tipo: 'money', prefijo: '$', ph: '0,00' },
+      { k: 'usd', label: 'Precio hora en dólares', tipo: 'money', prefijo: 'US$', ph: '0,00' }
+    ] }];
+  }
+  defsUsu() {
+    return [
+      { titulo: 'Empleado y acceso', cols: 2, campos: [
+        { k: 'empId', label: 'Empleado', tipo: 'pick', pick: 'emp', full: true, ph: 'Buscar empleado por nombre o apellido' },
+        { k: 'nombre', label: 'Nombre de usuario', ph: 'Ej: mcastro', ayuda: 'Se propone a partir del empleado. Lo podés cambiar.' },
+        { k: 'pass', label: 'Contraseña', tipo: 'pass', ph: 'Mínimo 8 caracteres' }
+      ] },
+      { titulo: 'Roles', cols: 1, campos: [{ k: 'roles', label: 'Roles asignados', nota: 'Elegí al menos uno.', tipo: 'roles', full: true }] }
+    ];
+  }
+  defsSol() {
+    return [
+      { titulo: 'Cliente solicitante', cols: 1, campos: [{ k: 'encId', label: 'Cliente', tipo: 'pick', pick: 'enc', full: true, ph: 'Buscar por nombre, apellido, mail o fábrica' }] },
+      { titulo: 'Datos de la solicitud', cols: 2, campos: [
+        { k: 'fecha', label: 'Fecha de solicitud', tipo: 'fecha' },
+        { k: 'pedido', label: 'N.º de pedido o referencia del cliente', nota: 'Opcional', ph: 'Ej: 4512', ayuda: 'Si el pedido llegó por WhatsApp sin referencia, dejalo vacío.' },
+        { k: 'desc', label: 'Descripción del trabajo solicitado', tipo: 'area', full: true, ph: 'Qué pide el cliente: pieza, conjunto o reparación.' }
+      ] },
+      { titulo: 'Documentación', cols: 1, campos: [{ k: 'arch', label: 'Documentación', tipo: 'archivos', full: true, sinLabel: true, ayuda: 'Es obligatorio adjuntar al menos un plano, una foto de la pieza patrón o un diseño 3D.' }] }
+    ];
+  }
+
+  // ── sesión y permisos ──
+  usuActual() { const s = this.state; return s.sesion ? s.d.usu.find(u => u.id === s.sesion.uid) || null : null; }
+  puede(sec, roles) { return (PERM[sec] || []).some(r => roles.includes(r)); }
+  home(roles) { const n = NAV.find(x => this.puede(x.key, roles)); return n ? n.key : 'inicio'; }
+  ultimoAcceso(d, uid) { const l = d.ses.filter(x => x.uid === uid); return l.length ? l[l.length - 1].ini : ''; }
+  formIni(t, editId) {
+    if (t === 'tp' && editId) { const x = this.state.d.tp.find(y => y.id === editId); if (x) return { nombre: x.nombre, desc: x.desc, ars: fmtNum(x.ars, 2), usd: fmtNum(x.usd, 2) }; }
+    if (t === 'sol') return { fecha: HOY_ISO, arch: {} };
+    return ({ prov: { tipos: [] }, enc: { wa: false }, usu: { roles: [] } })[t] || {};
+  }
+  sucio() {
+    const s = this.state;
+    if ((s.pantalla === 'nuevo' || s.editando) && JSON.stringify(s.form) !== s.form0) return true;
+    return !!(s.modal && s.modal.campos && JSON.stringify(s.mform) !== JSON.stringify(s.modal.valores || {}));
+  }
+  cerrarSes(ses) { const uid = this.state.sesion && this.state.sesion.uid; return uid ? ses.map(x => x.uid === uid && !x.fin ? { ...x, fin: ahora() } : x) : ses; }
+  iniciarSesion(u) {
+    this.upd(d => ({ ...d, usu: d.usu.map(x => x.id === u.id ? { ...x, fallos: 0 } : x), ses: this.cerrarSes(d.ses).concat([{ uid: u.id, ini: ahora(), fin: '' }]) }));
+    this.lastAct = Date.now();
+    this.go(this.home(u.roles), { sesion: { uid: u.id }, lg: LG0(), verPass: false, q: {}, pag: {} });
+  }
+  cerrarSesion(motivo, user) {
+    this.upd(d => ({ ...d, ses: this.cerrarSes(d.ses) }));
+    clearTimeout(this.tt);
+    const msg = motivo === 'expirada' ? { tipo: 'info', texto: 'Tu sesión expiró por inactividad' } : motivo === 'bloq' ? { tipo: 'error', texto: BLOQ } : motivo === 'cerro' ? { tipo: 'ok', texto: 'Cerraste sesión correctamente' } : null;
+    this.setState({ sesion: null, menuUsu: false, drawer: false, modal: null, mform: {}, editando: false, form: {}, form0: '{}', intento: false, borrando: false, sel: [], toast: null, lg: { ...LG0(), user: user || '', msg } });
+  }
+  pedirCierre() {
+    this.setState({ menuUsu: false, drawer: false });
+    if (!this.sucio()) { this.cerrarSesion('cerro'); return; }
+    this.abrir({ icon: IC.salir, tono: 'rojo', titulo: 'Cerrar sesión', pre: 'Se van a perder los datos que no guardaste.', cancelLabel: 'Seguir acá', okLabel: 'Cerrar sesión', ok: () => this.cerrarSesion('cerro') });
+  }
+  ingresar() {
+    const s = this.state, L = s.lg, u = tr(L.user), p = L.pass || '';
+    const errU = u ? '' : 'Ingresá tu nombre de usuario', errP = p ? '' : 'Ingresá tu contraseña';
+    if (errU || errP) { this.setState({ lg: { ...L, errU, errP, msg: null } }); return; }
+    const usu = s.d.usu.find(x => norm(x.nombre) === norm(u));
+    const falla = texto => this.setState(st => ({ lg: { ...st.lg, pass: '', ver: false, errU: '', errP: '', msg: { tipo: 'error', texto } } }));
+    if (usu && usu.bloqueado) return falla(BLOQ);
+    if (usu && usu.activo && usu.pass === p) return this.iniciarSesion(usu);
+    if (usu && usu.activo) {
+      const n = (usu.fallos || 0) + 1, bloq = n >= 5;
+      this.upd(d => ({ ...d, usu: d.usu.map(x => x.id === usu.id ? { ...x, fallos: n, bloqueado: bloq } : x) }));
+      if (bloq) return falla(BLOQ);
+    }
+    falla('Usuario o contraseña incorrectos');
+  }
+  ingresarComo(id) {
+    const u = this.state.d.usu.find(x => x.id === id);
+    if (!u) return;
+    if (u.bloqueado || !u.activo) { this.cerrarSesion(u.bloqueado ? 'bloq' : null, u.nombre); return; }
+    this.iniciarSesion(u);
+  }
+
+  // ── buscador de empleado / encargado ──
+  pick(c, vals) {
+    const d = this.state.d, k = c.k, sel = vals[k], q = vals['_q_' + k] || '', nq = norm(q);
+    const patch = p => this.setState(st => ({ form: { ...st.form, ...p } }));
+    let todos = [], selObj = null, alerta = '', alertaGo = null, hint = '', hintLink = '', hintGo = null, vacioTxt = '';
+    if (c.pick === 'emp') {
+      todos = d.emp.filter(e => e.activo).sort(porApe).map(e => { const u = d.usu.find(x => x.empId === e.id); return { id: e.id, icon: IC.emp, titulo: e.apellido + ', ' + e.nombre, sub: u ? 'Usuario ' + u.nombre : 'Sin usuario', hayTag: !!u, tag: 'Ya tiene usuario', txt: e.nombre + ' ' + e.apellido }; });
+      const e = d.emp.find(x => x.id === sel);
+      if (e) {
+        const u = d.usu.find(x => x.empId === e.id);
+        selObj = { icon: IC.emp, titulo: e.nombre + ' ' + e.apellido, sub: u ? 'Empleado activo · con usuario' : 'Empleado activo · sin usuario', datos: [] };
+        if (u) { alerta = 'Este empleado ya tiene el usuario «' + u.nombre + '»'; alertaGo = () => this.verDet('usu', u.id); }
+      }
+      hint = '¿No aparece? Primero hay que registrar al empleado en'; hintLink = 'Empleados'; hintGo = () => this.go('empleados');
+      vacioTxt = 'No hay empleados activos con ese nombre.';
+    }
+    if (c.pick === 'enc') {
+      todos = d.enc.filter(e => e.activo).map(e => { const f = d.fab.find(y => y.id === e.fabricaId); return { id: e.id, icon: IC.enc, titulo: e.nombre + ' ' + e.apellido, sub: (f ? f.nombre : '—') + ' · ' + e.mail, txt: [e.nombre, e.apellido, e.mail, f ? f.nombre : ''].join(' ') }; }).sort((a, b) => a.titulo.localeCompare(b.titulo, 'es'));
+      const e = d.enc.find(x => x.id === sel && x.activo);
+      if (e) {
+        const f = d.fab.find(y => y.id === e.fabricaId) || {};
+        selObj = { icon: IC.enc, titulo: e.nombre + ' ' + e.apellido, sub: [e.mail, e.tel].filter(Boolean).join(' · '), datos: [
+          { label: 'Fábrica', valor: f.nombre || '—' }, { label: 'Rubro', valor: this.rubro(d, f.rubroId) }, { label: 'CUIT', valor: f.cuit || 'Sin CUIT', muted: !f.cuit },
+          { label: 'Formas de pago', valor: f.pago || 'Sin datos.', muted: !f.pago, full: true }] };
+      }
+      hint = 'Si el cliente no está registrado, dalo de alta primero en'; hintLink = 'Encargados'; hintGo = () => this.go('encargados');
+      vacioTxt = 'No hay encargados activos que coincidan.';
+    }
+    const res = todos.filter(x => !nq || norm(x.txt).includes(nq)).slice(0, 8).map(x => ({ id: x.id, icon: x.icon, titulo: x.titulo, sub: x.sub, hayTag: !!x.hayTag, tag: x.tag || '', elegir: () => this.elegirPick(c, x.id) }));
+    const abierto = !selObj && (!!vals['_o_' + k] || !!q);
+    return {
+      sinSel: !selObj, conSel: !!selObj, q, abierto, res, vacio: abierto && !res.length, vacioTxt, hint, hintLink, hintGo,
+      setQ: e => patch({ ['_q_' + k]: e.target.value, ['_o_' + k]: true }),
+      abrir: () => { if (!this.state.form['_o_' + k]) patch({ ['_o_' + k]: true }); },
+      sel: selObj ? { ...selObj, datos: selObj.datos.map(it => ({ label: it.label, valor: it.valor, fg: it.muted ? '#8a909c' : '#172645', span: it.full ? '1 / -1' : 'auto' })) } : { datos: [] },
+      hayDatos: !!(selObj && selObj.datos.length), limpiar: () => patch({ [k]: '', ['_q_' + k]: '', ['_o_' + k]: true }),
+      hayAlerta: !!alerta, alerta, alertaGo
+    };
+  }
+  elegirPick(c, id) {
+    const k = c.k;
+    this.setState(st => {
+      const f = { ...st.form, [k]: id, ['_q_' + k]: '', ['_o_' + k]: false };
+      if (c.pick === 'emp') { const prop = this.proponerUsuario(st.d.emp.find(x => x.id === id), st.d); if (!tr(f.nombre) || f.nombre === f._prop) { f.nombre = prop; f._prop = prop; } }
+      return { form: f };
+    });
+  }
+  proponerUsuario(e, d) {
+    if (!e) return '';
+    const base = norm((e.nombre || '').charAt(0) + (e.apellido || '')).replace(/[^a-z0-9]/g, '');
+    let n = base, i = 2;
+    while (d.usu.some(u => u.nombre === n)) n = base + (i++);
+    return n;
+  }
+  nuevoUsu(empId) {
+    const e = empId ? this.state.d.emp.find(x => x.id === empId) : null, prop = this.proponerUsuario(e, this.state.d);
+    this.go('nuevo', { nuevo: 'usu', verPass: false, form: { empId: empId || '', roles: [], nombre: prop, _prop: prop, pass: '' } });
+  }
+
+  // ── documentación de la solicitud ──
+  archivos(c, vals) {
+    const a = vals[c.k] || {}, errG = vals._errArch || {}, drag = this.state.drag;
+    return GRUPOS.map(g => {
+      const lista = a[g.k] || [], err = errG[g.k] || '', on = drag === g.k;
+      return {
+        titulo: g.titulo, formatos: g.formatos, icon: g.icon, ayuda: g.ayuda || '', hayAyuda: !!g.ayuda, accept: g.ext.map(x => '.' + x).join(','), multi: g.multi, btn: g.multi ? 'Elegir archivos' : 'Elegir archivo',
+        hayArch: lista.length > 0,
+        arch: lista.map(f => ({ nombre: f.nombre, meta: fmtTam(f.tam) + ' · ' + f.ext.toUpperCase(), esFoto: !!f.url, noFoto: !f.url, thumb: 'url("' + f.url + '") center/cover no-repeat', icon: EXT_ICON[f.ext] || IC.pdf, quitar: () => this.quitarArch(c.k, g.k, f.id) })),
+        hayErr: !!err, err, bd: on ? '#0f3483' : err ? '#b3261e' : '#c9d1e0', bg: on ? '#eef2fa' : '#fafbfd',
+        over: e => { e.preventDefault(); if (this.state.drag !== g.k) this.setState({ drag: g.k }); },
+        leave: () => this.setState({ drag: null }),
+        drop: e => { e.preventDefault(); const fl = Array.from((e.dataTransfer && e.dataTransfer.files) || []); this.setState({ drag: null }); this.agregarArch(c.k, g, fl); },
+        elegir: e => { const fl = Array.from(e.target.files || []); e.target.value = ''; this.agregarArch(c.k, g, fl); }
+      };
+    });
+  }
+  agregarArch(k, g, lista) {
+    if (!lista.length) return;
+    const ok = [], malF = [], malT = [];
+    lista.forEach(f => {
+      const ext = f.name.indexOf('.') >= 0 ? f.name.split('.').pop().toLowerCase() : '';
+      if (!g.ext.includes(ext)) malF.push('«' + f.name + '»');
+      else if (f.size > MAX_MB * 1048576) malT.push('«' + f.name + '»');
+      else ok.push({ id: 'a' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), nombre: f.name, tam: f.size, ext, url: FOTO_EXT.includes(ext) ? URL.createObjectURL(f) : '' });
+    });
+    const err = [
+      malF.length ? (malF.length === 1 ? 'El archivo ' + malF[0] + ' no tiene un formato permitido.' : 'Los archivos ' + malF.join(', ') + ' no tienen un formato permitido.') + ' Formatos admitidos: ' + g.fmt + '.' : '',
+      malT.length ? malT.join(', ') + (malT.length === 1 ? ' supera' : ' superan') + ' los 50 MB por archivo.' : ''
+    ].filter(Boolean).join(' ');
+    this.setState(st => {
+      const a = { ...(st.form[k] || {}) };
+      a[g.k] = g.multi ? (a[g.k] || []).concat(ok) : (ok.length ? [ok[0]] : (a[g.k] || []));
+      return { form: { ...st.form, [k]: a, _errArch: { ...(st.form._errArch || {}), [g.k]: err } } };
+    });
+  }
+  quitarArch(k, gk, id) {
+    this.setState(st => { const a = { ...(st.form[k] || {}) }; a[gk] = (a[gk] || []).filter(f => f.id !== id); return { form: { ...st.form, [k]: a, _errArch: { ...(st.form._errArch || {}), [gk]: '' } } }; });
+  }
+  visor(f) {
+    const foto = FOTO_EXT.includes(f.ext);
+    this.abrir({ icon: foto ? IC.foto : IC.pdf, titulo: f.nombre, ancho: foto ? '860px' : '620px', sinOk: true, cancelLabel: 'Cerrar',
+      visor: { esFoto: foto, esPdf: !foto, img: 'url("' + f.url + '") center/contain no-repeat', nombre: f.nombre, lineas: ['92%', '84%', '96%', '58%', '88%', '72%'].map(w => ({ w })), pie: fmtTam(f.tam) + ' · ' + f.ext.toUpperCase() + (foto ? '' : ' · Vista previa simulada del prototipo') } });
+  }
+  cancelarSol() {
+    if (JSON.stringify(this.state.form) === this.state.form0) { this.go('solicitudes'); return; }
+    this.abrir({ icon: IC.warn, tono: 'rojo', titulo: 'Cancelar solicitud', pre: 'Se van a perder los datos y archivos cargados.', cancelLabel: 'Seguir cargando', okLabel: 'Descartar', ok: () => this.go('solicitudes') });
+  }
+  modalMaterial() {
+    const nombres = Array.from(new Set(this.state.d.mat.map(m => m.nombre))).sort((a, b) => a.localeCompare(b, 'es'));
+    this.abrir({
+      icon: IC.mat, titulo: 'Nuevo material', ancho: '520px', cols: 1, validar: 'mat', valores: { nombre: '', calidad: '' },
+      campos: [{ k: 'nombre', label: 'Material', tipo: 'combo', full: true, ph: 'Ej: Acero', opciones: nombres.map(n => ({ v: n, l: n })), ayuda: 'Elegí uno de la lista o escribí uno nuevo.' }, { k: 'calidad', label: 'Calidad', full: true, ph: 'Ej: 1045' }],
+      okLabel: 'Registrar material',
+      ok: v => { this.upd(d => ({ ...d, mat: d.mat.concat([{ id: 'mat' + Date.now(), nombre: tr(v.nombre), calidad: tr(v.calidad) }]) })); this.cerrar(); this.aviso('Material registrado correctamente'); }
+    });
+  }
+  modalBajaEmp(x) {
+    const u = this.state.d.usu.find(y => y.empId === x.id && y.activo);
+    this.abrir({
+      icon: IC.trash, tono: 'rojo', titulo: 'Dar de baja empleado', pre: '¿Seguro que querés dar de baja a ', strong: x.nombre + ' ' + x.apellido, post: '? Va a quedar como inactivo en el listado de empleados.',
+      aviso: u ? 'Su usuario «' + u.nombre + '» también se va a desactivar y no va a poder ingresar al sistema.' : '', okLabel: 'Dar de baja',
+      ok: () => {
+        this.upd(d => ({ ...d, emp: d.emp.map(y => y.id === x.id ? { ...y, activo: false } : y), usu: d.usu.map(y => y.empId === x.id ? { ...y, activo: false } : y) }));
+        this.cerrar(); this.aviso(u ? 'Empleado dado de baja. Su usuario quedó desactivado.' : 'Empleado dado de baja.');
+      }
+    });
+  }
+
   campo(c, vals, set, errs) {
     const t = c.tipo || 'text', v = vals[c.k], err = errs[c.k] || '';
     const o = {
@@ -867,6 +1606,11 @@ class Component extends DCLogic {
       hayLink: !!c.link, linkLabel: c.link ? c.link.label : '', linkGo: c.link ? c.link.go : null, linkFuturo: !!(c.link && c.link.futuro),
       chips: [], tipoOpts: [], mark: '', boxBg: '#fff', boxBd: '#c3c9d6', toggle: null
     };
+    Object.assign(o, { esFecha: t === 'fecha', esMoney: t === 'money', esPass: t === 'pass', esRoles: t === 'roles', esPick: t === 'pick', esArchivos: t === 'archivos', esCombo: t === 'combo', dl: 'dl-' + c.k, maxF: HOY_ISO, prefijo: c.prefijo || '', ayuda: c.ayuda || '', hayAyuda: !!c.ayuda, pk: { res: [], sel: { datos: [] } }, grupos: [], rolOpts: [] });
+    if (t === 'pass') { const ver = this.state.verPass; Object.assign(o, { ptype: ver ? 'text' : 'password', verIcon: ver ? IC.ojoNo : IC.ojo, verTitle: ver ? 'Ocultar contraseña' : 'Mostrar contraseña', toggleVer: () => this.setState(st => ({ verPass: !st.verPass })), generar: () => { set(c.k, genPass()); this.setState({ verPass: true }); } }); }
+    if (t === 'roles') { const arr = v || []; o.rolOpts = ROLES.map(r => { const on = arr.includes(r.k); return { name: r.nombre, desc: r.desc, nota: r.nota || '', hayNota: !!r.nota, ...box(on), bg: on ? '#eef2fa' : '#ffffff', bd: on ? '#0f3483' : '#e1e5ec', toggle: () => set(c.k, ROLES.map(z => z.k).filter(z => z === r.k ? !on : arr.includes(z))) }; }); }
+    if (t === 'pick') o.pk = this.pick(c, vals);
+    if (t === 'archivos') o.grupos = this.archivos(c, vals);
     if (t === 'check') Object.assign(o, box(!!v), { toggle: () => set(c.k, !v) });
     if (t === 'tipos') {
       const arr = v || [];
@@ -876,12 +1620,12 @@ class Component extends DCLogic {
     return o;
   }
   mk(secs, vals, set, errs, movil) {
-    return secs.map(s => ({ titulo: s.titulo || '', hayTitulo: !!s.titulo, futuro: !!s.futuro, cols: movil ? 1 : (s.cols || 2), campos: s.campos.map(c => this.campo(c, vals, set, errs)) }));
+    return secs.map(s => ({ titulo: s.titulo || '', hayTitulo: !!s.titulo, futuro: !!s.futuro, aviso: s.aviso || '', hayAviso: !!s.aviso, cols: movil ? 1 : (s.cols || 2), campos: s.campos.map(c => this.campo(c, vals, set, errs)) }));
   }
 
   // ── acciones ──
   crear() {
-    const s = this.state, t = s.nuevo, v = s.form, e = this.validar(t, v, null, s.d);
+    const s = this.state, t = s.nuevo, v = s.form, e = this.validar(t, v, s.editId || null, s.d);
     if (Object.keys(e).length) { this.setState({ intento: true }); this.aviso('Revisá los campos marcados.', 'error'); return; }
     const id = t + Date.now();
     if (t === 'prov') {
@@ -895,6 +1639,44 @@ class Component extends DCLogic {
     if (t === 'fab') {
       this.upd(d => ({ ...d, fab: [{ id, nombre: tr(v.nombre), codigo: tr(v.codigo), cuit: tr(v.cuit), rubroId: v.rubroId, direccion: tr(v.direccion), pago: tr(v.pago) }].concat(d.fab) }));
       this.verDet('fab', id); this.aviso('Fábrica creada. Ya podés cargar sus encargados.');
+    }
+    if (t === 'emp') {
+      this.upd(d => ({ ...d, emp: [{ id, nombre: tr(v.nombre), apellido: tr(v.apellido), activo: true }].concat(d.emp) }));
+      this.verDet('emp', id); this.aviso('Empleado registrado correctamente');
+    }
+    if (t === 'usu') {
+      this.upd(d => ({ ...d, usu: d.usu.concat([{ id, nombre: tr(v.nombre), pass: v.pass, activo: true, bloqueado: false, fallos: 0, empId: v.empId, roles: ROLES.map(r => r.k).filter(k => v.roles.includes(k)) }]) }));
+      this.verDet('usu', id); this.setState({ verPass: false }); this.aviso('Usuario registrado correctamente');
+    }
+    if (t === 'tp') {
+      const nv = { nombre: tr(v.nombre), desc: tr(v.desc), ars: parseMonto(v.ars).n, usd: parseMonto(v.usd).n };
+      const x = s.editId ? s.d.tp.find(y => y.id === s.editId) : null;
+      if (!x) { this.upd(d => ({ ...d, tp: d.tp.concat([{ id, ...nv, alta: ahora(), hist: [] }]) })); this.verDet('tp', id); this.aviso('Tipo de proceso registrado correctamente'); return; }
+      const cambios = TP_CAMPOS.filter(k => x[k] !== nv[k]);
+      if (!cambios.length) { this.aviso('No hay cambios para guardar', 'info'); return; }
+      this.abrir({
+        icon: IC.tp, titulo: 'Confirmar cambios', ancho: '580px', pre: 'Revisá los cambios de ', strong: x.nombre, post: ' antes de guardarlos.', dcols: 1,
+        datos: cambios.map(k => ({ label: TP_LBL[k], valor: fmtTp(k, x[k]) + '  →  ' + fmtTp(k, nv[k]) })), okLabel: 'Guardar cambios',
+        ok: () => {
+          const fh = ahora(), usr = (this.usuActual() || {}).nombre || '—';
+          this.upd(d => ({ ...d, tp: d.tp.map(y => y.id === x.id ? { ...y, ...nv, hist: cambios.map(k => ({ fh, usr, campo: k, ant: x[k], nue: nv[k] })).concat(y.hist) } : y) }));
+          this.verDet('tp', x.id); this.aviso('Tipo de proceso modificado correctamente');
+        }
+      });
+    }
+    if (t === 'sol') {
+      const enc = s.d.enc.find(x => x.id === v.encId) || {}, fab = s.d.fab.find(x => x.id === enc.fabricaId) || {}, a = v.arch || {};
+      const cant = k => { const n = (a[k] || []).length; return n === 0 ? 'Sin archivos' : n === 1 ? '1 archivo' : n + ' archivos'; };
+      this.abrir({
+        icon: IC.sol, titulo: 'Confirmar solicitud', ancho: '660px', pre: 'Revisá los datos antes de registrar la solicitud de cotización.', dcols: 2,
+        datos: [{ label: 'Cliente', valor: enc.nombre + ' ' + enc.apellido }, { label: 'Fábrica', valor: fab.nombre || '—' }, { label: 'Fecha de solicitud', valor: isoAFecha(v.fecha) }, { label: 'N.º de pedido', valor: tr(v.pedido) || 'Sin número' }, { label: 'Descripción', valor: tr(v.desc), full: true }].concat(GRUPOS.map(g => ({ label: g.titulo, valor: cant(g.k) }))),
+        okLabel: 'Confirmar registro',
+        ok: () => {
+          const nid = Math.max(0, ...this.state.d.sol.map(x => x.id)) + 1;
+          this.upd(d => ({ ...d, sol: d.sol.concat([{ id: nid, fecha: v.fecha, encId: v.encId, pedido: tr(v.pedido), desc: tr(v.desc), arch: { pdf: a.pdf || [], planos: a.planos || [], fotos: a.fotos || [], d3: a.d3 || [] }, cots: [{ id: 'c' + nid, creada: HOY }], alta: ahora() }]) }));
+          this.verDet('sol', nid); this.aviso('Solicitud registrada correctamente');
+        }
+      });
     }
   }
   guardar() {
@@ -994,12 +1776,18 @@ class Component extends DCLogic {
     const s = this.state, d = s.d, movil = s.movil;
     const setForm = (k, v) => this.setState(st => ({ form: { ...st.form, [k]: v } }));
     const setM = (k, v) => this.setState(st => ({ mform: { ...st.mform, [k]: v } }));
+    const usu = this.usuActual(), roles = usu ? usu.roles : [], home = this.home(roles), usuE = usu ? d.emp.find(e => e.id === usu.empId) : null;
 
     // pantalla efectiva (si el registro guardado ya no existe, vuelve al listado)
     let P = s.pantalla;
     const detEnt = P === 'detalle' && s.det ? (d[s.det.t] || []).find(x => x.id === s.det.id) : null;
-    if (P === 'detalle' && !detEnt) P = s.det ? SECCION_DE[s.det.t] || 'proveedores' : 'proveedores';
-    if (P === 'nuevo' && !SECCION_DE[s.nuevo]) P = 'proveedores';
+    if (P === 'detalle' && !detEnt) P = s.det ? SECCION_DE[s.det.t] || home : home;
+    if (P === 'nuevo' && !SECCION_DE[s.nuevo]) P = home;
+    if (!LISTAS[P] && !['nuevo', 'detalle', '404', 'error', 'denegado', 'inicio'].includes(P)) P = home;
+    if (P === 'inicio' && home !== 'inicio') P = home;
+    const secDe = P === 'nuevo' ? SECCION_DE[s.nuevo] : P === 'detalle' ? SECCION_DE[s.det.t] : P;
+    if (PERM[secDe] && !this.puede(secDe, roles)) P = 'denegado';
+    else if (P === 'nuevo' && s.nuevo === 'sol' && !roles.includes('ERP')) P = 'denegado';
     const esL = !!LISTAS[P];
     const seccion = esL ? P : P === 'nuevo' ? SECCION_DE[s.nuevo] : P === 'detalle' ? SECCION_DE[s.det.t] : '';
 
@@ -1007,6 +1795,8 @@ class Component extends DCLogic {
       const on = n.key === seccion;
       return { ...n, on, off: !on, go: () => this.go(n.key), mBg: on ? '#fcfcfc' : 'transparent', mFg: on ? '#0f3483' : '#e6e9f0', mFw: on ? '800' : '700', mSh: on ? '0 10px 24px rgba(0,0,0,.25)' : 'none' };
     });
+
+    const navG = NAV_G.map(g => ({ label: g.label, items: nav.filter(n => n.grupo === g.label && this.puede(n.key, roles)) })).filter(g => g.items.length).map((g, i) => ({ ...g, sep: i > 0 }));
 
     // ── listados ──
     const L = LISTAS[P] || LISTAS.proveedores;
@@ -1019,6 +1809,12 @@ class Component extends DCLogic {
     }
     if (P === 'fabricas') { todas = d.fab; totalHero = todas.length; filas = todas.filter(f => (!s.fRubro || f.rubroId === s.fRubro) && (!q || norm([f.nombre, f.codigo, f.cuit].join(' ')).includes(q))); }
     if (P === 'rubros') { todas = d.rub; totalHero = todas.length; filas = todas.filter(r => !q || norm(r.nombre).includes(q)); }
+    const encDe = id => d.enc.find(y => y.id === id) || {}, fabDe = id => d.fab.find(y => y.id === id) || {};
+    if (P === 'solicitudes') { todas = d.sol.slice().sort((a, b) => b.id - a.id); totalHero = todas.length; filas = todas.filter(x => { const e = encDe(x.encId), f = fabDe(e.fabricaId); return !q || norm([e.nombre, e.apellido, f.nombre, x.pedido, x.desc].join(' ')).includes(q); }); }
+    if (P === 'materiales') { todas = d.mat.slice().sort(porMat); totalHero = todas.length; filas = todas.filter(m => (!s.fMat || m.nombre === s.fMat) && (!q || norm(m.calidad).includes(q))); }
+    if (P === 'tipos') { todas = d.tp.slice().sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')); totalHero = todas.length; filas = todas.filter(x => !q || norm(x.nombre).includes(q)); }
+    if (P === 'empleados') { todas = d.emp.slice().sort(porApe); totalHero = todas.filter(x => x.activo).length; filas = todas.filter(x => (x.activo || s.incEmp) && (!q || norm(x.nombre + ' ' + x.apellido).includes(q))); }
+    if (P === 'usuarios') { todas = d.usu.slice().sort((a, b) => a.nombre.localeCompare(b.nombre)); totalHero = todas.filter(x => x.activo).length; filas = todas.filter(u => { const e = d.emp.find(y => y.id === u.empId) || {}; return (u.activo || s.incUsu) && (!s.fRol || u.roles.includes(s.fRol)) && (!q || norm([u.nombre, e.nombre, e.apellido].join(' ')).includes(q)); }); }
     const paginas = Math.max(1, Math.ceil(filas.length / PAGE));
     const pg = Math.min(s.pag[P] || 1, paginas);
     const vis = filas.slice((pg - 1) * PAGE, pg * PAGE);
@@ -1034,18 +1830,26 @@ class Component extends DCLogic {
     if (s.demo !== 'normal') estado = s.demo;
     else if (!todas.length) estado = 'vacio';
     else if (!filas.length) estado = 'sinres';
-    const limpiar = () => this.setState(st => ({ q: { ...st.q, [P]: '' }, fRubro: P === 'fabricas' ? '' : st.fRubro, incEnc: P === 'encargados' ? true : st.incEnc }));
+    const limpiar = () => this.setState(st => ({ q: { ...st.q, [P]: '' }, fRubro: P === 'fabricas' ? '' : st.fRubro, incEnc: P === 'encargados' ? true : st.incEnc, fMat: P === 'materiales' ? '' : st.fMat, fRol: P === 'usuarios' ? '' : st.fRol, incEmp: P === 'empleados' ? true : st.incEmp, incUsu: P === 'usuarios' ? true : st.incUsu }));
     const nuevoDe = {
       proveedores: () => this.go('nuevo', { nuevo: 'prov', form: { tipos: [] } }),
       encargados: () => this.go('nuevo', { nuevo: 'enc', form: { wa: false } }),
       fabricas: () => this.go('nuevo', { nuevo: 'fab' }),
-      rubros: () => this.modalRubro(null)
+      rubros: () => this.modalRubro(null),
+      solicitudes: () => this.go('nuevo', { nuevo: 'sol', form: this.formIni('sol') }),
+      materiales: () => this.modalMaterial(),
+      tipos: () => this.go('nuevo', { nuevo: 'tp' }),
+      empleados: () => this.go('nuevo', { nuevo: 'emp' }),
+      usuarios: () => this.nuevoUsu(null)
     };
     const EST = {
       vacio: { icon: L.icon, ibg: '#eef1f7', ifg: '#3b5998', titulo: L.vacioT, texto: L.vacioS, btn: L.nuevoLabel, btnP: true, btnS: false, accion: nuevoDe[P] },
       sinres: { icon: IC.nores, ibg: '#eef1f7', ifg: '#3b5998', titulo: 'No hay ' + L.plur + ' que coincidan con la búsqueda.', texto: L.sinresS, btn: 'Limpiar búsqueda', btnP: false, btnS: true, accion: limpiar },
-      error: { icon: IC.warn, ibg: '#fbe9e7', ifg: '#b3261e', titulo: 'No se pudieron cargar los ' + L.plur + '.', texto: 'Revisá la conexión e intentá de nuevo.', btn: 'Reintentar', btnP: true, btnS: false, accion: () => { this.setState({ demo: 'cargando' }); setTimeout(() => this.setState({ demo: 'normal' }), 1200); } }
+      error: { icon: IC.warn, ibg: '#fbe9e7', ifg: '#b3261e', titulo: 'No se pudieron cargar ' + (L.art || 'los') + ' ' + L.plur + '.', texto: 'Revisá la conexión e intentá de nuevo.', btn: 'Reintentar', btnP: true, btnS: false, accion: () => { this.setState({ demo: 'cargando' }); setTimeout(() => this.setState({ demo: 'normal' }), 1200); } }
     };
+    const puedeNuevo = P !== 'solicitudes' || roles.includes('ERP');
+    EST.vacio.btnP = puedeNuevo;
+    if (L.sinresT) EST.sinres = { icon: IC.nores, ibg: '#eef1f7', ifg: '#3b5998', titulo: L.sinresT, texto: L.sinresS, btn: L.nuevoLabel, btnP: puedeNuevo, btnS: false, accion: nuevoDe[P] };
     const est = { cargando: estado === 'cargando', msg: !!EST[estado], ...(EST[estado] || EST.vacio) };
 
     const toggleSel = id => () => this.setState(st => ({ sel: st.sel.includes(id) ? st.sel.filter(x => x !== id) : st.sel.concat(id) }));
@@ -1071,9 +1875,18 @@ class Component extends DCLogic {
         cntBg: cant ? '#e8edf8' : '#fbe9e7', cntFg: cant ? '#0f3483' : '#b3261e', ver: () => this.verDet('fab', f.id) };
     }) : [];
     const rubRows = P === 'rubros' ? vis.map(r => ({ ...r, editar: () => this.modalRubro(r), borrar: () => this.modalBorrarRubro(r) })) : [];
+    const empDe = id => d.emp.find(y => y.id === id), usuDe = eid => d.usu.find(y => y.empId === eid);
+    const rolesChips = u => (u ? u.roles : []).map(r => ({ name: ROL[r].nombre, icon: IC.rol }));
+    const adjDe = x => GRUPOS.filter(g => (x.arch[g.k] || []).length).map(g => ({ icon: g.icon, n: x.arch[g.k].length, name: String(x.arch[g.k].length), t: g.titulo }));
+    const ultTp = x => x.hist.length ? x.hist[0].fh : x.alta;
+    const solRows = P === 'solicitudes' ? vis.map(x => { const e = encDe(x.encId), f = fabDe(e.fabricaId); return { id: x.id, fecha: isoAFecha(x.fecha), enc: (e.nombre || '') + ' ' + (e.apellido || ''), fab: f.nombre || '—', pedido: x.pedido || '—', pedFg: x.pedido ? '#172645' : '#b0b5be', desc: corto(x.desc, 88), adj: adjDe(x), estado: 'Pendiente de cotización', ver: () => this.verDet('sol', x.id) }; }) : [];
+    const matRows = P === 'materiales' ? vis.map(m => ({ icon: IC.mat, nombre: m.nombre, calidad: m.calidad })) : [];
+    const tpRows = P === 'tipos' ? vis.map(x => ({ icon: IC.tp, nombre: x.nombre, desc: x.desc || 'Sin descripción', descFg: x.desc ? '#8a909c' : '#b0b5be', ars: fmtARS(x.ars), usd: fmtUSD(x.usd), ult: fechaHoraLarga(ultTp(x)), ver: () => this.verDet('tp', x.id) })) : [];
+    const empRows = P === 'empleados' ? vis.map(x => { const u = usuDe(x.id); return { icon: IC.emp, nombre: x.apellido + ', ' + x.nombre, usuario: u ? u.nombre : 'Sin usuario', usuFg: u ? '#172645' : '#b0b5be', usuFw: u ? '700' : '500', roles: rolesChips(u), sinRoles: !u, ...chipEst(x.activo ? 'Activo' : 'Inactivo'), op: x.activo ? 1 : .6, ver: () => this.verDet('emp', x.id) }; }) : [];
+    const usuRows = P === 'usuarios' ? vis.map(u => { const e = empDe(u.empId) || {}, ult = this.ultimoAcceso(d, u.id); return { icon: IC.usu, nombre: u.nombre, emp: (e.nombre || '—') + ' ' + (e.apellido || ''), roles: rolesChips(u), sinRoles: !u.roles.length, ...chipEst(estUsu(u)), ult: ult ? fechaHoraLarga(ult) : 'Nunca ingresó', ultFg: ult ? '#555b66' : '#b0b5be', op: u.activo ? 1 : .6, ver: () => this.verDet('usu', u.id) }; }) : [];
 
     const cards = !movil || !esL ? [] : vis.map(x => {
-      const c = { rad: '6px', ibg: '#172645', ifg: '#ffffff', chips: [], linea: '', inactivo: false, op: 1, sh: '0 4px 16px rgba(23,38,69,.07)', verLabel: 'Ver', puedeBorrar: false, puedeReact: false, click: null, mark: '', boxBg: '#fff', boxBd: '#c3c9d6' };
+      const c = { hayBotones: true, hayBadge: false, badge: '', badgeFg: '#6b7280', badgeBg: '#f1f2f4', rad: '6px', ibg: '#172645', ifg: '#ffffff', chips: [], linea: '', inactivo: false, op: 1, sh: '0 4px 16px rgba(23,38,69,.07)', verLabel: 'Ver', puedeBorrar: false, puedeReact: false, click: null, mark: '', boxBg: '#fff', boxBd: '#c3c9d6' };
       if (P === 'proveedores') {
         const on = s.sel.includes(x.id);
         Object.assign(c, box(on), { icon: TIPO_ICON[x.tipos[0]] || IC.prov, titulo: x.razon, sub: x.cuit || 'Sin CUIT', chips: x.tipos.map(n => ({ name: n, icon: TIPO_ICON[n] })), linea: [x.contacto, x.tel].filter(Boolean).join(' · '), verLabel: 'Ver proveedor', ver: () => this.verDet('prov', x.id), click: s.borrando ? toggleSel(x.id) : null, sh: on ? 'inset 4px 0 0 #0f3483, 0 4px 16px rgba(23,38,69,.07)' : c.sh });
@@ -1089,6 +1902,11 @@ class Component extends DCLogic {
       if (P === 'rubros') {
         Object.assign(c, { icon: IC.rub, ibg: '#eef1f7', ifg: '#3b5998', titulo: x.nombre, sub: 'Modificado el ' + x.fecha, verLabel: 'Editar', ver: () => this.modalRubro(x), puedeBorrar: true, borrar: () => this.modalBorrarRubro(x) });
       }
+      if (P === 'solicitudes') { const e = encDe(x.encId), f = fabDe(e.fabricaId); Object.assign(c, { icon: IC.sol, titulo: 'Solicitud #' + x.id, sub: (e.nombre || '') + ' ' + (e.apellido || '') + ' · ' + (f.nombre || '—') + ' · ' + isoAFecha(x.fecha), linea: corto(x.desc, 110), chips: [{ name: 'Pendiente de cotización', icon: IC.reloj }].concat(adjDe(x)), verLabel: 'Ver solicitud', ver: () => this.verDet('sol', x.id) }); }
+      if (P === 'materiales') Object.assign(c, { icon: IC.mat, titulo: x.nombre, sub: 'Calidad ' + x.calidad, hayBotones: false });
+      if (P === 'tipos') Object.assign(c, { icon: IC.tp, ibg: '#eef1f7', ifg: '#3b5998', titulo: x.nombre, sub: x.desc || 'Sin descripción', linea: fmtARS(x.ars) + ' / h · ' + fmtUSD(x.usd) + ' / h', verLabel: 'Ver tipo de proceso', ver: () => this.verDet('tp', x.id) });
+      if (P === 'empleados') { const u = usuDe(x.id); Object.assign(c, { icon: IC.emp, ibg: '#eef1f7', ifg: '#3b5998', titulo: x.apellido + ', ' + x.nombre, sub: u ? 'Usuario ' + u.nombre : 'Sin usuario', chips: rolesChips(u), inactivo: !x.activo, op: x.activo ? 1 : .7, verLabel: 'Ver empleado', ver: () => this.verDet('emp', x.id) }); }
+      if (P === 'usuarios') { const e = empDe(x.empId) || {}, est = estUsu(x), ce = chipEst(est), ult = this.ultimoAcceso(d, x.id); Object.assign(c, { icon: IC.usu, titulo: x.nombre, sub: (e.nombre || '') + ' ' + (e.apellido || ''), chips: rolesChips(x), linea: 'Último acceso: ' + (ult ? fechaHoraLarga(ult) : 'nunca'), hayBadge: est !== 'Activo', badge: est, badgeFg: ce.estFg, badgeBg: ce.estBg, op: x.activo ? 1 : .7, verLabel: 'Ver usuario', ver: () => this.verDet('usu', x.id) }); }
       c.hayChips = c.chips.length > 0; c.hayLinea = !!c.linea;
       return c;
     });
@@ -1100,31 +1918,38 @@ class Component extends DCLogic {
     // ── alta ──
     let nv = null;
     if (P === 'nuevo') {
-      const t = s.nuevo, errs = s.intento ? this.validar(t, s.form, null, d) : {};
+      const t = s.nuevo, errs = s.intento ? this.validar(t, s.form, s.editId || null, d) : {};
+      const tpEd = t === 'tp' && s.editId ? d.tp.find(y => y.id === s.editId) : null;
       const C = {
         prov: { foto: 'url(assets/foto-brida.png) center/cover no-repeat', volverLabel: 'Proveedores', volverA: 'proveedores', titulo: 'Nuevo proveedor', sub: 'Datos del proveedor a registrar.', submit: 'Crear proveedor', defs: this.defsProv('nuevo') },
         enc: { foto: 'url(assets/foto-cono.png) center 45%/cover no-repeat', volverLabel: 'Encargados', volverA: 'encargados', titulo: 'Nuevo encargado', sub: 'Persona de contacto de una fábrica.', submit: 'Crear encargado', defs: this.defsEnc('nuevo', d) },
-        fab: { foto: 'url(assets/foto-dispositivo.png) center 45%/cover no-repeat', volverLabel: 'Fábricas', volverA: 'fabricas', titulo: 'Nueva fábrica', sub: 'Después de crearla podés cargar sus encargados.', submit: 'Crear fábrica', defs: this.defsFab(d) }
+        fab: { foto: 'url(assets/foto-dispositivo.png) center 45%/cover no-repeat', volverLabel: 'Fábricas', volverA: 'fabricas', titulo: 'Nueva fábrica', sub: 'Después de crearla podés cargar sus encargados.', submit: 'Crear fábrica', defs: this.defsFab(d) },
+        emp: { foto: 'url(assets/foto-prensa.png) center 40%/cover no-repeat', volverLabel: 'Empleados', volverA: 'empleados', titulo: 'Nuevo empleado', sub: 'Después le podés crear un usuario para ingresar al sistema.', submit: 'Registrar empleado', defs: this.defsEmp() },
+        usu: { foto: 'url(assets/foto-dispositivo.png) center 45%/cover no-repeat', volverLabel: 'Usuarios', volverA: 'usuarios', titulo: 'Nuevo usuario', sub: 'Cuenta de acceso para un empleado ya registrado.', submit: 'Registrar usuario', defs: this.defsUsu() },
+        tp: tpEd
+          ? { foto: 'url(assets/foto-cnc.png) center 55%/cover no-repeat', volverLabel: tpEd.nombre, volver: () => this.verDet('tp', tpEd.id), crumb: 'Modificar', titulo: 'Modificar tipo de proceso', sub: tpEd.nombre, submit: 'Guardar cambios', defs: this.defsTp(true) }
+          : { foto: 'url(assets/foto-cnc.png) center 55%/cover no-repeat', volverLabel: 'Tipos de proceso', volverA: 'tipos', titulo: 'Nuevo tipo de proceso', sub: 'Proceso propio del taller con su precio por hora.', submit: 'Registrar tipo de proceso', defs: this.defsTp(false) },
+        sol: { foto: 'url(assets/hero-bloque.png) center/cover no-repeat', volverLabel: 'Solicitudes', volver: () => this.cancelarSol(), crumb: 'Registrar', titulo: 'Registrar solicitud de cotización', sub: 'Pedido recibido por mail o WhatsApp.', submit: 'Confirmar', defs: this.defsSol() }
       }[t];
-      nv = { ...C, volver: () => this.go(C.volverA), secciones: this.mk(C.defs, s.form, setForm, errs, movil), crear: () => this.crear() };
+      nv = { ...C, volver: C.volver || (() => this.go(C.volverA)), secciones: this.mk(C.defs, s.form, setForm, errs, movil), crear: () => this.crear() };
     }
 
     // ── detalle ──
-    let dt = null, fe = null;
+    let dt = null, fe = null, sd = null;
     if (P === 'detalle') {
       const { t } = s.det, x = detEnt, ed = s.editando;
       const errs = ed && s.intento ? this.validar(t, s.form, x.id, d) : {};
       const editar = defs => this.mk(defs, s.form, setForm, errs, movil).map(z => ({ ...z, leer: false, edit: true, items: [] }));
       const leer = (titulo, cols, items, futuro) => ({
         titulo, futuro: !!futuro, leer: true, edit: false, cols: movil ? 1 : cols, campos: [],
-        items: items.map(it => ({ label: it.label || '', hayLabel: !!it.label, futuro: !!it.futuro, span: it.full ? '1 / -1' : 'auto', valor: it.valor == null ? '' : it.valor, hayValor: !it.chips, fg: it.muted ? '#8a909c' : (it.texto ? '#555b66' : '#172645'), fw: it.texto ? '500' : '600', wa: !!it.wa, hayChips: !!it.chips, chips: it.chips || [] }))
+        items: items.map(it => ({ label: it.label || '', hayLabel: !!it.label, futuro: !!it.futuro, span: it.full ? '1 / -1' : 'auto', valor: it.valor == null ? '' : it.valor, hayValor: !it.chips && !it.linkGo, hayLink: !!it.linkGo, linkLabel: it.link || '', linkGo: it.linkGo || null, fg: it.muted ? '#8a909c' : (it.texto ? '#555b66' : '#172645'), fw: it.texto ? '500' : '600', wa: !!it.wa, hayChips: !!it.chips, chips: it.chips || [] }))
       });
-      const empezar = { label: 'Editar', css: S.hBlanco, go: () => this.setState({ editando: true, form: { ...x }, intento: false }) };
+      const empezar = { label: 'Editar', css: S.hBlanco, go: () => this.setState({ editando: true, form: { ...x }, form0: JSON.stringify({ ...x }), intento: false }) };
       const enEdicion = [
         { label: 'Cancelar', css: S.hGhost, go: () => this.setState({ editando: false, intento: false, form: {} }) },
         { label: 'Guardar cambios', css: S.hAcento, go: () => this.guardar() }
       ];
-      const base = { volver: () => this.go(SECCION_DE[t]), inactivo: false, banner: '', chips: [], rad: '8px', ibg: '#ffffff', hayAside: false, asItems: [], asTitulo: '', asLock: false, asLink: false, asLinkLabel: '', asLinkGo: null, esFab: false };
+      const base = { volver: () => this.go(SECCION_DE[t]), inactivo: false, banner: '', chips: [], rad: '8px', ibg: '#ffffff', hayAside: false, asItems: [], asTitulo: '', asLock: false, asLink: false, asLinkLabel: '', asLinkGo: null, esFab: false, esSol: false };
       if (t === 'prov') dt = { ...base,
         foto: 'url(assets/foto-piezas-bronce.png) center 60%/cover no-repeat', volverLabel: 'Proveedores', icon: TIPO_ICON[x.tipos[0]] || IC.prov,
         titulo: x.razon, sub: x.cuit ? 'CUIT ' + x.cuit : 'Sin CUIT', chips: x.tipos.map(n => ({ name: n, icon: TIPO_ICON[n] })),
@@ -1172,16 +1997,81 @@ class Component extends DCLogic {
             editar: () => this.modalEnc(x.id, e), borrar: () => this.modalBorrarEnc(e), reactivar: () => this.setActivoEnc(e.id, true) }))
         };
       }
+      if (t === 'emp') {
+        const u = usuDe(x.id);
+        dt = { ...base, foto: 'url(assets/foto-prensa.png) center 40%/cover no-repeat', volverLabel: 'Empleados', icon: IC.emp,
+          titulo: x.nombre + ' ' + x.apellido, sub: u ? 'Usuario ' + u.nombre : 'Sin usuario en el sistema', inactivo: !x.activo,
+          banner: 'Este empleado está dado de baja.' + (u ? ' Su usuario quedó desactivado.' : ''),
+          acciones: !x.activo ? [] : ed ? enEdicion : [{ label: 'Dar de baja', css: S.hGhost, go: () => this.modalBajaEmp(x) }, empezar],
+          secciones: ed ? editar(this.defsEmp()).map(z => ({ ...z, titulo: 'Datos del empleado' })) : [leer('Datos del empleado', 3, [{ label: 'Nombre', valor: x.nombre }, { label: 'Apellido', valor: x.apellido }, { label: 'Estado', valor: x.activo ? 'Activo' : 'Inactivo' }])],
+          hayAside: true, asTitulo: 'Usuario del sistema',
+          asItems: u ? [{ label: 'Nombre de usuario', valor: u.nombre }, { label: 'Roles', chips: rolesChips(u) }, { label: 'Estado', valor: estUsu(u) }] : [],
+          hayAsTexto: !u, asTexto: x.activo ? 'Este empleado todavía no tiene usuario.' : 'Este empleado no tiene usuario.',
+          asLink: !!u || x.activo, asLinkLabel: u ? 'Ver usuario' : 'Crear usuario', asLinkGo: u ? () => this.verDet('usu', u.id) : () => this.nuevoUsu(x.id)
+        };
+      }
+      if (t === 'usu') {
+        const e = empDe(x.empId), est = estUsu(x), ult = this.ultimoAcceso(d, x.id);
+        dt = { ...base, foto: 'url(assets/foto-dispositivo.png) center 45%/cover no-repeat', volverLabel: 'Usuarios', icon: IC.usu,
+          titulo: x.nombre, sub: e ? e.nombre + ' ' + e.apellido : '—', inactivo: !x.activo,
+          hayBanner: !x.activo || x.bloqueado, banner: !x.activo ? 'Este usuario está inactivo: no puede ingresar al sistema.' : 'Este usuario está bloqueado por 5 intentos fallidos de ingreso: no puede ingresar al sistema.',
+          acciones: [{ label: 'Modificar', css: S.hGhost, futuro: true, go: () => this.aviso('Modificar usuario (CU-06) todavía no está disponible.', 'info') }, { label: 'Dar de baja', css: S.hGhost, futuro: true, go: () => this.aviso('Dar de baja un usuario (CU-08) todavía no está disponible.', 'info') }],
+          secciones: [leer('Datos del usuario', 2, [{ label: 'Nombre de usuario', valor: x.nombre }, e ? { label: 'Empleado', link: e.nombre + ' ' + e.apellido, linkGo: () => this.verDet('emp', e.id) } : { label: 'Empleado', valor: '—', muted: true }, { label: 'Estado', valor: est }, { label: 'Último acceso', valor: ult ? fechaHoraLarga(ult) : 'Nunca ingresó', muted: !ult }, { label: 'Roles', chips: rolesChips(x), full: true }])]
+        };
+      }
+      if (t === 'tp') {
+        dt = { ...base, foto: 'url(assets/foto-cnc.png) center 55%/cover no-repeat', volverLabel: 'Tipos de proceso', icon: IC.tp,
+          titulo: x.nombre, sub: fmtARS(x.ars) + ' / h · ' + fmtUSD(x.usd) + ' / h',
+          acciones: [{ label: 'Modificar', css: S.hBlanco, go: () => this.go('nuevo', { nuevo: 'tp', editId: x.id, form: this.formIni('tp', x.id) }) }],
+          secciones: [
+            leer('Datos del tipo de proceso', 2, [{ label: 'Nombre', valor: x.nombre, full: true }, { label: 'Descripción', valor: x.desc || 'Sin descripción.', texto: true, muted: !x.desc, full: true }, { label: 'Precio hora en pesos', valor: fmtARS(x.ars) }, { label: 'Precio hora en dólares', valor: fmtUSD(x.usd) }]),
+            { ...leer('Historial de precios', 1, []), leer: false, hayTabla: true, hayPie: true, pie: 'Este historial no se puede modificar.',
+              tabla: { min: '760px', cols: '170px 110px minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr)', head: ['Fecha y hora', 'Usuario', 'Campo modificado', 'Valor anterior', 'Valor nuevo'].map(z => ({ t: z })),
+                rows: x.hist.map(hh => ({ cells: [{ t: fechaHoraLarga(hh.fh), fw: '500', fg: '#555b66' }, { t: hh.usr, fw: '600', fg: '#172645' }, { t: TP_LBL[hh.campo], fw: '700', fg: '#172645' }, { t: fmtTp(hh.campo, hh.ant), fw: '500', fg: '#8a909c' }, { t: fmtTp(hh.campo, hh.nue), fw: '700', fg: '#172645' }] })),
+                vacio: !x.hist.length, vacioTxt: 'Todavía no hubo cambios en este tipo de proceso.' } }
+          ],
+          hayAside: true, asTitulo: 'Registro', asItems: [{ label: 'Alta', valor: fechaHoraLarga(x.alta) }, { label: 'Última actualización', valor: fechaHoraLarga(ultTp(x)) }]
+        };
+      }
+      if (t === 'sol') {
+        const e = encDe(x.encId), f = fabDe(e.fabricaId);
+        dt = { ...base, foto: 'url(assets/hero-bloque.png) center/cover no-repeat', volverLabel: 'Solicitudes', icon: IC.sol,
+          titulo: 'Solicitud #' + x.id, sub: 'Recibida el ' + fechaLarga(isoAFecha(x.fecha)), chips: [{ name: 'Pendiente de cotización', icon: IC.reloj }],
+          acciones: [],
+          secciones: [leer('Datos de la solicitud', 2, [{ label: 'Fecha de solicitud', valor: isoAFecha(x.fecha) }, { label: 'N.º de pedido del cliente', valor: x.pedido || 'Sin número', muted: !x.pedido }, { label: 'Descripción del trabajo solicitado', valor: x.desc, texto: true, full: true }])],
+          hayAside: true, asTitulo: 'Cliente', asItems: [{ label: 'Encargado', valor: (e.nombre || '') + ' ' + (e.apellido || '') }, { label: 'Contacto', valor: [e.mail, e.tel].filter(Boolean).join(' · ') || '—' }, { label: 'Fábrica', valor: f.nombre || '—' }, { label: 'Rubro', valor: this.rubro(d, f.rubroId) }, { label: 'CUIT', valor: f.cuit || 'Sin CUIT' }, { label: 'Formas de pago', valor: f.pago || 'Sin datos.' }],
+          asLink: this.puede('encargados', roles) && !!e.id, asLinkLabel: 'Ver encargado', asLinkGo: () => this.verDet('enc', e.id),
+          esSol: true
+        };
+        const tot = GRUPOS.reduce((n, g) => n + (x.arch[g.k] || []).length, 0);
+        sd = {
+          totalTxt: tot === 1 ? '1 archivo adjunto.' : tot + ' archivos adjuntos.',
+          grupos: GRUPOS.map(g => {
+            const l = x.arch[g.k] || [], esF = g.k === 'fotos';
+            return { titulo: g.titulo, icon: g.icon, n: l.length, nBg: l.length ? '#0f3483' : '#eef1f7', nFg: l.length ? '#ffffff' : '#8a909c', vacio: !l.length, hayFotos: esF && l.length > 0,
+              fotos: esF ? l.map(fl => ({ nombre: fl.nombre, thumb: 'url("' + fl.url + '") center/cover no-repeat', ver: () => this.visor(fl) })) : [],
+              otros: esF ? [] : l.map(fl => { const pdf = fl.ext === 'pdf'; return { nombre: fl.nombre, meta: fmtTam(fl.tam) + ' · ' + fl.ext.toUpperCase(), icon: EXT_ICON[fl.ext] || IC.pdf, accion: pdf ? 'Ver' : 'Descargar', accIcon: pdf ? IC.ojo : IC.bajar, go: pdf ? () => this.visor(fl) : () => this.aviso('Descarga simulada: ' + fl.nombre, 'info') }; }) };
+          }),
+          cots: x.cots.map(cq => ({ titulo: 'Pendiente de cotización — sin número todavía', sub: 'Se creó el ' + fechaLarga(cq.creada) + ', al registrar la solicitud.', puedeCotizar: roles.includes('EC'), cotizar: () => this.aviso('Registrar cotización (CU-14) todavía no está disponible.', 'info') }))
+        };
+      }
       dt.hayIconAcc = true;
-      dt.acciones = dt.acciones.map(a => ({ hayIcon: false, icon: '', ...a }));
+      dt.acciones = dt.acciones.map(a => ({ hayIcon: false, icon: '', futuro: false, ...a }));
+      if (dt.hayBanner == null) dt.hayBanner = dt.inactivo;
+      dt.hayAsTexto = !!dt.hayAsTexto; dt.asTexto = dt.asTexto || '';
+      dt.asItems = dt.asItems.map(it => ({ hayValor: !it.chips, hayChips: !!it.chips, chips: it.chips || [], ...it }));
       dt.cols = dt.hayAside && !movil ? 'minmax(0,2fr) minmax(0,1fr)' : 'minmax(0,1fr)';
       dt.op = dt.inactivo ? .7 : 1;
     }
 
     // ── sistema ──
-    const sis = P === '404'
-      ? { es404: true, esErr: false, bar: '#3b5998', titulo: 'Página no encontrada', texto: 'La página que buscás no existe o se movió. Volvé al listado y seguí desde ahí.', b1: 'Ir a Proveedores', b1go: () => this.go('proveedores'), b2: 'Volver', b2go: () => this.go('proveedores'), foto: 'url(assets/foto-cono.png) center 40%/cover no-repeat' }
-      : { es404: false, esErr: true, bar: '#b3261e', titulo: 'Algo salió mal', texto: 'No pudimos cargar esta pantalla. Revisá la conexión e intentá de nuevo.', b1: 'Reintentar', b1go: () => this.go('proveedores'), b2: 'Ir al inicio', b2go: () => this.go('proveedores'), foto: 'url(assets/foto-fresado.png) center 40%/cover no-repeat' };
+    const SIS = {
+      '404': { es404: true, esErr: false, hayIcon: false, bar: '#3b5998', titulo: 'Página no encontrada', texto: 'La página que buscás no existe o se movió. Volvé al inicio y seguí desde ahí.', hayB1: true, b1: 'Ir al inicio', b1go: () => this.go(home), hayB2: true, b2: 'Volver', b2go: () => this.go(home), foto: 'url(assets/foto-cono.png) center 40%/cover no-repeat' },
+      error: { es404: false, esErr: true, hayIcon: false, bar: '#b3261e', titulo: 'Algo salió mal', texto: 'No pudimos cargar esta pantalla. Revisá la conexión e intentá de nuevo.', hayB1: true, b1: 'Reintentar', b1go: () => this.go(home), hayB2: true, b2: 'Ir al inicio', b2go: () => this.go(home), foto: 'url(assets/foto-fresado.png) center 40%/cover no-repeat' },
+      denegado: { es404: false, esErr: false, hayIcon: true, icon: IC.escudo, ibg: '#fbe9e7', ifg: '#b3261e', bar: '#b3261e', titulo: 'Acceso denegado', texto: 'No tenés permisos para realizar esta operación.', hayB1: true, b1: 'Ir al inicio', b1go: () => this.go(home), hayB2: false, foto: 'url(assets/foto-prensa.png) center 40%/cover no-repeat' },
+      inicio: { es404: false, esErr: false, hayIcon: true, icon: IC.casa, ibg: '#eef1f7', ifg: '#3b5998', bar: '#3b5998', titulo: 'Hola, ' + (usuE ? usuE.nombre : ''), texto: 'Todavía no hay módulos disponibles para tu rol.', hayB1: false, hayB2: false, foto: 'url(assets/hero-castro.png) center/cover no-repeat' }
+    };
+    const sis = { icon: '', ibg: '', ifg: '', b1: '', b2: '', b1go: null, b2go: null, ...(SIS[P] || SIS.error) };
 
     // ── modal ──
     const m = s.modal;
@@ -1206,9 +2096,13 @@ class Component extends DCLogic {
       };
     }
 
+    md = { hayDatos: false, datos: [], dcols: 1, hayVisor: false, visor: { lineas: [] }, hayOk: true, cancelLabel: 'Cancelar', ...md };
+    if (m) Object.assign(md, { hayDatos: !!(m.datos && m.datos.length), datos: (m.datos || []).map(it => ({ label: it.label, valor: it.valor, span: it.full ? '1 / -1' : 'auto' })), dcols: movil ? 1 : (m.dcols || 2), hayVisor: !!m.visor, visor: m.visor || { lineas: [] }, hayOk: !m.sinOk, cancelLabel: m.cancelLabel || 'Cancelar' });
+
     const T = s.toast;
     const crumbSec = (NAV.find(n => n.key === seccion) || { label: '' }).label;
-    const crumbAct = P === 'nuevo' ? 'Nuevo' : P === 'detalle' ? (dt ? dt.titulo : '') : '';
+    const crumbGrupo = seccion ? ((NAV.find(n => n.key === seccion) || {}).grupo || '') : 'Sistema';
+    const crumbAct = P === 'nuevo' ? ((nv && nv.crumb) || 'Nuevo') : P === 'detalle' ? (dt ? dt.titulo : '') : '';
 
     return {
       // chrome del prototipo
@@ -1217,17 +2111,25 @@ class Component extends DCLogic {
         css: 'border:none;border-radius:4px;padding:5px 10px;font-size:11.5px;font-weight:700;cursor:pointer;' + (s.demo === k ? 'background:#ffffff;color:#172645' : 'background:transparent;color:#9aa7c2')
       })),
       ir404: () => this.go('404'), irError: () => this.go('error'),
-      reiniciar: () => { this.go('proveedores', { d: semilla(), q: {}, pag: {}, fRubro: '', incEnc: false, incFabEnc: false, demo: 'normal' }); this.aviso('Datos de ejemplo restablecidos.', 'info'); },
+      reiniciar: () => {
+        const nd = semilla(), u = s.sesion && nd.usu.find(x => x.id === s.sesion.uid && x.activo && !x.bloqueado);
+        const extra = { d: nd, q: {}, pag: {}, fRubro: '', fMat: '', fRol: '', incEnc: false, incFabEnc: false, incEmp: false, incUsu: false, demo: 'normal' };
+        if (u) this.go(this.home(u.roles), extra); else this.setState({ ...extra, sesion: null, lg: LG0() });
+        this.aviso('Datos de ejemplo restablecidos.', 'info');
+      },
+      demoUsers: d.usu.filter(u => DEMO_IDS.includes(u.id)).map(u => { const e = d.emp.find(x => x.id === u.empId) || {}; return { id: u.id, label: e.nombre + ' ' + e.apellido + ' (' + u.nombre + ') · ' + (u.bloqueado ? 'bloqueado' : u.roles.map(r => ROL[r].nombre).join(' + ')) }; }),
+      ingresarComo: e => this.ingresarComo(e.target.value),
+      simularExpira: () => { if (this.state.sesion) this.cerrarSesion('expirada'); else this.aviso('No hay ninguna sesión abierta.', 'info'); },
 
       // shell
       movil, escritorio: !movil, railAbierto: !movil && !s.menuCerrado, railCerrado: !movil && s.menuCerrado,
       toggleMenu: () => this.setState(st => ({ menuCerrado: !st.menuCerrado })),
       nav, drawer: movil && s.drawer, abrirDrawer: () => this.setState({ drawer: true }), cerrarDrawer: () => this.setState({ drawer: false }),
-      crumb1: !crumbAct && !!crumbSec, crumb2: !!crumbAct, crumbSec: crumbSec || 'Sistema', crumbAct, crumbGo: () => this.go(seccion),
+      crumb1: !crumbAct, crumb2: !!crumbAct, crumbSec: crumbSec || SIS_LBL[P] || 'Sistema', crumbAct, crumbGrupo, crumbGo: () => this.go(seccion),
 
       // listados
       esLista: esL, esProv: P === 'proveedores', esEnc: P === 'encargados', esFab: P === 'fabricas', esRub: P === 'rubros',
-      lista: { ...L, total: totalHero, totalTxt: L.reg, nuevo: nuevoDe[P] },
+      lista: { ...L, total: totalHero, totalTxt: L.reg, nuevo: nuevoDe[P], puedeNuevo },
       q: s.q[P] || '', setQ: e => { const v = e.target.value; this.setState(st => ({ q: { ...st.q, [P]: v }, pag: { ...st.pag, [P]: 1 } })); },
       incEnc: box(s.incEnc), toggleIncEnc: () => this.setState(st => ({ incEnc: !st.incEnc, pag: { ...st.pag, encargados: 1 } })),
       fRubro: s.fRubro, setFRubro: e => { const v = e.target.value; this.setState(st => ({ fRubro: v, pag: { ...st.pag, fabricas: 1 } })); },
@@ -1249,10 +2151,38 @@ class Component extends DCLogic {
       verTabla: esL && !movil && estado === 'ok', verCards: esL && movil && estado === 'ok', verEstado: esL && estado !== 'ok',
       est, skel: [{ a: '65%', b: '80%', c: '55%' }, { a: '50%', b: '70%', c: '60%' }, { a: '72%', b: '60%', c: '45%' }, { a: '58%', b: '75%', c: '65%' }],
 
+      // Sprint 2: listados nuevos
+      esSol: P === 'solicitudes', esMat: P === 'materiales', esTp: P === 'tipos', esEmp: P === 'empleados', esUsu: P === 'usuarios',
+      solRows, matRows, tpRows, empRows, usuRows,
+      fMat: s.fMat, setFMat: e => { const v = e.target.value; this.setState(st => ({ fMat: v, pag: { ...st.pag, materiales: 1 } })); },
+      matOpts: Array.from(new Set(d.mat.map(m => m.nombre))).sort((a, b) => a.localeCompare(b, 'es')).map(n => ({ v: n, l: n })),
+      fRol: s.fRol, setFRol: e => { const v = e.target.value; this.setState(st => ({ fRol: v, pag: { ...st.pag, usuarios: 1 } })); },
+      rolOpts: ROLES.map(r => ({ v: r.k, l: r.nombre })),
+      hayIncBaja: P === 'empleados' || P === 'usuarios', incBaja: box(P === 'empleados' ? s.incEmp : s.incUsu),
+      toggleIncBaja: () => this.setState(st => P === 'empleados' ? { incEmp: !st.incEmp, pag: { ...st.pag, empleados: 1 } } : { incUsu: !st.incUsu, pag: { ...st.pag, usuarios: 1 } }),
+      sd: sd || { grupos: [], cots: [], totalTxt: '' },
+
+      // sesión
+      esLogin: !s.sesion, conSesion: !!s.sesion, lg: (() => {
+        const L0 = s.lg, M = L0.msg, MSG = { ok: { bg: '#e6f4ec', fg: '#1f7a45', icon: IC.check }, info: { bg: '#eef1f7', fg: '#3b5998', icon: IC.info }, error: { bg: '#fbe9e7', fg: '#b3261e', icon: IC.alert } };
+        const er = '0 0 0 4px rgba(179,38,30,.10)';
+        return { user: L0.user, pass: L0.pass, ptype: L0.ver ? 'text' : 'password', verIcon: L0.ver ? IC.ojoNo : IC.ojo, verTitle: L0.ver ? 'Ocultar contraseña' : 'Mostrar contraseña',
+          errU: L0.errU, errP: L0.errP, hayErrU: !!L0.errU, hayErrP: !!L0.errP, bcU: L0.errU ? '#b3261e' : '#e1e5ec', bcP: L0.errP ? '#b3261e' : '#e1e5ec', shU: L0.errU ? er : 'none', shP: L0.errP ? er : 'none',
+          hayMsg: !!M, msgTxt: M ? M.texto : '', msgBg: M ? MSG[M.tipo].bg : '', msgFg: M ? MSG[M.tipo].fg : '', msgIcon: M ? MSG[M.tipo].icon : '',
+          setUser: e => { const v = e.target.value; this.setState(st => ({ lg: { ...st.lg, user: v, errU: '' } })); },
+          setPass: e => { const v = e.target.value; this.setState(st => ({ lg: { ...st.lg, pass: v, errP: '' } })); },
+          toggleVer: () => this.setState(st => ({ lg: { ...st.lg, ver: !st.lg.ver } })) };
+      })(),
+      lgSubmit: e => { e.preventDefault(); this.ingresar(); },
+      navG, menuUsu: s.menuUsu, toggleUsu: () => this.setState(st => ({ menuUsu: !st.menuUsu })), cerrarUsu: () => this.setState({ menuUsu: false }),
+      usr: { ini: usuE ? iniciales(usuE.nombre, usuE.apellido) : '', nombre: usuE ? usuE.nombre + ' ' + usuE.apellido : '', usuario: usu ? usu.nombre : '', roles: roles.map(r => ({ name: ROL[r].nombre })), rolCorto: roles.map(r => ROL[r].nombre).join(' · '), btnBg: s.menuUsu ? '#f3f5f9' : 'transparent' },
+      salir: () => this.pedirCierre(),
+      cambiarPass: () => { this.setState({ menuUsu: false, drawer: false }); this.aviso('Cambiar contraseña (CU-54) todavía no está disponible.', 'info'); },
+
       // alta / detalle / sistema
       esNuevo: !!nv, nv: nv || { secciones: [] },
       esDetalle: !!dt, dt: dt || { secciones: [], acciones: [], chips: [], asItems: [] }, fe: fe || { filas: [], inc: box(false) },
-      esSistema: P === '404' || P === 'error', sis,
+      esSistema: ['404', 'error', 'denegado', 'inicio'].includes(P), sis,
 
       // modal y aviso
       hayModal: !!m, md, cerrarModal: () => this.cerrar(), stop: e => e.stopPropagation(),
