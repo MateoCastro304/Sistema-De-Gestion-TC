@@ -1,4 +1,3 @@
-import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
@@ -14,13 +13,6 @@ async function bootstrap() {
   // transform enables class-transformer so the payload reaches the controller
   // as a real DTO instance — required for @Type(() => Number) to coerce query
   // params from strings into numbers.
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
 
   const config = app.get(ConfigService);
   const allowedOrigins = config.get<string>('ALLOWED_ORIGINS');
