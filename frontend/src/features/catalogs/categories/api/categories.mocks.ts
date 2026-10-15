@@ -68,9 +68,16 @@ export const categoryHandlers = [
     const page = Number(url.searchParams.get('page') ?? 1)
     const limit = Number(url.searchParams.get('limit') ?? 20)
     const start = (page - 1) * limit
-    // Como el backend: sólo los activos.
-    const active = categories.filter((c) => c.active !== false)
-    return HttpResponse.json(active.slice(start, start + limit))
+    // Como el backend: activos por defecto, o sólo los dados de baja con
+    // ?active=false, envueltos en { items, total, page, limit }.
+    const wantActive = url.searchParams.get('active') !== 'false'
+    const matching = categories.filter((c) => (c.active !== false) === wantActive)
+    return HttpResponse.json({
+      items: matching.slice(start, start + limit),
+      total: matching.length,
+      page,
+      limit,
+    })
   }),
 
   http.get('/api/categories/:id', ({ params }) => {
@@ -113,7 +120,7 @@ export const categoryHandlers = [
     return HttpResponse.json(created, { status: 201 })
   }),
 
-  http.patch('/api/categories/:id/restore', ({ params }) => {
+  http.post('/api/categories/:id/restore', ({ params }) => {
     const category = findCategory(Number(params.id))
     if (!category) return new HttpResponse(null, { status: 404 })
     Object.assign(category, { active: true, updatedAt: new Date().toISOString() })

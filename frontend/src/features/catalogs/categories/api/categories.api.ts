@@ -1,5 +1,6 @@
 import { http } from '@/shared/api/http'
 import { ApiError } from '@/shared/api/ApiError'
+import type { Page } from '@/shared/api/pagination'
 import type { Category, CategoryInput } from '../types/category'
 
 /**
@@ -19,12 +20,16 @@ const CATEGORIES = '/categories'
  */
 const LIST_LIMIT = 100
 
-/** CU-43 Consultar Rubro. */
+/**
+ * CU-43 Consultar Rubro: sólo los activos. El backend responde la página
+ * envuelta (`{ items, total, page, limit }`, como /factories y /customers);
+ * la pantalla y el selector de Fábricas usan sólo `items`.
+ */
 export async function listCategories(): Promise<Category[]> {
-  const { data } = await http.get<Category[]>(CATEGORIES, {
+  const { data } = await http.get<Page<Category>>(CATEGORIES, {
     params: { page: 1, limit: LIST_LIMIT },
   })
-  return data
+  return data.items
 }
 
 export async function getCategory(id: number): Promise<Category> {
@@ -71,12 +76,12 @@ export async function createCategory(input: CategoryInput): Promise<CreateCatego
 }
 
 /**
- * Reactiva un rubro dado de baja (`PATCH /categories/{id}/restore`). El
+ * Reactiva un rubro dado de baja (`POST /categories/{id}/restore`, 200). El
  * endpoint existe en el backend pero no en el contrato: ver
  * `docs/rubros-desvios-contrato.md`.
  */
 export async function restoreCategory(id: number): Promise<Category> {
-  const { data } = await http.patch<Category>(`${CATEGORIES}/${id}/restore`)
+  const { data } = await http.post<Category>(`${CATEGORIES}/${id}/restore`)
   return data
 }
 
