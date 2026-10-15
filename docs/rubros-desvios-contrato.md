@@ -4,7 +4,7 @@
 >
 > El contrato no se modificó. Cuando el equipo defina cuál es la versión correcta, hay que alinear el contrato, el backend o el frontend, según corresponda.
 
-Relevado el 10 de octubre de 2026 contra `develop`.
+Relevado el 10 de octubre de 2026 contra `develop`. Actualizado el 15 de octubre (reactivación al crear).
 
 Archivos del contrato:
 
@@ -21,12 +21,13 @@ Archivos del contrato:
 | 3 | Largo mínimo del nombre | `minLength: 1` | 3 caracteres. Con menos, el backend responde 400 y el formulario lo valida antes de enviar. |
 | 4 | 409 al dar de baja | Se rechaza si **cualquier** fábrica usa el rubro. | Solo cuentan las fábricas **activas**. Un rubro que usa solo una fábrica dada de baja se puede dar de baja. |
 | 5 | Cuerpo del 409 de baja | Formato estándar `Error` (`statusCode`, `error`, `message`, `path`, `timestamp`). | Solo `{ message, factories }`. El frontend usa `message`. |
-| 6 | Nombre repetido en `POST` y `PATCH` | No documenta ningún 409. | Responde 409 con "Ya existe un rubro con ese nombre" o "El rubro existe pero está dado de baja". `PATCH` sobre un rubro inactivo responde "Debe reactivar el rubro antes de modificarlo". El frontend muestra el mensaje. |
+| 6 | Nombre repetido en `POST` y `PATCH` | No documenta ningún 409. | Responde 409 con "Ya existe un rubro con ese nombre" o "El rubro existe pero está dado de baja". `PATCH` sobre un rubro inactivo responde "Debe reactivar el rubro antes de modificarlo". El frontend muestra el mensaje, salvo en el caso del punto 7. |
+| 7 | Crear con el nombre de un rubro dado de baja | No contempla el caso. | El 409 trae el `categoryId` del rubro dado de baja. El frontend lo **reactiva** con `PATCH /categories/{id}/restore`, que no está en el contrato, y avisa "estaba dado de baja y se reactivó". Para leer `categoryId`, `createCategory` acepta el 409 como respuesta (`validateStatus`), porque `ApiError` descarta los campos extra del cuerpo. |
 
-## Lo que el backend tiene y el contrato no (el frontend no lo usa)
+## Lo que el backend tiene y el contrato no
 
-- `PATCH /categories/{id}/restore`: reactiva un rubro.
-- `GET /categories?name=...`: filtra por nombre.
+- `PATCH /categories/{id}/restore`: reactiva un rubro. **El frontend lo usa** al crear un rubro con el nombre de uno dado de baja (punto 7).
+- `GET /categories?name=...`: filtra por nombre. El frontend no lo usa: el listado sí se pide (`GET /categories?page=1&limit=100`), pero la búsqueda se hace en el navegador.
 
 ## Para cerrar el tema
 
