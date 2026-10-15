@@ -212,16 +212,14 @@ button{cursor:pointer}
         <sc-if value="{{ crumb1 }}" hint-placeholder-val="{{ true }}"><strong style="color:#172645">{{ crumbSec }}</strong></sc-if>
       </span>
       <span style="position:relative;flex-shrink:0">
-        <button type="button" onClick="{{ toggleUsu }}" aria-label="Menú de usuario" style="display:flex;align-items:center;gap:10px;border:none;background:{{ usr.btnBg }};padding:6px 10px 6px 6px;border-radius:8px;text-align:left;transition:background .2s ease" style-hover="background:#f3f5f9">
-          <span style="width:38px;height:38px;flex-shrink:0;border-radius:6px;background:#172645;color:#ffffff;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">{{ usr.ini }}</span>
-          <span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:14px;font-weight:700;color:#172645;white-space:nowrap">{{ usr.nombre }}</span><span style="max-width:240px;font-size:12px;font-weight:500;color:#8a909c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ usr.rolCorto }}</span></span>
-          <span style="color:#8a909c;display:inline-flex"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M5.5 8l4.5 4.5L14.5 8"></path></svg></span>
+        <button type="button" onClick="{{ toggleUsu }}" aria-label="Menú de usuario" style="display:flex;align-items:center;border:none;background:none;padding:0;border-radius:50%;text-align:left;cursor:pointer;transition:box-shadow .2s ease" style-hover="box-shadow:0 0 0 6px #e3e8f3">
+          <span style="width:42px;height:42px;flex-shrink:0;border-radius:50%;background:#172645;color:#ffffff;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;box-shadow:0 0 0 {{ usr.aro }}" title="{{ usr.nombre }}">{{ usr.ini }}</span>
         </button>
         <sc-if value="{{ menuUsu }}">
         <div onClick="{{ cerrarUsu }}" style="position:fixed;inset:0;z-index:30"></div>
         <div style="position:absolute;right:0;top:calc(100% + 10px);z-index:31;width:330px;box-sizing:border-box;background:#ffffff;border-radius:8px;box-shadow:0 18px 44px rgba(23,38,69,.2);padding:20px;display:flex;flex-direction:column;gap:18px;animation:popIn .2s ease both">
           <div style="display:flex;align-items:center;gap:12px">
-            <span style="width:46px;height:46px;flex-shrink:0;border-radius:8px;background:#172645;color:#ffffff;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:700">{{ usr.ini }}</span>
+            <span style="width:46px;height:46px;flex-shrink:0;border-radius:50%;background:#172645;color:#ffffff;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:700">{{ usr.ini }}</span>
             <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:16px;font-weight:800;color:#172645">{{ usr.nombre }}</span><span style="font-size:13px;font-weight:500;color:#8a909c">Usuario {{ usr.usuario }}</span></span>
           </div>
           <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8a909c">Roles</span><span style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ usr.roles }}" as="r" hint-placeholder-count="1"><span style="padding:5px 9px;border-radius:4px;font-size:11.5px;font-weight:700;color:#172645;background:#eef1f7">{{ r.name }}</span></sc-for></span></div>
@@ -2108,7 +2106,7 @@ class Component extends DCLogic {
         datos: cambios.map(k => ({ label: TP_LBL[k], valor: fmtTp(k, x[k]) + '  →  ' + fmtTp(k, nv[k]) })), okLabel: 'Guardar cambios',
         ok: () => {
           const fh = ahora(), usr = (this.usuActual() || {}).nombre || '—';
-          this.upd(d => ({ ...d, tp: d.tp.map(y => y.id === x.id ? { ...y, ...nv, hist: cambios.map(k => ({ fh, usr, campo: k, ant: x[k], nue: nv[k] })).concat(y.hist) } : y) }));
+          this.upd(d => ({ ...d, tp: d.tp.map(y => y.id === x.id ? { ...y, ...nv, hist: cambios.map(k => ({ fh, usr, campo: k, ant: x[k], nue: nv[k], tc: nv.tc })).concat(y.hist) } : y) }));
           this.verDet('tp', x.id); this.aviso('Tipo de proceso modificado correctamente');
         }
       });
@@ -2481,8 +2479,8 @@ class Component extends DCLogic {
           secciones: [
             leer('Datos del tipo de proceso', 2, [{ label: 'Nombre', valor: x.nombre, full: true }, { label: 'Descripción', valor: x.desc || 'Sin descripción.', texto: true, muted: !x.desc, full: true }, { label: 'Precio hora en pesos', valor: fmtARS(x.ars) }, { label: 'Precio hora en dólares', valor: fmtUSD(x.usd) }]),
             { ...leer('Historial de precios', 1, []), leer: false, hayTabla: true, hayPie: true, pie: 'Este historial no se puede modificar.',
-              tabla: { min: '760px', cols: '170px 110px minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr)', head: ['Fecha y hora', 'Usuario', 'Campo modificado', 'Valor anterior', 'Valor nuevo'].map(z => ({ t: z })),
-                rows: x.hist.map(hh => ({ cells: [{ t: fechaHoraLarga(hh.fh), fw: '500', fg: '#555b66' }, { t: hh.usr, fw: '600', fg: '#172645' }, { t: TP_LBL[hh.campo], fw: '700', fg: '#172645' }, { t: fmtTp(hh.campo, hh.ant), fw: '500', fg: '#8a909c' }, { t: fmtTp(hh.campo, hh.nue), fw: '700', fg: '#172645' }] })),
+              tabla: { min: '720px', cols: '170px 110px minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)', head: ['Fecha y hora', 'Usuario', 'Valor anterior (US$)', 'Valor nuevo (US$)', 'Tipo de cambio'].map(z => ({ t: z })),
+                rows: x.hist.map(hh => ({ cells: [{ t: fechaHoraLarga(hh.fh), fw: '500', fg: '#555b66' }, { t: hh.usr, fw: '600', fg: '#172645' }, { t: fmtUSD(hh.campo === 'usd' ? hh.ant : hh.ant / (hh.tc || TC.valor)), fw: '500', fg: '#8a909c' }, { t: fmtUSD(hh.campo === 'usd' ? hh.nue : hh.nue / (hh.tc || TC.valor)), fw: '700', fg: '#172645' }, { t: fmtARS(hh.tc || TC.valor), fw: '500', fg: '#555b66' }] })),
                 vacio: !x.hist.length, vacioTxt: 'Todavía no hubo cambios en este tipo de proceso.' } }
           ],
           hayAside: true, asTitulo: 'Registro', asItems: [{ label: 'Alta', valor: fechaHoraLarga(x.alta) }, { label: 'Última actualización', valor: fechaHoraLarga(ultTp(x)) }]
@@ -2717,7 +2715,7 @@ class Component extends DCLogic {
       })(),
       lgSubmit: e => { e.preventDefault(); this.ingresar(); },
       navG, menuUsu: s.menuUsu, toggleUsu: () => this.setState(st => ({ menuUsu: !st.menuUsu })), cerrarUsu: () => this.setState({ menuUsu: false }),
-      usr: { ini: usuE ? iniciales(usuE.nombre, usuE.apellido) : '', nombre: usuE ? usuE.nombre + ' ' + usuE.apellido : '', usuario: usu ? usu.nombre : '', roles: roles.map(r => ({ name: ROL[r].nombre })), rolCorto: roles.map(r => ROL[r].nombre).join(' · '), btnBg: s.menuUsu ? '#f3f5f9' : 'transparent' },
+      usr: { aro: s.menuUsu ? '3px #d5ddef' : '0 transparent', ini: usuE ? iniciales(usuE.nombre, usuE.apellido) : '', nombre: usuE ? usuE.nombre + ' ' + usuE.apellido : '', usuario: usu ? usu.nombre : '', roles: roles.map(r => ({ name: ROL[r].nombre })), rolCorto: roles.map(r => ROL[r].nombre).join(' · '), btnBg: s.menuUsu ? '#f3f5f9' : 'transparent' },
       salir: () => this.pedirCierre(),
       cambiarPass: () => { this.setState({ menuUsu: false, drawer: false }); this.aviso('Cambiar contraseña (CU-54) todavía no está disponible.', 'info'); },
 
