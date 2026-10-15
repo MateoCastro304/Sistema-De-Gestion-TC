@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useLocation, useNavigate, Link } from 'react-router'
 import { heroPhoto } from '@/shared/lib/heroPhoto'
+import { formatPhone } from '@/shared/lib/formatPhone'
 import fotoTaller from '@/assets/foto-prensa.webp'
 import {
   Avatar,
@@ -184,7 +185,7 @@ export function FactoryDetailPage() {
     },
     {
       header: 'Teléfono',
-      render: (c) => <ValueOrDash value={c.phone} className="table__cell--mono" />,
+      render: (c) => <ValueOrDash value={formatPhone(c.phone)} className="table__cell--mono" />,
     },
     { header: 'Email', render: (c) => <ValueOrDash value={c.mail} /> },
     {

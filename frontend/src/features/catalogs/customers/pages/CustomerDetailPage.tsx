@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router'
 import { heroPhoto } from '@/shared/lib/heroPhoto'
+import { formatPhone } from '@/shared/lib/formatPhone'
 import fotoTaller from '@/assets/foto-fresado.webp'
 import { Avatar, Badge, Button, IconTrash, Modal, TrashButton } from '@/shared/components/ui'
 import { EmptyState } from '@/shared/components/feedback/EmptyState'
@@ -270,7 +271,7 @@ function CustomerDetails({
         <div className="card__grid">
           <div className="field">
             <span className="field__label">Teléfono</span>
-            <span className="field__value">{customer.phone || '—'}</span>
+            <span className="field__value">{formatPhone(customer.phone) || '—'}</span>
           </div>
           <div className="field">
             <span className="field__label">Email</span>

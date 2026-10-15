@@ -1,5 +1,5 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus, Logger } from '@nestjs/common';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { DomainError } from '../../../shared/domain/errors/domain.error';
 import { DomainValidationError } from '../../../shared/domain/errors/domain-validation.error';
 import { SupplierAlreadyExists } from '../../domain/errors/supplier-already-exists.error';
@@ -12,6 +12,9 @@ import { SupplierNotFound } from '../../domain/errors/supplier-not-found.error';
  * DomainValidationError → 400. An unmapped DomainError subclass falls back
  * to 500 and gets logged so the missing mapping is caught in review.
  *
+ * Every body also carries `path` and `timestamp`, as the Error schema of the
+ * contract requires.
+ *
  * Only DomainError and its subclasses reach this filter (see @Catch);
  * infrastructure bugs surface through Nest's default handling as 500 without
  * touching this code path.
@@ -21,13 +24,19 @@ export class DomainErrorFilter implements ExceptionFilter {
   private readonly logger = new Logger(DomainErrorFilter.name);
 
   catch(exception: DomainError, host: ArgumentsHost): void {
-    const response = host.switchToHttp().getResponse<Response>();
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
     const { status, body } = this.mapToHttp(exception);
 
     if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
       this.logger.error(`Unmapped DomainError: ${exception.name} - ${exception.message}`, exception.stack);
     }
-    response.status(status).json(body);
+    response.status(status).json({
+      ...body,
+      path: request.url,
+      timestamp: new Date().toISOString(),
+    });
   }
 
   private mapToHttp(exception: DomainError): {

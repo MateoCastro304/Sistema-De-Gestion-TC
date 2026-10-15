@@ -8,7 +8,8 @@ export class CategoriesInMemoryRepository implements CategoriesRepository {
   private autoIncrementId = 1;
 
   async list(params: CategoryListParams): Promise<CategoryListResult> {
-    let filtered = Array.from(this.categories.values()).filter((c) => c.getActive());
+    const wanted = params.active ?? true;
+    let filtered = Array.from(this.categories.values()).filter((c) => c.getActive() === wanted);
 
     if (params.nameContains) {
       const needle = params.nameContains.trim().toLowerCase();

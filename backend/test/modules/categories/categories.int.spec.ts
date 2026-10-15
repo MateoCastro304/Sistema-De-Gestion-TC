@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 
 import { startTestApp, stopTestApp, getPrisma } from '../../shared/harness/test-app';
-import { expectData, expectError, expectList, expectNoContent } from '../../shared/contract/envelopes';
+import { expectData, expectError, expectNoContent } from '../../shared/contract/envelopes';
 import { aCategoryBody, createCategory } from '../../shared/factories/category.factory';
 import { createFactory } from '../../shared/factories/factory.factory';
 
@@ -56,17 +56,53 @@ describe('Categories', () => {
   });
 
   describe('GET /categories', () => {
-    it('lista las categorías y respeta la paginación', async () => {
+    it('lista las categorías con el total y respeta la paginación', async () => {
       await createCategory();
       await createCategory();
       await createCategory();
 
-      const all = expectList(await request(app.getHttpServer()).get('/categories'));
-      expect(all).toHaveLength(3);
-      expect(all[0]).toMatchObject({ id: expect.any(Number), name: expect.any(String) });
+      const all = await request(app.getHttpServer()).get('/categories');
+      expect(all.status).toBe(200);
+      expect(all.body.items).toHaveLength(3);
+      expect(all.body.total).toBe(3);
+      expect(all.body.items[0]).toMatchObject({ id: expect.any(Number), name: expect.any(String) });
 
-      const page = expectList(await request(app.getHttpServer()).get('/categories?page=2&limit=2'));
-      expect(page).toHaveLength(1);
+      const page = await request(app.getHttpServer()).get('/categories?page=2&limit=2');
+      expect(page.status).toBe(200);
+      expect(page.body.items).toHaveLength(1);
+      expect(page.body.total).toBe(3);
+      expect(page.body).toMatchObject({ page: 2, limit: 2 });
+    });
+
+    it('sin active lista solo las activas', async () => {
+      const active = await createCategory();
+      const inactive = await createCategory();
+      await getPrisma().category.update({ where: { id: inactive.id }, data: { isActive: false } });
+
+      const res = await request(app.getHttpServer()).get('/categories');
+
+      expect(res.status).toBe(200);
+      expect(res.body.items.map((c: { id: number }) => c.id)).toEqual([active.id]);
+      expect(res.body.total).toBe(1);
+    });
+
+    it('con active=false lista solo las dadas de baja', async () => {
+      const active = await createCategory();
+      const inactive = await createCategory();
+      await getPrisma().category.update({ where: { id: inactive.id }, data: { isActive: false } });
+
+      const res = await request(app.getHttpServer()).get('/categories?active=false');
+
+      expect(res.status).toBe(200);
+      expect(res.body.items.map((c: { id: number }) => c.id)).toEqual([inactive.id]);
+      expect(res.body.items.map((c: { id: number }) => c.id)).not.toContain(active.id);
+      expect(res.body.total).toBe(1);
+    });
+
+    it('rechaza un limit por encima del máximo', async () => {
+      const res = await request(app.getHttpServer()).get('/categories?limit=1001');
+
+      expectError(res, 400, 'Bad Request');
     });
   });
 
@@ -100,6 +136,25 @@ describe('Categories', () => {
 
     it('responde 404 si no existe', async () => {
       const res = await request(app.getHttpServer()).patch('/categories/999999').send(aCategoryBody());
+
+      expectError(res, 404, 'Not Found');
+    });
+  });
+
+  describe('POST /categories/:id/restore', () => {
+    it('reactiva un rubro dado de baja', async () => {
+      const existing = await createCategory();
+      await getPrisma().category.update({ where: { id: existing.id }, data: { isActive: false } });
+
+      const res = await request(app.getHttpServer()).post(`/categories/${existing.id}/restore`);
+
+      expect(expectData(res, 200)).toMatchObject({ id: existing.id, name: existing.name });
+      const saved = await getPrisma().category.findUnique({ where: { id: existing.id } });
+      expect(saved?.isActive).toBe(true);
+    });
+
+    it('responde 404 si no existe', async () => {
+      const res = await request(app.getHttpServer()).post('/categories/999999/restore');
 
       expectError(res, 404, 'Not Found');
     });
