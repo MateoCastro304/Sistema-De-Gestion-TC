@@ -11,6 +11,7 @@ services:
     container_name: torneria-backend
     environment:
       <<: *database-url
+    init: true
     restart: 'unless-stopped'
     networks:
       - torneria-network
