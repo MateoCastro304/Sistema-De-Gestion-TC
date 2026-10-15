@@ -13,7 +13,7 @@ Sistema interno de **Castro Tornería S.R.L.** (Córdoba, desde 1977). El estilo
 
 **`Castro Tornería - Prototipo.dc.html`** es el prototipo único, navegable y funcional. Todos los cambios se hacen sobre este archivo.
 
-Los archivos `Sprint 1 - Estilo Landing*.dc.html`, `Menu Lateral.dc.html`, `Proveedores - Prototipos.dc.html`, `export/` y `entrega/` son la etapa anterior. Quedan como referencia histórica; no se editan. `prototipo/` es el paquete descargable del Sprint 1 (hay que regenerarlo para incluir el Sprint 2).
+Los archivos `Sprint 1 - Estilo Landing*.dc.html`, `Menu Lateral.dc.html`, `Proveedores - Prototipos.dc.html`, `export/` y `entrega/` son la etapa anterior. Quedan como referencia histórica; no se editan. `prototipo/` es el paquete descargable (regenerado el 15/10/2026 con el Sprint 2): `fuente/` (dc.html, support.js, assets, CONTEXTO.md) + versión de un solo archivo.
 
 ## Cómo está armado
 
@@ -32,7 +32,8 @@ Los archivos `Sprint 1 - Estilo Landing*.dc.html`, `Menu Lateral.dc.html`, `Prov
 - Modal genérico: `this.abrir({ icon, tono:'rojo', titulo, pre/strong/post, items, datos, dcols, aviso, campos, cols, validar, fijo, okLabel, ok, cancelLabel, sinOk, visor })`. `datos` = grilla etiqueta/valor (resúmenes, cambios "anterior → nuevo"). `visor` = vista previa de foto o PDF simulado. En celular se muestra como panel inferior.
 - Avisos (toast): `this.aviso(texto, 'ok'|'error'|'info')`.
 - Celular (≤ 760px): cabecera con logo + menú desplegable (incluye usuario, roles y cerrar sesión), listados en tarjetas, formularios a una columna.
-- Barra superior oscura "Prototipo": estados de listado (Normal / Cargando / Vacío / Error), pantallas 404 y Error, "Ingresar como…" (un usuario por rol, uno con dos roles y uno bloqueado), "Simular sesión expirada", contraseña demo **Castro1977** y "Reiniciar datos".
+- Barra superior oscura "Prototipo": estados de listado (Normal / Cargando / Vacío / Error), pantallas 404 y Error, "Ingresar como…" (un usuario por rol, uno con dos roles y uno bloqueado), "Roles (n)" con sesión abierta (sumar/quitar roles en vivo; `state.sesion.roles` pisa los roles del usuario), "Simular sesión expirada", contraseña demo **Castro1977** y "Reiniciar datos".
+- Solo prototipo, en el ingreso: "Ingresar con roles" (elegir varios; entra como wcastro con esos roles). Si al quitar un rol la pantalla actual queda sin permiso, vuelve al inicio del rol.
 
 ## Roles y permisos
 
