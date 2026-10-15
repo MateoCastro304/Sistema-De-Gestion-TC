@@ -30,10 +30,11 @@ export class CategoriesPrismaRepository implements CategoriesRepository {
     return row ? this.toDomain(row) : null;
   }
 
-  // Solo rubros activos, como el repositorio en memoria.
+  // Por defecto solo activos; con active=false, solo los dados de baja.
+  // Igual que el repositorio en memoria.
   async list(params: CategoryListParams): Promise<CategoryListResult> {
     const where = {
-      isActive: true,
+      isActive: params.active ?? true,
       ...(params.nameContains ? { name: { contains: params.nameContains, mode: 'insensitive' as const } } : {}),
     };
 

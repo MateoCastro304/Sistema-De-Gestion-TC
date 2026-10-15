@@ -7,6 +7,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseBoolPipe,
   ParseIntPipe,
   Patch,
   Post,
@@ -42,14 +43,20 @@ export class CategoriesController {
     return toCategoryResponse(category);
   }
 
+  /**
+   * Sin `active` devuelve solo los activos; con `active=false`, solo los dados
+   * de baja. Responde la pagina junto con el total, igual que /factories,
+   * /customers y /suppliers.
+   */
   @Get()
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
     @Query('name') nameContains?: string,
+    @Query('active', new ParseBoolPipe({ optional: true })) active?: boolean,
   ) {
-    const { items } = await this.listCategories.execute({ page, limit, nameContains });
-    return items.map(toCategoryResponse);
+    const { items, total } = await this.listCategories.execute({ page, limit, nameContains, active });
+    return { items: items.map(toCategoryResponse), total, page, limit };
   }
 
   @Get(':id')
@@ -64,7 +71,8 @@ export class CategoriesController {
     return toCategoryResponse(category);
   }
 
-  @Patch(':id/restore')
+  @Post(':id/restore')
+  @HttpCode(HttpStatus.OK) // sin esto responderia 201
   async restore(@Param('id', ParseIntPipe) id: number) {
     const category = await this.activateCategory.execute(id);
     return toCategoryResponse(category);
