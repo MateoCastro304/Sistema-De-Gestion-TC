@@ -13,6 +13,12 @@ services:
       <<: *database-url
     init: true
     restart: 'unless-stopped'
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1:3000/health/db']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     networks:
       - torneria-network
     depends_on:

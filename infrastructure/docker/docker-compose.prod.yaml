@@ -31,7 +31,9 @@ services:
       context: ../../frontend
       dockerfile: Dockerfile
       target: production
-    depends_on: [backend]
+    depends_on:
+      backend:
+        condition: service_healthy
     ports:
       - '80:80'
     volumes:
