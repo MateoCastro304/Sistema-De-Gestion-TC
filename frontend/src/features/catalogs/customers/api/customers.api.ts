@@ -12,7 +12,7 @@ import type { Factory, FactoryInput } from '../types/factory'
  * are relative to the axios `baseURL` (`/api`) and follow the backend
  * controllers (`customers.controller.ts`, `factory.controller.ts`); the
  * decisions behind names and shapes are in
- * `docs/decisiones-clientes-fabricas.md`.
+ * `docs/decisions/decisiones-clientes-fabricas.md`.
  */
 
 const CUSTOMERS = '/customers'

@@ -1,45 +1,45 @@
-# ADR-002 — Database
+﻿# ADR-002 — Base de datos
 
-**Date:** 2026-08  
-**Status:** Recommended (pending formal confirmation)  
-**Decision makers:** Technical team
+**Fecha:** 2026-08  
+**Estado:** Recomendado (pendiente de confirmación formal)  
+**Responsables de la decisión:** Equipo técnico
 
 ---
 
-## Context
+## Contexto
 
-The system handles a complex relational domain: quotes with multiple items (Composite), work orders with planned and executed processes, price change history, SEQUENCEs for correlative numbers, and relationships between customers, parts, and drawings.
+El sistema maneja un dominio relacional complejo: cotizaciones con múltiples ítems (Composite), órdenes de trabajo con procesos planificados y ejecutados, historial de cambios de precios, secuencias (SEQUENCE) para números correlativos y relaciones entre clientes, piezas y planos.
 
-## Options evaluated
+## Opciones evaluadas
 
-### Option A: PostgreSQL
+### Opción A: PostgreSQL
 
-Relational database with native support for SEQUENCEs, integrity constraints, ACID transactions, JSON for semi-structured data when needed, and views for reporting.
+Base de datos relacional con soporte nativo para secuencias, restricciones de integridad, transacciones ACID, JSON para datos semiestructurados cuando sea necesario y vistas para reportes.
 
-**Pros:**
-- Native SEQUENCEs for the correlative quote number (RN-04) — the only correct approach under concurrency.
-- Database-level constraints as a second line of defense for critical invariants (immutable price post-award).
-- Robust support for reporting and statistics queries.
-- Mature ecosystem with Prisma and TypeORM.
-- Stable migration tooling.
+**Ventajas:**
+- Secuencias nativas para el número correlativo de cotización (RN-04): el único enfoque correcto bajo concurrencia.
+- Restricciones en la base de datos como segunda línea de defensa para invariantes críticos (precio inmutable después de la adjudicación).
+- Soporte sólido para consultas de reportes y estadísticas.
+- Ecosistema maduro con Prisma y TypeORM.
+- Herramientas estables para migraciones.
 
-**Cons:**
-- None relevant to this use case.
+**Desventajas:**
+- Ninguna relevante para este caso de uso.
 
-### Option B: MySQL / MariaDB
+### Opción B: MySQL / MariaDB
 
-Similar in general capabilities, but with a somewhat more limited tooling ecosystem in the Node.js context and less expressiveness in SEQUENCEs (AUTO_INCREMENT is not equivalent in all scenarios).
+Similares en capacidades generales, pero con un ecosistema de herramientas algo más limitado en el contexto de Node.js y menor expresividad en secuencias (AUTO_INCREMENT no es equivalente en todos los escenarios).
 
-### Option C: MongoDB
+### Opción C: MongoDB
 
-Document database. Unsuitable for this domain: the system has strong relationships, critical referential integrity, and needs SEQUENCEs that don't exist natively in MongoDB.
+Base de datos documental. Inadecuada para este dominio: el sistema tiene relaciones fuertes, integridad referencial crítica y necesita secuencias que no existen de forma nativa en MongoDB.
 
-## Decision
+## Decisión
 
-**PostgreSQL**. It is the only correct option for this relational domain. SEQUENCEs for the correlative number and constraints for price invariants have no adequate substitute in other options.
+**PostgreSQL**. Es la única opción correcta para este dominio relacional. Las secuencias para el número correlativo y las restricciones para los invariantes de precios no tienen un sustituto adecuado en las otras opciones.
 
-## Implementation notes
+## Notas de implementación
 
-- Use `CREATE SEQUENCE` for the quote number, not `MAX(id) + 1` in the application.
-- Evaluate database constraints for locking the price post-award.
-- Use versioned migrations from the start (Prisma Migrate or Flyway).
+- Usar `CREATE SEQUENCE` para el número de cotización, en lugar de `MAX(id) + 1` en la aplicación.
+- Evaluar restricciones de base de datos para bloquear el precio después de la adjudicación.
+- Usar migraciones versionadas desde el inicio (Prisma Migrate o Flyway).

@@ -11,7 +11,7 @@ import { aSupplier } from '../../../shared/factories/supplier-factory';
  * formato por defecto de Nest: { statusCode, message: string[], error }. Los
  * errores de dominio pasan por DomainErrorFilter, que agrega `field` y `value`
  * en los 409. Ninguno de los dos trae `path` ni `timestamp`, a diferencia de
- * fabricas y encargados (ver B-07 y B-18 en docs/pendientes-sprint-1.md).
+ * fabricas y encargados (ver B-07 y B-18 en docs/seguimiento/pendientes-sprint-1.md).
  */
 describe('POST /suppliers', () => {
   let app: INestApplication;

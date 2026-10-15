@@ -4,6 +4,8 @@ export type CategoryListParams = {
   page: number;
   limit: number;
   nameContains?: string;
+  // true (por defecto): solo activos. false: solo inactivos.
+  active?: boolean;
 };
 
 export type CategoryListResult = {

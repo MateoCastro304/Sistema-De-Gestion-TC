@@ -19,6 +19,7 @@ import type { Column, SelectOption } from '@/shared/components/ui'
 import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import { DEFAULT_PAGE_SIZE } from '@/shared/api/pagination'
 import { cn } from '@/shared/lib/cn'
+import { formatPhone } from '@/shared/lib/formatPhone'
 import fotoTaller from '@/assets/hero-castro.webp'
 import { isApiError } from '@/shared/api/ApiError'
 import { useToast } from '@/app/providers/ToastContext'
@@ -254,7 +255,7 @@ export function SuppliersPage() {
     // CUIT, que es un identificador y se lee en columna.
     {
       header: 'Teléfono',
-      render: (s) => <ValueOrDash value={s.contactPhone} className="table__cell--tel" />,
+      render: (s) => <ValueOrDash value={formatPhone(s.contactPhone)} className="table__cell--tel" />,
     },
     // En modo eliminación no hay "Ver": navegar desmonta la pantalla y la
     // selección se perdería sin ningún aviso.

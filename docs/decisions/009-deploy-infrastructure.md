@@ -1,66 +1,66 @@
-# ADR-009 — Deployment Infrastructure
+﻿# ADR-009 — Infraestructura de despliegue
 
-**Date:** 2026-08
-**Status:** Pending Aproval
-**Decision-makers:** Dev-Ops Team
+**Fecha:** 2026-08
+**Estado:** Pendiente de aprobación
+**Responsables de la decisión:** Equipo DevOps
 
-## Decision
+## Decisión
 
-We will use **Docker and Docker Compose** as the containerization and orchestration solution for the application, deployed on **AWS**.
+Usaremos **Docker y Docker Compose** como solución de contenedores y orquestación para la aplicación, desplegada en **AWS**.
 
-The production environment will use **Amazon EC2** to host the application containers, **Amazon S3** for persistent object storage, and **Amazon CloudWatch** for infrastructure monitoring and centralized logging. **PostgreSQL** will run as a dedicated container within the EC2 instance using persistent storage.
+El entorno de producción usará **Amazon EC2** para alojar los contenedores de la aplicación, **Amazon S3** para almacenamiento persistente de objetos y **Amazon CloudWatch** para monitoreo de infraestructura y registros centralizados. **PostgreSQL** se ejecutará como un contenedor dedicado dentro de la instancia EC2 con almacenamiento persistente.
 
-This approach provides an appropriate balance between **simplicity, maintainability, portability, and resource efficiency**, while being sufficiently scalable for the expected workload and current project requirements.
+Este enfoque ofrece un equilibrio adecuado entre **simplicidad, mantenibilidad, portabilidad y eficiencia de recursos**, con escalabilidad suficiente para la carga esperada y los requisitos actuales del proyecto.
 
-Kubernetes will not be adopted at this stage because its additional operational complexity and resource requirements are not justified by the expected scale of the system.
+No se adoptará Kubernetes en esta etapa porque su complejidad operativa adicional y sus requisitos de recursos no se justifican para la escala esperada del sistema.
 
-## Context
+## Contexto
 
-The application requires a deployment infrastructure capable of providing consistent environments across development, testing, and production while maintaining a reasonable level of operational complexity.
+La aplicación requiere una infraestructura de despliegue capaz de ofrecer entornos consistentes en desarrollo, pruebas y producción, manteniendo un nivel razonable de complejidad operativa.
 
-The system consists of multiple services, including:
+El sistema consta de varios servicios, incluidos:
 
-- A React frontend
-- A NestJS backend API
+- Un frontend React
+- Una API backend NestJS
 - PostgreSQL
-- Python-based background services for PDF generation and other processing tasks
-- Nginx as a reverse proxy
-- Persistent storage for uploaded documents, generated files, and static assets
+- Servicios en segundo plano basados en Python para generar PDF y otras tareas de procesamiento
+- Nginx como proxy inverso
+- Almacenamiento persistente de documentos cargados, archivos generados y recursos estáticos
 
-The expected workload is relatively small, with a limited number of concurrent users. Therefore, the infrastructure should prioritize **simplicity and maintainability** over highly sophisticated orchestration and automatic horizontal scaling.
+La carga esperada es relativamente pequeña, con un número limitado de usuarios concurrentes. Por lo tanto, la infraestructura debe priorizar la **simplicidad y la mantenibilidad** frente a una orquestación muy sofisticada y el escalado horizontal automático.
 
-## Containerization and Orchestration Technologies
+## Tecnologías de contenedores y orquestación
 
-Two main approaches were evaluated: **Docker with Docker Compose** and **Kubernetes**.
+Se evaluaron dos enfoques principales: **Docker con Docker Compose** y **Kubernetes**.
 
-### Option A — Docker + Docker Compose
+### Opción A — Docker + Docker Compose
 
-Docker will be used to package each application component together with its dependencies, providing consistent and reproducible environments.
+Docker se usará para empaquetar cada componente de la aplicación con sus dependencias y proporcionar entornos consistentes y reproducibles.
 
-Docker Compose will be used to define and manage the multi-container application through a single configuration.
+Docker Compose se usará para definir y gestionar la aplicación de múltiples contenedores mediante una única configuración.
 
-The production deployment will consist of the following services:
+El despliegue de producción constará de los siguientes servicios:
 
-- **Nginx** — Reverse proxy and HTTP/HTTPS entry point
-- **Frontend** — React application
-- **Backend** — NestJS REST API
-- **PostgreSQL** — Application database
-- **Python services** — PDF generation and background processing
+- **Nginx** — Proxy inverso y punto de entrada HTTP/HTTPS
+- **Frontend** — Aplicación React
+- **Backend** — API REST NestJS
+- **PostgreSQL** — Base de datos de la aplicación
+- **Servicios Python** — Generación de PDF y procesamiento en segundo plano
 
-The resulting deployment will be conceptually structured as follows:
+El despliegue resultante tendrá conceptualmente la siguiente estructura:
 
 ```mermaid
 flowchart TB
-    U([Users])
+    U([Usuarios])
 
-    subgraph AWS["AWS Cloud"]
+    subgraph AWS["Nube AWS"]
         subgraph EC2["Amazon EC2"]
-            NGINX["Nginx<br/>Reverse Proxy"]
+            NGINX["Nginx<br/>Proxy inverso"]
 
             subgraph DOCKER["Docker Compose"]
                 FE["React<br/>Frontend"]
-                BE["NestJS<br/>Backend API"]
-                PY["Python<br/>Background Services"]
+                BE["NestJS<br/>API backend"]
+                PY["Python<br/>Servicios en segundo plano"]
                 DB[("PostgreSQL")]
             end
 
@@ -71,55 +71,55 @@ flowchart TB
             PY --> DB
         end
 
-        S3[("Amazon S3<br/>Object Storage")]
-        CW["Amazon CloudWatch<br/>Monitoring & Logs"]
+        S3[("Amazon S3<br/>Almacenamiento de objetos")]
+        CW["Amazon CloudWatch<br/>Monitoreo y registros"]
     end
 
     U -->|HTTPS| NGINX
-    BE -->|Files / Objects| S3
-    PY -->|Generated Files| S3
+    BE -->|Archivos / Objetos| S3
+    PY -->|Archivos generados| S3
 
-    EC2 -.->|Metrics & Logs| CW
+    EC2 -.->|Métricas y registros| CW
 ```
 
-#### Docker Pros
+#### Ventajas de Docker
 
-- Portability across environments and cloud providers
-- Consistent development, testing, and production environments
-- Low operational complexity
-- Simple local development using Docker Compose
-- Low resource requirements
-- Fast deployment and reproducible environments
-- Suitable for the expected workload
+- Portabilidad entre entornos y proveedores de nube
+- Entornos consistentes de desarrollo, pruebas y producción
+- Baja complejidad operativa
+- Desarrollo local sencillo con Docker Compose
+- Bajos requisitos de recursos
+- Despliegue rápido y entornos reproducibles
+- Adecuado para la carga esperada
 
-#### Docker Cons
+#### Desventajas de Docker
 
-- Limited built-in orchestration capabilities
-- Scaling requires additional infrastructure and configuration
-- High availability must be designed separately
-- Infrastructure management remains the responsibility of the team
-- Monitoring and troubleshooting require additional tooling
+- Capacidades integradas de orquestación limitadas
+- El escalado requiere infraestructura y configuración adicionales
+- La alta disponibilidad debe diseñarse por separado
+- La gestión de infraestructura sigue siendo responsabilidad del equipo
+- El monitoreo y la resolución de problemas requieren herramientas adicionales
 
-### Option B — Kubernetes
+### Opción B — Kubernetes
 
-Kubernetes provides a full container orchestration platform with features such as automatic scaling, self-healing, service discovery, rolling updates, and declarative infrastructure management.
+Kubernetes ofrece una plataforma completa de orquestación de contenedores con funciones como escalado automático, autorrecuperación, descubrimiento de servicios, actualizaciones graduales y gestión declarativa de infraestructura.
 
-A Kubernetes deployment could provide a more sophisticated architecture for managing multiple replicas and services:
+Un despliegue en Kubernetes podría proporcionar una arquitectura más sofisticada para gestionar múltiples réplicas y servicios:
 
 ```mermaid
 flowchart TB
-    U([Users])
+    U([Usuarios])
 
-    subgraph K8S["Kubernetes Cluster"]
+    subgraph K8S["Clúster Kubernetes"]
         ING["Ingress"]
 
-        subgraph APP["Application Workloads"]
+        subgraph APP["Cargas de trabajo de la aplicación"]
             FE["Frontend<br/>Pods"]
             BE["Backend<br/>Pods"]
-            PY["Python<br/>Workers"]
+            PY["Python<br/>Procesos de trabajo"]
         end
 
-        SVC["Kubernetes Services"]
+        SVC["Servicios de Kubernetes"]
         DB[("PostgreSQL")]
     end
 
@@ -134,59 +134,59 @@ flowchart TB
     PY --> S3
 ```
 
-However, Kubernetes introduces additional infrastructure and operational requirements that are not justified by the current system's expected workload.
+Sin embargo, Kubernetes introduce requisitos adicionales de infraestructura y operación que no se justifican para la carga esperada del sistema actual.
 
-#### Kubernetes Pros
+#### Ventajas de Kubernetes
 
-- Advanced container orchestration
-- Horizontal scaling
-- Self-healing and automatic workload recovery
-- Rolling updates and deployment strategies
-- Service discovery and load balancing
-- Suitable for large and distributed applications
+- Orquestación avanzada de contenedores
+- Escalado horizontal
+- Autorrecuperación y recuperación automática de cargas de trabajo
+- Actualizaciones graduales y estrategias de despliegue
+- Descubrimiento de servicios y balanceo de carga
+- Adecuado para aplicaciones grandes y distribuidas
 
-#### Kubernetes Cons
+#### Desventajas de Kubernetes
 
-- Steeper learning curve
-- Higher infrastructure and resource requirements
-- Greater operational complexity
-- More difficult debugging and troubleshooting
-- Requires additional monitoring and management
-- Excessive complexity for the expected workload
+- Curva de aprendizaje más pronunciada
+- Mayores requisitos de infraestructura y recursos
+- Mayor complejidad operativa
+- Depuración y resolución de problemas más difíciles
+- Requiere monitoreo y gestión adicionales
+- Complejidad excesiva para la carga esperada
 
-## Decision Rationale
+## Fundamentos de la decisión
 
-Docker Compose was selected because the application's current requirements do not justify the complexity of Kubernetes.
+Se seleccionó Docker Compose porque los requisitos actuales de la aplicación no justifican la complejidad de Kubernetes.
 
-The expected workload is relatively small and the application consists of a limited number of services. A single EC2 instance running Docker Compose is therefore sufficient to provide the required functionality while keeping the infrastructure easy to understand, operate, and maintain.
+La carga esperada es relativamente pequeña y la aplicación consta de un número limitado de servicios. Por lo tanto, una única instancia EC2 con Docker Compose es suficiente para ofrecer la funcionalidad requerida y mantener una infraestructura fácil de comprender, operar y mantener.
 
-Kubernetes may be reconsidered if future requirements introduce:
+Kubernetes puede reconsiderarse si los requisitos futuros introducen:
 
-- Significant increases in traffic or concurrent users
-- Multiple application instances requiring horizontal scaling
-- High-availability requirements across multiple hosts
-- A larger number of independently deployable services
-- More sophisticated deployment strategies
-- Dedicated DevOps resources
+- Aumentos significativos del tráfico o de los usuarios concurrentes
+- Múltiples instancias de la aplicación que requieran escalado horizontal
+- Requisitos de alta disponibilidad entre varios servidores
+- Un mayor número de servicios desplegables de manera independiente
+- Estrategias de despliegue más sofisticadas
+- Recursos DevOps dedicados
 
-This decision intentionally favors **appropriate complexity over maximum scalability**.
+Esta decisión favorece deliberadamente la **complejidad adecuada frente a la máxima escalabilidad**.
 
-## Deployment Architecture
+## Arquitectura de despliegue
 
-The production infrastructure will follow the following architecture:
+La infraestructura de producción seguirá la siguiente arquitectura:
 
 ```mermaid
 flowchart LR
-    USER([User])
+    USER([Usuario])
 
     subgraph AWS["AWS"]
-        subgraph EC2["EC2 Instance"]
+        subgraph EC2["Instancia EC2"]
             NGINX["Nginx"]
 
             subgraph COMPOSE["Docker Compose"]
                 FRONT["React"]
-                API["NestJS API"]
-                PY["Python Services"]
+                API["API NestJS"]
+                PY["Servicios Python"]
                 DB[("PostgreSQL")]
             end
 
@@ -196,83 +196,83 @@ flowchart LR
             API --> PY
         end
 
-        S3[("S3<br/>Persistent Object Storage")]
+        S3[("S3<br/>Almacenamiento persistente de objetos")]
         CW["CloudWatch"]
     end
 
     USER -->|HTTPS| NGINX
 
-    API -->|Read / Write Objects| S3
-    PY -->|Generated Files| S3
+    API -->|Lectura / Escritura de objetos| S3
+    PY -->|Archivos generados| S3
 
-    EC2 -.->|Metrics / Logs| CW
+    EC2 -.->|Métricas / Registros| CW
 ```
 
-The responsibilities of each component are:
+Las responsabilidades de cada componente son:
 
-| Component           | Responsibility                                                       |
+| Componente | Responsabilidad |
 | ------------------- | -------------------------------------------------------------------- |
-| **Nginx**           | Reverse proxy and HTTPS entry point                                  |
-| **React**           | Frontend application                                                 |
-| **NestJS**          | Backend API and business logic                                       |
-| **PostgreSQL**      | Persistent relational data                                           |
-| **Python services** | PDF generation and background processing                             |
-| **S3**              | Persistent storage for documents, generated files, and static assets |
-| **CloudWatch**      | Infrastructure metrics and centralized logs                          |
-| **Sentry**          | Application error tracking and diagnostics                           |
+| **Nginx** | Proxy inverso y punto de entrada HTTPS |
+| **React** | Aplicación frontend |
+| **NestJS** | API backend y lógica de negocio |
+| **PostgreSQL** | Datos relacionales persistentes |
+| **Servicios Python** | Generación de PDF y procesamiento en segundo plano |
+| **S3** | Almacenamiento persistente de documentos, archivos generados y recursos estáticos |
+| **CloudWatch** | Métricas de infraestructura y registros centralizados |
+| **Sentry** | Seguimiento de errores y diagnóstico de la aplicación |
 
-## Deployment Strategy
+## Estrategia de despliegue
 
-### Implementation Plan
+### Plan de implementación
 
-The deployment process will consist of the following stages:
+El proceso de despliegue constará de las siguientes etapas:
 
-1. **Containerization**
-   Package each application component and its dependencies into Docker images.
+1. **Creación de contenedores**
+   Empaquetar cada componente de la aplicación y sus dependencias en imágenes Docker.
 
-2. **Local Orchestration**
-   Use Docker Compose to run and test the complete multi-container application locally.
+2. **Orquestación local**
+   Usar Docker Compose para ejecutar y probar localmente la aplicación completa de múltiples contenedores.
 
-3. **Continuous Integration**
-   Use GitHub Actions to automatically execute tests, linting, and Docker image builds when changes are pushed to the repository.
+3. **Integración continua**
+   Usar GitHub Actions para ejecutar automáticamente pruebas, análisis estático y compilaciones de imágenes Docker cuando se envíen cambios al repositorio.
 
-4. **Continuous Deployment**
-   After successful CI validation, the deployment pipeline will update the production environment on the EC2 instance.
+4. **Despliegue continuo**
+   Después de una validación de CI exitosa, el proceso de despliegue actualizará el entorno de producción en la instancia EC2.
 
-5. **Reverse Proxy and HTTPS**
-   Nginx will act as the public entry point and reverse proxy for the application. HTTPS will be enabled using a valid TLS certificate.
+5. **Proxy inverso y HTTPS**
+   Nginx actuará como punto de entrada público y proxy inverso de la aplicación. Se habilitará HTTPS con un certificado TLS válido.
 
-6. **Monitoring and Logging**
-   Amazon CloudWatch will be used for infrastructure monitoring and centralized system logs. Sentry will be used for application-level error tracking and exception monitoring.
+6. **Monitoreo y registros**
+   Amazon CloudWatch se usará para monitoreo de infraestructura y registros centralizados del sistema. Sentry se usará para seguimiento de errores de la aplicación y monitoreo de excepciones.
 
-7. **Security**
-   Security measures will include:
-   - HTTPS/TLS for external communication
-   - IAM roles and least-privilege policies
-   - EC2 Security Groups restricting unnecessary network access
-   - Secrets managed outside of the Docker images and source repository
-   - Regular dependency updates
-   - Regular security reviews
+7. **Seguridad**
+   Las medidas de seguridad incluirán:
+   - HTTPS/TLS para comunicación externa
+   - Roles IAM y políticas de mínimo privilegio
+   - Grupos de seguridad EC2 que restrinjan el acceso de red innecesario
+   - Secretos gestionados fuera de las imágenes Docker y del repositorio de código
+   - Actualizaciones periódicas de dependencias
+   - Revisiones periódicas de seguridad
 
-8. **Backup and Recovery**
-   PostgreSQL data will be stored on persistent storage and backed up regularly. Backup copies will be stored in S3 to provide additional durability.
+8. **Respaldo y recuperación**
+   Los datos de PostgreSQL se guardarán en almacenamiento persistente y se respaldarán periódicamente. Las copias de respaldo se almacenarán en S3 para ofrecer durabilidad adicional.
 
-   Given the relatively small expected data volume, a **weekly backup schedule** is considered sufficient for the current project requirements. This policy may be revised if the system's data volume or recovery requirements increase.
+   Dado el volumen de datos esperado relativamente pequeño, se considera suficiente una **frecuencia semanal de respaldos** para los requisitos actuales del proyecto. Esta política puede revisarse si aumentan el volumen de datos o los requisitos de recuperación del sistema.
 
-## CI/CD Architecture
+## Arquitectura de CI/CD
 
-The CI/CD pipeline will follow this general workflow:
+El proceso de CI/CD seguirá este flujo general:
 
 ```mermaid
 flowchart LR
-    DEV([Developer])
+    DEV([Desarrollador])
 
-    GH["GitHub Repository"]
+    GH["Repositorio GitHub"]
     CI["GitHub Actions"]
 
-    TEST["Tests & Validation"]
-    BUILD["Docker Image Build"]
-    DEPLOY["Deployment"]
+    TEST["Pruebas y validación"]
+    BUILD["Compilación de imágenes Docker"]
+    DEPLOY["Despliegue"]
 
     EC2["AWS EC2"]
     COMPOSE["Docker Compose"]
@@ -280,90 +280,90 @@ flowchart LR
     DEV -->|Push / Pull Request| GH
     GH --> CI
     CI --> TEST
-    TEST -->|Success| BUILD
+    TEST -->|Éxito| BUILD
     BUILD --> DEPLOY
     DEPLOY --> EC2
     EC2 --> COMPOSE
 ```
 
-The pipeline ensures that application changes are validated before being deployed to production.
+El proceso asegura que los cambios de la aplicación se validen antes de desplegarse en producción.
 
-## Data Storage Architecture
+## Arquitectura de almacenamiento de datos
 
-Application data will be separated according to its nature.
+Los datos de la aplicación se separarán según su naturaleza.
 
-**PostgreSQL** will contain structured application data and metadata, while **S3** will contain binary objects such as uploaded documents and generated files.
+**PostgreSQL** contendrá datos estructurados y metadatos de la aplicación, mientras que **S3** contendrá objetos binarios como documentos cargados y archivos generados.
 
 ```mermaid
 flowchart TB
-    API["NestJS API"]
+    API["API NestJS"]
 
-    DB[("PostgreSQL<br/>Structured Data")]
-    S3[("Amazon S3<br/>Object Storage")]
+    DB[("PostgreSQL<br/>Datos estructurados")]
+    S3[("Amazon S3<br/>Almacenamiento de objetos")]
 
-    API -->|Metadata<br/>Users, courses, records, etc.| DB
-    API -->|Files<br/>PDFs, images, generated documents| S3
+    API -->|Metadatos<br/>Usuarios, cursos, registros, etc.| DB
+    API -->|Archivos<br/>PDF, imágenes, documentos generados| S3
 
-    DB -.->|"References / Object Keys"| S3
+    DB -.->|"Referencias / Claves de objetos"| S3
 ```
 
-For example, PostgreSQL may store the metadata of an uploaded document while S3 stores the actual file.
+Por ejemplo, PostgreSQL puede almacenar los metadatos de un documento cargado mientras S3 almacena el archivo en sí.
 
-This separation prevents large binary files from unnecessarily increasing the size of the relational database.
+Esta separación evita que los archivos binarios grandes aumenten innecesariamente el tamaño de la base de datos relacional.
 
-## Operational Considerations
+## Consideraciones operativas
 
-The selected architecture intentionally keeps the number of infrastructure components low.
+La arquitectura seleccionada mantiene deliberadamente bajo el número de componentes de infraestructura.
 
-The initial production environment will consist of a single EC2 instance running the application containers through Docker Compose. This provides a simple deployment model that is appropriate for the expected workload.
+El entorno inicial de producción constará de una única instancia EC2 que ejecutará los contenedores de la aplicación mediante Docker Compose. Esto ofrece un modelo de despliegue sencillo, adecuado para la carga esperada.
 
-However, a single EC2 instance represents a potential **single point of failure**. High availability and automatic horizontal scaling are therefore not considered requirements for the initial deployment.
+Sin embargo, una única instancia EC2 representa un posible **punto único de falla**. Por lo tanto, la alta disponibilidad y el escalado horizontal automático no se consideran requisitos del despliegue inicial.
 
-If these requirements emerge in the future, the architecture can be evolved toward a multi-instance deployment using additional AWS services or a container orchestration platform such as Kubernetes.
+Si estos requisitos aparecen en el futuro, la arquitectura puede evolucionar hacia un despliegue de múltiples instancias mediante servicios adicionales de AWS o una plataforma de orquestación de contenedores como Kubernetes.
 
-## Consequences
+## Consecuencias
 
-### Positive Consequences
+### Consecuencias positivas
 
-- Simple deployment and infrastructure management
-- Consistent environments through containerization
-- Low resource consumption
-- Low initial operational complexity
-- Easy local reproduction of the production environment
-- Clear separation between application data and object storage
-- Straightforward CI/CD integration
-- Architecture can evolve toward more sophisticated infrastructure if required
+- Despliegue y gestión de infraestructura sencillos
+- Entornos consistentes mediante contenedores
+- Bajo consumo de recursos
+- Baja complejidad operativa inicial
+- Reproducción local sencilla del entorno de producción
+- Separación clara entre datos de la aplicación y almacenamiento de objetos
+- Integración directa de CI/CD
+- La arquitectura puede evolucionar hacia una infraestructura más sofisticada si se requiere
 
-### Negative Consequences
+### Consecuencias negativas
 
-- Single EC2 instance represents a potential single point of failure
-- Horizontal scaling is not automatic
-- Database availability depends on the EC2 instance
-- Some infrastructure management remains manual
-- Backup and recovery procedures must be properly maintained
-- Kubernetes-level orchestration features are not available
+- Una única instancia EC2 representa un posible punto único de falla
+- El escalado horizontal no es automático
+- La disponibilidad de la base de datos depende de la instancia EC2
+- Parte de la gestión de infraestructura sigue siendo manual
+- Los procedimientos de respaldo y recuperación deben mantenerse adecuadamente
+- No están disponibles las funciones de orquestación del nivel de Kubernetes
 
-## Alternatives Considered
+## Alternativas consideradas
 
-| Alternative                         | Decision     | Reason                                                                   |
+| Alternativa | Decisión | Motivo |
 | ----------------------------------- | ------------ | ------------------------------------------------------------------------ |
-| **Docker + Docker Compose**         | **Selected** | Appropriate complexity, low resource requirements, easy maintenance      |
-| **Kubernetes**                      | Rejected     | Excessive complexity and resource requirements for the expected workload |
-| **EC2 without containers**          | Rejected     | Less reproducible environments and more difficult dependency management  |
-| **Managed container orchestration** | Deferred     | Could be considered if scaling or availability requirements increase     |
+| **Docker + Docker Compose** | **Seleccionada** | Complejidad adecuada, bajos requisitos de recursos y mantenimiento sencillo |
+| **Kubernetes** | Rechazada | Complejidad y requisitos de recursos excesivos para la carga esperada |
+| **EC2 sin contenedores** | Rechazada | Entornos menos reproducibles y gestión de dependencias más difícil |
+| **Orquestación administrada de contenedores** | Postergada | Podría considerarse si aumentan los requisitos de escalado o disponibilidad |
 
-## Future Evolution
+## Evolución futura
 
-The architecture is intentionally designed so that individual components can be replaced or scaled independently as requirements evolve.
+La arquitectura está diseñada deliberadamente para que los componentes individuales puedan reemplazarse o escalarse de manera independiente a medida que evolucionen los requisitos.
 
-Potential future improvements include:
+Las posibles mejoras futuras incluyen:
 
-- Migration from PostgreSQL on EC2 to Amazon RDS
-- Multiple EC2 instances behind a load balancer
-- Managed container orchestration
-- Automated horizontal scaling
-- More advanced disaster recovery
-- Dedicated worker infrastructure for Python services
-- Infrastructure as Code using Terraform or AWS CloudFormation
+- Migración de PostgreSQL en EC2 a Amazon RDS
+- Múltiples instancias EC2 detrás de un balanceador de carga
+- Orquestación administrada de contenedores
+- Escalado horizontal automatizado
+- Recuperación ante desastres más avanzada
+- Infraestructura de procesos de trabajo dedicada para servicios Python
+- Infraestructura como código con Terraform o AWS CloudFormation
 
-These improvements are outside the scope of the current deployment requirements.
+Estas mejoras quedan fuera del alcance de los requisitos actuales de despliegue.
