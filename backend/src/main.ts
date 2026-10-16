@@ -13,8 +13,11 @@ async function bootstrap() {
   const allowedOrigins = config.get<string>('ALLOWED_ORIGINS');
 
   if (allowedOrigins) {
+    // credentials: la cookie refresh_token de /auth tiene que viajar desde
+    // Swagger UI (otro origen) para poder probar la sesión.
     app.enableCors({
       origin: allowedOrigins.split(',').map((origin) => origin.trim()),
+      credentials: true,
     });
   }
 

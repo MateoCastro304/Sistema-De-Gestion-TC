@@ -8,9 +8,12 @@ extends:
   - recommended-strict
 rules:
   info-license-strict: off
-  # The only declared server is the local backend, on purpose: Swagger UI
-  # (localhost:8081) uses it for "Try it out" in development. The production
-  # host does not exist yet (see the TODO under servers). Once it does, add it
-  # as a second server; this rule can go back to 'error' if localhost is
-  # removed from the contract.
+  # The declared servers are local on purpose (Nginx at localhost/api and the
+  # backend at localhost:3000): Swagger UI (localhost:8081) uses them for "Try
+  # it out" in development. The production host does not exist yet (see the
+  # TODO under servers). Once it does, add it as another server; this rule can
+  # go back to 'error' if localhost is removed from the contract.
+  #
+  # Single problems ignored on purpose live in .redocly.lint-ignore.yaml, each
+  # with its reason.
   no-server-example.com: off
