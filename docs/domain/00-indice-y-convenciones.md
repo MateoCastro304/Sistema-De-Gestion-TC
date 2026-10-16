@@ -9,7 +9,7 @@
 | # | Archivo | Contenido | IDs que define |
 |---|---|---|---|
 | 00 | `00-indice-y-convenciones.md` | Este archivo: índice y convenciones | — |
-| 01 | `01-introduccion-alcance.md` | Propósito, contexto del negocio, alcance y **no alcance**, objetivos, restricciones, glosario | `OBJ-xx` |
+| 01 | `01-introduccion-alcance.md` | Flujo propuesto, objetivos, alcance y **no alcance**, perspectiva del producto y restricciones. El contexto, el propósito y los usuarios están en [`vision-general.md`](../vision-general.md); el glosario, en [`glosario.md`](../glosario.md) | `OBJ-xx` |
 | 02 | `02-reglas-de-negocio.md` | Las 44 reglas de negocio, tipificadas y trazadas | `RN01`…`RN44` |
 | 03 | `03-requerimientos.md` | Requerimientos funcionales (globales y detallados) y no funcionales | `RF01`…`RF11`, `RF01.1`…, `RNF01`…`RNF21` |
 | 04 | `04-actores-y-casos-de-uso.md` | Actores, catálogo de 61 CU, diagramas de CU, descripciones de CU 13 y CU 14 | `CU-01`…`CU-61` |

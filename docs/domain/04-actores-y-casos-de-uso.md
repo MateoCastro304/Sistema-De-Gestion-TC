@@ -90,7 +90,7 @@ flowchart BT
 | CU-38 | Modificar Material | Actualizar un material. | AT | — | S |
 | CU-39 | Consultar Materiales | Consultar los materiales. | AT | — | S |
 | CU-40 | Registrar Baja de Material | Baja lógica de un material. | AT | — | S |
-| CU-55 | Consultar Historial de Compras a Proveedores | Consultar las compras de material a proveedores (material, calidad, presentación, cantidad, precio unitario, fecha), filtrando por proveedor, material y fechas. | AT (EC por herencia) | — | S (extiende CU-35) |
+| CU-55 | Consultar Historial de Compras a Proveedores | Consultar las compras de material a proveedores (material, calidad, presentación, cantidad, precio unitario, fecha), filtrando por proveedor, material y fechas. | EC | — | S (extiende CU-35) |
 
 ### 2.4 Cotización — RF08, RF09
 
@@ -129,7 +129,7 @@ flowchart BT
 | CU-49 | Generar Reporte Mensual de Facturación | Total facturado a un cliente en un mes. | ER | — | E |
 | CU-50 | Generar Reporte Anual de Facturación por Rubro | Total facturado de un rubro en un año. | ER | — | E |
 | CU-51 | Generar Estadísticas de Desvíos de Cotizaciones | Desvío promedio de las cotizaciones adjudicadas y entregadas, filtrando por mes, cliente y EC: tiempo real vs. planificado por proceso, material comprado vs. planificado y precio hora real. | ER | — | E |
-| CU-56 | Consultar Trabajos Realizados | Consultar los trabajos ejecutados filtrando por fábrica, material y descripción, con acceso a cotización de origen, hoja de ruta y desvíos. `🔁 D-03` El **JT** también accede (página de historial) **sin datos económicos salvo precios de materiales**. | ER, JT | — | E |
+| CU-56 | Consultar Trabajos Realizados | Consultar los trabajos ejecutados filtrando por fábrica, material y descripción, con acceso a cotización de origen, hoja de ruta y desvíos. | ER | — | E |
 | CU-57 | Generar Estadística de Efectividad de Adjudicación de Presupuestos | Proporción de cotizaciones adjudicadas sobre emitidas, filtrando por período, cliente y EC. | ER | — | E |
 
 **Control:** 12 + 11 + 13 + 9 + 11 + 5 = **61 CU** (CU-01 a CU-61, sin huecos).
@@ -209,7 +209,7 @@ flowchart LR
     CU21 --- SC
     CU21 --- SM
     ERP --- CU13 & CU23 & CU31 & CU32
-    JT --- CU19 & CU24 & CU25 & CU26 & CU27 & CU28 & CU30 & CU56
+    JT --- CU19 & CU24 & CU25 & CU26 & CU27 & CU28 & CU30
     ER --- CU49 & CU50 & CU51 & CU56 & CU57
     US --- CU52 & CU53 & CU54
     T --- CU22 & CU29
@@ -223,8 +223,6 @@ flowchart LR
     CU20 -.->|extend| CU14
     CU21 -.->|extend| CU20
 ```
-
-> `🔁 D-03` Se agrega la asociación JT — CU-56 (página de historial).
 
 ### 4.2 Vista de casos de uso de soporte
 
@@ -301,7 +299,7 @@ flowchart LR
 | **Reglas** | RN01, RN03, RN06 |
 | **Cambios de estado** | `Cotizacion`: (inicial) → `PteCotizacion` en el paso 15 |
 
-**Curso normal**
+#### Secuencia principal
 
 | # | Acción |
 |---|---|
@@ -322,7 +320,7 @@ flowchart LR
 | 15 | **Sistema:** registra la solicitud (cliente, fecha, nº de pedido o nota del cliente, descripción, documentación) y **crea la cotización asociada en estado `PteCotizacion`**. |
 | 16 | Fin del CU. |
 
-**Cursos alternativos**
+#### Alternativas y excepciones
 
 | ID | Paso | Condición | Comportamiento |
 |---|---|---|---|
@@ -332,11 +330,11 @@ flowchart LR
 | A4 | 14 | Faltan datos obligatorios | El sistema indica los campos pendientes y vuelve a solicitarlos. `⚠️ SUPUESTO` |
 | A5 | Cualquiera | El ERP cancela | No se registra nada; fin del CU. |
 
-**Postcondiciones**
+#### Resultado
 - **Éxito:** hay una nueva solicitud registrada con su documentación asociada y una cotización en `PteCotizacion` lista para cotizar.
 - **Fracaso:** no se registra la solicitud ni se guarda documentación (A5).
 
-**Observaciones**
+#### Observaciones
 - Formatos admitidos: fotos **JPG/PNG**; plano **PDF o AutoCAD (DWG)**; diseño 3D **STEP/STP/SLDPRT** (RNF17); hasta 50 MB por archivo (RNF07).
 
 ---
@@ -356,7 +354,7 @@ flowchart LR
 | **Extensiones** | CU-16, CU-17 (vía 16), CU-37, CU-09, CU-33, CU-20 |
 | **Cambios de estado** | `Cotizacion`: `PteCotizacion`/`Borrador` → `Cotizado` (paso 43) · `PteCotizacion`/`Borrador` → `Borrador` (A18) |
 
-**Curso normal**
+#### Secuencia principal
 
 | # | Acción |
 |---|---|
@@ -405,7 +403,7 @@ flowchart LR
 | 43 | **Sistema:** calcula el precio final (RN25), registra la cotización y **cambia su estado a `Cotizado`**. |
 | 44 | Fin del CU. |
 
-**Cursos alternativos**
+#### Alternativas y excepciones
 
 | ID | Paso | Condición | Comportamiento |
 |---|---|---|---|
@@ -430,11 +428,11 @@ flowchart LR
 | A19 | Antes del 42 | El EC cancela o abandona sin guardar | Se descarta lo no guardado; la cotización queda en el estado que tenía (`PteCotizacion` o `Borrador`). |
 | A20 | 43 | El EC elige "Generar informe" | `«extend»` CU-20: genera el PDF, que queda disponible para CU-21. |
 
-**Postcondiciones**
+#### Resultado
 - **Éxito:** la cotización queda registrada con todos sus datos (generales, ítems, materiales, procesos, descuentos y seña), en estado **`Cotizado`**, disponible para consultar, modificar (CU-18), generar el informe y enviarlo.
 - **Éxito parcial (A18):** la cotización queda en **`Borrador`**.
 - **Fracaso (A19):** la cotización no se registra; la solicitud y la cotización conservan su estado previo.
 
-**Observaciones**
+#### Observaciones
 - En el paso 37 se puede volver a cualquier etapa anterior del asistente antes de confirmar.
 - Durante todo el asistente se muestra el subtotal acumulado (RNF01).

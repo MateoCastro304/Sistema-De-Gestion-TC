@@ -1,10 +1,12 @@
-﻿# Estructura de pruebas de QA — Organización por módulos
+# Estructura de pruebas de QA — Organización por módulos
 
 **Proyecto:** Tornería Castro SRL — Sistema de gestión
 **Alcance de este documento:** cómo se organizan y ejecutan las pruebas unitarias, de integración, de API y de extremo a extremo.
 **Destinatarios:** cualquier desarrollador o tester que se incorpore al proyecto.
 
 ---
+
+> **Discrepancia abierta.** Esta guía separa las pruebas de integración y de API, mientras el [README de la suite](../../backend/test/README.md) documenta tests de integración que verifican contrato y base en el mismo test. El momento de ejecución en CI (§3.2) también difiere de [ADR-010](../decisions/010-continuous-integration.md). Ver [inconsistencias documentales](../seguimiento/inconsistencias-documentales.md).
 
 ## 1. Propósito y alcance
 
@@ -19,7 +21,9 @@ QA **no** vuelve a probar los cálculos que ya cubre una prueba unitaria. QA com
 
 ---
 
-## 2. Principio de organización
+## 2. Organización de la suite
+
+### 2.1 Principio de organización
 
 **Un módulo de negocio = una carpeta por nivel de prueba.** Las pruebas de cada módulo se distribuyen en tres ubicaciones físicas, una por nivel, reflejando los módulos del backend uno a uno para que quien conoce el dominio ya sepa dónde buscar:
 
@@ -31,7 +35,7 @@ QA **no** vuelve a probar los cálculos que ya cubre una prueba unitaria. QA com
 
 ---
 
-## 3. Estructura de carpetas
+### 2.2 Estructura de carpetas
 
 ```
 backend/
@@ -80,7 +84,7 @@ Dos decisiones de diseño que conviene fijar desde el comienzo:
 
 ---
 
-## 4. Convenciones de nombres
+### 2.3 Convenciones de nombres
 
 **Nombres de archivos:** `<topic>.<level>.spec.ts`, donde el nivel es `int`, `api` o `e2e` (`.spec.ts` sin sufijo de nivel para las pruebas unitarias junto al código). Así, un patrón selecciona una capa completa (`**/*.int.spec.ts`) y el nivel se reconoce a simple vista.
 
@@ -94,7 +98,7 @@ Esto permite ejecutar todo lo relacionado con el invariante de precio mediante `
 
 ---
 
-## 5. Definición de los niveles de prueba
+### 2.4 Definición de los niveles de prueba
 
 La convención más importante: qué significa cada nivel en este proyecto. Esto evita que se confundan las pruebas «unitarias», «de API» y «de integración».
 
@@ -114,7 +118,25 @@ Regla práctica:
 
 ---
 
-## 6. Archivos README principales (`backend/test/README.md` y `e2e/README.md`)
+## 3. Ejecución e infraestructura
+
+### 3.1 Infraestructura compartida y archivos de prueba
+
+`backend/test/shared/harness/` inicia un Postgres efímero mediante Testcontainers **una vez por ejecución** (`global-setup.ts`/`global-teardown.ts`) —todos los archivos de pruebas de integración y API de esa ejecución comparten un único contenedor de base de datos, en lugar de uno por archivo— e inicia la aplicación de prueba NestJS contra él; la limpieza elimina ambos al finalizar. Los constructores de `backend/test/shared/factories/` generan datos legibles (`unaCotizacionAdjudicable(100000)`) para que las pruebas cuenten una historia en lugar de armar objetos manualmente. `backend/test/shared/fixtures/` contiene archivos reales de ejemplo (un plano PDF, un PNG de una pieza patrón, un archivo STEP 3D) para escenarios de carga, y `backend/test/shared/auth/` expone `loginComo(role)` junto con tokens precargados para cada rol, de modo que las comprobaciones RBAC ocupen una línea.
+
+`e2e/` no usa la infraestructura de Testcontainers: E2E ejecuta Playwright contra el conjunto real de servicios `docker-compose`, por lo que `e2e/shared/` solo contiene datos de prueba de navegador y auxiliares de autenticación (por ejemplo, sesiones/cookies precargadas), sin infraestructura de base de datos.
+
+---
+
+### 3.2 Integración con CI
+
+En **GitHub Actions**, la etapa *Pruebas y validación* ejecuta `test:int` y `test:api` desde `backend/` en cada push, y `test:e2e` desde `e2e/` en pull requests a `main`. Como cada módulo es autónomo, la suite puede paralelizarse por módulo a medida que crece, y un desarrollador que solo modifica `ordenes-trabajo` ejecuta únicamente ese capítulo para obtener resultados en segundos. Todo error encontrado en QA o producción entra a la suite como prueba de regresión —etiquetada con su CU e invariante— antes de cerrar la incidencia.
+
+---
+
+## 4. Documentación y trazabilidad por módulo
+
+### 4.1 Archivos README principales (`backend/test/README.md` y `e2e/README.md`)
 
 No hay un único README general de QA: la suite de integración/API y la suite E2E están en raíces diferentes (`backend/` y la raíz del repositorio), por lo que cada una tiene su propio punto de entrada.
 
@@ -122,7 +144,7 @@ No hay un único README general de QA: la suite de integración/API y la suite E
 
 1. **Propósito y alcance** — integración y API, y el límite con las pruebas unitarias de `backend/src/`.
 2. **Cómo se organiza** — por módulos; un mapa de los módulos dentro de `test/modules/`.
-3. **Convenciones** — nombres de archivos, etiquetas y definición de cada nivel (la tabla de §5).
+3. **Convenciones** — nombres de archivos, etiquetas y definición de cada nivel (la tabla de §2.4).
 4. **Infraestructura y datos de prueba** — cómo se inicia la base de datos de Testcontainers una vez por ejecución (`shared/harness/`) y dónde están los constructores de datos y archivos de prueba.
 5. **Cómo ejecutar** — localmente (`npm run test:int`, `npm run test:api`, `npm run test:module -- <module>`) y en CI.
 6. **Cómo agregar una prueba y reportar un error** — el ciclo de trabajo.
@@ -139,7 +161,7 @@ No hay un único README general de QA: la suite de integración/API y la suite E
 
 ---
 
-## 7. Plantilla del capítulo de un módulo
+### 4.2 Plantilla del capítulo de un módulo
 
 La trazabilidad de cada módulo está cerca de sus pruebas en lugar de concentrarse en un documento enorme:
 
@@ -160,7 +182,7 @@ Cada capítulo tiene la misma forma, de modo que conocer uno permite leerlos tod
 
 ---
 
-## 8. Ejemplo de capítulo completo — Cotizaciones
+### 4.3 Ejemplo de capítulo completo — Cotizaciones
 
 Un capítulo completamente desarrollado siguiendo la plantilla anterior. Está en `backend/test/modules/cotizaciones/README.md` (el capítulo E2E de este módulo, si existiera, estaría en `e2e/cotizaciones/README.md`).
 
@@ -209,21 +231,7 @@ Un capítulo completamente desarrollado siguiendo la plantilla anterior. Está e
 
 ---
 
-## 9. Infraestructura compartida y archivos de prueba
-
-`backend/test/shared/harness/` inicia un Postgres efímero mediante Testcontainers **una vez por ejecución** (`global-setup.ts`/`global-teardown.ts`) —todos los archivos de pruebas de integración y API de esa ejecución comparten un único contenedor de base de datos, en lugar de uno por archivo— e inicia la aplicación de prueba NestJS contra él; la limpieza elimina ambos al finalizar. Los constructores de `backend/test/shared/factories/` generan datos legibles (`unaCotizacionAdjudicable(100000)`) para que las pruebas cuenten una historia en lugar de armar objetos manualmente. `backend/test/shared/fixtures/` contiene archivos reales de ejemplo (un plano PDF, un PNG de una pieza patrón, un archivo STEP 3D) para escenarios de carga, y `backend/test/shared/auth/` expone `loginComo(role)` junto con tokens precargados para cada rol, de modo que las comprobaciones RBAC ocupen una línea.
-
-`e2e/` no usa la infraestructura de Testcontainers: E2E ejecuta Playwright contra el conjunto real de servicios `docker-compose`, por lo que `e2e/shared/` solo contiene datos de prueba de navegador y auxiliares de autenticación (por ejemplo, sesiones/cookies precargadas), sin infraestructura de base de datos.
-
----
-
-## 10. Integración con CI
-
-En **GitHub Actions**, la etapa *Pruebas y validación* ejecuta `test:int` y `test:api` desde `backend/` en cada push, y `test:e2e` desde `e2e/` en pull requests a `main`. Como cada módulo es autónomo, la suite puede paralelizarse por módulo a medida que crece, y un desarrollador que solo modifica `ordenes-trabajo` ejecuta únicamente ese capítulo para obtener resultados en segundos. Todo error encontrado en QA o producción entra a la suite como prueba de regresión —etiquetada con su CU e invariante— antes de cerrar la incidencia.
-
----
-
-## 11. Ciclo de trabajo
+## 5. Ciclo de trabajo
 
 - **Un caso de uso se vuelve comprobable** cuando se escriben sus criterios de aceptación (Dado/Cuando/Entonces). QA los escribe con el desarrollador antes o durante la construcción del código.
 - **Cuando un caso de uso está terminado:** primero pruebas manuales exploratorias para *descubrir*; luego, el curso normal y los casos límite se convierten en pruebas automatizadas de regresión para *proteger*.

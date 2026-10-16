@@ -1,4 +1,4 @@
-﻿# Migraciones de base de datos con Prisma
+# Migraciones de base de datos con Prisma
 
 Este documento explica cómo gestionamos el esquema de la base de datos PostgreSQL en este proyecto con Prisma Migrate y cómo usar los comandos Make para ejecutar migraciones sin entrar manualmente a la consola del contenedor.
 
@@ -11,6 +11,8 @@ Prisma Migrate permite **versionar el esquema de la base de datos** de la misma 
 - La posibilidad de revisar cambios de base de datos en pull requests, igual que cualquier otro cambio de código.
 
 Prisma puede generar SQL automáticamente para los elementos declarados en `schema.prisma` (tablas, columnas, relaciones, enums). Sin embargo, Prisma **no puede** generar SQL para elementos como triggers, funciones o extensiones de PostgreSQL, porque no forman parte de su lenguaje de esquema. En estos casos, creamos una migración vacía y escribimos el SQL manualmente. Este es el enfoque estándar recomendado por Prisma.
+
+La elección de PostgreSQL y de Prisma está registrada en [ADR-002](../decisions/002-data-base.md) y [ADR-003](../decisions/003-orm.md).
 
 ## 2. Dos maneras de ejecutar migraciones
 

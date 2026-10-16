@@ -6,29 +6,11 @@
 
 ## 1. Contexto del negocio
 
-**Tornería Castro SRL** fabrica a medida y repara piezas metalmecánicas y plásticas industriales. Trabaja **por demanda**: cada trabajo empieza con un pedido de cotización de un cliente industrial (por ejemplo EDASA, CorBlock u OxyCAM) y recorre lo que los dueños llaman **"el camino de la pieza"**:
-
-```mermaid
-flowchart LR
-    A[Pedido de cotización] --> B[Cotización] --> C[Recepción de Orden de Compra] --> D[Construcción] --> E[Entrega] --> F[Facturación]
-```
-
-**Situación actual (problema):** la información está repartida en planillas, archivos y en la memoria de los responsables administrativos. Eso dificulta:
-
-- reutilizar información histórica al cotizar,
-- seguir las cotizaciones emitidas,
-- contrastar lo planificado con lo realmente ejecutado en el taller.
+Trasladado a la [visión general, «Propósito»](../vision-general.md#propósito): el negocio, «el camino de la pieza» y el problema de la situación actual.
 
 ## 2. Propósito del sistema
 
-Brindar una herramienta informática que permita **administrar el proceso de cotización de piezas industriales y el seguimiento técnico y económico de los trabajos adjudicados**, centralizando la información técnica, económica y documental de cada trabajo.
-
-El sistema deberá:
-
-1. Registrar solicitudes de cotización, clientes, piezas, procesos, costos, materiales, proveedores y antecedentes de cotizaciones, para agilizar nuevos presupuestos.
-2. Generar el informe de cotización con el formato propio de Tornería Castro y enviarlo automáticamente por correo electrónico o WhatsApp.
-3. Conservar el historial de cotizaciones y de modificaciones de precios y procesos de las piezas.
-4. Seguir el estado de cada trabajo adjudicado mediante la hoja de ruta, registrar tiempos y materiales reales y calcular los desvíos respecto de lo planificado.
+Trasladado a la [visión general, «Propósito»](../vision-general.md#propósito), junto con las cuatro capacidades que el sistema deberá brindar.
 
 ## 3. Propuesta (visión del flujo)
 
@@ -111,16 +93,7 @@ El sistema deberá:
 
 ## 7. Usuarios
 
-Los usuarios son el personal interno de Tornería Castro. El detalle de actores y sus roles está en `04-actores-y-casos-de-uso.md` §1, y los permisos en `07-matriz-rbac.md`.
-
-| Actor | Rol en una línea |
-|---|---|
-| Encargado de Recepción (ERP) | Contacto con el cliente; registra solicitudes, OC, entregas y facturas; mantiene clientes y rubros |
-| Encargado de Cotización (EC) | Elabora y administra cotizaciones; hereda del AT |
-| Administrativo Técnico (AT) | Mantiene catálogos de materiales, tipos de proceso y proveedores |
-| Jefe de Taller (JT) | Conduce la producción de las OT y la hoja de ruta |
-| Encargado de Reportes (ER) | Obtiene información estadística y gerencial |
-| Administrador del Sistema (AS) | Empleados, usuarios y roles |
+Trasladado a la [visión general, «Actores»](../vision-general.md#actores). El detalle de actores está en `04-actores-y-casos-de-uso.md` §1, y los permisos en `07-matriz-rbac.md`.
 
 ## 8. Restricciones generales
 
@@ -133,28 +106,4 @@ Los usuarios son el personal interno de Tornería Castro. El detalle de actores 
 
 ## 9. Glosario del dominio
 
-> Extraído de la ERS, los CU y el modelo de dominio. El glosario completo del cliente está en el Anexo B [GLO].
-
-| Término | Definición |
-|---|---|
-| **Adjudicación** | Aprobación de la cotización por el cliente, total o parcial, que se concreta con la Orden de Compra. |
-| **Borrador** | Estado de una cotización empezada y guardada sin emitir; no corre el plazo de validez. |
-| **Camino de la pieza** | Ciclo completo: pedido de cotización → cotización → OC → construcción → entrega → facturación. |
-| **Conjunto / Ensamblaje** | Ítem compuesto por piezas hijas más procesos propios del conjunto (ensamblaje, pintura general, tratamiento final). |
-| **Cotización (presupuesto)** | Oferta económica formal, con número correlativo, para una solicitud. |
-| **Desvío** | Diferencia entre lo planificado (horas, material) y lo real registrado en la hoja de ruta. |
-| **Encargado cliente** | Persona de una fábrica cliente que pide cotizaciones. |
-| **Fábrica cliente** | Empresa cliente; un particular se registra como fábrica de rubro «Particular». |
-| **Hoja de ruta** | Tabla impresa de procesos que acompaña la pieza por el taller, donde cada responsable anota tiempo y observaciones. |
-| **Ítem** | Unidad que se presupuesta y que, si se adjudica, se fabrica. |
-| **Número de plano** | Identificador de la pieza provisto por el cliente. Sin plano, el sistema genera uno interno (p. ej. `OC-001`). |
-| **Orden de Compra (OC)** | Documento o mensaje del cliente que adjudica la cotización; puede ser formal (PDF/Excel) o informal (WhatsApp). |
-| **Orden de Trabajo (OT)** | Registro operativo que autoriza y organiza la fabricación de un ítem adjudicado. |
-| **Pieza patrón** | Pieza física de muestra provista por el cliente cuando no hay plano; se registra con fotos. |
-| **Precio pactado** | Precio acordado con el cliente al adjudicar; queda congelado en la OT (🔁 D-02). |
-| **Presentación** | Forma en que se compra el material: cilindro sólido, hexágono, planchuela, caño, cortado por hilo o láser… |
-| **Proceso propio** | Trabajo hecho en el taller, cobrado por hora según su tipo (torno manual, CNC, herrería…). |
-| **Proceso tercerizado** | Servicio contratado afuera (zincado, galvanizado, tratamiento térmico, corte por hilo), costeado por precio total. |
-| **Recotización** | Nueva cotización emitida para la misma solicitud cuando la anterior venció o el cliente pide cambios. |
-| **Reparación** | Ítem compuesto por piezas más procesos de reparación (armado, desarmado…). |
-| **Seña** | Adelanto solicitado, expresado como porcentaje del precio final. |
+Trasladado al [glosario](../glosario.md). El glosario completo del cliente está en el Anexo B [GLO].

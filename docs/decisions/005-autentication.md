@@ -1,4 +1,4 @@
-﻿# ADR-005 — Autenticación y autorización
+# ADR-005 — Autenticación y autorización
 
 **Fecha:** 2026-08  
 **Estado:** Decisión pendiente  
@@ -6,11 +6,11 @@
 
 ---
 
-## Contexto
+## Contexto y problema
 
 El sistema tiene 7 roles con distintos permisos, incluida una separación crítica entre el personal administrativo (acceso a costos) y el personal de taller (solo tiempos de procesos). La autenticación debe ser segura, sencilla de operar y adecuada para una aplicación de uso interno.
 
-## Opciones evaluadas
+## Alternativas consideradas
 
 ### Opción A: JWT (JSON Web Tokens)
 
@@ -41,7 +41,15 @@ El servidor mantiene el estado de la sesión en memoria o en la base de datos. E
 - Con estado: el escalado horizontal requiere un almacenamiento compartido (Redis u otro).
 - Menos portable si en el futuro se agrega una API pública o una aplicación móvil.
 
-## Modelo de autorización (RBAC)
+## Decisión
+
+> Estado registrado: **Decisión pendiente**. El texto formula la elección, pero no implica aprobación formal; ver [inconsistencias documentales](../seguimiento/inconsistencias-documentales.md#estados-de-los-adr).
+
+**JWT** con tokens de renovación y una tabla de tokens revocados en PostgreSQL para sesiones finalizadas antes de tiempo. Es la opción más portable y estándar para este tipo de aplicación.
+
+Para la autorización, se implementará **RBAC basado en roles** con Guards en NestJS.
+
+### Modelo de autorización (RBAC)
 
 Independientemente del mecanismo de autenticación elegido, el sistema usa **RBAC basado en roles** (no permisos granulares). Cada endpoint declara qué roles tienen acceso.
 
@@ -56,9 +64,3 @@ Independientemente del mecanismo de autenticación elegido, el sistema usa **RBA
 | Gestión de usuarios | AS |
 
 La separación crítica es que **JT nunca accede a datos financieros**. Esto debe validarse tanto en el backend (Guard) como en el frontend (ocultando la interfaz).
-
-## Decisión
-
-**JWT** con tokens de renovación y una tabla de tokens revocados en PostgreSQL para sesiones finalizadas antes de tiempo. Es la opción más portable y estándar para este tipo de aplicación.
-
-Para la autorización, se implementará **RBAC basado en roles** con Guards en NestJS.

@@ -115,9 +115,9 @@ Reglas: RN03–RN12, RN19–RN33.
 |---|---|---|---|---|
 | RF09.1 | Consultar Historial de Cotizaciones de una Pieza (por nº de plano: fecha, adjudicación, dólar del momento, desvío, observaciones, acceso a hoja de ruta) | CU-16 | EC | M |
 | RF09.2 | Consultar Cotizaciones (por cliente, fábrica, nº de plano, estado, responsable, descripción y rango de fechas) | CU-15 | EC | M |
-| RF09.3 | Consultar Historial de Compras a Proveedores (material, calidad, presentación, cantidad, precio unitario, fecha; filtros por proveedor, material y fechas) | CU-55 | AT / EC | S |
+| RF09.3 | Consultar Historial de Compras a Proveedores (material, calidad, presentación, cantidad, precio unitario, fecha; filtros por proveedor, material y fechas) | CU-55 | EC | S |
 | RF09.4 | Consultar Historial de Cotizaciones por Fábrica | CU-15 (filtro por fábrica) | EC | S |
-| RF09.5 | Consultar Trabajos Realizados (por fábrica, material, descripción; acceso a cotización de origen, hoja de ruta y desvíos) `🔁 D-03`: también accesible para el JT **sin datos económicos** | CU-56 | ER, JT | S |
+| RF09.5 | Consultar Trabajos Realizados (por fábrica, material, descripción; acceso a cotización de origen, hoja de ruta y desvíos) | CU-56 | ER | S |
 
 Reglas: RN08, RN42, RN43.
 
@@ -255,7 +255,7 @@ efectividad = #cotizaciones{Adjudicado, AdjudicadoParcial} / #cotizaciones emiti
 - **Requisito:**
   - El sistema restringe la información visible y las operaciones según el rol (ver `07-matriz-rbac.md`).
   - El JT:
-    - ve en la consulta operativa **solo trabajos adjudicados no facturados**, y tiene una página de historial con todas las OTs;
+    - ve en la consulta operativa **solo trabajos adjudicados no facturados**;
     - registra horas y ejecución de procesos;
     - **del dinero solo ve los precios de materiales**; no accede a precios hora, costos de procesos, precios pactados o finales, descuentos, márgenes ni desvíos económicos.
   - La información interna (costos, márgenes, horas reales, desvíos) se mantiene separada de la información para el cliente (precio final, plazo, condición de pago).

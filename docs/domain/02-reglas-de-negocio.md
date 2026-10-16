@@ -1,6 +1,6 @@
 # 02 · Reglas de negocio
 
-> Fuente: ERS V1.1 §3.1 (RN01–RN44). Las reglas modificadas por decisiones posteriores llevan `🔁 D-xx` (ver `00` §4).
+> Fuente: ERS V1.1 §3.1 (RN01–RN44). Las reglas modificadas por decisiones posteriores llevan `🔁 D-xx` (ver [convenciones, §2.2](00-indice-y-convenciones.md#22-marcas-en-el-texto)).
 >
 > **Formato de cada regla**
 > - **Tipo:** `Estructural` (define datos o relaciones) · `Restricción` (prohíbe o condiciona una operación) · `Cálculo` (fórmula) · `Disparador` (acción automática ante un evento o el tiempo) · `Acceso` (quién ve o hace qué).
@@ -344,11 +344,10 @@
 - **Tipo:** Acceso
 - **Enunciado:** El Jefe de Taller:
   - En la **consulta operativa** (CU-19) ve **solo los trabajos adjudicados no facturados**.
-  - Tiene una **página de historial** (CU-56) donde puede ver **todas** las OTs.
   - Registra la ejecución de los procesos: responsables, horas, observaciones y material real.
   - **Del dinero solo ve y registra los precios de los materiales** (compra de material).
   - **No accede a:** precios hora, costos de procesos propios o tercerizados, costo de pintura, repuestos valorizados, precio pactado o final, descuentos, señas, márgenes ni desvíos económicos.
-- **Trazabilidad:** CU-19, CU-25, CU-30, CU-56 · RNF09 · `07-matriz-rbac.md`.
+- **Trazabilidad:** CU-19, CU-25, CU-30 · RNF09 · `07-matriz-rbac.md`.
 - `⚠️ SUPUESTO` La consulta operativa excluye también las OTs `Cancelado` (son finales). La decisión D-03 dice "no facturadas"; validar si las canceladas deben aparecer.
 
 ### RN44 — Rol del usuario y baja de empleados

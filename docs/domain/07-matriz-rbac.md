@@ -11,6 +11,8 @@
 
 Roles: `JT` Jefe de Taller · `ERP` Encargado de Recepción · `ER` Encargado de Reportes · `EC` Encargado de Cotización · `AT` Administrativo Técnico · `AS` Administrador del Sistema.
 
+Para CU-55 y CU-56 rige la asignación de la [Matriz de permisos](Matriz%20de%20permisos.md): CU-55 corresponde únicamente a EC y CU-56 únicamente a ER.
+
 Leyenda: ✅ permitido · ⛔ denegado · 👁 solo lectura · 🔒 lectura **sin datos económicos** (ver §2).
 
 ---
@@ -28,7 +30,7 @@ Leyenda: ✅ permitido · ⛔ denegado · 👁 solo lectura · 🔒 lectura **si
 | 09–12 | ABMC Tipo de Proceso (precio hora) | ⛔ | ⛔ | ⛔ | ✅ | ✅ | ⛔ |
 | 33–36 | ABMC Proveedor | ⛔ | ⛔ | ⛔ | ✅ | ✅ | ⛔ |
 | 37–40 | ABMC Material | ⛔ | ⛔ | ⛔ | ✅ | ✅ | ⛔ |
-| 55 | Historial de compras a proveedores | ⛔ | ⛔ | ⛔ | 👁 | 👁 | ⛔ |
+| 55 | Historial de compras a proveedores | ⛔ | ⛔ | ⛔ | 👁 | ⛔ | ⛔ |
 | 13 | Registrar Solicitud de Cotización | ⛔ | ✅ | ⛔ | ⛔ | ⛔ | ⛔ |
 | 14 | Registrar Cotización (incl. borrador) | ⛔ | ⛔ | ⛔ | ✅ | ⛔ | ⛔ |
 | 15 | Consultar Cotizaciones | ⛔ | ⛔ | ⛔ | 👁 | ⛔ | ⛔ |
@@ -47,7 +49,7 @@ Leyenda: ✅ permitido · ⛔ denegado · 👁 solo lectura · 🔒 lectura **si
 | 30 | Registrar Finalización (hoja de ruta real) | ✅ | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ |
 | 31 | Registrar Entrega (nº de remito) | ⛔ | ✅ | ⛔ | ⛔ | ⛔ | ⛔ |
 | 32 | Registrar Facturación (nº de factura) | ⛔ | ✅ | ⛔ | ⛔ | ⛔ | ⛔ |
-| 56 | Consultar Trabajos Realizados (historial de OTs) | 🔒 `🔁 D-03` | ⛔ | 👁 | ⛔ | ⛔ | ⛔ |
+| 56 | Consultar Trabajos Realizados (historial de OTs) | ⛔ | ⛔ | 👁 | ⛔ | ⛔ | ⛔ |
 | 49 | Reporte mensual de facturación | ⛔ | ⛔ | 👁 | ⛔ | ⛔ | ⛔ |
 | 50 | Reporte anual de facturación por rubro | ⛔ | ⛔ | 👁 | ⛔ | ⛔ | ⛔ |
 | 51 | Estadísticas de desvíos | ⛔ | ⛔ | 👁 | ⛔ | ⛔ | ⛔ |
@@ -73,7 +75,6 @@ Regla (RN43): **del dinero, el JT solo ve y registra precios de materiales.**
 | Vista | Alcance |
 |---|---|
 | Consulta operativa (CU-19) | OTs con `estado ≠ Facturado`. `⚠️ SUPUESTO` También se excluye `Cancelado`. |
-| Historial (CU-56) | Todas las OTs, en cualquier estado. |
 
 ### 2.2 Campos por entidad
 

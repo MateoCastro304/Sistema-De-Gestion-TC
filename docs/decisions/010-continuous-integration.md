@@ -1,117 +1,117 @@
-# ADR-010 — Continuous Integration Pipeline
+# ADR-010 — Pipeline de integración continua
 
-**Date:** 2026-10
-**Status:** Accepted (partially implemented, see [Implementation status](#implementation-status))
-**Decision-makers:** Dev-Ops Team
+**Fecha:** 2026-10
+**Estado:** Aceptado (implementado parcialmente, ver [Estado de implementación](#estado-de-implementación))
+**Responsables de la decisión:** Equipo Dev-Ops
 
 ---
 
-## Context
+## Contexto y problema
 
-[ADR-009](./009-deploy-infrastructure.md) establishes GitHub Actions for CI/CD but does not define what the CI checks, when, or how strict it is. This ADR fills that gap.
+[ADR-009](./009-deploy-infrastructure.md) establece GitHub Actions para CI/CD, pero no define qué verifica la CI, cuándo ni con qué rigor. Este ADR cubre ese vacío.
 
-The relevant facts about how the team works today:
+Los hechos relevantes sobre cómo trabaja hoy el equipo:
 
-- **`develop` receives direct pushes, without pull requests.** CI is the only automatic check those changes get, so it has to give feedback within minutes, or it stops being looked at.
-- **`main` is the stable branch** and only receives pull requests. It is the right place for slower, more expensive checks.
-- **The backend integration suite** (`backend/test/`) starts a real PostgreSQL with Testcontainers, applies all migrations and runs serially (`maxWorkers: 1`). It is the strongest check we have, but also the slowest.
-- **Docker images are built from the same commands** (`npm ci`, `npm run build`) that CI runs directly, so building images on every push would repeat work without adding much early feedback.
+- **`develop` recibe pushes directos, sin pull requests.** La CI es la única verificación automática que reciben esos cambios, por lo que tiene que dar resultados en pocos minutos o deja de mirarse.
+- **`main` es la rama estable** y solo recibe pull requests. Es el lugar adecuado para verificaciones más lentas y costosas.
+- **La suite de integración del backend** (`backend/test/`) inicia un PostgreSQL real con Testcontainers, aplica todas las migraciones y se ejecuta en serie (`maxWorkers: 1`). Es la verificación más sólida que tenemos, pero también la más lenta.
+- **Las imágenes Docker se construyen con los mismos comandos** (`npm ci`, `npm run build`) que la CI ejecuta directamente, por lo que construir imágenes en cada push repetiría trabajo sin aportar mucha detección temprana.
 
-The question was how to split checks between "fast feedback on every push" and "thorough validation before reaching `main`".
+La pregunta era cómo repartir las verificaciones entre «respuesta rápida en cada push» y «validación exhaustiva antes de llegar a `main`».
 
-## Decision
+## Decisión
 
-A single workflow (`.github/workflows/ci.yaml`) with **two tiers of checks**.
+Un único workflow (`.github/workflows/ci.yaml`) con **dos niveles de verificación**.
 
-### Tier 1 — Fast checks: every push to `develop` and every PR to `main`
+### Nivel 1 — Verificaciones rápidas: cada push a `develop` y cada PR a `main`
 
-Each job runs in parallel, on `ubuntu-latest` with Node 22.
+Cada job se ejecuta en paralelo, en `ubuntu-latest` con Node 22.
 
-| Job                | Steps                                                                                                                                  |
+| Job                | Pasos                                                                                                                                  |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `frontend`         | `npm ci` → `npm run lint` → `npm run build` (includes `tsc -b`, the only type check of the frontend)                                    |
-| `backend`          | `npm ci` → `npx prisma generate` → `npm run lint` → `npm run format:check` → `npm run build` → `npm test` (unit tests, `src/**/*.spec.ts`) |
-| `openapi-contract` | In `tooling/openapi`: `npm ci` → `npm run validate` (Redocly lint + Spectral lint of `docs/openapi/openapi.yaml`)                       |
+| `frontend`         | `npm ci` → `npm run lint` → `npm run build` (incluye `tsc -b`, la única verificación de tipos del frontend)                             |
+| `backend`          | `npm ci` → `npx prisma generate` → `npm run lint` → `npm run format:check` → `npm run build` → `npm test` (pruebas unitarias, `src/**/*.spec.ts`) |
+| `openapi-contract` | En `tooling/openapi`: `npm ci` → `npm run validate` (Redocly lint + Spectral lint de `docs/openapi/openapi.yaml`)                       |
 
-The contract job checks that the OpenAPI spec is **well formed** (valid schema, no broken `$ref`, required fields present). It does not check that the backend implements it: that is the job of the integration tests (Tier 2).
+El job del contrato verifica que la especificación OpenAPI esté **bien formada** (esquema válido, sin `$ref` rotos, campos obligatorios presentes). No verifica que el backend la implemente: esa es la función de las pruebas de integración (Nivel 2).
 
-### Tier 2 — Gate checks: only on PRs to `main`
+### Nivel 2 — Verificaciones de acceso: solo en PR a `main`
 
-| Job                   | What it checks                                                                                         |
+| Job                   | Qué verifica                                                                                           |
 | --------------------- | ------------------------------------------------------------------------------------------------------ |
-| `backend-integration` | `npm run test:int`: HTTP → use case → Prisma → real PostgreSQL, against the OpenAPI contract            |
-| Docker build          | The production images build from their Dockerfiles (catches broken Dockerfiles / `.dockerignore`)        |
+| `backend-integration` | `npm run test:int`: HTTP → caso de uso → Prisma → PostgreSQL real, contra el contrato OpenAPI           |
+| Docker build          | Que las imágenes de producción se construyan desde sus Dockerfiles (detecta Dockerfiles o `.dockerignore` rotos) |
 
-`backend-integration` declares `needs: backend`: it only runs if the fast backend job passed. There is no point spending minutes on the integration suite when the code does not lint or build. When `backend` fails, this job shows as **skipped**, not as passed.
+`backend-integration` declara `needs: backend`: solo se ejecuta si pasó el job rápido del backend. No tiene sentido gastar minutos en la suite de integración cuando el código no pasa el lint o no compila. Cuando `backend` falla, este job aparece como **skipped** (omitido), no como aprobado.
 
-### Rules that apply to every job
+### Reglas para todos los jobs
 
-- **Linting is binary.** A warning nobody reads is not a check, so every rule is either `error` or `off`:
-  - ESLint: scripts run with `--max-warnings 0`.
-  - Redocly: extends `recommended-strict` (preset warnings become errors).
-  - Spectral: runs with `--fail-severity=warn`.
+- **El lint es binario.** Una advertencia que nadie lee no es una verificación, por lo que cada regla es `error` u `off`:
+  - ESLint: los scripts se ejecutan con `--max-warnings 0`.
+  - Redocly: extiende `recommended-strict` (las advertencias del preset pasan a ser errores).
+  - Spectral: se ejecuta con `--fail-severity=warn`.
 
-  Turning a rule off requires a comment in the config explaining why (e.g. `no-server-example.com` in `tooling/openapi/redocly.yaml`: the only server is the local backend used by Swagger UI until a production host exists).
-- **CI never fixes code.** `lint` has no `--fix`; fixing is done locally with `lint:fix` / `format`.
-- **Formatting is Prettier's job, not ESLint's** (backend: `format:check`).
-- **Same install as production:** `npm ci` from the committed `package-lock.json`, never `npm install`.
-- **Node version:** `22`, pinned in the workflow. It must match the `node:22-alpine` base image of both Dockerfiles; changing one requires changing the other.
-- **`prisma generate` needs `DATABASE_URL`** to load `prisma.config.ts`, even though it does not connect to a database. CI provides a dummy URL, the same one the backend Dockerfile uses.
+  Desactivar una regla requiere un comentario en la configuración que explique por qué (por ejemplo, `no-server-example.com` en `tooling/openapi/redocly.yaml`: el único servidor es el backend local usado por Swagger UI hasta que exista un host de producción).
+- **La CI nunca corrige código.** `lint` no usa `--fix`; la corrección se hace localmente con `lint:fix` / `format`.
+- **El formato es responsabilidad de Prettier, no de ESLint** (backend: `format:check`).
+- **Misma instalación que producción:** `npm ci` a partir del `package-lock.json` versionado, nunca `npm install`.
+- **Versión de Node:** `22`, fijada en el workflow. Debe coincidir con la imagen base `node:22-alpine` de ambos Dockerfiles; cambiar una exige cambiar la otra.
+- **`prisma generate` necesita `DATABASE_URL`** para cargar `prisma.config.ts`, aunque no se conecta a una base de datos. La CI provee una URL ficticia, la misma que usa el Dockerfile del backend.
 
-## Options considered
+## Alternativas consideradas
 
-### Where to run the backend integration tests
+### Dónde ejecutar las pruebas de integración del backend
 
-| Option                    | Decision     | Reason                                                                                                     |
+| Opción                    | Decisión     | Motivo                                                                                                     |
 | ------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------- |
-| Every push to `develop`   | Rejected     | Strongest safety net, but adds minutes to every push and goes against fast feedback on `develop`             |
-| **Only on PRs to `main`** | **Selected** | Keeps `develop` fast; everything still gets validated before reaching `main`                                |
-| Locally only (`make test-int`) | Rejected | Depends on discipline; nothing guarantees it was run                                                       |
+| En cada push a `develop`  | Rechazada    | La red de seguridad más sólida, pero agrega minutos a cada push y va contra la respuesta rápida en `develop` |
+| **Solo en PR a `main`**   | **Seleccionada** | Mantiene `develop` rápido; todo se valida igualmente antes de llegar a `main`                          |
+| Solo localmente (`make test-int`) | Rechazada | Depende de la disciplina; nada garantiza que se haya ejecutado                                          |
 
-### Whether CI builds Docker images
+### Si la CI construye imágenes Docker
 
-| Option                                    | Decision      | Reason                                                                                        |
+| Opción                                    | Decisión      | Motivo                                                                                        |
 | ----------------------------------------- | ------------- | --------------------------------------------------------------------------------------------- |
-| npm only, images built at deploy time     | Rejected      | A broken Dockerfile would only be found when deploying                                          |
-| `docker build` on every push              | Rejected      | Slower, duplicates `npm ci` / build, and needs extra cache setup to be usable                   |
-| **npm on every push + `docker build` on PRs to `main`** | **Selected** | Fast feedback on `develop`, and the real artifact is validated before reaching `main` |
+| Solo npm; imágenes construidas al desplegar | Rechazada   | Un Dockerfile roto recién se detectaría al desplegar                                          |
+| `docker build` en cada push               | Rechazada     | Más lento, duplica `npm ci` / build y necesita configuración adicional de caché para ser utilizable |
+| **npm en cada push + `docker build` en PR a `main`** | **Seleccionada** | Respuesta rápida en `develop`, y el artefacto real se valida antes de llegar a `main` |
 
-### When to lint the OpenAPI contract
+### Cuándo aplicar lint al contrato OpenAPI
 
-| Option                                                    | Decision     | Reason                                                                                                                                       |
+| Opción                                                    | Decisión     | Motivo                                                                                                                                       |
 | --------------------------------------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Job in `ci.yaml`, on every push**                       | **Selected** | Runs in parallel, so it does not add wait time; same pattern as the other jobs                                                                 |
-| Separate workflow, only when `docs/openapi/**` changes    | Rejected     | Saves a few runner minutes, but a path-filtered check that is required on `main` stays pending forever on PRs that do not touch the contract    |
+| **Job en `ci.yaml`, en cada push**                        | **Seleccionada** | Se ejecuta en paralelo, por lo que no agrega espera; mismo patrón que los demás jobs                                                     |
+| Workflow separado, solo cuando cambia `docs/openapi/**`   | Rechazada    | Ahorra algunos minutos de runner, pero una verificación filtrada por ruta que es obligatoria en `main` queda pendiente para siempre en los PR que no tocan el contrato |
 
-## Consequences
+## Consecuencias
 
-### Positive
+### Positivas
 
-- Feedback on `develop` in a few minutes, with the failing step clearly identified.
-- Nothing reaches `main` without passing the integration suite and building its images.
-- Lint and format are enforced the same way for everyone, instead of depending on each editor.
-- Frontend and backend run in parallel and fail independently.
+- Respuesta en `develop` en pocos minutos, con el paso que falla claramente identificado.
+- Nada llega a `main` sin pasar la suite de integración y construir sus imágenes.
+- Lint y formato se aplican igual para todos, en lugar de depender de cada editor.
+- Frontend y backend se ejecutan en paralelo y fallan de forma independiente.
 
-### Negative
+### Negativas
 
-- **Problems only covered by Tier 2 are discovered late:** a broken migration, an endpoint that drifts from the contract or a broken Dockerfile shows up when opening the PR to `main`, not on the push to `develop`. Mitigation: run `make test-int` locally when touching migrations, repositories or controllers.
-- **Intentionally red integration tests block `main`.** By convention (see `backend/test/README.md`), a test stays red when the backend deviates from the OpenAPI contract. Those gaps must be closed before merging to `main`.
-- **The Node version is duplicated** in the workflow and in the Dockerfiles.
-- CI only warns until `main` is protected (see below).
+- **Los problemas que solo cubre el Nivel 2 se descubren tarde:** una migración rota, un endpoint que se aparta del contrato o un Dockerfile roto aparecen al abrir el PR a `main`, no en el push a `develop`. Mitigación: ejecutar `make test-int` localmente al modificar migraciones, repositorios o controladores.
+- **Las pruebas de integración intencionalmente en rojo bloquean `main`.** Por convención (ver [`backend/test/README.md`](../../backend/test/README.md)), una prueba queda en rojo cuando el backend se aparta del contrato OpenAPI. Esas brechas deben cerrarse antes de hacer merge a `main`.
+- **La versión de Node está duplicada** en el workflow y en los Dockerfiles.
+- La CI solo advierte hasta que `main` esté protegida (ver más abajo).
 
-## Implementation status
+## Estado de implementación
 
-| Item                                                        | Status      |
+| Elemento                                                    | Estado      |
 | ----------------------------------------------------------- | ----------- |
-| `frontend` job (Tier 1)                                     | Implemented |
-| `backend` job (Tier 1)                                      | Implemented |
-| `openapi-contract` job (Tier 1)                             | Implemented |
-| `backend-integration` job on PRs to `main` (Tier 2)         | Implemented |
-| `docker-build` job on PRs to `main` (Tier 2)                | Implemented |
-| Branch protection on `main` requiring the CI checks to pass | In progress (protection enabled; required checks to be selected after their first run) |
+| Job `frontend` (Nivel 1)                                    | Implementado |
+| Job `backend` (Nivel 1)                                     | Implementado |
+| Job `openapi-contract` (Nivel 1)                            | Implementado |
+| Job `backend-integration` en PR a `main` (Nivel 2)          | Implementado |
+| Job `docker-build` en PR a `main` (Nivel 2)                 | Implementado |
+| Protección de `main` que exige pasar las verificaciones de CI | En curso (protección habilitada; las verificaciones obligatorias se seleccionarán después de su primera ejecución) |
 
-## Future evolution
+## Evolución futura
 
-- Add frontend tests and include them in Tier 1.
-- Continuous deployment (ADR-009, step 4): publish the images validated by Tier 2 and deploy them to EC2.
-- Revisit the split if Tier 2 failures become frequent; moving the integration tests to every push to `develop` is the first option.
+- Agregar pruebas del frontend e incluirlas en el Nivel 1.
+- Despliegue continuo ([ADR-009](./009-deploy-infrastructure.md), paso 4): publicar las imágenes validadas por el Nivel 2 y desplegarlas en EC2.
+- Revisar el reparto si los fallos del Nivel 2 se vuelven frecuentes; la primera opción es mover las pruebas de integración a cada push a `develop`.
