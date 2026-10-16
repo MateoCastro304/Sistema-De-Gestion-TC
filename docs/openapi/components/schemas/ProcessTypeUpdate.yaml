@@ -1,0 +1,44 @@
+type: object
+description: |
+  Modificación parcial. Todos los campos son opcionales, pero tiene que llegar
+  al menos uno (`{}` responde `400 VALIDATION_ERROR`, "Enviá al menos un campo
+  para modificar."). Mismas restricciones que en el alta.
+
+  **`exchangeRate` es obligatorio si llega alguno de los dos precios.** Y solo
+  se guarda si alguno de los dos precios cambia (D-52): si llega sin que cambie
+  ningún precio, se ignora.
+additionalProperties: false
+minProperties: 1
+properties:
+  name:
+    type: string
+    minLength: 1
+    maxLength: 100
+    description: Nuevo nombre.
+    example: Mecanizado Torno Manual
+  description:
+    type: string
+    nullable: true
+    maxLength: 500
+    description: Nueva descripción. `null` o `""` la borra.
+    example: 'Torneado convencional: cilindrado, refrentado, roscado y ranurado.'
+  hourlyRateArs:
+    type: number
+    minimum: 0
+    exclusiveMinimum: true
+    description: Nuevo precio hora en pesos.
+    example: 1557
+  hourlyRateUsd:
+    type: number
+    minimum: 0
+    exclusiveMinimum: true
+    description: Nuevo precio hora en dólares.
+    example: 1.12
+  exchangeRate:
+    type: number
+    minimum: 0
+    exclusiveMinimum: true
+    description: |
+      Tipo de cambio con el que se calcularon los precios. **Obligatorio si
+      llega alguno de los dos precios.**
+    example: 1390

@@ -75,7 +75,7 @@ Si tu cambio afecta algún endpoint de la API (ruta nueva, esquema modificado o 
 
 ## Decisiones de arquitectura
 
-Documentá siempre las decisiones de arquitectura en ADR (registros de decisiones de arquitectura) dentro de `docs/decisions/`. Si estás tomando una decisión que afecta la arquitectura del sistema, escribí un ADR antes de implementarla. Esto ayuda al equipo a comprender por qué se tomó una decisión y facilita revisarla más adelante.
+Documentá siempre las decisiones de arquitectura en ADR (registros de decisiones de arquitectura) dentro de `docs/decisiones/`. Si estás tomando una decisión que afecta la arquitectura del sistema, escribí un ADR antes de implementarla. Esto ayuda al equipo a comprender por qué se tomó una decisión y facilita revisarla más adelante.
 
 También revisá los ADR existentes antes de tomar una decisión: si ya se tomó una similar, quizás no necesites escribir uno nuevo.
 

@@ -1,0 +1,14 @@
+type: string
+description: |
+  Estado de un usuario. Lo calcula el backend; no se envía en ningún cuerpo.
+
+  - `ACTIVE` — Activo: puede iniciar sesión.
+  - `BLOCKED` — Bloqueado: llegó a 5 intentos fallidos consecutivos. No puede iniciar sesión.
+  - `INACTIVE` — Inactivo: dado de baja (o su empleado fue dado de baja). No puede iniciar sesión.
+
+  Si un usuario está dado de baja y además bloqueado, su estado es `INACTIVE`.
+enum:
+  - ACTIVE
+  - BLOCKED
+  - INACTIVE
+example: ACTIVE

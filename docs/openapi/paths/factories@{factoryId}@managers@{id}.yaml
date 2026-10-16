@@ -3,59 +3,99 @@ parameters:
   - $ref: '../components/parameters/IdParam.yaml'
 
 get:
-  summary: Get a manager by id
-  description: Returns the data of a specific manager of a factory.
-  operationId: getFactoryManagerById
+  summary: Consultar encargado
+  description: |
+    **Rol:** `ERP`.
+
+    Obtiene un encargado por su clave (`factoryId`, `id`). Un encargado dado de
+    baja también se devuelve, con `isActive` en `false`.
+  operationId: getManagerById
   tags:
-    - Managers
+    - Encargados
+  x-roles:
+    - ERP
   responses:
     '200':
-      description: Requested manager.
+      description: Encargado pedido.
       content:
         application/json:
           schema:
             $ref: '../components/schemas/Manager.yaml'
+    '400':
+      $ref: '../components/responses/InvalidId.yaml'
     '401':
       $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
     '404':
-      $ref: '../components/responses/NotFound.yaml'
+      $ref: '../components/responses/ManagerNotFound.yaml'
 
 patch:
-  summary: Update a manager
-  description: Partial update. Only the fields sent are modified.
-  operationId: updateFactoryManager
+  summary: Modificar encargado
+  description: |
+    **Rol:** `ERP`.
+
+    Modificación parcial: se cambian solo los campos que llegan, al menos uno.
+    La fábrica no se puede cambiar. Tiene que quedar al menos un contacto
+    (`phone` o `mail`).
+  operationId: updateManager
   tags:
-    - Managers
+    - Encargados
+  x-roles:
+    - ERP
   requestBody:
     required: true
     content:
       application/json:
         schema:
           $ref: '../components/schemas/ManagerUpdate.yaml'
+        example:
+          phone: +54 9 351 555-9876
   responses:
     '200':
-      description: Updated manager.
+      description: Encargado modificado.
       content:
         application/json:
           schema:
             $ref: '../components/schemas/Manager.yaml'
     '400':
-      $ref: '../components/responses/BadRequest.yaml'
+      description: |
+        - `VALIDATION_ERROR`: cuerpo vacío, algún campo inválido o el encargado
+          quedaría sin contacto.
+        - `INVALID_PATH_PARAMETER`: `factoryId` o `id` no es un entero.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 400
+            error: Bad Request
+            code: VALIDATION_ERROR
+            message: Phone must have between 8 and 15 digits
+            path: /api/factories/1/managers/1
+            timestamp: '2026-10-15T13:00:00.000Z'
+            details:
+              - field: phone
+                message: Phone must have between 8 and 15 digits
     '401':
       $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
     '404':
-      $ref: '../components/responses/NotFound.yaml'
-
-delete:
-  summary: Delete a manager
-  description: Removes a manager from the factory.
-  operationId: deleteFactoryManager
-  tags:
-    - Managers
-  responses:
-    '204':
-      description: Manager deleted successfully.
-    '401':
-      $ref: '../components/responses/Unauthorized.yaml'
-    '404':
-      $ref: '../components/responses/NotFound.yaml'
+      $ref: '../components/responses/ManagerNotFound.yaml'
+    '409':
+      description: '`MANAGER_MAIL_TAKEN`: el mail ya es de otro encargado activo de la fábrica.'
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 409
+            error: Conflict
+            code: MANAGER_MAIL_TAKEN
+            message: Manager with mail "compras@oxycam.com" already exists
+            path: /api/factories/1/managers/2
+            timestamp: '2026-10-15T13:00:00.000Z'
+            details:
+              - field: mail
+                message: Manager with mail "compras@oxycam.com" already exists

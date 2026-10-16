@@ -1,0 +1,40 @@
+parameters:
+  - $ref: '../components/parameters/FactoryIdParam.yaml'
+  - $ref: '../components/parameters/IdParam.yaml'
+
+patch:
+  summary: Dar de baja un encargado
+  description: |
+    **Rol:** `ERP`.
+
+    Baja lógica (CU-04): el encargado queda con `isActive` en `false` y libera
+    su mail dentro de la fábrica. No hay reactivación.
+  operationId: deactivateManager
+  tags:
+    - Encargados
+  x-roles:
+    - ERP
+  responses:
+    '204':
+      description: Encargado dado de baja. Sin cuerpo.
+    '400':
+      $ref: '../components/responses/InvalidId.yaml'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
+    '404':
+      $ref: '../components/responses/ManagerNotFound.yaml'
+    '409':
+      description: '`MANAGER_INACTIVE`: el encargado ya estaba dado de baja.'
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 409
+            error: Conflict
+            code: MANAGER_INACTIVE
+            message: Manager 4 in factory 1 is already inactive
+            path: /api/factories/1/managers/4/deactivate
+            timestamp: '2026-10-15T13:00:00.000Z'

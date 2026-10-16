@@ -29,7 +29,7 @@ Usuarios de ejemplo: wcastro (AS), mrios (ERP), fpaz (EC), lbenitez (AT), rsanch
 
 ## Reglas de negocio presentes
 
-Las reglas de referencia están en [domain/02-reglas-de-negocio.md](../../domain/02-reglas-de-negocio.md); esta sección registra cómo las implementa el prototipo.
+Las reglas de referencia están en [domain/02-reglas-de-negocio.md](../../dominio/02-reglas-de-negocio.md); esta sección registra cómo las implementa el prototipo.
 
 ### Sprint 1
 

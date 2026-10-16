@@ -1,19 +1,22 @@
 # API Contract — Sprint 2
 
-Contrato de la API para el **Sprint 2** de Castro Tornería S.R.L. Complementa al
-contrato del Sprint 1 (`docs/openapi/`), que queda cerrado: este documento solo
-describe lo que el Sprint 2 agrega y lo que cambia sobre lo ya implementado.
+Contrato de la API para el **Sprint 2** de Castro Tornería S.R.L. Describe lo
+que el Sprint 2 agrega y lo que cambia sobre lo ya implementado en el Sprint 1.
 
-| Campo            | Valor                                                                                                 |
-| ---------------- | ----------------------------------------------------------------------------------------------------- |
-| Versión          | Sprint 2                                                                                              |
-| Fecha            | 15/10/2026                                                                                            |
-| Sprint           | DTC Sprint 2 (Jira, proyecto DTC)                                                                     |
-| Complementa a    | `docs/openapi/` (Sprint 1)                                                                            |
-| Fuente de verdad | `docs/prototipo/fuente/Castro Tornería - Prototipo.dc.html` (versión del 15/10/2026)                  |
-| Relacionado      | `docs/domain/Matriz de permisos.md`, `docs/domain/*.pdf` (Casos de Uso, ERS y Modelo de Dominio V1.1) |
+Este documento es la **fuente de verdad** del Sprint 2. `docs/openapi/` lo
+refleja (junto con el Sprint 1 tal como está implementado) para verlo y probarlo
+en Swagger UI; ante cualquier diferencia, manda este documento.
 
-Cuando una historia de usuario, los documentos de `docs/domain` y el prototipo no
+| Campo            | Valor                                                                                                           |
+| ---------------- | --------------------------------------------------------------------------------------------------------------- |
+| Versión          | Sprint 2                                                                                                        |
+| Fecha            | 15/10/2026                                                                                                      |
+| Sprint           | DTC Sprint 2 (Jira, proyecto DTC)                                                                               |
+| Vista navegable  | `docs/openapi/` (Swagger UI en `localhost:8081`), que incluye el Sprint 1                                       |
+| Fuente de verdad | `docs/prototipo/fuente/Castro Tornería - Prototipo.dc.html` (versión del 15/10/2026)                            |
+| Relacionado      | `docs/dominio/Matriz de permisos.md` y el resto de `docs/dominio/` (ERS, Casos de Uso y Modelo de Dominio V1.1) |
+
+Cuando una historia de usuario, los documentos de `docs/dominio` y el prototipo no
 coinciden, este contrato **sigue al prototipo** y lo deja asentado en la
 [sección 8](#8-observaciones). Los documentos se usan para lo que el prototipo no
 define (reglas de seguridad, trazabilidad, formatos).
@@ -67,26 +70,26 @@ en [§8.3](#83-visto-en-el-prototipo-y-fuera-de-este-contrato).
 
 ## 1. Resumen de Endpoints
 
-| Método  | Endpoint                                 | Autenticación | Rol         | Descripción                                  | CU     |
-| ------- | ---------------------------------------- | :-----------: | ----------- | -------------------------------------------- | ------ |
-| `POST`  | `/auth/login`                            |      No       | -           | Iniciar sesión                               | 53     |
-| `POST`  | `/auth/refresh`                          |   Cookie ¹    | -           | Renovar el token de acceso                   | 53     |
-| `POST`  | `/auth/logout`                           |   Cookie ¹    | -           | Cerrar sesión                                | 52     |
-| `POST`  | `/employees`                             |      Sí       | `AS`        | Registrar empleado                           | 45     |
-| `GET`   | `/employees`                             |      Sí       | `AS`        | Consultar empleados                          | 47     |
-| `GET`   | `/employees/{employeeId}`                |      Sí       | `AS`        | Consultar empleado                           | 47     |
-| `POST`  | `/users`                                 |      Sí       | `AS`        | Registrar usuario                            | 05     |
-| `GET`   | `/users`                                 |      Sí       | `AS`        | Consultar usuarios                           | 07     |
-| `GET`   | `/users/{userId}`                        |      Sí       | `AS`        | Consultar usuario                            | 07     |
-| `POST`  | `/process-types`                         |      Sí       | `AT` o `EC` | Registrar tipo de proceso                    | 09     |
-| `GET`   | `/process-types`                         |      Sí       | `AT` o `EC` | Consultar tipos de proceso                   | 11     |
-| `GET`   | `/process-types/{processTypeId}`         |      Sí       | `AT` o `EC` | Consultar tipo de proceso                    | 11     |
-| `PATCH` | `/process-types/{processTypeId}`         |      Sí       | `AT` o `EC` | Modificar tipo de proceso                    | 10     |
-| `GET`   | `/process-types/{processTypeId}/history` |      Sí       | `AT` o `EC` | Consultar el historial de un tipo de proceso | 10, 11 |
-| `GET`   | `/exchange-rate`                         |      Sí       | `AT` o `EC` | Consultar el tipo de cambio actual           | 09, 10 |
-| `POST`  | `/materials`                             |      Sí       | `AT` o `EC` | Registrar material                           | 37     |
-| `GET`   | `/materials`                             |      Sí       | `AT` o `EC` | Consultar materiales                         | 39     |
-| `GET`   | `/materials/names`                       |      Sí       | `AT` o `EC` | Consultar los nombres de material            | 37, 39 |
+| Método  | Endpoint                                 | Autenticación | Rol         | Descripción                        | CU     |
+| ------- | ---------------------------------------- | :-----------: | ----------- | ---------------------------------- | ------ |
+| `POST`  | `/auth/login`                            |      No       | -           | Iniciar sesión                     | 53     |
+| `POST`  | `/auth/refresh`                          |   Cookie ¹    | -           | Renovar el token de acceso         | 53     |
+| `POST`  | `/auth/logout`                           |   Cookie ¹    | -           | Cerrar sesión                      | 52     |
+| `POST`  | `/employees`                             |      Sí       | `AS`        | Registrar empleado                 | 45     |
+| `GET`   | `/employees`                             |      Sí       | `AS`        | Consultar empleados                | 47     |
+| `GET`   | `/employees/{employeeId}`                |      Sí       | `AS`        | Consultar empleado                 | 47     |
+| `POST`  | `/users`                                 |      Sí       | `AS`        | Registrar usuario                  | 05     |
+| `GET`   | `/users`                                 |      Sí       | `AS`        | Consultar usuarios                 | 07     |
+| `GET`   | `/users/{userId}`                        |      Sí       | `AS`        | Consultar usuario                  | 07     |
+| `POST`  | `/process-types`                         |      Sí       | `AT` o `EC` | Registrar tipo de proceso          | 09     |
+| `GET`   | `/process-types`                         |      Sí       | `AT` o `EC` | Consultar tipos de proceso         | 11     |
+| `GET`   | `/process-types/{processTypeId}`         |      Sí       | `AT` o `EC` | Consultar tipo de proceso          | 11     |
+| `PATCH` | `/process-types/{processTypeId}`         |      Sí       | `AT` o `EC` | Modificar tipo de proceso          | 10     |
+| `GET`   | `/process-types/{processTypeId}/history` |      Sí       | `AT` o `EC` | Consultar el historial de precios  | 10, 11 |
+| `GET`   | `/exchange-rate`                         |      Sí       | `AT` o `EC` | Consultar el tipo de cambio actual | 09, 10 |
+| `POST`  | `/materials`                             |      Sí       | `AT` o `EC` | Registrar material                 | 37     |
+| `GET`   | `/materials`                             |      Sí       | `AT` o `EC` | Consultar materiales               | 39     |
+| `GET`   | `/materials/names`                       |      Sí       | `AT` o `EC` | Consultar los nombres de material  | 37, 39 |
 
 ¹ No llevan `Authorization`: la sesión se identifica con la cookie
 `refresh_token` que emite el login (ver [§3.1](#31-sesión-auth)).
@@ -146,20 +149,6 @@ Estado de un usuario. Lo calcula el backend; no se envía en ningún cuerpo.
 | `INACTIVE` | Inactivo  | Dado de baja (o su empleado fue dado de baja). No puede iniciar sesión |
 
 Si un usuario está dado de baja y además bloqueado, su estado es `INACTIVE`.
-
-### `ProcessTypeField`
-
-Campo de un tipo de proceso que registra el historial.
-
-| Código            | Rótulo                 |
-| ----------------- | ---------------------- |
-| `NAME`            | Nombre                 |
-| `DESCRIPTION`     | Descripción            |
-| `HOURLY_RATE_ARS` | Precio hora en pesos   |
-| `HOURLY_RATE_USD` | Precio hora en dólares |
-
-El tipo de cambio no forma parte del historial (ver
-[D-32](#81-decisiones-tomadas)).
 
 ---
 
@@ -356,9 +345,9 @@ sprint: llega en el próximo (D-49).
 Entrega un `accessToken` nuevo a partir del refresh token de la cookie
 `refresh_token` (CU-53).
 
-**Autenticación requerida:** No. El `accessToken` puede estar vencido; la
-sesión se identifica con la cookie. El endpoint no recibe cuerpo ni encabezado
-`Authorization`.
+**Autenticación requerida:** la cookie `refresh_token`, no el `accessToken`. El
+`accessToken` puede estar vencido; la sesión se identifica con la cookie. El
+endpoint no recibe cuerpo ni encabezado `Authorization`.
 
 El cliente lo usa en dos momentos:
 
@@ -486,9 +475,9 @@ el `code` es `SESSION_EXPIRED`.
 
 Cierra la sesión del usuario (CU-52).
 
-**Autenticación requerida:** No. La sesión se identifica con la cookie
-`refresh_token` o, si no llega, con el `accessToken` de `Authorization`. Así se
-puede cerrar sesión aunque el `accessToken` esté vencido.
+**Autenticación requerida:** No (nunca responde `401`). La sesión se identifica
+con la cookie `refresh_token` o, si no llega, con el `accessToken` de
+`Authorization`. Así se puede cerrar sesión aunque el `accessToken` esté vencido.
 
 **Cuerpo de la petición**
 
@@ -1342,13 +1331,18 @@ cliente**: la API recibe los dos precios y el tipo de cambio, y guarda los
 precios tal como llegan, sin recalcularlos (D-29). Así lo que el usuario vio en
 pantalla es exactamente lo que queda guardado.
 
+`exchangeRate` es el tipo de cambio de la última modificación de precios (D-52):
+coincide con el `exchangeRate` del registro más reciente del historial, si lo
+hay, o con el del alta.
+
 **Sobre `name`:** no puede haber dos tipos de proceso con el mismo nombre, sin
 distinguir mayúsculas, acentos ni espacios repetidos: "mecanizado torno manual"
 choca con "Mecanizado Torno Manual" (D-34).
 
 **Sobre `updatedAt`:** es la columna "Última actualización" del listado. Cambia
-con cualquier modificación (nombre, descripción o precios), igual que en el
-prototipo, y coincide con el registro más reciente del historial.
+con cualquier modificación (nombre, descripción o precios). Como el historial
+solo registra cambios de precio, `updatedAt` coincide con el registro más
+reciente del historial únicamente si la última modificación fue de precio.
 
 **Sobre las cotizaciones:** modificar un precio no toca las cotizaciones ya
 cargadas: cada una conserva el costo hora con el que se cotizó (RN17).
@@ -1363,10 +1357,10 @@ Registra un tipo de proceso (CU-09).
 
 ```json
 {
-	"name": "Mecanizado Torno CNC",
-	"description": "Torneado por control numérico para series y piezas de precisión.",
-	"hourlyRateArs": 2547,
-	"hourlyRateUsd": 1.84,
+	"name": "Mecanizado Torno CNC 5 ejes",
+	"description": null,
+	"hourlyRateArs": 3100,
+	"hourlyRateUsd": 2.24,
 	"exchangeRate": 1385.5
 }
 ```
@@ -1538,7 +1532,7 @@ en dólares" y "Última actualización" (`updatedAt`).
 			"name": "Armado / Desarmado",
 			"description": "Desarme, inspección y rearmado en trabajos de reparación.",
 			"hourlyRateArs": 1180,
-			"hourlyRateUsd": 0.86,
+			"hourlyRateUsd": 0.85,
 			"exchangeRate": 1385.5,
 			"createdAt": "2026-06-02T11:34:00.000Z",
 			"updatedAt": "2026-06-02T11:34:00.000Z"
@@ -1685,13 +1679,20 @@ tipo de cambio, los pesos se mantienen y los dólares se recalculan.
 
 **Efectos de la modificación**
 
-- Por **cada campo que cambió** de `name`, `description`, `hourlyRateArs` y
-  `hourlyRateUsd` se agrega un registro al historial, con el valor anterior, el
-  nuevo, el usuario de la sesión y la fecha y hora (RNF10). Todos los registros
-  de una misma modificación llevan la misma fecha y hora.
+- Si cambió **alguno de los dos precios hora** (`hourlyRateArs` o
+  `hourlyRateUsd`), se agrega **un** registro al historial de precios con el
+  precio hora en dólares anterior y el nuevo, el tipo de cambio usado, el
+  usuario de la sesión y la fecha y hora (RNF10). Es lo que muestra la tabla
+  "Historial de precios" del prototipo: fecha y hora, usuario, valor anterior
+  (US$), valor nuevo (US$) y tipo de cambio (D-32).
+- Cambiar solo el nombre o la descripción **no genera registro**: el historial
+  es de precios.
+- **El tipo de cambio solo se guarda junto con un cambio de precio** (D-52): es
+  el que vincula los dos precios. Si llega `exchangeRate` y ninguno de los dos
+  precios cambia, se ignora: no genera registro ni modifica el `exchangeRate`
+  guardado.
 - Un campo que llega con el mismo valor que ya tenía no cuenta como cambio.
 - `updatedAt` pasa a ser la fecha y hora de la modificación.
-- `exchangeRate` se guarda, pero **no genera registro** en el historial (D-32).
 - **Sin cambios** (CU-10, escenario 6): si ningún campo cambió, la respuesta es
   `200` con el tipo de proceso tal como estaba, sin registros nuevos en el
   historial y sin tocar `updatedAt` (D-31). El cliente igual compara antes de
@@ -1765,8 +1766,9 @@ al menos un campo para modificar."
 
 #### `GET /process-types/{processTypeId}/history`
 
-Obtiene el historial de cambios de un tipo de proceso, **del más reciente al más
+Obtiene el historial de precios de un tipo de proceso, **del más reciente al más
 antiguo** (CU-10, escenario 4). Es la tabla "Historial de precios" del detalle.
+Solo tiene registros de las modificaciones que cambiaron algún precio hora.
 
 El historial no se puede modificar ni borrar por ningún rol (RNF10): no existe
 ningún endpoint de escritura sobre él.
@@ -1797,7 +1799,7 @@ paginador.
 				"id": 4,
 				"username": "lbenitez"
 			},
-			"exchangeRateArs": 1365,
+			"exchangeRate": 1377.88,
 			"previousValueUsd": 1.21,
 			"newValueUsd": 1.13
 		},
@@ -1808,22 +1810,29 @@ paginador.
 				"id": 3,
 				"username": "fpaz"
 			},
-			"exchangeRateArs": 1565,
-			"previousValueUsd": 1.13,
-			"newValueUsd": 2.8
+			"exchangeRate": 1287.5,
+			"previousValueUsd": 1.1,
+			"newValueUsd": 1.21
 		}
 	]
 }
 ```
 
-| Campo             | Tipo                       | Descripción                                                                                                         |
-| ----------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `id`              | Integer                    | Identificador del registro                                                                                          |
-| `changedAt`       | String (ISO 8601)          | "Fecha y hora"                                                                                                      |
-| `changedBy`       | Object                     | "Usuario": `id` y `username` del usuario que hizo el cambio                                                         |
-| `exchangeRateArs` | String \| Number \| `null` | "Tipo de cambio en la fecha del cambio modificado"                                                                  |
-| `previousValue`   | String \| Number \| `null` | "Valor anterior". Número en los precios; texto en el nombre y la descripción; `null` si la descripción estaba vacía |
-| `newValue`        | String \| Number \| `null` | "Valor nuevo". Mismo criterio                                                                                       |
+| Campo              | Tipo              | Descripción                                                             |
+| ------------------ | ----------------- | ----------------------------------------------------------------------- |
+| `id`               | Integer           | Identificador del registro                                              |
+| `changedAt`        | String (ISO 8601) | "Fecha y hora"                                                          |
+| `changedBy`        | Object            | "Usuario": `id` y `username` del usuario que hizo el cambio             |
+| `exchangeRate`     | Number            | "Tipo de cambio": pesos por dólar con el que se calculó el precio nuevo |
+| `previousValueUsd` | Number            | "Valor anterior (US$)": precio hora en dólares antes del cambio         |
+| `newValueUsd`      | Number            | "Valor nuevo (US$)": precio hora en dólares después del cambio          |
+
+El ejemplo es el historial del tipo de proceso `1` ("Mecanizado Torno Manual"):
+el registro más reciente coincide con su `hourlyRateUsd` (`1.13`), su
+`exchangeRate` (`1377.88`) y su `updatedAt`.
+
+Los dos valores van **siempre en dólares**: son las columnas "Valor anterior
+(US$)" y "Valor nuevo (US$)" de la tabla del detalle (D-32).
 
 Un tipo de proceso sin cambios devuelve `items` vacío. El prototipo muestra
 "Todavía no hubo cambios en este tipo de proceso."
@@ -2226,6 +2235,21 @@ respuesta del login y del refresh, y los códigos de error.
 | `SESSION_EXPIRED`      | Pantalla de ingreso con el mensaje de la respuesta ("Tu sesión expiró por inactividad")               |
 | `UNAUTHENTICATED`      | Pantalla de ingreso sin mensaje                                                                       |
 
+Los mensajes de `SESSION_EXPIRED` y `UNAUTHENTICATED` están en
+[`POST /auth/refresh`](#post-authrefresh). El de `ACCESS_TOKEN_EXPIRED` no se
+muestra al usuario:
+
+```json
+{
+	"statusCode": 401,
+	"error": "Unauthorized",
+	"code": "ACCESS_TOKEN_EXPIRED",
+	"message": "El token de acceso expiró.",
+	"path": "/api/employees",
+	"timestamp": "2026-10-15T13:05:00.000Z"
+}
+```
+
 Si varias peticiones reciben `ACCESS_TOKEN_EXPIRED` a la vez, el cliente hace
 **un solo** refresh y las repite todas con el token nuevo.
 
@@ -2248,7 +2272,7 @@ la respuesta es `403 FORBIDDEN` y no devuelve ningún dato de la operación
 
 #### Permisos por rol
 
-Tomada de `docs/domain/Matriz de permisos.md` (15/10/2026), que coincide con los
+Tomada de `docs/dominio/Matriz de permisos.md` (15/10/2026), que coincide con los
 permisos del prototipo (`PERM`). Solo las filas de este sprint y las del Sprint
 1, que ahora se aplican:
 
@@ -2272,19 +2296,19 @@ módulos disponibles para tu rol".
 
 #### Matriz por recurso
 
-| Recurso                                              | Lectura (`GET`) | Escritura                                                        |
-| ---------------------------------------------------- | --------------- | ---------------------------------------------------------------- |
-| `/auth`                                              | -               | Público (`login`); con la cookie de sesión (`refresh`, `logout`) |
-| `/employees`                                         | `AS`            | `AS`                                                             |
-| `/users`                                             | `AS`            | `AS`                                                             |
-| `/process-types`                                     | `AT` o `EC`     | `AT` o `EC`                                                      |
-| `/process-types/{id}/history`                        | `AT` o `EC`     | -                                                                |
-| `/exchange-rate`                                     | `AT` o `EC`     | -                                                                |
-| `/materials`                                         | `AT` o `EC`     | `AT` o `EC`                                                      |
-| `/suppliers` (Sprint 1)                              | `AT` o `EC`     | `AT` o `EC`                                                      |
-| `/categories` (Sprint 1)                             | `ERP`           | `ERP`                                                            |
-| `/factories` (Sprint 1)                              | `ERP`           | `ERP`                                                            |
-| `/factories/{id}/customers`, `/customers` (Sprint 1) | `ERP`           | `ERP`                                                            |
+| Recurso                                                     | Lectura (`GET`) | Escritura                                                        |
+| ----------------------------------------------------------- | --------------- | ---------------------------------------------------------------- |
+| `/auth`                                                     | -               | Público (`login`); con la cookie de sesión (`refresh`, `logout`) |
+| `/employees`                                                | `AS`            | `AS`                                                             |
+| `/users`                                                    | `AS`            | `AS`                                                             |
+| `/process-types`                                            | `AT` o `EC`     | `AT` o `EC`                                                      |
+| `/process-types/{id}/history`                               | `AT` o `EC`     | -                                                                |
+| `/exchange-rate`                                            | `AT` o `EC`     | -                                                                |
+| `/materials`                                                | `AT` o `EC`     | `AT` o `EC`                                                      |
+| `/suppliers` (Sprint 1)                                     | `AT` o `EC`     | `AT` o `EC`                                                      |
+| `/categories` (Sprint 1)                                    | `ERP`           | `ERP`                                                            |
+| `/factories` (Sprint 1)                                     | `ERP`           | `ERP`                                                            |
+| `/factories/{factoryId}/managers`, `/managers` (Sprint 1)   | `ERP`           | `ERP`                                                            |
 
 ### Formato de intercambio
 
@@ -2426,7 +2450,7 @@ Todas las respuestas de error usan la estructura del Sprint 1
 | `error`      | Nombre corto del código HTTP ("Bad Request", "Conflict")                                                                               |
 | `code`       | **Nuevo.** Código del [catálogo](#53-catálogo-de-códigos-de-error). Es lo que el cliente usa para decidir qué hacer                    |
 | `message`    | Mensaje para el usuario, en castellano. Cuando el error es de un campo, es el mismo texto que el prototipo muestra debajo del campo    |
-| `path`       | Ruta de la petición                                                                                                                    |
+| `path`       | Ruta de la petición, con su query string si la tuvo (`/api/employees?page=0`)                                                          |
 | `timestamp`  | Momento del error (ISO 8601)                                                                                                           |
 | `details`    | Lista `{ field, message }`, una entrada por campo. Aparece en los `400` de validación y en los `409` de unicidad; se omite en el resto |
 
@@ -2437,9 +2461,10 @@ uno marca un campo y el otro muestra un aviso en el buscador.
 
 **`details` en los `409`.** En el Sprint 1 cada módulo informaba el campo de un
 `409` a su manera (`field` suelto en proveedores, `details` en rubros, fábricas
-y encargados). Desde este sprint **todos los `409` usan `details`**, igual que
-los `400`, así el formulario marca el campo con la misma lógica en los dos
-casos.
+y encargados). Desde este sprint **todos los `409` de unicidad usan
+`details`**, igual que los `400`, así el formulario marca el campo con la misma
+lógica en los dos casos. Los `409` que no son de un campo (un rubro con fábricas
+activas, una fábrica ya dada de baja) no lo llevan.
 
 **General — `500 Internal Server Error`**
 
@@ -2458,6 +2483,8 @@ El detalle del error va al registro del servidor (RNF13: fecha, hora, usuario y
 descripción), nunca al cliente.
 
 ### 5.3 Catálogo de códigos de error
+
+**Generales y del Sprint 2**
 
 | Código                      | HTTP | Situación                                                                                                  |
 | --------------------------- | :--: | ---------------------------------------------------------------------------------------------------------- |
@@ -2481,6 +2508,30 @@ descripción), nunca al cliente.
 | `USER_BLOCKED`              | 423  | Usuario bloqueado por intentos fallidos. Exclusivo de `POST /auth/login`                                   |
 | `INTERNAL_SERVER_ERROR`     | 500  | Error interno inesperado                                                                                   |
 | `EXCHANGE_RATE_UNAVAILABLE` | 502  | El backend no pudo obtener ninguna cotización del dólar                                                    |
+
+**Del Sprint 1** (D-51)
+
+Los errores propios de los endpoints del Sprint 1, que hasta ahora se
+distinguían solo por el código HTTP y el texto. Salen de cómo responde hoy el
+backend; lo único nuevo es el `code` (y `details` en los `409` de unicidad).
+
+| Código                            | HTTP | Endpoint                                                                    | Situación                                                                                      |
+| --------------------------------- | :--: | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `CATEGORY_NOT_FOUND`              | 404  | `/categories/{id}`, `/categories/{id}/restore`                              | Rubro inexistente                                                                              |
+| `CATEGORY_NAME_TAKEN`             | 409  | `POST /categories`, `PATCH /categories/{id}`                                | Nombre ya usado por otro rubro activo (o por cualquier otro rubro, al renombrar)               |
+| `CATEGORY_INACTIVE`               | 409  | `PATCH /categories/{id}`                                                    | Modificar un rubro dado de baja: hay que restaurarlo antes                                     |
+| `CATEGORY_HAS_ACTIVE_FACTORIES`   | 409  | `DELETE /categories/{id}`                                                   | Baja de un rubro con fábricas activas. El cuerpo trae `factories` (`id`, `name`)               |
+| `FACTORY_NOT_FOUND`               | 404  | `/factories/{id}`, `POST /factories/{factoryId}/managers`                   | Fábrica inexistente                                                                            |
+| `FACTORY_CUIT_TAKEN`              | 409  | `POST /factories`                                                           | CUIT ya registrado en otra fábrica activa                                                      |
+| `FACTORY_NAME_TAKEN`              | 409  | `POST /factories`, `PATCH /factories/{id}`                                  | Nombre ya registrado en otra fábrica activa                                                    |
+| `FACTORY_INACTIVE`                | 409  | `PATCH /factories/{id}/deactivate`, `POST /factories/{factoryId}/managers`  | La fábrica ya está dada de baja                                                                |
+| `FACTORY_HAS_ACTIVE_MANAGERS`     | 409  | `PATCH /factories/{id}/deactivate`                                          | Baja de una fábrica con encargados activos                                                     |
+| `MANAGER_NOT_FOUND`               | 404  | `/factories/{factoryId}/managers/{id}`                                      | Encargado inexistente en esa fábrica                                                           |
+| `MANAGER_MAIL_TAKEN`              | 409  | `POST` y `PATCH` de encargados                                              | Mail ya usado por otro encargado activo de la misma fábrica                                    |
+| `MANAGER_INACTIVE`                | 409  | `PATCH /factories/{factoryId}/managers/{id}/deactivate`                     | El encargado ya está dado de baja                                                              |
+| `SUPPLIER_NOT_FOUND`              | 404  | `/suppliers/{id}`                                                           | Proveedor inexistente o dado de baja                                                           |
+| `SUPPLIER_CUIT_TAKEN`             | 409  | `POST /suppliers`, `PATCH /suppliers/{id}`                                  | CUIT ya registrado en otro proveedor activo                                                    |
+| `SUPPLIER_LEGAL_NAME_TAKEN`       | 409  | `POST /suppliers`, `PATCH /suppliers/{id}`                                  | Razón social ya registrada en otro proveedor activo                                            |
 
 ---
 
@@ -2516,8 +2567,9 @@ propio (`500`): para el cliente es "seguí sin ese dato", no "algo se rompió".
 
 ## 7. Cambios respecto del Sprint 1
 
-El Sprint 1 está cerrado y su contrato (`docs/openapi/`) no se reescribe. Esta
-sección resume lo que el Sprint 2 le cambia.
+El Sprint 1 está cerrado: sus cuerpos y respuestas exitosas no cambian. Esta
+sección resume lo que el Sprint 2 le cambia. `docs/openapi/` describe el Sprint 1
+tal como está implementado, con estos cambios ya aplicados.
 
 **Un cambio rompe a un cliente del Sprint 1: todos los endpoints exigen sesión.**
 El resto suma campos a la respuesta de error o endpoints nuevos.
@@ -2549,7 +2601,7 @@ El resto suma campos a la respuesta de error o endpoints nuevos.
 | `/suppliers`, `/suppliers/{id}`                                                                             | Público                                          | Sesión y rol `AT` o `EC`                             |       **Sí**       | D-40     |
 | `/categories`, `/categories/{id}`, `/categories/{id}/restore`                                               | Público                                          | Sesión y rol `ERP`                                   |       **Sí**       | D-40     |
 | `/factories`, `/factories/{id}`, `/factories/{id}/deactivate`                                               | Público                                          | Sesión y rol `ERP`                                   |       **Sí**       | D-40     |
-| `/customers`, `/factories/{factoryId}/customers`, `/factories/{factoryId}/customers/{id}` y su `deactivate` | Público                                          | Sesión y rol `ERP`                                   |       **Sí**       | D-40     |
+| `/managers`, `/factories/{factoryId}/managers`, `/factories/{factoryId}/managers/{id}` y su `deactivate`    | Público                                          | Sesión y rol `ERP`                                   |       **Sí**       | D-40     |
 | Todas las respuestas de error                                                                               | Sin `code`; el campo de un `409` según el módulo | Con `code`; los `409` informan el campo en `details` | No (suma un campo) | D-41     |
 
 Ningún cuerpo ni respuesta exitosa del Sprint 1 cambia. Lo que cambia es que sin
@@ -2562,12 +2614,12 @@ Ningún cuerpo ni respuesta exitosa del Sprint 1 cambia. Lo que cambia es que si
 | `Role`             | Roles de los usuarios (RN44)                           |
 | `EmployeePosition` | Puesto del empleado, un desplegable fijo del prototipo |
 | `UserStatus`       | Estado del usuario: activo, bloqueado o inactivo       |
-| `ProcessTypeField` | Campo modificado en el historial del tipo de proceso   |
 
 ### 7.4 Códigos de error y códigos HTTP
 
 **Códigos de error:** el campo `code` es nuevo, así que todo el catálogo de
-[§5.3](#53-catálogo-de-códigos-de-error) se incorpora con este sprint.
+[§5.3](#53-catálogo-de-códigos-de-error) se incorpora con este sprint, incluidos
+los códigos de los errores propios del Sprint 1 (D-51).
 
 **Códigos HTTP incorporados:** `422 Unprocessable Content`, `423 Locked` y
 `502 Bad Gateway`.
@@ -2582,7 +2634,8 @@ Ningún cuerpo ni respuesta exitosa del Sprint 1 cambia. Lo que cambia es que si
 - **Colecciones no paginadas** para listas cortas (`{ items }`).
 - **Montos** como números con dos decimales.
 - **Comparación de textos** sin mayúsculas, acentos ni espacios repetidos.
-- **`code`** en todas las respuestas de error y **`details`** en todos los `409`.
+- **`code`** en todas las respuestas de error y **`details`** en todos los `409`
+  de unicidad.
 
 ---
 
@@ -2592,58 +2645,60 @@ Decisiones de diseño de este contrato y puntos que quedan abiertos.
 
 ### 8.1 Decisiones tomadas
 
-| ID   | Decisión                                                                                                                                                                                                                                                                              | Fundamento                                                                                                                                                                                                                                                                                                                         |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D-01 | El alcance son las once historias del sprint "DTC Sprint 2" de Jira: CU-53, 52, 45, 47, 05, 07, 09, 10, 11, 37 y 39                                                                                                                                                                   | Jira al 15/10/2026. El Sprint 1 está cerrado                                                                                                                                                                                                                                                                                       |
-| D-02 | La solicitud de cotización (CU-13, DTC-2) no entra en este contrato aunque el prototipo la tenga completa y su `CONTEXTO.md` la ubique en el Sprint 2                                                                                                                                 | No figura en el sprint de Jira. Confirmado por el equipo el 15/10/2026                                                                                                                                                                                                                                                             |
-| D-03 | Se mantienen las convenciones ya implementadas en el Sprint 1: recurso sin sobre, listas `{ items, total, page, limit }`, límite máximo de `100`, cuerpo de error con `statusCode`, `error`, `message`, `path`, `timestamp` y `details`, nombres de campos en inglés y fechas en UTC | El backend, los tests de contrato (`test/shared/contract/envelopes.ts`) y el frontend (`shared/api/pagination.ts`) ya las usan. Cambiarlas obligaría a tocar todo el Sprint 1                                                                                                                                                      |
-| D-04 | La sesión vive en el servidor y cada petición la verifica, además de validar el `accessToken`                                                                                                                                                                                         | CU-52 pide que cerrar sesión la invalide en el servidor ("borrar el token sólo en el navegador no alcanza") y que un token reutilizado se rechace. Con un `accessToken` de 15 minutos y sin esa verificación, un token seguiría sirviendo hasta 15 minutos después del cierre. CU-53 guarda inicio, última actividad, fin y motivo |
-| D-05 | Hay tres `401` de sesión: `ACCESS_TOKEN_EXPIRED` (renovar y seguir), `SESSION_EXPIRED` (volver a ingresar, con mensaje) y `UNAUTHENTICATED` (volver a ingresar, sin mensaje)                                                                                                          | El cliente reacciona distinto a cada uno. El prototipo muestra "Tu sesión expiró por inactividad" solo cuando la sesión venció                                                                                                                                                                                                     |
-| D-06 | Al quinto fallo consecutivo el usuario queda bloqueado y responde `423 USER_BLOCKED` con el mensaje del prototipo, también con la contraseña correcta. Cuentan solo los fallos de usuarios existentes y activos                                                                       | RNF08, CU-53 escenario 3 y el prototipo. El mensaje revela que la cuenta existe; se acepta porque el caso de uso y el prototipo lo piden explícitamente                                                                                                                                                                            |
-| D-07 | Un usuario dado de baja que intenta ingresar recibe el mismo `401 INVALID_CREDENTIALS` que una contraseña incorrecta                                                                                                                                                                  | CU-53, escenario 4                                                                                                                                                                                                                                                                                                                 |
-| D-08 | Usuario o contraseña vacíos responden `400` y no cuentan como intento                                                                                                                                                                                                                 | CU-53, escenario 9, y el prototipo                                                                                                                                                                                                                                                                                                 |
-| D-09 | `POST /auth/logout` identifica la sesión por la cookie (o por el `accessToken`) y responde siempre `204`, también si la sesión ya había expirado                                                                                                                                      | CU-52, escenario 5: "sin mostrar ningún error". Con la cookie se puede cerrar sesión aunque el `accessToken` esté vencido                                                                                                                                                                                                          |
-| D-10 | `POST /auth/refresh` devuelve lo mismo que el login, incluido `user` con sus datos vigentes                                                                                                                                                                                           | El prototipo conserva la sesión al recargar. Como el `accessToken` vive en memoria, al recargar el cliente llama a refresh y con esa única respuesta sabe quién es el usuario y qué roles tiene. Por eso no hace falta un `GET /auth/me`                                                                                           |
-| D-11 | `Role` es un enumerado cerrado de seis códigos: `JT`, `ERP`, `EC`, `ER`, `AT` y `AS`                                                                                                                                                                                                  | RN44 y el prototipo. Son los códigos que ya usan el prototipo y `frontend/src/domain/roles.ts`. El rol `A` ("Administrativo") de ese archivo no existe en el prototipo ni en los documentos                                                                                                                                        |
-| D-12 | Los endpoints del Administrativo Técnico aceptan también al Encargado de Cotización                                                                                                                                                                                                   | Matriz de permisos ("EC hereda de AT") y prototipo (`PERM`)                                                                                                                                                                                                                                                                        |
-| D-13 | El Encargado de Reportes no accede a los tipos de proceso                                                                                                                                                                                                                             | Prototipo y matriz de permisos. La HU DTC-205 (escenario 5) le daba lectura; manda el prototipo                                                                                                                                                                                                                                    |
-| D-14 | El empleado tiene puesto, DNI, dirección, email y teléfono, además de nombre y apellido                                                                                                                                                                                               | El prototipo los pide. La HU DTC-28 solo pedía nombre y apellido                                                                                                                                                                                                                                                                   |
-| D-15 | El DNI es obligatorio, de 7 u 8 dígitos y único entre todos los empleados, incluidos los dados de baja                                                                                                                                                                                | Validación del prototipo, que compara contra todos los empleados                                                                                                                                                                                                                                                                   |
-| D-16 | El puesto es un enumerado cerrado de cuatro valores                                                                                                                                                                                                                                   | El prototipo lo ofrece como desplegable fijo (`PUESTOS`)                                                                                                                                                                                                                                                                           |
-| D-17 | Empleados y usuarios dados de baja se pueden consultar (`includeInactive`, `GET` por id)                                                                                                                                                                                              | El prototipo los muestra en gris con su estado y CU-47 / CU-07 piden el filtro. Difiere de los proveedores del Sprint 1, que al darse de baja desaparecen                                                                                                                                                                          |
-| D-18 | El alta de empleado no avisa de homónimos                                                                                                                                                                                                                                             | El prototipo no tiene ese aviso (la HU DTC-28 sí). Lo que distingue a dos personas es el DNI                                                                                                                                                                                                                                       |
-| D-19 | El usuario no tiene nombre ni apellido propios: los toma de su empleado                                                                                                                                                                                                               | CU-05: el usuario se crea "a un empleado previamente registrado"; el prototipo muestra el nombre del empleado                                                                                                                                                                                                                      |
-| D-20 | Un empleado tiene como máximo un usuario, contando los dados de baja                                                                                                                                                                                                                  | CU-05 y el prototipo, que compara contra todos los usuarios                                                                                                                                                                                                                                                                        |
-| D-21 | `employeeId` inexistente responde `400` sobre ese campo; empleado dado de baja, `422 EMPLOYEE_INACTIVE`                                                                                                                                                                               | El primero es un dato mal elegido en el formulario; el segundo, una regla de negocio (el usuario es para un empleado activo)                                                                                                                                                                                                       |
-| D-22 | El nombre de usuario es único sin distinguir mayúsculas, incluidos los usuarios dados de baja, y no se reutiliza                                                                                                                                                                      | CU-05: los registros históricos lo referencian como responsable                                                                                                                                                                                                                                                                    |
-| D-23 | El nombre de usuario propuesto lo arma el cliente                                                                                                                                                                                                                                     | Es una ayuda del formulario; la unicidad la garantiza la API igual                                                                                                                                                                                                                                                                 |
-| D-24 | "Repetir contraseña" y "Generar" son del cliente; la API recibe una sola contraseña                                                                                                                                                                                                   | La confirmación evita errores de tipeo en la pantalla; no agrega nada a la regla del servidor                                                                                                                                                                                                                                      |
-| D-25 | No hay contraseña provisoria ni cambio obligatorio en el primer ingreso                                                                                                                                                                                                               | El prototipo no lo tiene y "Cambiar contraseña" (CU-54) figura como "A futuro". La HU DTC-129 lo pedía                                                                                                                                                                                                                             |
-| D-26 | `status` se calcula: `INACTIVE` si está dado de baja, si no `BLOCKED` si está bloqueado, si no `ACTIVE`                                                                                                                                                                               | Es el criterio del prototipo (`estUsu`)                                                                                                                                                                                                                                                                                            |
-| D-27 | `lastAccessAt` es el inicio de la última sesión del usuario                                                                                                                                                                                                                           | "Último acceso = última sesión" del prototipo                                                                                                                                                                                                                                                                                      |
-| D-28 | El listado de usuarios incluye los bloqueados por defecto y los inactivos solo con `includeInactive`                                                                                                                                                                                  | Es como filtra el prototipo                                                                                                                                                                                                                                                                                                        |
-| D-29 | El tipo de proceso guarda los dos precios tal como llegan y el tipo de cambio con que se vincularon; el cálculo lo hace el cliente                                                                                                                                                    | El prototipo calcula en el formulario y deja editar cualquiera de los tres valores. Si el servidor recalculara, el redondeo podría guardar un valor distinto del que el usuario confirmó                                                                                                                                           |
-| D-30 | El tipo de cambio lo provee el backend en `GET /exchange-rate`                                                                                                                                                                                                                        | El prototipo lo precarga "con la cotización del backend" y muestra la fecha de actualización                                                                                                                                                                                                                                       |
-| D-31 | Un `PATCH` sin cambios responde `200` sin tocar nada                                                                                                                                                                                                                                  | CU-10, escenario 6: no se registra nada en el historial. El aviso "No hay cambios para guardar" es del cliente, que compara antes de enviar                                                                                                                                                                                        |
-| D-32 | El historial registra un cambio por campo, solo de nombre, descripción y los dos precios; no el tipo de cambio. Se consulta en su propio endpoint, sin paginar, del más reciente al más antiguo                                                                                       | Son los campos del historial del prototipo (`TP_CAMPOS`) y de CU-10                                                                                                                                                                                                                                                                |
-| D-33 | `updatedAt` cambia con cualquier modificación y es la "Última actualización" del listado                                                                                                                                                                                              | Es como la calcula el prototipo (último registro del historial o el alta)                                                                                                                                                                                                                                                          |
-| D-34 | El nombre del tipo de proceso es único sin distinguir mayúsculas, acentos ni espacios repetidos                                                                                                                                                                                       | CU-09, escenario 2, y el prototipo, que además ignora los acentos                                                                                                                                                                                                                                                                  |
-| D-35 | Montos y tipo de cambio viajan como números con hasta dos decimales y mayores a 0                                                                                                                                                                                                     | Validación del prototipo (`parseMonto`) y RNF12 (dos decimales)                                                                                                                                                                                                                                                                    |
-| D-36 | Un material es nombre más calidad; la combinación es única con la comparación de textos de §4. No tiene precio, proveedor ni presentación                                                                                                                                             | Modelo de Dominio V1.1 y el prototipo                                                                                                                                                                                                                                                                                              |
-| D-37 | Si el nombre de un material nuevo coincide con uno existente, se guarda con la grafía existente                                                                                                                                                                                       | Evita que el filtro "Todos los materiales" muestre "Acero" y "acero" como dos opciones                                                                                                                                                                                                                                             |
-| D-38 | `GET /materials/names` devuelve los nombres distintos, sin paginar                                                                                                                                                                                                                    | Alimenta el filtro del listado y el combo del alta                                                                                                                                                                                                                                                                                 |
-| D-39 | Los materiales no tienen detalle ni modificación en este sprint                                                                                                                                                                                                                       | CU-38 (modificar) no está en el sprint y el listado del prototipo no tiene acciones por fila. La edición que aparece en la cotización es parte de CU-14                                                                                                                                                                            |
-| D-40 | Los endpoints del Sprint 1 pasan a exigir sesión y el rol de la matriz                                                                                                                                                                                                                | Hasta ahora no había usuarios. La matriz de permisos fija quién opera cada catálogo                                                                                                                                                                                                                                                |
-| D-41 | Las respuestas de error suman `code`, y los `409` informan el campo en `details`                                                                                                                                                                                                      | El cliente necesita distinguir errores con el mismo código HTTP. Sumar un campo no rompe a los clientes del Sprint 1                                                                                                                                                                                                               |
-| D-42 | Las longitudes máximas (nombres 100, DNI 8, dirección 200, email 120, teléfono 50, usuario 30, contraseña 72, nombre de tipo de proceso 100, descripción 500, material y calidad 60) las fija este contrato                                                                           | El prototipo no las define. La contraseña tope en 72 por el límite del algoritmo de hash habitual (bcrypt)                                                                                                                                                                                                                         |
-| D-43 | Los recursos devuelven solo lo que el prototipo muestra o necesita                                                                                                                                                                                                                    | Por ejemplo, el usuario que dio de alta un registro se guarda por trazabilidad pero no se expone                                                                                                                                                                                                                                   |
-| D-44 | El `accessToken` dura **15 minutos** y el refresh token **7 días**. Los 7 días son la duración máxima de la sesión: se cuentan desde el ingreso y la rotación no los extiende                                                                                                         | Definido por el equipo (15/10/2026). Cierra el punto abierto de la duración máxima de la sesión                                                                                                                                                                                                                                    |
-| D-45 | El refresh token viaja solo en la cookie `refresh_token` (`HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/api/auth`) y el `accessToken` se guarda en memoria                                                                                                                          | Ningún código del navegador puede leer el refresh token, que es el que vale 7 días. `Strict` alcanza porque frontend y API comparten origen detrás de nginx                                                                                                                                                                        |
-| D-46 | `POST /auth/refresh` no cuenta como actividad: los 30 minutos de inactividad se miden sobre las peticiones con `accessToken`                                                                                                                                                          | Si renovar contara, una pestaña abierta que renueva sola cada 15 minutos mantendría la sesión viva hasta los 7 días, y no se cumpliría RNF08                                                                                                                                                                                       |
-| D-47 | El refresh token rota en cada uso. Presentar uno ya reemplazado cierra la sesión, salvo en los 30 segundos siguientes a la rotación                                                                                                                                                   | La rotación limita el daño de un refresh robado. El margen evita que dos pestañas que renuevan a la vez se cierren la sesión entre ellas (CU-52: la sesión es una sola para todas las pestañas del navegador)                                                                                                                      |
-| D-48 | El tipo de cambio sale de una API externa gratuita, que el backend consulta y cuyo último valor conserva                                                                                                                                                                              | Definido por el equipo (15/10/2026). Cuál API se usa es un detalle de implementación: el contrato fija solo `rate` y `updatedAt`, así que cambiar de proveedor no cambia el endpoint                                                                                                                                               |
-| D-49 | Desbloquear un usuario no se implementa en este sprint: llega con "Modificar usuario" (CU-06), en el próximo                                                                                                                                                                          | Definido por el equipo (15/10/2026). Mientras tanto, un usuario bloqueado queda bloqueado; en desarrollo se puede destrabar desde la base de datos                                                                                                                                                                                 |
-| D-50 | Modificar y dar de baja empleados (CU-46 y CU-48) van al próximo sprint, aunque el prototipo ya muestre "Editar" y "Dar de baja"                                                                                                                                                      | Definido por el equipo (15/10/2026). El recurso empleado ya trae `active` para cuando lleguen                                                                                                                                                                                                                                      |
+| ID   | Decisión                                                                                                                                                                                                                                                                                                                                                                                                                 | Fundamento                                                                                                                                                                                                                                                                                                                         |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D-01 | El alcance son las once historias del sprint "DTC Sprint 2" de Jira: CU-53, 52, 45, 47, 05, 07, 09, 10, 11, 37 y 39                                                                                                                                                                                                                                                                                                      | Jira al 15/10/2026. El Sprint 1 está cerrado                                                                                                                                                                                                                                                                                       |
+| D-02 | La solicitud de cotización (CU-13, DTC-2) no entra en este contrato aunque el prototipo la tenga completa y su `CONTEXTO.md` la ubique en el Sprint 2                                                                                                                                                                                                                                                                    | No figura en el sprint de Jira. Confirmado por el equipo el 15/10/2026                                                                                                                                                                                                                                                             |
+| D-03 | Se mantienen las convenciones ya implementadas en el Sprint 1: recurso sin sobre, listas `{ items, total, page, limit }`, límite máximo de `100`, cuerpo de error con `statusCode`, `error`, `message`, `path`, `timestamp` y `details`, nombres de campos en inglés y fechas en UTC                                                                                                                                    | El backend, los tests de contrato (`test/shared/contract/envelopes.ts`) y el frontend (`shared/api/pagination.ts`) ya las usan. Cambiarlas obligaría a tocar todo el Sprint 1                                                                                                                                                      |
+| D-04 | La sesión vive en el servidor y cada petición la verifica, además de validar el `accessToken`                                                                                                                                                                                                                                                                                                                            | CU-52 pide que cerrar sesión la invalide en el servidor ("borrar el token sólo en el navegador no alcanza") y que un token reutilizado se rechace. Con un `accessToken` de 15 minutos y sin esa verificación, un token seguiría sirviendo hasta 15 minutos después del cierre. CU-53 guarda inicio, última actividad, fin y motivo |
+| D-05 | Hay tres `401` de sesión: `ACCESS_TOKEN_EXPIRED` (renovar y seguir), `SESSION_EXPIRED` (volver a ingresar, con mensaje) y `UNAUTHENTICATED` (volver a ingresar, sin mensaje)                                                                                                                                                                                                                                             | El cliente reacciona distinto a cada uno. El prototipo muestra "Tu sesión expiró por inactividad" solo cuando la sesión venció                                                                                                                                                                                                     |
+| D-06 | Al quinto fallo consecutivo el usuario queda bloqueado y responde `423 USER_BLOCKED` con el mensaje del prototipo, también con la contraseña correcta. Cuentan solo los fallos de usuarios existentes y activos                                                                                                                                                                                                          | RNF08, CU-53 escenario 3 y el prototipo. El mensaje revela que la cuenta existe; se acepta porque el caso de uso y el prototipo lo piden explícitamente                                                                                                                                                                            |
+| D-07 | Un usuario dado de baja que intenta ingresar recibe el mismo `401 INVALID_CREDENTIALS` que una contraseña incorrecta                                                                                                                                                                                                                                                                                                     | CU-53, escenario 4                                                                                                                                                                                                                                                                                                                 |
+| D-08 | Usuario o contraseña vacíos responden `400` y no cuentan como intento                                                                                                                                                                                                                                                                                                                                                    | CU-53, escenario 9, y el prototipo                                                                                                                                                                                                                                                                                                 |
+| D-09 | `POST /auth/logout` identifica la sesión por la cookie (o por el `accessToken`) y responde siempre `204`, también si la sesión ya había expirado                                                                                                                                                                                                                                                                         | CU-52, escenario 5: "sin mostrar ningún error". Con la cookie se puede cerrar sesión aunque el `accessToken` esté vencido                                                                                                                                                                                                          |
+| D-10 | `POST /auth/refresh` devuelve lo mismo que el login, incluido `user` con sus datos vigentes                                                                                                                                                                                                                                                                                                                              | El prototipo conserva la sesión al recargar. Como el `accessToken` vive en memoria, al recargar el cliente llama a refresh y con esa única respuesta sabe quién es el usuario y qué roles tiene. Por eso no hace falta un `GET /auth/me`                                                                                           |
+| D-11 | `Role` es un enumerado cerrado de seis códigos: `JT`, `ERP`, `EC`, `ER`, `AT` y `AS`                                                                                                                                                                                                                                                                                                                                     | RN44 y el prototipo. Son los códigos que ya usan el prototipo y `frontend/src/domain/roles.ts`. El rol `A` ("Administrativo") de ese archivo no existe en el prototipo ni en los documentos                                                                                                                                        |
+| D-12 | Los endpoints del Administrativo Técnico aceptan también al Encargado de Cotización                                                                                                                                                                                                                                                                                                                                      | Matriz de permisos ("EC hereda de AT") y prototipo (`PERM`)                                                                                                                                                                                                                                                                        |
+| D-13 | El Encargado de Reportes no accede a los tipos de proceso                                                                                                                                                                                                                                                                                                                                                                | Prototipo y matriz de permisos. La HU DTC-205 (escenario 5) le daba lectura; manda el prototipo                                                                                                                                                                                                                                    |
+| D-14 | El empleado tiene puesto, DNI, dirección, email y teléfono, además de nombre y apellido                                                                                                                                                                                                                                                                                                                                  | El prototipo los pide. La HU DTC-28 solo pedía nombre y apellido                                                                                                                                                                                                                                                                   |
+| D-15 | El DNI es obligatorio, de 7 u 8 dígitos y único entre todos los empleados, incluidos los dados de baja                                                                                                                                                                                                                                                                                                                   | Validación del prototipo, que compara contra todos los empleados                                                                                                                                                                                                                                                                   |
+| D-16 | El puesto es un enumerado cerrado de cuatro valores                                                                                                                                                                                                                                                                                                                                                                      | El prototipo lo ofrece como desplegable fijo (`PUESTOS`)                                                                                                                                                                                                                                                                           |
+| D-17 | Empleados y usuarios dados de baja se pueden consultar (`includeInactive`, `GET` por id)                                                                                                                                                                                                                                                                                                                                 | El prototipo los muestra en gris con su estado y CU-47 / CU-07 piden el filtro. Difiere de los proveedores del Sprint 1, que al darse de baja desaparecen                                                                                                                                                                          |
+| D-18 | El alta de empleado no avisa de homónimos                                                                                                                                                                                                                                                                                                                                                                                | El prototipo no tiene ese aviso (la HU DTC-28 sí). Lo que distingue a dos personas es el DNI                                                                                                                                                                                                                                       |
+| D-19 | El usuario no tiene nombre ni apellido propios: los toma de su empleado                                                                                                                                                                                                                                                                                                                                                  | CU-05: el usuario se crea "a un empleado previamente registrado"; el prototipo muestra el nombre del empleado                                                                                                                                                                                                                      |
+| D-20 | Un empleado tiene como máximo un usuario, contando los dados de baja                                                                                                                                                                                                                                                                                                                                                     | CU-05 y el prototipo, que compara contra todos los usuarios                                                                                                                                                                                                                                                                        |
+| D-21 | `employeeId` inexistente responde `400` sobre ese campo; empleado dado de baja, `422 EMPLOYEE_INACTIVE`                                                                                                                                                                                                                                                                                                                  | El primero es un dato mal elegido en el formulario; el segundo, una regla de negocio (el usuario es para un empleado activo)                                                                                                                                                                                                       |
+| D-22 | El nombre de usuario es único sin distinguir mayúsculas, incluidos los usuarios dados de baja, y no se reutiliza                                                                                                                                                                                                                                                                                                         | CU-05: los registros históricos lo referencian como responsable                                                                                                                                                                                                                                                                    |
+| D-23 | El nombre de usuario propuesto lo arma el cliente                                                                                                                                                                                                                                                                                                                                                                        | Es una ayuda del formulario; la unicidad la garantiza la API igual                                                                                                                                                                                                                                                                 |
+| D-24 | "Repetir contraseña" y "Generar" son del cliente; la API recibe una sola contraseña                                                                                                                                                                                                                                                                                                                                      | La confirmación evita errores de tipeo en la pantalla; no agrega nada a la regla del servidor                                                                                                                                                                                                                                      |
+| D-25 | No hay contraseña provisoria ni cambio obligatorio en el primer ingreso                                                                                                                                                                                                                                                                                                                                                  | El prototipo no lo tiene y "Cambiar contraseña" (CU-54) figura como "A futuro". La HU DTC-129 lo pedía                                                                                                                                                                                                                             |
+| D-26 | `status` se calcula: `INACTIVE` si está dado de baja, si no `BLOCKED` si está bloqueado, si no `ACTIVE`                                                                                                                                                                                                                                                                                                                  | Es el criterio del prototipo (`estUsu`)                                                                                                                                                                                                                                                                                            |
+| D-27 | `lastAccessAt` es el inicio de la última sesión del usuario                                                                                                                                                                                                                                                                                                                                                              | "Último acceso = última sesión" del prototipo                                                                                                                                                                                                                                                                                      |
+| D-28 | El listado de usuarios incluye los bloqueados por defecto y los inactivos solo con `includeInactive`                                                                                                                                                                                                                                                                                                                     | Es como filtra el prototipo                                                                                                                                                                                                                                                                                                        |
+| D-29 | El tipo de proceso guarda los dos precios tal como llegan y el tipo de cambio con que se vincularon; el cálculo lo hace el cliente                                                                                                                                                                                                                                                                                       | El prototipo calcula en el formulario y deja editar cualquiera de los tres valores. Si el servidor recalculara, el redondeo podría guardar un valor distinto del que el usuario confirmó                                                                                                                                           |
+| D-30 | El tipo de cambio lo provee el backend en `GET /exchange-rate`                                                                                                                                                                                                                                                                                                                                                           | El prototipo lo precarga "con la cotización del backend" y muestra la fecha de actualización                                                                                                                                                                                                                                       |
+| D-31 | Un `PATCH` sin cambios responde `200` sin tocar nada                                                                                                                                                                                                                                                                                                                                                                     | CU-10, escenario 6: no se registra nada en el historial. El aviso "No hay cambios para guardar" es del cliente, que compara antes de enviar                                                                                                                                                                                        |
+| D-32 | El historial es de precios: un registro por modificación que cambia alguno de los dos precios hora, con el precio en dólares anterior y el nuevo en dólares (`previousValueUsd`, `newValueUsd`) y el tipo de cambio usado (`exchangeRate`, mismo nombre que en el tipo de proceso). Los cambios de nombre o descripción no se registran. Se consulta en su propio endpoint, sin paginar, del más reciente al más antiguo | Definido por el equipo: la tabla "Historial de precios" del prototipo muestra los valores en US$ ("Valor anterior (US$)", "Valor nuevo (US$)", "Tipo de cambio")                                                                                                                                                                   |
+| D-33 | `updatedAt` cambia con cualquier modificación (nombre, descripción o precios) y es la "Última actualización" del listado. No depende del historial, que solo registra cambios de precio                                                                                                                                                                                                                                  | La columna informa cuándo se tocó el tipo de proceso por última vez, no solo su precio. El historial sigue siendo exclusivamente de precios (D-32)                                                                                                                                                                                 |
+| D-34 | El nombre del tipo de proceso es único sin distinguir mayúsculas, acentos ni espacios repetidos                                                                                                                                                                                                                                                                                                                          | CU-09, escenario 2, y el prototipo, que además ignora los acentos                                                                                                                                                                                                                                                                  |
+| D-35 | Montos y tipo de cambio viajan como números con hasta dos decimales y mayores a 0                                                                                                                                                                                                                                                                                                                                        | Validación del prototipo (`parseMonto`) y RNF12 (dos decimales)                                                                                                                                                                                                                                                                    |
+| D-36 | Un material es nombre más calidad; la combinación es única con la comparación de textos de §4. No tiene precio, proveedor ni presentación                                                                                                                                                                                                                                                                                | Modelo de Dominio V1.1 y el prototipo                                                                                                                                                                                                                                                                                              |
+| D-37 | Si el nombre de un material nuevo coincide con uno existente, se guarda con la grafía existente                                                                                                                                                                                                                                                                                                                          | Evita que el filtro "Todos los materiales" muestre "Acero" y "acero" como dos opciones                                                                                                                                                                                                                                             |
+| D-38 | `GET /materials/names` devuelve los nombres distintos, sin paginar                                                                                                                                                                                                                                                                                                                                                       | Alimenta el filtro del listado y el combo del alta                                                                                                                                                                                                                                                                                 |
+| D-39 | Los materiales no tienen detalle ni modificación en este sprint                                                                                                                                                                                                                                                                                                                                                          | CU-38 (modificar) no está en el sprint y el listado del prototipo no tiene acciones por fila. La edición que aparece en la cotización es parte de CU-14                                                                                                                                                                            |
+| D-40 | Los endpoints del Sprint 1 pasan a exigir sesión y el rol de la matriz                                                                                                                                                                                                                                                                                                                                                   | Hasta ahora no había usuarios. La matriz de permisos fija quién opera cada catálogo                                                                                                                                                                                                                                                |
+| D-41 | Las respuestas de error suman `code`, y los `409` informan el campo en `details`                                                                                                                                                                                                                                                                                                                                         | El cliente necesita distinguir errores con el mismo código HTTP. Sumar un campo no rompe a los clientes del Sprint 1                                                                                                                                                                                                               |
+| D-42 | Las longitudes máximas (nombres 100, DNI 8, dirección 200, email 120, teléfono 50, usuario 30, contraseña 72, nombre de tipo de proceso 100, descripción 500, material y calidad 60) las fija este contrato                                                                                                                                                                                                              | El prototipo no las define. La contraseña tope en 72 por el límite del algoritmo de hash habitual (bcrypt)                                                                                                                                                                                                                         |
+| D-43 | Los recursos devuelven solo lo que el prototipo muestra o necesita                                                                                                                                                                                                                                                                                                                                                       | Por ejemplo, el usuario que dio de alta un registro se guarda por trazabilidad pero no se expone                                                                                                                                                                                                                                   |
+| D-44 | El `accessToken` dura **15 minutos** y el refresh token **7 días**. Los 7 días son la duración máxima de la sesión: se cuentan desde el ingreso y la rotación no los extiende                                                                                                                                                                                                                                            | Definido por el equipo (15/10/2026). Cierra el punto abierto de la duración máxima de la sesión                                                                                                                                                                                                                                    |
+| D-45 | El refresh token viaja solo en la cookie `refresh_token` (`HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/api/auth`) y el `accessToken` se guarda en memoria                                                                                                                                                                                                                                                             | Ningún código del navegador puede leer el refresh token, que es el que vale 7 días. `Strict` alcanza porque frontend y API comparten origen detrás de nginx                                                                                                                                                                        |
+| D-46 | `POST /auth/refresh` no cuenta como actividad: los 30 minutos de inactividad se miden sobre las peticiones con `accessToken`                                                                                                                                                                                                                                                                                             | Si renovar contara, una pestaña abierta que renueva sola cada 15 minutos mantendría la sesión viva hasta los 7 días, y no se cumpliría RNF08                                                                                                                                                                                       |
+| D-47 | El refresh token rota en cada uso. Presentar uno ya reemplazado cierra la sesión, salvo en los 30 segundos siguientes a la rotación                                                                                                                                                                                                                                                                                      | La rotación limita el daño de un refresh robado. El margen evita que dos pestañas que renuevan a la vez se cierren la sesión entre ellas (CU-52: la sesión es una sola para todas las pestañas del navegador)                                                                                                                      |
+| D-48 | El tipo de cambio sale de una API externa gratuita, que el backend consulta y cuyo último valor conserva                                                                                                                                                                                                                                                                                                                 | Definido por el equipo (15/10/2026). Cuál API se usa es un detalle de implementación: el contrato fija solo `rate` y `updatedAt`, así que cambiar de proveedor no cambia el endpoint                                                                                                                                               |
+| D-49 | Desbloquear un usuario no se implementa en este sprint: llega con "Modificar usuario" (CU-06), en el próximo                                                                                                                                                                                                                                                                                                             | Definido por el equipo (15/10/2026). Mientras tanto, un usuario bloqueado queda bloqueado; en desarrollo se puede destrabar desde la base de datos                                                                                                                                                                                 |
+| D-50 | Modificar y dar de baja empleados (CU-46 y CU-48) van al próximo sprint, aunque el prototipo ya muestre "Editar" y "Dar de baja"                                                                                                                                                                                                                                                                                         | Definido por el equipo (15/10/2026). El recurso empleado ya trae `active` para cuando lleguen                                                                                                                                                                                                                                      |
+| D-51 | Los errores propios del Sprint 1 tienen su `code` en el catálogo (§5.3), derivado de cómo responde hoy el backend                                                                                                                                                                                                                                                                                                        | §7.2 pide `code` en todas las respuestas de error; sin códigos para el Sprint 1, el cliente seguiría distinguiendo esos errores por el texto. Definido por el equipo (16/10/2026)                                                                                                                                                  |
+| D-52 | En `PATCH /process-types/{processTypeId}`, `exchangeRate` solo se guarda si cambia alguno de los dos precios; si no, se ignora                                                                                                                                                                                                                                                                                           | El tipo de cambio guardado es el que vincula los precios y el historial es solo de precios: guardarlo sin un cambio de precio dejaría al tipo de proceso con un tipo de cambio que no figura en ningún registro del historial                                                                                                      |
 
 ### 8.2 Puntos abiertos
 
@@ -2693,7 +2748,7 @@ incorporar la autenticación a la vez.
   7 días) y el secreto de firma van como configuración en `jwt.config.ts`.
 - **Autorización:** un guard de roles con "al menos uno de", aplicado también a
   los controladores del Sprint 1 (`suppliers`, `categories`, `factories`,
-  `customers`).
+  `managers`).
 - **Errores:** `AllExceptionsFilter` y los filtros de cada módulo agregan `code`;
   el de proveedores pasa su `field` de los `409` a `details`. Sumar `422`, `423` y
   `502` a `STATUS_NAMES`.
@@ -2712,8 +2767,9 @@ incorporar la autenticación a la vez.
   leer `code` y `details` (hoy lee `message` y `field`).
 - **Arranque:** al cargar la aplicación, llamar a `POST /auth/refresh` para
   recuperar la sesión antes de decidir si se muestra el ingreso.
-- **Roles:** `domain/roles.ts` tiene un rol `A` ("Administrativo") que no existe
-  (D-11).
+- **Roles:** `domain/roles.ts` tiene exactamente los seis roles del contrato
+  (D-11) y la matriz por recurso (`MODULE_ROLES`, `canAccess()`). Ya corregido:
+  tenía un rol `A` ("Administrativo") que no existe.
 - **Rutas:** guards por rol con los permisos de la matriz, pantalla de acceso
   denegado e inicio vacío para JT y ER.
 - **Pantallas nuevas:** ingreso, Administración (empleados y usuarios), y en
@@ -2721,9 +2777,10 @@ incorporar la autenticación a la vez.
 
 **Documentación**
 
-- **OpenAPI:** `docs/openapi` describe el Sprint 1 sin seguridad; hay que sumar
-  el esquema `bearerAuth`, el campo `code` en `Error.yaml` y los recursos de este
-  contrato.
+- **OpenAPI:** hecho. `docs/openapi` suma el esquema `bearerAuth`, la cookie
+  `refresh_token`, el campo `code` en `Error.yaml` y los recursos de este
+  contrato, y describe el Sprint 1 tal como está implementado (encargados,
+  restaurar rubros, baja de fábricas, listados paginados).
 - **Glosario:** sumar `Employee`, `EmployeePosition`, `User`, `UserStatus`,
   `Role`, `Session`, `ProcessType`, `ProcessTypeHistory`, `ExchangeRate`,
   `Material`, `hourlyRateArs`, `hourlyRateUsd`, `exchangeRate`, `quality` y
@@ -2742,14 +2799,15 @@ incorporar la autenticación a la vez.
 | DTC-129 | 05  | `POST /users`, un usuario por empleado activo, nombre único y al menos un rol                                                                                                              |
 | DTC-131 | 07  | `GET /users` con búsqueda, filtro por rol e inactivos; `GET /users/{userId}`                                                                                                               |
 | DTC-203 | 09  | `POST /process-types` con los dos precios vinculados y `GET /exchange-rate`                                                                                                                |
-| DTC-204 | 10  | `PATCH /process-types/{processTypeId}` con historial por campo y `GET /process-types/{processTypeId}/history`                                                                              |
+| DTC-204 | 10  | `PATCH /process-types/{processTypeId}` con historial de precios en dólares y `GET /process-types/{processTypeId}/history`                                                                  |
 | DTC-205 | 11  | `GET /process-types` y `GET /process-types/{processTypeId}`                                                                                                                                |
 | DTC-116 | 37  | `POST /materials`, nombre y calidad únicos, y `GET /materials/names`                                                                                                                       |
 | DTC-118 | 39  | `GET /materials` con filtro por material y búsqueda por calidad                                                                                                                            |
 
 Además: los endpoints del Sprint 1 pasan a exigir sesión y rol (D-40), y las
-respuestas de error suman `code` (D-41).
+respuestas de error suman `code` (D-41 y D-51).
 
 En números: **18 endpoints nuevos**, **4 grupos de endpoints del Sprint 1** que
-pasan a exigir sesión, 4 enumerados, 20 códigos de error, 3 códigos HTTP nuevos,
-50 decisiones (D-01 a D-50) y ningún punto abierto.
+pasan a exigir sesión, 3 enumerados, 36 códigos de error (20 generales y del
+Sprint 2, 16 del Sprint 1), 3 códigos HTTP nuevos, 52 decisiones (D-01 a D-52) y
+ningún punto abierto.

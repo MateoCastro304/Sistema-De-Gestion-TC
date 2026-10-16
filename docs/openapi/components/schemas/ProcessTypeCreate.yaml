@@ -1,0 +1,47 @@
+type: object
+description: |
+  Alta de tipo de proceso. El formulario precarga `exchangeRate` con
+  `GET /exchange-rate`; el usuario lo puede cambiar.
+
+  El tipo queda con `createdAt` y `updatedAt` iguales. **El alta no genera
+  registros en el historial**: el historial empieza con la primera
+  modificación de precio.
+additionalProperties: false
+required:
+  - name
+  - hourlyRateArs
+  - hourlyRateUsd
+  - exchangeRate
+properties:
+  name:
+    type: string
+    minLength: 1
+    maxLength: 100
+    description: |
+      "Nombre". No vacío. Único sin distinguir mayúsculas, acentos ni espacios
+      repetidos.
+    example: Mecanizado Torno CNC 5 ejes
+  description:
+    type: string
+    nullable: true
+    maxLength: 500
+    description: '"Descripción".'
+    example: null
+  hourlyRateArs:
+    type: number
+    minimum: 0
+    exclusiveMinimum: true
+    description: '"Precio hora en pesos". Mayor a 0. Hasta dos decimales.'
+    example: 3100
+  hourlyRateUsd:
+    type: number
+    minimum: 0
+    exclusiveMinimum: true
+    description: '"Precio hora en dólares". Mayor a 0. Hasta dos decimales.'
+    example: 2.24
+  exchangeRate:
+    type: number
+    minimum: 0
+    exclusiveMinimum: true
+    description: '"Tipo de cambio (USD → ARS)". Mayor a 0. Hasta dos decimales.'
+    example: 1385.5

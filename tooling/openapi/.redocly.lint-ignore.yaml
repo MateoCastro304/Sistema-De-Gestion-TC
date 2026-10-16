@@ -1,0 +1,10 @@
+# Problems Redocly's linter ignores on purpose, one by one, each with its reason.
+# See https://redocly.com/docs/cli/ for more information.
+#
+# POST /auth/logout has no 4XX response by contract: it answers 204 always, also
+# when the session had already expired or no token arrived (CU-52, escenario 5;
+# D-09 of docs/api-contract/API_CONTRACT_SPRINT_2.md). Adding a 4XX would
+# document a response that never happens.
+../../docs/openapi/paths/auth@logout.yaml:
+  operation-4xx-response:
+    - '#/post/responses'

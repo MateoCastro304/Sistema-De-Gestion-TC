@@ -148,7 +148,7 @@ Una vez que los contenedores estén ejecutándose, aplicá las migraciones de la
 make migrate-dev
 ```
 
-El procedimiento completo de migraciones se explica en [Migraciones de base de datos con Prisma](database/Migrations.md).
+El procedimiento completo de migraciones se explica en [Migraciones de base de datos con Prisma](uso-ORM-DB/Migrations.md).
 
 ### Cargar datos de prueba
 
@@ -453,7 +453,7 @@ Nunca incluyas este archivo en un commit del repositorio.
 ## 10. Convenciones relacionadas
 
 - Ramas, commits (Conventional Commits) y PR: ver [CONTRIBUTING.MD](CONTRIBUTING.MD).
-- Decisiones de arquitectura: ver los ADR en [`docs/decisions/`](decisions/).
+- Decisiones de arquitectura: ver los ADR en [`docs/decisiones/`](decisiones/).
 - Organización de infraestructura Docker: ver [`infrastructure/docker/README.md`](../infrastructure/docker/README.md).
 - Las configuraciones Docker Compose se encuentran en `infrastructure/docker/`.
 - Las variables de entorno de desarrollo se almacenan en `infrastructure/docker/.env.dev`.

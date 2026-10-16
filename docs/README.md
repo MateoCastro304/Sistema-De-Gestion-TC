@@ -10,14 +10,14 @@ Este índice reúne la documentación del negocio, las referencias técnicas y l
 | [glosario.md](glosario.md) | Definiciones compartidas del negocio. |
 | [funcionalidades/](funcionalidades/) | Explicación de cada área funcional, con enlaces a sus reglas, casos de uso y estados en `domain/`: [clientes, fábricas y rubros](funcionalidades/clientes.md), [usuarios y empleados](funcionalidades/usuarios-y-empleados.md), [catálogos técnicos](funcionalidades/catalogos-tecnicos.md), [solicitudes y cotizaciones](funcionalidades/cotizaciones.md), [órdenes de trabajo](funcionalidades/ordenes-de-trabajo.md) y [reportes](funcionalidades/reportes.md). |
 | [conceptos-transversales/](conceptos-transversales/) | Conceptos compartidos entre áreas: [roles, permisos y confidencialidad](conceptos-transversales/roles-y-permisos.md). |
-| [architecture/](architecture/) | Arquitectura del sistema. Documento actual: [visión general de arquitectura](architecture/overview.md). |
+| [architecture/](arquitectura/) | Arquitectura del sistema. Documento actual: [visión general de arquitectura](arquitectura/overview.md). |
 | [openapi/](openapi/) | Contratos de la API. Punto de entrada: [openapi.yaml](openapi/openapi.yaml). |
 | [api-contract/](api-contract/) | [Referencia de API del Sprint 2](api-contract/API_CONTRACT_SPRINT_2.md): endpoints, convenciones y puntos abiertos. |
-| [database/](database/) | Procedimiento de [migraciones con Prisma](database/Migrations.md). |
+| [database/](uso-ORM-DB/) | Procedimiento de [migraciones con Prisma](uso-ORM-DB/Migrations.md). |
 | [testing/](testing/) | [Organización de pruebas](testing/code-structure.md) y [casos de prueba y trazabilidad](testing/test-cases-structure.md). |
 | [prototipo/](prototipo/) | Prototipos y recursos de interfaz. El [contexto del prototipo](prototipo/fuente/CONTEXTO.md) describe su contenido, funcionamiento y limitaciones. |
-| [decisions/](decisions/) | Registros ADR-001 a ADR-010. Consultar el estado de cada decisión en su documento. |
-| [domain/](domain/) | Requisitos, reglas, casos de uso, modelo, estados y permisos. Punto de entrada: [índice y convenciones](domain/00-indice-y-convenciones.md). |
+| [decisions/](decisiones/) | Registros ADR-001 a ADR-010. Consultar el estado de cada decisión en su documento. |
+| [domain/](dominio/) | Requisitos, reglas, casos de uso, modelo, estados y permisos. Punto de entrada: [índice y convenciones](dominio/00-indice-y-convenciones.md). |
 | [seguimiento/](seguimiento/) | [Pendientes actuales](seguimiento/pendientes-actuales.md), con identificadores, prioridades y estados; [backlog de ingeniería](seguimiento/engineering-backlog.md) (infraestructura, CI/CD, herramientas y calidad de código); [inconsistencias documentales](seguimiento/inconsistencias-documentales.md) entre documentos, pendientes de resolver. |
 | [rubros-desvios-contrato.md](rubros-desvios-contrato.md) | Diferencias registradas entre el contrato y el backend de Rubros, y su efecto en el frontend. |
 | [plantillas/](plantillas/) | Guías para [funcionalidades](plantillas/funcionalidad.md), [visión general](plantillas/vision-general.md), [ADR](plantillas/adr.md), [arquitectura](plantillas/arquitectura.md) y [flujos de acciones](plantillas/flujo-de-acciones.md). |

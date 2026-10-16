@@ -152,7 +152,12 @@ The official `swaggerapi/swagger-ui` image (no custom Dockerfile) serving the co
 
 **Why it's decoupled from the backend:** it is the only API documentation (the backend no longer serves Swagger at `/docs`), and running it apart keeps the contract readable even if the backend container is down or crashing.
 
-**How "Try it out" reaches the backend:** the requests are sent by the browser, not by the container, to the `servers` URL in `openapi.yaml` (`http://localhost:3000`, without Nginx and without `/api`). Since the page is served from another origin (`:8081`), the backend enables CORS for the origins listed in `ALLOWED_ORIGINS`.
+**How "Try it out" reaches the backend:** the requests are sent by the browser, not by the container, to the server picked in the UI. `openapi.yaml` declares two:
+
+- `http://localhost/api` (default): through Nginx, like the frontend. It is the one to use for the session endpoints, because the `refresh_token` cookie has `Path=/api/auth` and the browser only sends it to URLs under `/api/auth`.
+- `http://localhost:3000`: the backend directly, without Nginx and without `/api`. Everything works except `/auth/refresh` and `/auth/logout`, which never receive the cookie.
+
+Since the page is served from another origin (`:8081`), the backend enables CORS for the origins listed in `ALLOWED_ORIGINS`, with `credentials: true`. `WITH_CREDENTIALS=true` makes Swagger UI send its requests with `credentials: 'include'`, so the browser stores the cookie set by `POST /auth/login` and sends it back to `/auth/refresh` and `/auth/logout`. Both sides are needed: without either, the browser drops the `Set-Cookie`.
 
 ### Required Variables
 

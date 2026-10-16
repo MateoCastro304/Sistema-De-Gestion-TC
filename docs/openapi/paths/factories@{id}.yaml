@@ -2,65 +2,98 @@ parameters:
   - $ref: '../components/parameters/IdParam.yaml'
 
 get:
-  summary: Get a factory by id
-  description: Returns the complete data of a factory by its identifier.
+  summary: Consultar fábrica
+  description: |
+    **Rol:** `ERP`.
+
+    Obtiene una fábrica. Una fábrica dada de baja también se devuelve, con
+    `isActive` en `false`.
   operationId: getFactoryById
   tags:
-    - Factories
+    - Fábricas
+  x-roles:
+    - ERP
   responses:
     '200':
-      description: Requested factory.
+      description: Fábrica pedida.
       content:
         application/json:
           schema:
             $ref: '../components/schemas/Factory.yaml'
+    '400':
+      $ref: '../components/responses/InvalidId.yaml'
     '401':
       $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
     '404':
-      $ref: '../components/responses/NotFound.yaml'
+      $ref: '../components/responses/FactoryNotFound.yaml'
 
 patch:
-  summary: Update a factory
+  summary: Modificar fábrica
   description: |
-    Partial update. Only the fields sent are modified.
-    The cuit cannot be modified.
+    **Rol:** `ERP`.
+
+    Modificación parcial: se cambian solo los campos que llegan, al menos uno.
+    El CUIT no se puede modificar.
   operationId: updateFactory
   tags:
-    - Factories
+    - Fábricas
+  x-roles:
+    - ERP
   requestBody:
     required: true
     content:
       application/json:
         schema:
           $ref: '../components/schemas/FactoryUpdate.yaml'
+        example:
+          payMethod: Transferencia a 60 días
   responses:
     '200':
-      description: Updated factory.
+      description: Fábrica modificada.
       content:
         application/json:
           schema:
             $ref: '../components/schemas/Factory.yaml'
     '400':
-      $ref: '../components/responses/BadRequest.yaml'
+      description: |
+        - `VALIDATION_ERROR`: cuerpo vacío, algún campo inválido, llegó `cuit`,
+          o el rubro no existe o está dado de baja.
+        - `INVALID_PATH_PARAMETER`: `id` no es un entero.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 400
+            error: Bad Request
+            code: VALIDATION_ERROR
+            message: property cuit should not exist
+            path: /api/factories/1
+            timestamp: '2026-10-15T13:00:00.000Z'
+            details:
+              - field: cuit
+                message: property cuit should not exist
     '401':
       $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
     '404':
-      $ref: '../components/responses/NotFound.yaml'
-
-delete:
-  summary: Delete a factory
-  description: |
-    Deletes a factory by id. Cascades to all its managers.
-    Fails with 409 if the factory has quotations or work orders.
-  operationId: deleteFactory
-  tags:
-    - Factories
-  responses:
-    '204':
-      description: Factory deleted successfully.
-    '401':
-      $ref: '../components/responses/Unauthorized.yaml'
-    '404':
-      $ref: '../components/responses/NotFound.yaml'
+      $ref: '../components/responses/FactoryNotFound.yaml'
     '409':
-      $ref: '../components/responses/Conflict.yaml'
+      description: '`FACTORY_NAME_TAKEN`: la razón social ya es de otra fábrica activa.'
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 409
+            error: Conflict
+            code: FACTORY_NAME_TAKEN
+            message: Factory with name "OxyCAM S.A." already exists
+            path: /api/factories/2
+            timestamp: '2026-10-15T13:00:00.000Z'
+            details:
+              - field: legalName
+                message: Factory with name "OxyCAM S.A." already exists

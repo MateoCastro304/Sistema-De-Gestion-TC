@@ -1,0 +1,14 @@
+type: http
+scheme: bearer
+bearerFormat: JWT
+description: |
+  `accessToken` de la sesión, en `Authorization: Bearer <accessToken>`. Lo
+  devuelven `POST /auth/login` y `POST /auth/refresh` y dura **15 minutos**.
+  Es opaco para el cliente.
+
+  Para probar en Swagger: ejecutá `POST /auth/login`, copiá el `accessToken`
+  de la respuesta y pegalo en **Authorize** (sin el prefijo `Bearer`).
+
+  Además del token, el backend verifica en cada petición que la sesión siga
+  abierta: un cierre de sesión, un bloqueo o una baja cortan el acceso desde la
+  petición siguiente, aunque el token no haya vencido.

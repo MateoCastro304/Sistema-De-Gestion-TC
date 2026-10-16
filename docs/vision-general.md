@@ -1,8 +1,8 @@
 # Visión general del sistema
 
-Punto de partida para orientarse en el sistema de gestión de Tornería Castro SRL. Las especificaciones formales (objetivos, alcance, reglas, requisitos y casos de uso) están en [`domain/`](domain/00-indice-y-convenciones.md); este documento las resume y enlaza. Los términos del negocio se definen en el [glosario](glosario.md).
+Punto de partida para orientarse en el sistema de gestión de Tornería Castro SRL. Las especificaciones formales (objetivos, alcance, reglas, requisitos y casos de uso) están en [`domain/`](dominio/00-indice-y-convenciones.md); este documento las resume y enlaza. Los términos del negocio se definen en el [glosario](glosario.md).
 
-> Fuente: ERS V1.1 §1 y §2 (contexto, propósito y usuarios, antes en [01-introduccion-alcance.md](domain/01-introduccion-alcance.md) §1, §2 y §7).
+> Fuente: ERS V1.1 §1 y §2 (contexto, propósito y usuarios, antes en [01-introduccion-alcance.md](dominio/01-introduccion-alcance.md) §1, §2 y §7).
 
 ## Propósito
 
@@ -28,17 +28,17 @@ El sistema deberá:
 3. Conservar el historial de cotizaciones y de modificaciones de precios y procesos de las piezas.
 4. Seguir el estado de cada trabajo adjudicado mediante la hoja de ruta, registrar tiempos y materiales reales y calcular los desvíos respecto de lo planificado.
 
-Los objetivos medibles (OBJ-01 a OBJ-12) están en [01-introduccion-alcance.md, §4](domain/01-introduccion-alcance.md#4-objetivos-del-sistema).
+Los objetivos medibles (OBJ-01 a OBJ-12) están en [01-introduccion-alcance.md, §4](dominio/01-introduccion-alcance.md#4-objetivos-del-sistema).
 
 ## Alcance
 
 El sistema cubre desde la **recepción de la solicitud de cotización** hasta el **registro de la entrega y facturación** del trabajo. La prioridad de esta primera versión es el **seguimiento técnico y económico de la pieza** desde la cotización hasta su realización.
 
-Queda fuera la emisión de remitos y facturas (solo se registran sus números), la logística de entrega y la cobranza, incluido el cobro de la seña. El detalle de capacidades incluidas (A-01 a A-17) y excluidas (X-01 a X-04) está en [01-introduccion-alcance.md, §5](domain/01-introduccion-alcance.md#5-alcance).
+Queda fuera la emisión de remitos y facturas (solo se registran sus números), la logística de entrega y la cobranza, incluido el cobro de la seña. El detalle de capacidades incluidas (A-01 a A-17) y excluidas (X-01 a X-04) está en [01-introduccion-alcance.md, §5](dominio/01-introduccion-alcance.md#5-alcance).
 
 ## Actores
 
-Los usuarios son el personal interno de Tornería Castro. El detalle de actores está en el [catálogo de actores](domain/04-actores-y-casos-de-uso.md#11-catálogo), y los permisos, en [roles y permisos](conceptos-transversales/roles-y-permisos.md).
+Los usuarios son el personal interno de Tornería Castro. El detalle de actores está en el [catálogo de actores](dominio/04-actores-y-casos-de-uso.md#11-catálogo), y los permisos, en [roles y permisos](conceptos-transversales/roles-y-permisos.md).
 
 | Actor | Rol en una línea |
 |---|---|
@@ -70,16 +70,16 @@ Intervienen además el **Servidor de Correo** y el **Servidor de Mensajería** (
 4. El JT conduce cada orden en el taller con la hoja de ruta y registra lo real; el sistema calcula los desvíos.
 5. El ERP registra la entrega y la facturación, y el ER obtiene los **reportes** a partir de esa información.
 
-El recorrido completo, con lo que se registra en cada ítem, está en [01-introduccion-alcance.md, §3](domain/01-introduccion-alcance.md#3-propuesta-visión-del-flujo).
+El recorrido completo, con lo que se registra en cada ítem, está en [01-introduccion-alcance.md, §3](dominio/01-introduccion-alcance.md#3-propuesta-visión-del-flujo).
 
 ## Principios y restricciones
 
 - La información destinada al cliente se diferencia de la de uso interno, y el acceso se restringe según el rol del usuario (OBJ-11, OBJ-12; [roles y permisos](conceptos-transversales/roles-y-permisos.md)).
-- Debe ejecutarse sobre el equipamiento actual de la empresa, en puestos Windows con navegador, y WhatsApp solo mediante la API oficial de WhatsApp Business. Las restricciones R-01 a R-04 están en [01-introduccion-alcance.md, §8](domain/01-introduccion-alcance.md#8-restricciones-generales).
+- Debe ejecutarse sobre el equipamiento actual de la empresa, en puestos Windows con navegador, y WhatsApp solo mediante la API oficial de WhatsApp Business. Las restricciones R-01 a R-04 están en [01-introduccion-alcance.md, §8](dominio/01-introduccion-alcance.md#8-restricciones-generales).
 
 ## Mapa de documentación
 
-- **Dominio:** [índice y convenciones](domain/00-indice-y-convenciones.md), [reglas de negocio](domain/02-reglas-de-negocio.md), [requisitos](domain/03-requerimientos.md), [casos de uso](domain/04-actores-y-casos-de-uso.md), [modelo](domain/05-modelo-de-dominio.md), [máquinas de estado](domain/06-maquinas-de-estado.md) y [matriz de permisos](domain/Matriz%20de%20permisos.md).
-- **Arquitectura y decisiones:** [visión general de arquitectura](architecture/overview.md) y [ADR](decisions/).
-- **Referencias técnicas:** [contrato OpenAPI](openapi/openapi.yaml), [referencia de API del Sprint 2](api-contract/API_CONTRACT_SPRINT_2.md), [migraciones](database/Migrations.md) y [pruebas](testing/code-structure.md).
+- **Dominio:** [índice y convenciones](dominio/00-indice-y-convenciones.md), [reglas de negocio](dominio/02-reglas-de-negocio.md), [requisitos](dominio/03-requerimientos.md), [casos de uso](dominio/04-actores-y-casos-de-uso.md), [modelo](dominio/05-modelo-de-dominio.md), [máquinas de estado](dominio/06-maquinas-de-estado.md) y [matriz de permisos](dominio/Matriz%20de%20permisos.md).
+- **Arquitectura y decisiones:** [visión general de arquitectura](arquitectura/overview.md) y [ADR](decisiones/).
+- **Referencias técnicas:** [contrato OpenAPI](openapi/openapi.yaml), [referencia de API del Sprint 2](api-contract/API_CONTRACT_SPRINT_2.md), [migraciones](uso-ORM-DB/Migrations.md) y [pruebas](testing/code-structure.md).
 - **Trabajo en el proyecto:** [SETUP](SETUP.md), [CONTRIBUTING](CONTRIBUTING.MD) y [seguimiento](seguimiento/pendientes-actuales.md).

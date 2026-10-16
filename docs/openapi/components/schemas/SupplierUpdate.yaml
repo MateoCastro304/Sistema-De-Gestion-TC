@@ -1,58 +1,57 @@
 type: object
 description: |
-  Modifiable fields of a supplier. All optional — the client sends only the
-  fields that should change. At least one property must be present.
+  Campos modificables de un proveedor. Todos opcionales, pero tiene que llegar
+  al menos uno; se modifican solo los que llegan.
 
-  The legalName and cuit can be changed as long as they pass their own
-  validations. The supplierType is defined on creation and cannot be
-  modified, so it is not accepted here.
+  `legalName` y `cuit` se pueden cambiar mientras pasen sus validaciones.
+  `supplierType` se define en el alta y no se puede modificar.
 
-  The optional fields (cuit, contactName, contactEmail, contactPhone,
-  address, observation) can be cleared by sending null.
+  Los campos opcionales (`cuit`, `contactName`, `contactEmail`,
+  `contactPhone`, `address`, `observation`) se borran con `null`.
 
-  `active` is not accepted. There is no reactivation: a supplier dado de baja
-  stops existing for every query and releases its CUIT and legal name, so
-  bringing it back could duplicate whoever took them. Any unknown property,
-  `active` included, is rejected with a 400.
+  `active` no se acepta: no hay reactivación, porque un proveedor dado de baja
+  libera su CUIT y su razón social y traerlo de vuelta podría duplicar a quien
+  los tomó. Cualquier campo desconocido, `active` y `supplierType` incluidos,
+  responde `400`.
+additionalProperties: false
 minProperties: 1
 properties:
   legalName:
-    $ref: "./Supplier.yaml#/properties/legalName"
+    $ref: './Supplier.yaml#/properties/legalName'
   cuit:
     type: string
-    pattern: "^[0-9]{2}-[0-9]{8}-[0-9]{1}$"
+    pattern: '^[0-9]{2}-[0-9]{8}-[0-9]{1}$'
     nullable: true
-    description: Argentine CUIT. Format XX-XXXXXXXX-X. Send null to clear it.
-    example: "30-71234567-1"
+    description: CUIT con formato XX-XXXXXXXX-X. `null` lo borra.
+    example: 30-71234567-1
   contactName:
     type: string
     maxLength: 150
     nullable: true
-    description: |
-      Name of the contact person at the supplier. Send null to clear it.
-    example: Diego Fernandez
+    description: Persona de contacto. `null` la borra.
+    example: Diego Fernández
   contactEmail:
     type: string
     format: email
     maxLength: 120
     nullable: true
-    description: Send null to clear it.
-    example: sales@acerosdelsur.com
+    description: Mail de contacto. `null` lo borra.
+    example: ventas@acerosdelsur.com
   contactPhone:
     type: string
     maxLength: 50
     nullable: true
-    description: Send null to clear it.
-    example: "+54 9 351 444-5678"
+    description: Teléfono de contacto. `null` lo borra.
+    example: +54 9 351 444-5678
   address:
     type: string
     maxLength: 255
     nullable: true
-    description: Send null to clear it.
-    example: Av. Circunvalacion 4500, Cordoba
+    description: Dirección. `null` la borra.
+    example: Av. Circunvalación 4500, Córdoba
   observation:
     type: string
     maxLength: 255
     nullable: true
-    description: Send null to clear it.
+    description: Nota libre. `null` la borra.
     example: Entrega los martes

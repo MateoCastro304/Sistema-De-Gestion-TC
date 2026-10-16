@@ -1,7 +1,12 @@
 type: object
-description: Payload required to create a new category.
+description: Alta de rubro. El rubro queda activo.
+additionalProperties: false
 required:
   - name
 properties:
   name:
-    $ref: "./Category.yaml#/properties/name"
+    type: string
+    minLength: 3
+    maxLength: 80
+    description: Nombre del rubro, de 3 a 80 caracteres sin contar los espacios de los extremos.
+    example: Metalúrgica

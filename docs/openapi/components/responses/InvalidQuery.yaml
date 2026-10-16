@@ -1,0 +1,18 @@
+description: |
+  `VALIDATION_ERROR`: algún parámetro de consulta no es válido (por ejemplo,
+  `page` o `limit` fuera de rango) o la consulta trae un parámetro que el
+  endpoint no declara.
+content:
+  application/json:
+    schema:
+      $ref: '../schemas/Error.yaml'
+    example:
+      statusCode: 400
+      error: Bad Request
+      code: VALIDATION_ERROR
+      message: Los parámetros de consulta no son válidos.
+      path: /api/employees?page=0
+      timestamp: '2026-10-15T13:05:00.000Z'
+      details:
+        - field: page
+          message: Debe ser un número entero mayor o igual a 1.

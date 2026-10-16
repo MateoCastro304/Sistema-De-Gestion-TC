@@ -82,6 +82,9 @@ services:
         condition: service_completed_successfully
     environment:
       - SWAGGER_JSON=/spec/openapi.yaml
+      # "Try it out" sends cookies, so the session endpoints can be tested:
+      # the browser keeps the refresh_token cookie set by POST /auth/login.
+      - WITH_CREDENTIALS=true
     volumes:
       - ../../build:/spec:ro
 

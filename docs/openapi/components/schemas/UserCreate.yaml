@@ -1,0 +1,54 @@
+type: object
+description: |
+  Alta de usuario para un empleado (CU-05).
+
+  Lo resuelve el cliente, no la API: "Repetir contraseña" (llega una sola,
+  D-24), "Generar" (contraseña al azar en el navegador) y el nombre de usuario
+  propuesto (D-23).
+
+  El usuario queda **activo**, sin intentos fallidos y sin sesiones
+  (`lastAccessAt` en `null`). Puede ingresar de inmediato con esa contraseña:
+  no hay contraseña provisoria ni cambio obligatorio (D-25).
+additionalProperties: false
+required:
+  - employeeId
+  - username
+  - password
+  - roles
+properties:
+  employeeId:
+    type: integer
+    format: int64
+    minimum: 1
+    description: |
+      "Empleado". Un empleado registrado, activo y sin usuario. Si no existe
+      responde `400` sobre este campo; si está dado de baja, `422
+      EMPLOYEE_INACTIVE`; si ya tiene usuario, `409 EMPLOYEE_ALREADY_HAS_USER`.
+    example: 9
+  username:
+    type: string
+    minLength: 1
+    maxLength: 30
+    description: |
+      "Nombre de usuario". No vacío. Único sin distinguir mayúsculas, incluidos
+      los usuarios dados de baja (D-22).
+    example: mcastro
+  password:
+    type: string
+    format: password
+    minLength: 8
+    maxLength: 72
+    description: |
+      "Contraseña". Se guarda con un hash con sal y no se escribe en los
+      registros del servidor. El tope de 72 es el límite de bcrypt (D-42).
+    example: Tz8kq4Rmw2
+  roles:
+    type: array
+    description: '"Permisos". Al menos un rol, sin repetir.'
+    minItems: 1
+    uniqueItems: true
+    items:
+      $ref: './Role.yaml'
+    example:
+      - EC
+      - ER

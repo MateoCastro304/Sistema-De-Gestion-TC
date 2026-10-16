@@ -1,0 +1,12 @@
+description: '`SUPPLIER_NOT_FOUND`: no existe un proveedor con ese identificador, o está dado de baja.'
+content:
+  application/json:
+    schema:
+      $ref: '../schemas/Error.yaml'
+    example:
+      statusCode: 404
+      error: Not Found
+      code: SUPPLIER_NOT_FOUND
+      message: Supplier with id 99 not found
+      path: /api/suppliers/99
+      timestamp: '2026-10-15T13:00:00.000Z'

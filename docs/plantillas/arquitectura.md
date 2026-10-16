@@ -1,6 +1,6 @@
 # Plantilla de arquitectura
 
-Ubicación habitual: `docs/architecture/`. El título debe identificar el sistema o el área descrita.
+Ubicación habitual: `docs/arquitectura/`. El título debe identificar el sistema o el área descrita.
 
 Adaptar la estructura al alcance: un único aspecto arquitectónico puede requerir pocos apartados. Mantener separados los niveles de abstracción de los diagramas; usar C4 para contexto cuando resulte útil, sin exigir todos sus niveles.
 

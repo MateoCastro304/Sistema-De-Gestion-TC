@@ -30,7 +30,7 @@ dos formas:
 
 - **Como comprobaciones ejecutables.** Ese mismo caso se implementa como una
   prueba automatizada que se ejecuta en CI (GitHub Actions, según
-  [ADR-009](../decisions/009-deploy-infrastructure.md)). Si un cambio de código
+  [ADR-009](../decisiones/009-deploy-infrastructure.md)). Si un cambio de código
   incumple la regla, la compilación falla.
 
 El principio rector es el mismo que gobierna toda la arquitectura:

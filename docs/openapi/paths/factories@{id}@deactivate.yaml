@@ -1,0 +1,54 @@
+parameters:
+  - $ref: '../components/parameters/IdParam.yaml'
+
+patch:
+  summary: Dar de baja una fábrica
+  description: |
+    **Rol:** `ERP`.
+
+    Baja lógica: la fábrica queda con `isActive` en `false` y libera su CUIT y
+    su razón social. No hay reactivación. No se puede dar de baja una fábrica
+    con encargados activos.
+  operationId: deactivateFactory
+  tags:
+    - Fábricas
+  x-roles:
+    - ERP
+  responses:
+    '204':
+      description: Fábrica dada de baja. Sin cuerpo.
+    '400':
+      $ref: '../components/responses/InvalidId.yaml'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
+    '404':
+      $ref: '../components/responses/FactoryNotFound.yaml'
+    '409':
+      description: |
+        - `FACTORY_INACTIVE`: la fábrica ya estaba dada de baja.
+        - `FACTORY_HAS_ACTIVE_MANAGERS`: la fábrica tiene encargados activos.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          examples:
+            alreadyInactive:
+              summary: FACTORY_INACTIVE
+              value:
+                statusCode: 409
+                error: Conflict
+                code: FACTORY_INACTIVE
+                message: Factory with ID 3 is already inactive
+                path: /api/factories/3/deactivate
+                timestamp: '2026-10-15T13:00:00.000Z'
+            hasActiveManagers:
+              summary: FACTORY_HAS_ACTIVE_MANAGERS
+              value:
+                statusCode: 409
+                error: Conflict
+                code: FACTORY_HAS_ACTIVE_MANAGERS
+                message: Factory with ID 1 has active managers and cannot be deactivated
+                path: /api/factories/1/deactivate
+                timestamp: '2026-10-15T13:00:00.000Z'

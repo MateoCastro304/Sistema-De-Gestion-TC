@@ -6,7 +6,7 @@
 
 ---
 
-> **Discrepancia abierta.** Esta guía separa las pruebas de integración y de API, mientras el [README de la suite](../../backend/test/README.md) documenta tests de integración que verifican contrato y base en el mismo test. El momento de ejecución en CI (§3.2) también difiere de [ADR-010](../decisions/010-continuous-integration.md). Ver [inconsistencias documentales](../seguimiento/inconsistencias-documentales.md).
+> **Discrepancia abierta.** Esta guía separa las pruebas de integración y de API, mientras el [README de la suite](../../backend/test/README.md) documenta tests de integración que verifican contrato y base en el mismo test. El momento de ejecución en CI (§3.2) también difiere de [ADR-010](../decisiones/010-continuous-integration.md). Ver [inconsistencias documentales](../seguimiento/inconsistencias-documentales.md).
 
 ## 1. Propósito y alcance
 

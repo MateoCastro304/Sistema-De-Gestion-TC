@@ -6,7 +6,7 @@ Registrar los pedidos de los clientes y elaborar ofertas técnicas y económicas
 
 ## Actores y objetivos
 
-El Encargado de Recepción (ERP) registra la solicitud y la orden de compra. El Encargado de Cotización (EC) prepara la oferta, consulta antecedentes y genera o envía el informe. Los servicios de correo y mensajería participan en el envío; el Temporizador controla el vencimiento. Los permisos detallados permanecen en la [matriz](../domain/Matriz%20de%20permisos.md).
+El Encargado de Recepción (ERP) registra la solicitud y la orden de compra. El Encargado de Cotización (EC) prepara la oferta, consulta antecedentes y genera o envía el informe. Los servicios de correo y mensajería participan en el envío; el Temporizador controla el vencimiento. Los permisos detallados permanecen en la [matriz](../dominio/Matriz%20de%20permisos.md).
 
 ## Conceptos y relaciones
 
@@ -20,11 +20,11 @@ La pieza se identifica por número de plano o por un identificador interno cuand
 
 El catálogo formal se conserva en `domain/` para mantener una única definición de cada regla:
 
-- [RN01–RN03](../domain/02-reglas-de-negocio.md#a-clientes-y-solicitudes): cliente y registro obligatorio de la solicitud.
-- [RN04–RN12](../domain/02-reglas-de-negocio.md#b-cotización-identidad-y-composición): identidad, documentación y composición.
-- [RN13–RN22](../domain/02-reglas-de-negocio.md#c-materiales-proveedores-y-mano-de-obra): materiales, procesos, proveedores y repuestos.
-- [RN23–RN29](../domain/02-reglas-de-negocio.md#d-cálculo-del-precio): costos, descuentos, seña, moneda y vigencia.
-- [RN30–RN33](../domain/02-reglas-de-negocio.md#e-informe-y-ciclo-de-la-cotización): informe, cambios y adjudicación.
+- [RN01–RN03](../dominio/02-reglas-de-negocio.md#a-clientes-y-solicitudes): cliente y registro obligatorio de la solicitud.
+- [RN04–RN12](../dominio/02-reglas-de-negocio.md#b-cotización-identidad-y-composición): identidad, documentación y composición.
+- [RN13–RN22](../dominio/02-reglas-de-negocio.md#c-materiales-proveedores-y-mano-de-obra): materiales, procesos, proveedores y repuestos.
+- [RN23–RN29](../dominio/02-reglas-de-negocio.md#d-cálculo-del-precio): costos, descuentos, seña, moneda y vigencia.
+- [RN30–RN33](../dominio/02-reglas-de-negocio.md#e-informe-y-ciclo-de-la-cotización): informe, cambios y adjudicación.
 
 El informe al cliente contiene los precios finales y las condiciones comerciales, sin los costos internos, márgenes ni desvíos (RN42). La seña se calcula e informa; su cobro queda fuera del alcance.
 
@@ -42,7 +42,7 @@ El informe al cliente contiene los precios finales y las condiciones comerciales
 
 **Resultado:** la solicitud y su documentación quedan disponibles para cotizar. Los formatos inválidos requieren corrección; la cancelación finaliza sin registro.
 
-Esta síntesis no reemplaza los 16 pasos ni las alternativas A1–A5 de [CU-13](../domain/04-actores-y-casos-de-uso.md#cu-13--registrar-solicitud-de-cotización).
+Esta síntesis no reemplaza los 16 pasos ni las alternativas A1–A5 de [CU-13](../dominio/04-actores-y-casos-de-uso.md#cu-13--registrar-solicitud-de-cotización).
 
 ### Elaborar una cotización
 
@@ -56,7 +56,7 @@ Esta síntesis no reemplaza los 16 pasos ni las alternativas A1–A5 de [CU-13](
 4. El EC revisa el resumen, aplica descuento o seña si corresponde y confirma.
 5. El sistema calcula el precio final y registra la cotización en `Cotizado`, disponible para generar y enviar el informe.
 
-**Alternativas:** reutilizar antecedentes, cargar conjuntos o reparaciones, dar de alta referencias faltantes, guardar como borrador o abandonar sin guardar. Los puntos de retorno y efectos exactos se conservan en los 44 pasos y alternativas A1–A20 de [CU-14](../domain/04-actores-y-casos-de-uso.md#cu-14--registrar-cotización).
+**Alternativas:** reutilizar antecedentes, cargar conjuntos o reparaciones, dar de alta referencias faltantes, guardar como borrador o abandonar sin guardar. Los puntos de retorno y efectos exactos se conservan en los 44 pasos y alternativas A1–A20 de [CU-14](../dominio/04-actores-y-casos-de-uso.md#cu-14--registrar-cotización).
 
 ### Adjudicar ítems
 
@@ -71,14 +71,14 @@ Esta síntesis no reemplaza los 16 pasos ni las alternativas A1–A5 de [CU-13](
 
 `PteCotizacion` y `Borrador` permiten preparar la oferta; `Cotizado` representa una oferta emitida y vigente. Desde allí puede vencer o adjudicarse total o parcialmente. Modificar una oferta emitida mantiene `Cotizado` y registra el cambio en el historial; «Modificada» no es un estado.
 
-Las operaciones admitidas, guardas, efectos y transiciones ilegales están en [RN31](../domain/02-reglas-de-negocio.md) y la [máquina de estados de cotización](../domain/06-maquinas-de-estado.md#1-cotización-cotizacionestado--estadocotizacion).
+Las operaciones admitidas, guardas, efectos y transiciones ilegales están en [RN31](../dominio/02-reglas-de-negocio.md) y la [máquina de estados de cotización](../dominio/06-maquinas-de-estado.md#1-cotización-cotizacionestado--estadocotizacion).
 
 ## Decisiones y cuestiones abiertas
 
-La generación de PDF se describe en [ADR-004](../decisions/004-generate-pdf.md), y los canales salientes en [ADR-007](../decisions/007-mail-integration.md) y [ADR-008](../decisions/008-whatsapp-integration.md). Sus estados y proveedores pendientes siguen siendo los registrados en cada ADR.
+La generación de PDF se describe en [ADR-004](../decisiones/004-generate-pdf.md), y los canales salientes en [ADR-007](../decisiones/007-mail-integration.md) y [ADR-008](../decisiones/008-whatsapp-integration.md). Sus estados y proveedores pendientes siguen siendo los registrados en cada ADR.
 
 Hay diferencias documentales sobre el formato del PDF y las referencias de reglas usadas por ADR-008. Se conservan señaladas en [DOC-03](../seguimiento/inconsistencias-documentales.md#doc-03--formato-del-informe-de-cotización) e [DOC-04](../seguimiento/inconsistencias-documentales.md#doc-04--referencias-a-reglas-en-adr-008). Los supuestos de las máquinas de estado, como no reiniciar la fecha de vencimiento al modificar, no se convierten aquí en decisiones confirmadas.
 
 ## Documentación relacionada
 
-Fuentes de esta síntesis: [introducción, §3](../domain/01-introduccion-alcance.md#3-propuesta-visión-del-flujo), [RF08–RF09](../domain/03-requerimientos.md) y [modelo, §§2–3](../domain/05-modelo-de-dominio.md). Las especificaciones completas permanecen en `domain/`.
+Fuentes de esta síntesis: [introducción, §3](../dominio/01-introduccion-alcance.md#3-propuesta-visión-del-flujo), [RF08–RF09](../dominio/03-requerimientos.md) y [modelo, §§2–3](../dominio/05-modelo-de-dominio.md). Las especificaciones completas permanecen en `domain/`.

@@ -1,0 +1,7 @@
+description: |
+  Cookie con el refresh token. En el login, `Max-Age` son los 7 días de la
+  sesión; en el refresh, los segundos que faltan hasta `sessionExpiresAt` (la
+  rotación no estira la sesión).
+schema:
+  type: string
+example: refresh_token=<valor opaco>; HttpOnly; Secure; SameSite=Strict; Path=/api/auth; Max-Age=604800

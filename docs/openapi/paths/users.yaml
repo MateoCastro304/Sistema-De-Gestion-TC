@@ -1,0 +1,242 @@
+get:
+  summary: Consultar usuarios
+  description: |
+    **Rol:** `AS`.
+
+    Lista paginada de usuarios (CU-07), ordenada por nombre de usuario.
+    Incluye los bloqueados siempre y los inactivos solo con `includeInactive`.
+
+    **En el prototipo**
+
+    - Usuarios → listado ("Buscar por usuario o empleado"): `search` con lo
+      escrito.
+    - Usuarios → filtro "Todos los roles": `role` con el rol elegido; sin el
+      parámetro, todos.
+    - Usuarios → "Incluir dados de baja": `includeInactive=true`.
+    - Usuarios → encabezado ("8 usuarios activos"): `limit=1` sin filtros; el
+      número es `total` (cuenta activos y bloqueados).
+  operationId: listUsers
+  tags:
+    - Usuarios
+  x-roles:
+    - AS
+  parameters:
+    - $ref: '../components/parameters/PageParam.yaml'
+    - $ref: '../components/parameters/LimitParam.yaml'
+    - name: search
+      in: query
+      required: false
+      description: |
+        Busca en el nombre de usuario y en el nombre y apellido del empleado.
+        Sin distinguir mayúsculas ni acentos.
+      schema:
+        type: string
+        maxLength: 120
+      example: castro
+    - name: role
+      in: query
+      required: false
+      description: Solo los usuarios que tienen ese rol. Un código que no existe responde `400`.
+      schema:
+        $ref: '../components/schemas/Role.yaml'
+    - $ref: '../components/parameters/IncludeInactiveParam.yaml'
+  responses:
+    '200':
+      description: |
+        Página de usuarios. Sin resultados, `items` vacío y `total` en `0`; el
+        prototipo muestra "No se encontraron usuarios con ese criterio" y
+        ofrece "+ Nuevo usuario".
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/UserList.yaml'
+          example:
+            items:
+              - id: 7
+                username: dcastro
+                employee:
+                  id: 7
+                  firstName: Daniel
+                  lastName: Castro
+                roles:
+                  - ERP
+                  - EC
+                status: ACTIVE
+                lastAccessAt: '2026-10-14T11:02:00.000Z'
+                createdAt: '2026-03-12T12:00:00.000Z'
+              - id: 8
+                username: hfunes
+                employee:
+                  id: 8
+                  firstName: Hugo
+                  lastName: Funes
+                roles:
+                  - AT
+                status: BLOCKED
+                lastAccessAt: '2026-10-06T11:40:00.000Z'
+                createdAt: '2026-03-12T12:00:00.000Z'
+            total: 8
+            page: 1
+            limit: 20
+    '400':
+      description: '`VALIDATION_ERROR`: algún parámetro de consulta no es válido.'
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 400
+            error: Bad Request
+            code: VALIDATION_ERROR
+            message: Los parámetros de consulta no son válidos.
+            path: /api/users?role=XX
+            timestamp: '2026-10-15T13:10:00.000Z'
+            details:
+              - field: role
+                message: No existe un rol con ese código.
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
+
+post:
+  summary: Registrar usuario
+  description: |
+    **Rol:** `AS`.
+
+    Registra un usuario para un empleado (CU-05). El usuario queda activo y
+    puede ingresar de inmediato con esa contraseña.
+
+    `USERNAME_TAKEN` y `EMPLOYEE_ALREADY_HAS_USER` son dos `409` distintos
+    porque el prototipo los resuelve distinto: el primero marca el campo
+    "Nombre de usuario"; el segundo muestra el aviso en el buscador de empleado
+    con el enlace al usuario existente.
+  operationId: createUser
+  tags:
+    - Usuarios
+  x-roles:
+    - AS
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/UserCreate.yaml'
+        example:
+          employeeId: 9
+          username: mcastro
+          password: Tz8kq4Rmw2
+          roles:
+            - EC
+            - ER
+  responses:
+    '201':
+      description: Usuario registrado.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/User.yaml'
+          example:
+            id: 10
+            username: mcastro
+            employee:
+              id: 9
+              firstName: Matías
+              lastName: Castro
+            roles:
+              - EC
+              - ER
+            status: ACTIVE
+            lastAccessAt: null
+            createdAt: '2026-10-15T13:10:00.000Z'
+    '400':
+      description: |
+        `VALIDATION_ERROR`: faltan obligatorios, no cumplen el formato, o
+        `employeeId` es de un empleado que no existe (D-21).
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          examples:
+            invalid:
+              summary: Faltan obligatorios o no cumplen el formato
+              value:
+                statusCode: 400
+                error: Bad Request
+                code: VALIDATION_ERROR
+                message: Los datos enviados no son válidos.
+                path: /api/users
+                timestamp: '2026-10-15T13:10:00.000Z'
+                details:
+                  - field: employeeId
+                    message: Elegí el empleado
+                  - field: username
+                    message: Ingresá el nombre de usuario
+                  - field: password
+                    message: La contraseña debe tener al menos 8 caracteres
+                  - field: roles
+                    message: Asigná al menos un rol
+            employeeNotFound:
+              summary: El empleado no existe
+              value:
+                statusCode: 400
+                error: Bad Request
+                code: VALIDATION_ERROR
+                message: Los datos enviados no son válidos.
+                path: /api/users
+                timestamp: '2026-10-15T13:10:00.000Z'
+                details:
+                  - field: employeeId
+                    message: No existe un empleado con ese identificador.
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
+    '409':
+      description: |
+        - `USERNAME_TAKEN`: el nombre de usuario ya está en uso, aunque sea de
+          un usuario dado de baja (CU-05, escenario 3).
+        - `EMPLOYEE_ALREADY_HAS_USER`: el empleado ya tiene usuario (CU-05,
+          escenario 4).
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          examples:
+            usernameTaken:
+              summary: USERNAME_TAKEN
+              value:
+                statusCode: 409
+                error: Conflict
+                code: USERNAME_TAKEN
+                message: El nombre de usuario ya está en uso
+                path: /api/users
+                timestamp: '2026-10-15T13:10:00.000Z'
+                details:
+                  - field: username
+                    message: El nombre de usuario ya está en uso
+            employeeAlreadyHasUser:
+              summary: EMPLOYEE_ALREADY_HAS_USER
+              value:
+                statusCode: 409
+                error: Conflict
+                code: EMPLOYEE_ALREADY_HAS_USER
+                message: Este empleado ya tiene el usuario «gtorres»
+                path: /api/users
+                timestamp: '2026-10-15T13:10:00.000Z'
+                details:
+                  - field: employeeId
+                    message: Este empleado ya tiene el usuario «gtorres»
+    '422':
+      description: '`EMPLOYEE_INACTIVE`: el empleado está dado de baja (D-21).'
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 422
+            error: Unprocessable Content
+            code: EMPLOYEE_INACTIVE
+            message: 'El empleado está dado de baja: no se le puede crear un usuario.'
+            path: /api/users
+            timestamp: '2026-10-15T13:10:00.000Z'

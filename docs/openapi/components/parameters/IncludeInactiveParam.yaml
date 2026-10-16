@@ -1,0 +1,8 @@
+name: includeInactive
+in: query
+required: false
+description: '`true` incluye a los registros dados de baja.'
+schema:
+  type: boolean
+  default: false
+example: false

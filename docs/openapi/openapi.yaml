@@ -3,24 +3,67 @@ openapi: 3.0.3
 info:
   title: Torneria Castro API
   description: |
-    REST API for the internal management system of **Torneria Castro SRL**.
+    API REST del sistema de gestión interno de **Castro Tornería S.R.L.**
 
-    Covers the workshop workflows: management of client factories and their
-    managers, raw material suppliers, and categories. Later sprints will add
-    quotations, work orders, production tracking and reports.
+    > **Fuente de verdad:** el contrato del Sprint 2 es
+    > `docs/api-contract/API_CONTRACT_SPRINT_2.md`. Esta especificación lo
+    > refleja para verlo y probarlo; ante cualquier diferencia, manda el `.md`.
+    > El Sprint 1 está descrito tal como está implementado en el backend, con
+    > los cambios que le aplica el Sprint 2 (sesión, roles y `code` en los
+    > errores).
 
-    ## Sprint 1 Modules
-    - **Categories**: CRUD of factory categories.
-    - **Suppliers**: CRUD of raw material suppliers.
-    - **Factories**: CRUD of client factories (legal entities).
-    - **Managers**: CRUD of factory managers (sub-resource of Factory).
+    ## Módulos
 
-    ## Authentication
-    _(pending — will be added together with the Users module)_
+    **Sprint 2**
+    - **Sesión**: iniciar, renovar y cerrar sesión (CU-53, CU-52).
+    - **Empleados** y **Usuarios**: alta y consulta (CU-45, CU-47, CU-05, CU-07).
+    - **Tipos de proceso**, con su historial de precios, y **Tipo de cambio**
+      (CU-09, CU-10, CU-11).
+    - **Materiales**: alta y consulta (CU-37, CU-39).
 
-    ## Contact
-    Dropouts team — dropouts@gmail.com
-  version: 0.1.0
+    **Sprint 1**
+    - **Rubros**, **Fábricas**, **Encargados** y **Proveedores**.
+
+    ## Autenticación
+
+    Todos los endpoints, salvo los de `/auth`, requieren el `accessToken` en
+    `Authorization: Bearer <accessToken>` y uno de los roles indicados en cada
+    operación (**Rol** / **Roles** al principio de su descripción, y
+    `x-roles`). Cuando se indican dos roles, alcanza con uno.
+
+    **Para probar desde acá:**
+    1. Elegí el server `http://localhost/api` (nginx).
+    2. Ejecutá `POST /auth/login`. El navegador guarda la cookie
+       `refresh_token`, que usan `/auth/refresh` y `/auth/logout`.
+    3. Copiá el `accessToken` de la respuesta y pegalo en **Authorize** →
+       `bearerAuth`. Dura 15 minutos; después, `POST /auth/refresh` da otro.
+
+    | Tiempo | Duración | Al cumplirse |
+    | --- | --- | --- |
+    | Vida del `accessToken` | 15 minutos | `401 ACCESS_TOKEN_EXPIRED`: renovar con `POST /auth/refresh` |
+    | Inactividad | 30 minutos | La sesión se cierra: `401 SESSION_EXPIRED` |
+    | Duración máxima (refresh token) | 7 días desde el ingreso | La sesión se cierra: `401 SESSION_EXPIRED` |
+
+    ## Convenciones
+
+    - **Formato:** JSON, campos en inglés y `camelCase`; los valores que ve el
+      usuario, en castellano.
+    - **Fechas:** ISO 8601 en UTC (`2026-10-15T12:30:00.000Z`).
+    - **Montos y tipo de cambio:** números con hasta dos decimales.
+    - **Textos:** se guardan sin espacios en los extremos; un campo opcional
+      vacío (`""`) se guarda como `null`.
+    - **Campos desconocidos** en el cuerpo o la consulta: `400 VALIDATION_ERROR`.
+    - **Recurso individual:** sin sobre. **Colección paginada:**
+      `{ items, total, page, limit }`, con `limit` de 1 a 1000. **Colección no
+      paginada** (listas cortas): `{ items }`.
+    - **Errores:** siempre con el esquema `Error`; el cliente decide por
+      `code`. Cualquier endpoint puede responder `500 INTERNAL_SERVER_ERROR`
+      ante un error inesperado: el detalle va al registro del servidor
+      (RNF13), nunca al cliente.
+
+    ## Contacto
+    Equipo Dropouts — dropouts@gmail.com
+  version: 0.2.0
   license:
     name: UNLICENSED
   contact:
@@ -28,40 +71,108 @@ info:
     email: dropouts@gmail.com
 
 servers:
+  - url: http://localhost/api
+    description: |
+      Desarrollo, a través de nginx, igual que el frontend. Es el que hay que
+      usar para probar la sesión: la cookie `refresh_token` tiene
+      `Path=/api/auth`.
   - url: http://localhost:3000
-    description: Local development
+    description: |
+      Desarrollo, backend directo (sin nginx ni `/api`). Sirve para todo menos
+      `/auth/refresh` y `/auth/logout`, porque el navegador no les manda la
+      cookie de sesión.
   # - url: https://TODO-production-host/api
-  #   description: Production
+  #   description: Producción
 
-security: []
+security:
+  - bearerAuth: []
 
 tags:
-  - name: Categories
-    description: CRUD of factory categories.
-  - name: Suppliers
-    description: CRUD of raw material suppliers.
-  - name: Factories
-    description: CRUD of client factories (legal entities).
-  - name: Managers
-    description: CRUD of factory managers (sub-resource of Factory).
+  - name: Sesión
+    description: Iniciar, renovar y cerrar sesión (CU-53, CU-52). Público o con la cookie de sesión.
+  - name: Empleados
+    description: Personal de la empresa (CU-45, CU-47). Rol `AS`.
+  - name: Usuarios
+    description: Cuentas de acceso al sistema y sus roles (CU-05, CU-07). Rol `AS`.
+  - name: Tipos de proceso
+    description: Procesos del taller con su precio hora y su historial de precios (CU-09, CU-10, CU-11). Roles `AT` o `EC`.
+  - name: Tipo de cambio
+    description: Cotización del dólar que precarga el formulario de tipo de proceso. Roles `AT` o `EC`.
+  - name: Materiales
+    description: Catálogo de materiales, nombre y calidad (CU-37, CU-39). Roles `AT` o `EC`.
+  - name: Rubros
+    description: Rubros de las fábricas (Sprint 1). Rol `ERP`.
+  - name: Fábricas
+    description: Fábricas cliente (Sprint 1). Rol `ERP`.
+  - name: Encargados
+    description: Encargados de las fábricas, sus personas de contacto (Sprint 1). Rol `ERP`.
+  - name: Proveedores
+    description: Proveedores de materias primas e insumos (Sprint 1). Roles `AT` o `EC`.
 
 paths:
+  /auth/login:
+    $ref: './paths/auth@login.yaml'
+  /auth/refresh:
+    $ref: './paths/auth@refresh.yaml'
+  /auth/logout:
+    $ref: './paths/auth@logout.yaml'
+
+  /employees:
+    $ref: './paths/employees.yaml'
+  /employees/{employeeId}:
+    $ref: './paths/employees@{employeeId}.yaml'
+
+  /users:
+    $ref: './paths/users.yaml'
+  /users/{userId}:
+    $ref: './paths/users@{userId}.yaml'
+
+  /process-types:
+    $ref: './paths/process-types.yaml'
+  /process-types/{processTypeId}:
+    $ref: './paths/process-types@{processTypeId}.yaml'
+  /process-types/{processTypeId}/history:
+    $ref: './paths/process-types@{processTypeId}@history.yaml'
+
+  /exchange-rate:
+    $ref: './paths/exchange-rate.yaml'
+
+  /materials:
+    $ref: './paths/materials.yaml'
+  /materials/names:
+    $ref: './paths/materials@names.yaml'
+
   /categories:
     $ref: './paths/categories.yaml'
   /categories/{id}:
     $ref: './paths/categories@{id}.yaml'
+  /categories/{id}/restore:
+    $ref: './paths/categories@{id}@restore.yaml'
+
+  /factories:
+    $ref: './paths/factories.yaml'
+  /factories/{id}:
+    $ref: './paths/factories@{id}.yaml'
+  /factories/{id}/deactivate:
+    $ref: './paths/factories@{id}@deactivate.yaml'
+
+  /managers:
+    $ref: './paths/managers.yaml'
+  /factories/{factoryId}/managers:
+    $ref: './paths/factories@{factoryId}@managers.yaml'
+  /factories/{factoryId}/managers/{id}:
+    $ref: './paths/factories@{factoryId}@managers@{id}.yaml'
+  /factories/{factoryId}/managers/{id}/deactivate:
+    $ref: './paths/factories@{factoryId}@managers@{id}@deactivate.yaml'
 
   /suppliers:
     $ref: './paths/suppliers.yaml'
   /suppliers/{id}:
     $ref: './paths/suppliers@{id}.yaml'
 
-  /factories:
-    $ref: './paths/factories.yaml'
-  /factories/{id}:
-    $ref: './paths/factories@{id}.yaml'
-
-  /factories/{factoryId}/managers:
-    $ref: './paths/factories@{factoryId}@managers.yaml'
-  /factories/{factoryId}/managers/{id}:
-    $ref: './paths/factories@{factoryId}@managers@{id}.yaml'
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: './components/securitySchemes/BearerAuth.yaml'
+    refreshCookie:
+      $ref: './components/securitySchemes/RefreshCookie.yaml'

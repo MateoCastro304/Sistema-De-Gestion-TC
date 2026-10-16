@@ -1,0 +1,78 @@
+parameters:
+  - $ref: '../components/parameters/EmployeeIdParam.yaml'
+
+get:
+  summary: Consultar empleado
+  description: |
+    **Rol:** `AS`.
+
+    Obtiene un empleado (CU-47): la pantalla de detalle, con el recuadro
+    "Usuario del sistema".
+
+    Un empleado dado de baja también se devuelve, con `active` en `false`: el
+    prototipo muestra "Este empleado está dado de baja." Con `user` en `null`
+    muestra "Este empleado todavía no tiene usuario." y el enlace "Crear
+    usuario".
+  operationId: getEmployeeById
+  tags:
+    - Empleados
+  x-roles:
+    - AS
+  responses:
+    '200':
+      description: Empleado pedido.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Employee.yaml'
+          example:
+            id: 1
+            firstName: Walter
+            lastName: Castro
+            dni: '20112233'
+            position: HEAD
+            address: Av. Colón 1820, Córdoba
+            email: wcastro@castrotorneria.com.ar
+            phone: +54 351 555-1001
+            active: true
+            user:
+              id: 1
+              username: wcastro
+              roles:
+                - AS
+              status: ACTIVE
+            createdAt: '2026-03-12T12:00:00.000Z'
+            updatedAt: '2026-03-12T12:00:00.000Z'
+    '400':
+      description: '`INVALID_PATH_PARAMETER`: `employeeId` no es un entero.'
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 400
+            error: Bad Request
+            code: INVALID_PATH_PARAMETER
+            message: El identificador del empleado no es válido.
+            path: /api/employees/abc
+            timestamp: '2026-10-15T13:05:00.000Z'
+            details:
+              - field: employeeId
+                message: Debe ser un número entero válido.
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
+    '404':
+      description: '`EMPLOYEE_NOT_FOUND`: no existe un empleado con ese identificador.'
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 404
+            error: Not Found
+            code: EMPLOYEE_NOT_FOUND
+            message: No se encontró el empleado solicitado.
+            path: /api/employees/99
+            timestamp: '2026-10-15T13:05:00.000Z'

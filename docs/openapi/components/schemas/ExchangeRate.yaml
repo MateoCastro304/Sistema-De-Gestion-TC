@@ -1,0 +1,19 @@
+type: object
+description: |
+  Cotización actual del dólar en pesos. Sale de una API externa gratuita
+  (D-48); cuál se usa y cada cuánto se renueva son detalles de implementación.
+required:
+  - rate
+  - updatedAt
+properties:
+  rate:
+    type: number
+    description: Pesos por dólar, con dos decimales.
+    example: 1385.5
+  updatedAt:
+    type: string
+    format: date-time
+    description: |
+      Momento de la cotización. Es el "Cotización actualizada al …" del
+      formulario.
+    example: '2026-10-15T12:30:00.000Z'

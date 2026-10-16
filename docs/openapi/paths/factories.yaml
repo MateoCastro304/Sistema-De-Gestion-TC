@@ -1,60 +1,173 @@
 get:
-  summary: List factories
-  description: Returns a paginated list of client factories.
+  summary: Consultar fábricas
+  description: |
+    **Rol:** `ERP`.
+
+    Lista paginada de fábricas, ordenada por identificador. Sin `active`
+    devuelve activas y dadas de baja.
   operationId: listFactories
   tags:
-    - Factories
+    - Fábricas
+  x-roles:
+    - ERP
   parameters:
     - $ref: '../components/parameters/PageParam.yaml'
     - $ref: '../components/parameters/LimitParam.yaml'
+    - name: categoryId
+      in: query
+      required: false
+      description: Solo las fábricas de ese rubro.
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+      example: 1
+    - name: nameContains
+      in: query
+      required: false
+      description: Fábricas cuya razón social contiene el texto, sin distinguir mayúsculas.
+      schema:
+        type: string
+      example: oxy
+    - name: active
+      in: query
+      required: false
+      description: '`true`: solo las activas. `false`: solo las dadas de baja. Sin el parámetro, todas.'
+      schema:
+        type: boolean
   responses:
     '200':
-      description: Page of factories matching the filters, with the total count.
+      description: Página de fábricas.
       content:
         application/json:
           schema:
-            type: object
-            required: [items, total, page, limit]
-            properties:
-              items:
-                type: array
-                items:
-                  $ref: '../components/schemas/Factory.yaml'
-              total:
-                type: integer
-                minimum: 0
-                description: Total number of factories matching the filters.
-              page:
-                type: integer
-                minimum: 1
-              limit:
-                type: integer
-                minimum: 1
+            $ref: '../components/schemas/FactoryList.yaml'
+          example:
+            items:
+              - id: '1'
+                legalName: OxyCAM S.A.
+                cuit: '33709123454'
+                address: Ruta 9 Km 12, Córdoba
+                payMethod: Transferencia a 30 días
+                categoryId: '1'
+                isActive: true
+            total: 1
+            page: 1
+            limit: 20
+    '400':
+      $ref: '../components/responses/InvalidQuery.yaml'
     '401':
       $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
 
 post:
-  summary: Create a factory
+  summary: Registrar fábrica
   description: |
-    Registers a new client factory. The factory is created without
-    managers; they are added later via /factories/{factoryId}/managers.
+    **Rol:** `ERP`.
+
+    Registra una fábrica cliente, que queda activa y sin encargados. El CUIT y
+    la razón social son únicos entre las fábricas activas: los de una fábrica
+    dada de baja se pueden reutilizar.
   operationId: createFactory
   tags:
-    - Factories
+    - Fábricas
+  x-roles:
+    - ERP
   requestBody:
     required: true
     content:
       application/json:
         schema:
           $ref: '../components/schemas/FactoryCreate.yaml'
+        example:
+          legalName: OxyCAM S.A.
+          cuit: 33-70912345-4
+          address: Ruta 9 Km 12, Córdoba
+          payMethod: Transferencia a 30 días
+          categoryId: 1
   responses:
     '201':
-      description: Factory created successfully.
+      description: Fábrica registrada.
       content:
         application/json:
           schema:
             $ref: '../components/schemas/Factory.yaml'
+          example:
+            id: '1'
+            legalName: OxyCAM S.A.
+            cuit: '33709123454'
+            address: Ruta 9 Km 12, Córdoba
+            payMethod: Transferencia a 30 días
+            categoryId: '1'
+            isActive: true
     '400':
-      $ref: '../components/responses/BadRequest.yaml'
+      description: |
+        `VALIDATION_ERROR`: faltan obligatorios, el CUIT no es válido o el rubro
+        no existe o está dado de baja.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          examples:
+            invalidCuit:
+              summary: CUIT inválido
+              value:
+                statusCode: 400
+                error: Bad Request
+                code: VALIDATION_ERROR
+                message: CUIT check digit is invalid
+                path: /api/factories
+                timestamp: '2026-10-15T13:00:00.000Z'
+                details:
+                  - field: cuit
+                    message: CUIT check digit is invalid
+            invalidCategory:
+              summary: Rubro inexistente o dado de baja
+              value:
+                statusCode: 400
+                error: Bad Request
+                code: VALIDATION_ERROR
+                message: Category with ID 9 not found or inactive
+                path: /api/factories
+                timestamp: '2026-10-15T13:00:00.000Z'
+                details:
+                  - field: categoryId
+                    message: Category with ID 9 not found or inactive
     '401':
       $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
+    '409':
+      description: |
+        - `FACTORY_CUIT_TAKEN`: el CUIT ya es de otra fábrica activa.
+        - `FACTORY_NAME_TAKEN`: la razón social ya es de otra fábrica activa.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          examples:
+            cuitTaken:
+              summary: FACTORY_CUIT_TAKEN
+              value:
+                statusCode: 409
+                error: Conflict
+                code: FACTORY_CUIT_TAKEN
+                message: Factory with cuit "33709123454" already exists
+                path: /api/factories
+                timestamp: '2026-10-15T13:00:00.000Z'
+                details:
+                  - field: cuit
+                    message: Factory with cuit "33709123454" already exists
+            nameTaken:
+              summary: FACTORY_NAME_TAKEN
+              value:
+                statusCode: 409
+                error: Conflict
+                code: FACTORY_NAME_TAKEN
+                message: Factory with name "OxyCAM S.A." already exists
+                path: /api/factories
+                timestamp: '2026-10-15T13:00:00.000Z'
+                details:
+                  - field: legalName
+                    message: Factory with name "OxyCAM S.A." already exists

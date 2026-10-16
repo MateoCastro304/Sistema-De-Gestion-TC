@@ -1,0 +1,20 @@
+type: object
+description: |
+  Nombres de material distintos, en orden alfabético. **No se pagina** (D-38):
+  son unas decenas de nombres como mucho.
+required:
+  - items
+properties:
+  items:
+    type: array
+    items:
+      type: string
+    example:
+      - Acero
+      - Acero inoxidable
+      - Aluminio
+      - Bronce
+      - Fundición gris
+      - Nylon
+      - POM
+      - Teflón

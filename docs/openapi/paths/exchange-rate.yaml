@@ -1,0 +1,52 @@
+get:
+  summary: Consultar el tipo de cambio actual
+  description: |
+    **Roles:** `AT` o `EC`.
+
+    Devuelve la cotización actual del dólar en pesos. El formulario de tipo de
+    proceso la usa para precargar el tipo de cambio y mostrar "Cotización
+    actualizada al 15/10/2026 09:30". Si el usuario lo cambia, el formulario
+    avisa "Valor modificado" y ofrece "↺ Restablecer cotización actual", que
+    vuelve a este valor.
+
+    La cotización sale de una API externa gratuita (D-48). El contrato fija
+    solo la forma de la respuesta: cambiar de proveedor no cambia el endpoint.
+  operationId: getExchangeRate
+  tags:
+    - Tipo de cambio
+  x-roles:
+    - AT
+    - EC
+  responses:
+    '200':
+      description: |
+        Cotización actual. Si el backend no pudo renovarla pero tiene una
+        anterior, responde con esa y su `updatedAt` real.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/ExchangeRate.yaml'
+          example:
+            rate: 1385.5
+            updatedAt: '2026-10-15T12:30:00.000Z'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
+    '502':
+      description: |
+        `EXCHANGE_RATE_UNAVAILABLE`: solo si el backend **nunca** pudo obtener
+        una cotización. El formulario deja el campo vacío para que el usuario lo
+        complete: el alta y la modificación de tipos de proceso no dependen de
+        este endpoint.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 502
+            error: Bad Gateway
+            code: EXCHANGE_RATE_UNAVAILABLE
+            message: No se pudo obtener la cotización del dólar. Ingresá el tipo de cambio a mano.
+            path: /api/exchange-rate
+            timestamp: '2026-10-15T13:20:00.000Z'

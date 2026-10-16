@@ -13,5 +13,5 @@
 - [ ] Endpoints changed → `docs/openapi/` updated in this PR
 - [ ] New environment variables → `.env.example` and `env.validation.ts` updated
 - [ ] Schema changed → migration included, integration tests run locally
-- [ ] Architectural decision → ADR added or updated in `docs/decisions/`
+- [ ] Architectural decision → ADR added or updated in `docs/decisiones/`
 - [ ] No lint rule disabled without a comment explaining why

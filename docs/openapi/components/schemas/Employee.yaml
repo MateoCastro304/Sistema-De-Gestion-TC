@@ -1,0 +1,112 @@
+type: object
+description: |
+  Personal de la empresa (CU-45 y CU-47). Un empleado puede existir sin
+  usuario: no todo el personal del taller usa el sistema.
+
+  Un empleado dado de baja **no desaparece**: se devuelve con `active` en
+  `false`, en su `GET` y en el listado con `includeInactive=true` (D-17).
+required:
+  - id
+  - firstName
+  - lastName
+  - dni
+  - position
+  - address
+  - email
+  - phone
+  - active
+  - user
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: integer
+    format: int64
+    description: Identificador único.
+    readOnly: true
+    example: 1
+  firstName:
+    type: string
+    maxLength: 100
+    description: Nombre.
+    example: Walter
+  lastName:
+    type: string
+    maxLength: 100
+    description: Apellido.
+    example: Castro
+  dni:
+    type: string
+    pattern: '^[0-9]{7,8}$'
+    description: |
+      DNI, solo números (7 u 8), sin puntos. Único entre todos los empleados,
+      incluidos los dados de baja (D-15).
+    example: '20112233'
+  position:
+    $ref: './EmployeePosition.yaml'
+  address:
+    type: string
+    nullable: true
+    maxLength: 200
+    description: Dirección.
+    example: Av. Colón 1820, Córdoba
+  email:
+    type: string
+    nullable: true
+    format: email
+    maxLength: 120
+    description: Correo electrónico.
+    example: wcastro@castrotorneria.com.ar
+  phone:
+    type: string
+    nullable: true
+    maxLength: 50
+    description: Teléfono.
+    example: +54 351 555-1001
+  active:
+    type: boolean
+    description: '`false` si fue dado de baja.'
+    example: true
+  user:
+    type: object
+    nullable: true
+    description: |
+      Resumen de su usuario del sistema, o `null` si no tiene. Alimenta las
+      columnas "Usuario" y "Roles" del listado y el recuadro "Usuario del
+      sistema" del detalle.
+    required:
+      - id
+      - username
+      - roles
+      - status
+    properties:
+      id:
+        type: integer
+        format: int64
+        description: Identificador del usuario.
+        example: 1
+      username:
+        type: string
+        description: Nombre de usuario.
+        example: wcastro
+      roles:
+        type: array
+        description: Roles asignados, en el orden del enumerado `Role`.
+        items:
+          $ref: './Role.yaml'
+        example:
+          - AS
+      status:
+        $ref: './UserStatus.yaml'
+  createdAt:
+    type: string
+    format: date-time
+    description: Fecha y hora del alta.
+    readOnly: true
+    example: '2026-03-12T12:00:00.000Z'
+  updatedAt:
+    type: string
+    format: date-time
+    description: Fecha y hora de la última modificación.
+    readOnly: true
+    example: '2026-03-12T12:00:00.000Z'

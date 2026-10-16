@@ -1,4 +1,6 @@
 import { http, HttpResponse, delay } from 'msw'
+import { cuitError, formatCuit } from '@/shared/lib/cuit'
+import { apiError } from '@/shared/mocks/errors'
 import { db } from './suppliers.db'
 import { SUPPLIER_TYPES } from '../types/supplier'
 import type {
@@ -7,31 +9,25 @@ import type {
     SupplierUpdate,
 } from '../types/supplier'
 
+/**
+ * MSW handlers que reemplazan al módulo de proveedores del backend
+ * (`backend/src/suppliers`): mismas validaciones, mismos códigos y la misma
+ * forma de los datos (CUIT con guiones, mail en minúsculas, teléfono sin
+ * separadores). Los `delay` están para ver los estados de carga.
+ */
+
 const BASE = '/api/suppliers'
 
-/** Error con la forma de components/schemas/Error.yaml. */
-function apiError(status: number, error: string, message: string, path: string) {
-  return HttpResponse.json(
-    { statusCode: status, error, message, path, timestamp: new Date().toISOString() },
-    { status },
-  )
+function notFound(request: Request, id: number) {
+  return apiError(request, 404, `Supplier with id ${id} not found`, { extra: { id } })
 }
 
 /**
  * 409 de unicidad con la forma del backend real (DomainErrorFilter): manda
  * `field` y `value` para que el formulario marque el campo que chocó.
  */
-function conflict(field: 'cuit' | 'legalName', value: string) {
-  return HttpResponse.json(
-    {
-      statusCode: 409,
-      error: 'Conflict',
-      message: `Supplier with ${field} "${value}" already exists`,
-      field,
-      value,
-    },
-    { status: 409 },
-  )
+function conflict(request: Request, field: 'cuit' | 'legalName', value: string) {
+  return apiError(request, 409, `Supplier with ${field} "${value}" already exists`, { extra: { field, value } })
 }
 
 /** Las únicas claves que acepta el PATCH; cualquier otra es un 400. */
@@ -43,14 +39,36 @@ const CLEARABLE_FIELDS = ['cuit', 'contactName', 'contactEmail', 'contactPhone',
 /** Tope de `limit`, igual al de ListSuppliersQueryDto. */
 const MAX_LIMIT = 100
 
+/** Mismo criterio que shared/domain/mail.ts del backend. */
+const MAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+type Normalized = Partial<Record<(typeof CLEARABLE_FIELDS)[number], string>>
+
 /**
- * El CUIT es opcional: "no vino" y "vino vacio" significan lo mismo y se
- * guardan como undefined. Sin esta normalizacion quedarian las dos formas
- * conviviendo en la base y las comparaciones de unicidad fallarian.
+ * Valida y deja cada opcional como lo guarda el backend. Vacío o null es
+ * "sin dato" (undefined). Devuelve el 400 si algún valor no pasa la
+ * validación de dominio (Cuit, Mail, Phone).
  */
-function normalizeCuit(value: string | null | undefined): string | undefined {
-  const cuit = value?.trim()
-  return cuit ? cuit : undefined
+function normalizeOptionals(request: Request, body: SupplierUpdate): Normalized | Response {
+  const result: Normalized = {}
+  for (const field of CLEARABLE_FIELDS) {
+    const value = body[field]?.trim()
+    if (!value) continue
+    if (field === 'cuit') {
+      if (cuitError(value)) return apiError(request, 400, 'CUIT check digit is invalid')
+      result.cuit = formatCuit(value)
+    } else if (field === 'contactEmail') {
+      if (!MAIL_RE.test(value)) return apiError(request, 400, 'Invalid email format')
+      result.contactEmail = value.toLowerCase()
+    } else if (field === 'contactPhone') {
+      const digits = value.replace(/^\+/, '').replace(/[\s\-.()]/g, '')
+      if (!/^\d{8,15}$/.test(digits)) return apiError(request, 400, 'Phone must have between 8 and 15 digits')
+      result.contactPhone = `${value.startsWith('+') ? '+' : ''}${digits}`
+    } else {
+      result[field] = value
+    }
+  }
+  return result
 }
 
 /**
@@ -83,13 +101,13 @@ export const supplierHandlers = [
     const type = query.get('type') as SupplierType | null
 
     if (!Number.isInteger(page) || page < 1) {
-      return apiError(400, 'Bad Request', 'page must not be less than 1', BASE)
+      return apiError(request, 400, 'page must not be less than 1')
     }
     if (!Number.isInteger(limit) || limit < 1 || limit > MAX_LIMIT) {
-      return apiError(400, 'Bad Request', `limit must not be greater than ${MAX_LIMIT}`, BASE)
+      return apiError(request, 400, `limit must not be greater than ${MAX_LIMIT}`)
     }
     if (type && !SUPPLIER_TYPES.includes(type)) {
-      return apiError(400, 'Bad Request', 'type must be one of the supplier types', BASE)
+      return apiError(request, 400, 'type must be one of the supplier types')
     }
 
     // search matchea razon social, contacto o CUIT (este, sin separadores).
@@ -114,14 +132,12 @@ export const supplierHandlers = [
     })
   }),
 
-  http.get(`${BASE}/:id`, async ({ params }) => {
+  http.get(`${BASE}/:id`, async ({ request, params }) => {
     await delay(300)
     const id = Number(params.id)
     const supplier = db.suppliers.find((s) => s.id === id)
     // Un proveedor inactivo se responde igual que uno inexistente: 404.
-    if (!supplier || !supplier.active) {
-      return apiError(404, 'Not Found', `Supplier with id ${id} was not found.`, `${BASE}/${id}`)
-    }
+    if (!supplier || !supplier.active) return notFound(request, id)
     return HttpResponse.json(supplier)
   }),
 
@@ -132,27 +148,22 @@ export const supplierHandlers = [
     // El `?.` aunque el tipo diga que vienen siempre: el body llega de la red
     // y el tipo es una promesa, no una garantia de runtime.
     if (!body.legalName?.trim() || !SUPPLIER_TYPES.includes(body.supplierType)) {
-      return apiError(
-        400,
-        'Bad Request',
-        'legalName y supplierType son obligatorios.',
-        BASE,
-      )
+      return apiError(request, 400, 'legalName y supplierType son obligatorios.')
     }
+    const optionals = normalizeOptionals(request, body)
+    if (optionals instanceof Response) return optionals
 
-    if (isLegalNameTaken(body.legalName)) return conflict('legalName', body.legalName.trim())
-
-    const cuit = normalizeCuit(body.cuit)
-
+    const legalName = body.legalName.trim()
+    if (isLegalNameTaken(legalName)) return conflict(request, 'legalName', legalName)
     // Solo si vino un CUIT: sin CUIT no hay unicidad que verificar, y sin este
     // `if` dos proveedores sin CUIT chocarian entre si (undefined === undefined).
-    if (cuit && isCuitTaken(cuit)) return conflict('cuit', cuit)
+    if (optionals.cuit && isCuitTaken(optionals.cuit)) return conflict(request, 'cuit', optionals.cuit)
 
     const now = new Date().toISOString()
-    // `cuit` va despues del spread para pisar el del body con el normalizado.
     const created = {
-      ...body,
-      cuit,
+      ...optionals,
+      legalName,
+      supplierType: body.supplierType,
       id: db.nextId++,
       active: true,
       createdAt: now,
@@ -162,43 +173,34 @@ export const supplierHandlers = [
     return HttpResponse.json(created, { status: 201 })
   }),
 
-  http.patch(`${BASE}/:id`, async ({ params, request }) => {
+  http.patch(`${BASE}/:id`, async ({ request, params }) => {
     await delay(500)
     const id = Number(params.id)
     const index = db.suppliers.findIndex((s) => s.id === id)
     // Igual que el GET y el DELETE: un proveedor dado de baja no se edita.
-    if (index === -1 || !db.suppliers[index].active) {
-      return apiError(404, 'Not Found', `Supplier with id ${id} was not found.`, `${BASE}/${id}`)
-    }
+    if (index === -1 || !db.suppliers[index].active) return notFound(request, id)
 
     const body = (await request.json()) as SupplierUpdate
 
     // El backend corre con forbidNonWhitelisted: una clave que no conoce
     // (supplierType, active) rechaza el PATCH entero en vez de ignorarla.
     const unknown = Object.keys(body).find((key) => !UPDATABLE_FIELDS.includes(key))
-    if (unknown) {
-      return apiError(400, 'Bad Request', `property ${unknown} should not exist`, `${BASE}/${id}`)
-    }
+    if (unknown) return apiError(request, 400, `property ${unknown} should not exist`)
 
     // `'x' in body` y no `body.x`: distingue "no lo mandaron" de "lo mandaron
     // vacio", que en un PATCH parcial son dos intenciones distintas.
     if ('legalName' in body && !body.legalName?.trim()) {
-      return apiError(
-        400,
-        'Bad Request',
-        'La razon social no puede quedar vacia.',
-        `${BASE}/${id}`,
-      )
+      return apiError(request, 400, 'La razon social no puede quedar vacia.')
     }
-
     if (body.legalName && isLegalNameTaken(body.legalName, id)) {
-      return conflict('legalName', body.legalName.trim())
+      return conflict(request, 'legalName', body.legalName.trim())
     }
 
+    const optionals = normalizeOptionals(request, body)
+    if (optionals instanceof Response) return optionals
     // El CUIT es editable, asi que el PATCH necesita el mismo control de
     // unicidad que el POST.
-    const cuit = normalizeCuit(body.cuit)
-    if (cuit && isCuitTaken(cuit, id)) return conflict('cuit', cuit)
+    if (optionals.cuit && isCuitTaken(optionals.cuit, id)) return conflict(request, 'cuit', optionals.cuit)
 
     const updated = { ...db.suppliers[index], updatedAt: new Date().toISOString() }
     if (body.legalName) updated.legalName = body.legalName.trim()
@@ -206,7 +208,7 @@ export const supplierHandlers = [
     // vacios en vez de mandarlos en null, igual que el backend.
     for (const field of CLEARABLE_FIELDS) {
       if (!(field in body)) continue
-      const value = body[field]?.trim()
+      const value = optionals[field]
       if (value) updated[field] = value
       else delete updated[field]
     }
@@ -215,13 +217,11 @@ export const supplierHandlers = [
   }),
 
   /** Baja logica: marca active=false, no saca la fila del array. */
-  http.delete(`${BASE}/:id`, async ({ params }) => {
+  http.delete(`${BASE}/:id`, async ({ request, params }) => {
     await delay(400)
     const id = Number(params.id)
     const supplier = db.suppliers.find((s) => s.id === id)
-    if (!supplier || !supplier.active) {
-      return apiError(404, 'Not Found', `Supplier with id ${id} was not found.`, `${BASE}/${id}`)
-    }
+    if (!supplier || !supplier.active) return notFound(request, id)
     supplier.active = false
     supplier.updatedAt = new Date().toISOString()
     return new HttpResponse(null, { status: 204 })

@@ -1,0 +1,14 @@
+description: |
+  El usuario está autenticado pero no tiene ninguno de los roles que pide el
+  endpoint. No devuelve ningún dato de la operación (CU-53, escenario 8).
+content:
+  application/json:
+    schema:
+      $ref: '../schemas/Error.yaml'
+    example:
+      statusCode: 403
+      error: Forbidden
+      code: FORBIDDEN
+      message: No tenés permisos para realizar esta operación.
+      path: /api/employees
+      timestamp: '2026-10-15T13:05:00.000Z'

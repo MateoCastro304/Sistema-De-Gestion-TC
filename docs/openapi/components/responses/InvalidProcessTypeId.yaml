@@ -1,0 +1,15 @@
+description: '`INVALID_PATH_PARAMETER`: `processTypeId` no es un entero.'
+content:
+  application/json:
+    schema:
+      $ref: '../schemas/Error.yaml'
+    example:
+      statusCode: 400
+      error: Bad Request
+      code: INVALID_PATH_PARAMETER
+      message: El identificador del tipo de proceso no es válido.
+      path: /api/process-types/abc
+      timestamp: '2026-10-15T13:20:00.000Z'
+      details:
+        - field: processTypeId
+          message: Debe ser un número entero válido.

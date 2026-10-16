@@ -27,3 +27,8 @@ dist-ssr
 .env
 .env.*
 !.env.example
+# Playwright (tests E2E)
+e2e/.results
+e2e/.report
+blob-report
+playwright/.cache

@@ -2,47 +2,55 @@ parameters:
   - $ref: '../components/parameters/IdParam.yaml'
 
 get:
-  summary: Get a supplier by id
+  summary: Consultar proveedor
   description: |
-    Returns the complete data of a supplier by its identifier.
+    **Roles:** `AT` o `EC`.
 
-    Responds 404 for a supplier that was dado de baja: the row is kept, but
-    from the outside that supplier no longer exists, so it is never returned
-    with active:false.
+    Obtiene un proveedor. Un proveedor dado de baja responde `404`: la fila se
+    conserva, pero desde afuera ese proveedor ya no existe, así que nunca se
+    devuelve con `active: false`.
   operationId: getSupplierById
   tags:
-    - Suppliers
+    - Proveedores
+  x-roles:
+    - AT
+    - EC
   responses:
     '200':
-      description: Requested supplier.
+      description: Proveedor pedido.
       content:
         application/json:
           schema:
             $ref: '../components/schemas/Supplier.yaml'
+    '400':
+      $ref: '../components/responses/InvalidId.yaml'
     '401':
       $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
     '404':
-      $ref: '../components/responses/NotFound.yaml'
+      $ref: '../components/responses/SupplierNotFound.yaml'
 
 patch:
-  summary: Update a supplier
+  summary: Modificar proveedor
   description: |
-    Partial update. Only the fields sent are modified.
-    The supplierType is set on creation and cannot be modified.
-    The optional fields (cuit, contactName, contactEmail, contactPhone,
-    address, observation) can be cleared by sending null.
+    **Roles:** `AT` o `EC`.
 
-    Responds 409 when the new cuit or legalName already belong to another
-    **active** supplier; the legalName is compared ignoring case. The supplier
-    being updated never clashes with itself, and the cuit and legal name of a
-    supplier dado de baja are free to be taken.
+    Modificación parcial: se cambian solo los campos que llegan. `supplierType`
+    se define en el alta y no se puede modificar. Los campos opcionales se
+    borran con `null`.
 
-    Responds 404 when the supplier is inactive. There is no reactivation: the
-    `active` field is not accepted in the body and is rejected as an unknown
-    property with a 400.
+    Responde `409` cuando el CUIT o la razón social nuevos ya son de otro
+    proveedor **activo**. El proveedor modificado nunca choca consigo mismo.
+
+    Responde `404` si el proveedor está dado de baja. No hay reactivación:
+    `active` no se acepta y responde `400` como campo desconocido.
   operationId: updateSupplier
   tags:
-    - Suppliers
+    - Proveedores
+  x-roles:
+    - AT
+    - EC
   requestBody:
     required: true
     content:
@@ -51,47 +59,56 @@ patch:
           $ref: '../components/schemas/SupplierUpdate.yaml'
   responses:
     '200':
-      description: Updated supplier.
+      description: Proveedor modificado.
       content:
         application/json:
           schema:
             $ref: '../components/schemas/Supplier.yaml'
     '400':
-      $ref: '../components/responses/BadRequest.yaml'
+      $ref: '../components/responses/SupplierBadRequest.yaml'
     '401':
       $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
     '404':
-      $ref: '../components/responses/NotFound.yaml'
+      $ref: '../components/responses/SupplierNotFound.yaml'
     '409':
-      $ref: '../components/responses/Conflict.yaml'
+      $ref: '../components/responses/SupplierConflict.yaml'
 
 delete:
-  summary: Deactivate a supplier
+  summary: Dar de baja un proveedor
   description: |
-    Registra la baja. Logical deletion: the row is kept and its active flag is
-    set to false, so materials and other records that reference the supplier
-    remain valid.
+    **Roles:** `AT` o `EC`.
 
-    There is no reactivation. Once dado de baja the supplier is invisible to
-    every query and releases its cuit and legal name, so bringing it back
-    could duplicate whoever took them. To work with that supplier again it is
-    registered anew.
+    Baja lógica: la fila se conserva con `active` en `false`, para que los
+    materiales y otros registros que referencian al proveedor sigan siendo
+    válidos.
 
-    Responds 404 when the supplier does not exist **or is already inactive**:
-    in both cases there is nothing to give de baja.
+    No hay reactivación. Dado de baja, el proveedor es invisible para toda
+    consulta y libera su CUIT y su razón social; para volver a operar con él se
+    lo registra de nuevo.
 
-    PENDIENTE: this operation should also answer 409 when the supplier is
-    still assigned to work orders that are not in a final state. That rule is
-    not implemented, because there is no work-order model in the database yet
-    (only the WORK_ORDER value of the entity_type_enum, used by `file` for its
-    polymorphic FK). It has to be added together with the work-orders module.
+    Responde `404` si el proveedor no existe **o ya estaba dado de baja**: en
+    los dos casos no hay nada que dar de baja.
+
+    PENDIENTE: también debería responder `409` si el proveedor sigue asignado a
+    órdenes de trabajo que no están en un estado final. No está implementado
+    porque todavía no existe el modelo de órdenes de trabajo; se agrega con ese
+    módulo.
   operationId: deactivateSupplier
   tags:
-    - Suppliers
+    - Proveedores
+  x-roles:
+    - AT
+    - EC
   responses:
     '204':
-      description: Supplier deactivated successfully. No content.
+      description: Proveedor dado de baja. Sin cuerpo.
+    '400':
+      $ref: '../components/responses/InvalidId.yaml'
     '401':
       $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
     '404':
-      $ref: '../components/responses/NotFound.yaml'
+      $ref: '../components/responses/SupplierNotFound.yaml'

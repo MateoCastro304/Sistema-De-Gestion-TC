@@ -31,10 +31,10 @@ La API queda disponible en `http://localhost:3000` (o en `http://localhost/api` 
 | `npm run prisma:generate` | Genera Prisma Client |
 | `npm run prisma:migrate-dev` / `npm run prisma:migrate-deploy` | Migraciones de desarrollo / despliegue |
 
-Las migraciones se ejecutan normalmente con `make migrate-dev` y `make migrate-deploy`: ver [Migraciones de base de datos con Prisma](../docs/database/Migrations.md).
+Las migraciones se ejecutan normalmente con `make migrate-dev` y `make migrate-deploy`: ver [Migraciones de base de datos con Prisma](../docs/uso-ORM-DB/Migrations.md).
 
 ## Más información
 
-- [Arquitectura del sistema](../docs/architecture/overview.md) y decisiones [ADR-001](../docs/decisions/001-backend-framework.md) (NestJS), [ADR-003](../docs/decisions/003-orm.md) (Prisma) y [ADR-005](../docs/decisions/005-autentication.md) (autenticación).
+- [Arquitectura del sistema](../docs/arquitectura/overview.md) y decisiones [ADR-001](../docs/decisiones/001-backend-framework.md) (NestJS), [ADR-003](../docs/decisiones/003-orm.md) (Prisma) y [ADR-005](../docs/decisiones/005-autentication.md) (autenticación).
 - [Suite de pruebas de integración](test/README.md) y [organización de las pruebas](../docs/testing/code-structure.md).
-- [Contrato OpenAPI](../docs/openapi/openapi.yaml) y [verificaciones de CI](../docs/decisions/010-continuous-integration.md).
+- [Contrato OpenAPI](../docs/openapi/openapi.yaml) y [verificaciones de CI](../docs/decisiones/010-continuous-integration.md).

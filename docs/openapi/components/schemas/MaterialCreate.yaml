@@ -1,0 +1,22 @@
+type: object
+description: |
+  Alta de material. Si `name` coincide con un nombre existente (con la
+  comparación de textos del contrato), **se guarda con la grafía del
+  existente**: "acero" queda como "Acero" (D-37).
+additionalProperties: false
+required:
+  - name
+  - quality
+properties:
+  name:
+    type: string
+    minLength: 1
+    maxLength: 60
+    description: '"Material". No vacío.'
+    example: Acero
+  quality:
+    type: string
+    minLength: 1
+    maxLength: 60
+    description: '"Calidad". No vacío.'
+    example: '4140'

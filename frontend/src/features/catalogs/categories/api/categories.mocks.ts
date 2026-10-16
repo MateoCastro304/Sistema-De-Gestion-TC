@@ -1,158 +1,139 @@
 import { http, HttpResponse } from 'msw'
+import { normalizeText } from '@/shared/lib/normalizeText'
+import { apiError } from '@/shared/mocks/errors'
+import { PAGE_LIMIT_ERROR, paginate, readPageParams } from '@/shared/mocks/paging'
+import { customersDb } from '@/features/catalogs/customers/api/customers.db'
 import type { Category, CategoryInput } from '../types/category'
+import { categoriesDb, findCategory } from './categories.db'
 
 /**
- * MSW handlers that stand in for the backend's `Categories` module while it is
- * not wired up. They implement `docs/openapi/paths/categories*.yaml`, including
- * the 409 answers the screen has to surface. Data lives in memory and resets on
- * every page reload.
- *
- * Donde el contrato y el backend difieren, copian al backend (baja lógica,
- * `active`, mensajes de los 409). Ver `docs/rubros-desvios-contrato.md`.
+ * MSW handlers that stand in for the backend's `Categories` module. Copian
+ * al backend (`backend/src/categories`), que es lo que la pantalla tiene que
+ * soportar: baja lógica con `active`, reactivación con `/restore`, mínimo de
+ * 3 caracteres y los mensajes de los 409. Donde difiere del contrato, ver
+ * `docs/rubros-desvios-contrato.md`.
  */
 
-const SEED_DATE = '2026-08-01T12:00:00Z'
+const NAME_MIN_LENGTH = 3
 
-let nextId = 1
-const seed = (name: string, active = true): Category => ({
-  id: nextId++,
-  name,
-  active,
-  createdAt: SEED_DATE,
-  updatedAt: SEED_DATE,
-})
+/** Como el backend: sin distinguir mayúsculas ni espacios en los extremos. */
+const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase()
 
-let categories: Category[] = [
-  seed('Particular'),
-  seed('Metalúrgica'),
-  seed('Autopartes'),
-  seed('Agroindustria'),
-  seed('Petróleo y gas'),
-  // Dado de baja: crear "Fundición" lo reactiva.
-  seed('Fundición', false),
-]
-
-/**
- * Rubros que usa alguna fábrica activa del mock de Fábricas (Autopartes y
- * Petróleo y gas): darlos de baja responde 409, como el backend.
- */
-const IN_USE_IDS = new Set([3, 5])
-
-function findCategory(id: number): Category | undefined {
-  return categories.find((c) => c.id === id)
+function notFound(request: Request, id: number) {
+  return apiError(request, 404, `Category with id ${id} not found`, { extra: { id } })
 }
 
-function nameTaken(name: string, exceptId?: number): boolean {
-  const normalized = name.trim().toLocaleLowerCase()
-  return categories.some(
-    (c) => c.id !== exceptId && c.name.toLocaleLowerCase() === normalized,
-  )
+/** CategoryValidationError: 400 con el campo `name` en `details`. */
+function invalidName(request: Request, name: string | undefined) {
+  const trimmed = name?.trim() ?? ''
+  if (trimmed === '') {
+    return apiError(request, 400, 'Category name cannot be empty', {
+      details: [{ field: 'name', message: 'Category name cannot be empty' }],
+    })
+  }
+  if (trimmed.length < NAME_MIN_LENGTH) {
+    const message = `Category name must be at least ${NAME_MIN_LENGTH} characters long`
+    return apiError(request, 400, message, { details: [{ field: 'name', message }] })
+  }
+  return null
 }
 
-function conflict(message: string, path: string) {
-  return HttpResponse.json(
-    {
-      statusCode: 409,
-      error: 'Conflict',
-      message,
-      path,
-      timestamp: new Date().toISOString(),
-    },
-    { status: 409 },
-  )
+/** Fábricas activas que usan el rubro: con alguna, la baja responde 409. */
+function activeFactoriesOf(categoryId: number) {
+  return customersDb.factories.filter((f) => f.isActive && f.categoryId === String(categoryId))
 }
 
 export const categoryHandlers = [
   http.get('/api/categories', ({ request }) => {
     const url = new URL(request.url)
-    const page = Number(url.searchParams.get('page') ?? 1)
-    const limit = Number(url.searchParams.get('limit') ?? 20)
-    const start = (page - 1) * limit
+    const pageParams = readPageParams(url)
+    if (!pageParams) return apiError(request, 400, PAGE_LIMIT_ERROR)
     // Como el backend: activos por defecto, o sólo los dados de baja con
-    // ?active=false, envueltos en { items, total, page, limit }.
+    // ?active=false; `name` filtra por "contiene".
     const wantActive = url.searchParams.get('active') !== 'false'
-    const matching = categories.filter((c) => (c.active !== false) === wantActive)
-    return HttpResponse.json({
-      items: matching.slice(start, start + limit),
-      total: matching.length,
-      page,
-      limit,
-    })
+    const name = normalizeText(url.searchParams.get('name')?.trim() ?? '')
+    const matching = categoriesDb.categories
+      .filter((c) => c.active === wantActive)
+      .filter((c) => normalizeText(c.name).includes(name))
+    return HttpResponse.json(paginate(matching, pageParams))
   }),
 
-  http.get('/api/categories/:id', ({ params }) => {
-    const category = findCategory(Number(params.id))
-    if (!category) return new HttpResponse(null, { status: 404 })
+  http.get('/api/categories/:id', ({ request, params }) => {
+    const id = Number(params.id)
+    const category = findCategory(id)
+    if (!category) return notFound(request, id)
     return HttpResponse.json(category)
   }),
 
   http.post('/api/categories', async ({ request }) => {
     const body = (await request.json()) as CategoryInput
-    const wanted = body.name.trim().toLocaleLowerCase()
-    const existing = categories.find((c) => c.name.toLocaleLowerCase() === wanted)
-    // Como el backend: si es de un rubro dado de baja, el 409 trae su id.
-    if (existing && existing.active === false) {
-      return HttpResponse.json(
-        {
-          statusCode: 409,
-          error: 'Conflict',
-          message: 'El rubro existe pero está dado de baja',
-          categoryId: existing.id,
-          path: '/api/categories',
-          timestamp: new Date().toISOString(),
-        },
-        { status: 409 },
-      )
+    const invalid = invalidName(request, body.name)
+    if (invalid) return invalid
+
+    const existing = categoriesDb.categories.find((c) => sameName(c.name, body.name))
+    // Si el nombre es de un rubro dado de baja, el 409 trae su id para reactivarlo.
+    if (existing && !existing.active) {
+      return apiError(request, 409, 'El rubro existe pero está dado de baja', {
+        extra: { categoryId: existing.id },
+      })
     }
-    if (existing) {
-      return conflict('Ya existe un rubro con ese nombre', '/api/categories')
-    }
+    if (existing) return apiError(request, 409, 'Ya existe un rubro con ese nombre')
+
     const now = new Date().toISOString()
     const created: Category = {
-      id: nextId++,
-      name: body.name,
+      id: categoriesDb.nextId++,
+      name: body.name.trim(),
       active: true,
       createdAt: now,
       updatedAt: now,
     }
-    categories = [...categories, created]
-    // El rubro directo, igual que el backend real.
+    categoriesDb.categories.push(created)
+    // Responde 201 con el rubro directo, igual que el backend.
     return HttpResponse.json(created, { status: 201 })
   }),
 
-  http.post('/api/categories/:id/restore', ({ params }) => {
-    const category = findCategory(Number(params.id))
-    if (!category) return new HttpResponse(null, { status: 404 })
+  // 200 y no 201: el backend lo fuerza con @HttpCode(OK).
+  http.post('/api/categories/:id/restore', ({ request, params }) => {
+    const id = Number(params.id)
+    const category = findCategory(id)
+    if (!category) return notFound(request, id)
     Object.assign(category, { active: true, updatedAt: new Date().toISOString() })
     return HttpResponse.json(category)
   }),
 
-  http.patch('/api/categories/:id', async ({ params, request }) => {
+  http.patch('/api/categories/:id', async ({ request, params }) => {
     const id = Number(params.id)
     const category = findCategory(id)
-    if (!category) return new HttpResponse(null, { status: 404 })
+    if (!category) return notFound(request, id)
+    if (!category.active) return apiError(request, 409, 'Debe reactivar el rubro antes de modificarlo')
+
     const body = (await request.json()) as CategoryInput
-    if (nameTaken(body.name, id)) {
-      return conflict(
-        `Ya existe un rubro llamado "${body.name}".`,
-        `/api/categories/${id}`,
-      )
+    const invalid = invalidName(request, body.name)
+    if (invalid) return invalid
+    if (categoriesDb.categories.some((c) => c.id !== id && c.active && sameName(c.name, body.name))) {
+      return apiError(request, 409, 'Ya existe un rubro con ese nombre')
     }
-    Object.assign(category, body, { updatedAt: new Date().toISOString() })
+    Object.assign(category, { name: body.name.trim(), updatedAt: new Date().toISOString() })
     return HttpResponse.json(category)
   }),
 
-  http.delete('/api/categories/:id', ({ params }) => {
+  http.delete('/api/categories/:id', ({ request, params }) => {
     const id = Number(params.id)
-    if (!findCategory(id)) return new HttpResponse(null, { status: 404 })
-    if (IN_USE_IDS.has(id)) {
-      return conflict(
-        'No es posible dar de baja el rubro: existen 1 fábricas activas asociadas. Reasignelas antes de continuar',
-        `/api/categories/${id}`,
+    const category = findCategory(id)
+    if (!category) return notFound(request, id)
+
+    const inUse = activeFactoriesOf(id)
+    if (inUse.length > 0) {
+      // ConflictException({ message, factories }) pasado por AllExceptionsFilter.
+      return apiError(
+        request,
+        409,
+        `No es posible dar de baja el rubro: existen ${inUse.length} fábricas activas asociadas. Reasignelas antes de continuar`,
+        { extra: { factories: inUse.map((f) => ({ id: Number(f.id), name: f.name })) } },
       )
     }
     // Baja lógica: el rubro queda, con active: false, y deja de listarse.
-    Object.assign(findCategory(id)!, { active: false, updatedAt: new Date().toISOString() })
+    Object.assign(category, { active: false, updatedAt: new Date().toISOString() })
     return new HttpResponse(null, { status: 204 })
   }),
 ]

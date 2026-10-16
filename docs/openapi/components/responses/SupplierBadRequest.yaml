@@ -1,0 +1,19 @@
+description: |
+  - `VALIDATION_ERROR`: algún campo no cumple su formato, el CUIT no es válido
+    (prefijo o dígito verificador) o llegó un campo desconocido (`active`,
+    `supplierType` en la modificación).
+  - `INVALID_PATH_PARAMETER`: `id` no es un entero.
+content:
+  application/json:
+    schema:
+      $ref: '../schemas/Error.yaml'
+    example:
+      statusCode: 400
+      error: Bad Request
+      code: VALIDATION_ERROR
+      message: cuit must match pattern XX-XXXXXXXX-X
+      path: /api/suppliers
+      timestamp: '2026-10-15T13:00:00.000Z'
+      details:
+        - field: cuit
+          message: cuit must match pattern XX-XXXXXXXX-X

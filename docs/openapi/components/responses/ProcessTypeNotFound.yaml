@@ -1,0 +1,12 @@
+description: '`PROCESS_TYPE_NOT_FOUND`: no existe un tipo de proceso con ese identificador.'
+content:
+  application/json:
+    schema:
+      $ref: '../schemas/Error.yaml'
+    example:
+      statusCode: 404
+      error: Not Found
+      code: PROCESS_TYPE_NOT_FOUND
+      message: No se encontró el tipo de proceso solicitado.
+      path: /api/process-types/99
+      timestamp: '2026-10-15T13:20:00.000Z'

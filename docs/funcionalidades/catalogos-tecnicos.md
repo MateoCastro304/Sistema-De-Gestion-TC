@@ -6,9 +6,9 @@ Proporcionar los materiales, proveedores y tipos de proceso usados para [cotizar
 
 ## Actores y conceptos
 
-El Administrativo Técnico (AT) administra los catálogos; el Encargado de Cotización (EC) hereda esas operaciones. La consulta del historial de compras a proveedores (CU-55) corresponde únicamente a EC, según la [matriz de permisos](../domain/Matriz%20de%20permisos.md).
+El Administrativo Técnico (AT) administra los catálogos; el Encargado de Cotización (EC) hereda esas operaciones. La consulta del historial de compras a proveedores (CU-55) corresponde únicamente a EC, según la [matriz de permisos](../dominio/Matriz%20de%20permisos.md).
 
-El material se identifica por nombre y calidad. La presentación, unidad, cantidad, precio y proveedor pertenecen a la compra de material del trabajo. El tipo de proceso define el precio hora base. El proveedor suministra materiales, servicios tercerizados, repuestos o pintura. Estas distinciones provienen del [modelo, §§2.3–2.6](../domain/05-modelo-de-dominio.md).
+El material se identifica por nombre y calidad. La presentación, unidad, cantidad, precio y proveedor pertenecen a la compra de material del trabajo. El tipo de proceso define el precio hora base. El proveedor suministra materiales, servicios tercerizados, repuestos o pintura. Estas distinciones provienen del [modelo, §§2.3–2.6](../dominio/05-modelo-de-dominio.md).
 
 ## Relaciones y reglas
 
@@ -18,7 +18,7 @@ El material se identifica por nombre y calidad. La presentación, unidad, cantid
 - Al variar el tipo de cambio, se recalcula el precio hora en dólares y se mantiene el precio en pesos (RN18).
 - Los procesos tercerizados se valorizan por el costo total del servicio; la pintura combina insumo y mano de obra; los repuestos se incorporan por cantidad y precio (RN19–RN22).
 
-Las fórmulas y restricciones completas permanecen en [RN13–RN22](../domain/02-reglas-de-negocio.md#c-materiales-proveedores-y-mano-de-obra).
+Las fórmulas y restricciones completas permanecen en [RN13–RN22](../dominio/02-reglas-de-negocio.md#c-materiales-proveedores-y-mano-de-obra).
 
 ## Funcionamiento y dependencias
 
@@ -30,4 +30,4 @@ La compra estimada y la real se conservan separadas para calcular desvíos; actu
 
 El modelo describe un tipo por proveedor, mientras el [contexto del prototipo](../prototipo/fuente/CONTEXTO.md) admite varios. Esa diferencia permanece abierta: ver [DOC-07](../seguimiento/inconsistencias-documentales.md#doc-07--tipos-por-proveedor).
 
-Fuentes: [RF03, RF05 y RF06](../domain/03-requerimientos.md), [catálogo de casos de uso, §2.3](../domain/04-actores-y-casos-de-uso.md#23-catálogos-técnicos--rf03-rf05-rf06) y [CU-14](../domain/04-actores-y-casos-de-uso.md#cu-14--registrar-cotización).
+Fuentes: [RF03, RF05 y RF06](../dominio/03-requerimientos.md), [catálogo de casos de uso, §2.3](../dominio/04-actores-y-casos-de-uso.md#23-catálogos-técnicos--rf03-rf05-rf06) y [CU-14](../dominio/04-actores-y-casos-de-uso.md#cu-14--registrar-cotización).

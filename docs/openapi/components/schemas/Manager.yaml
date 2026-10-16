@@ -1,44 +1,57 @@
 type: object
 description: |
-  Contact person within a factory. A factory may have one or many
-  managers. Lives as a sub-resource under /factories/{factoryId}/managers.
+  Encargado de una fábrica cliente: la persona de contacto. Se identifica por
+  la clave compuesta (`factoryId`, `id`): el `id` reinicia en 1 en cada
+  fábrica.
+
+  La baja es lógica (`PATCH .../deactivate`): un encargado dado de baja se
+  sigue devolviendo con `isActive` en `false`.
+
+  A diferencia del resto de la API, `id` y `factoryId` se serializan como
+  string, y los campos opcionales vacíos como `""` en vez de `null`.
 required:
   - id
-  - name
-  - createdAt
-  - updatedAt
+  - firstName
+  - lastName
+  - phone
+  - mail
+  - factoryId
+  - isActive
 properties:
   id:
-    type: integer
-    format: int64
+    type: string
+    pattern: '^[0-9]+$'
+    description: Identificador dentro de la fábrica (entero serializado como string).
     readOnly: true
-    example: 1
-  name:
+    example: '1'
+  firstName:
     type: string
-    minLength: 1
-    maxLength: 120
-    example: Marcela Rios
-  email:
+    maxLength: 50
+    description: Nombre.
+    example: Marcela
+  lastName:
     type: string
-    format: email
-    maxLength: 120
-    example: purchasing@oxycam.com
+    maxLength: 50
+    description: Apellido; `""` si no tiene.
+    example: Ríos
   phone:
     type: string
-    maxLength: 40
-    example: '+54 9 351 555-1234'
-  role:
+    maxLength: 50
+    description: |
+      Teléfono normalizado: solo dígitos, con el `+` internacional si lo tenía.
+      `""` si no tiene.
+    example: '+5493515551234'
+  mail:
     type: string
-    maxLength: 80
-    description: Position or role of the manager within the factory.
-    example: Head of Purchasing
-  createdAt:
+    maxLength: 120
+    description: Mail en minúsculas; `""` si no tiene.
+    example: compras@oxycam.com
+  factoryId:
     type: string
-    format: date-time
-    readOnly: true
-    example: '2026-08-22T15:30:00Z'
-  updatedAt:
-    type: string
-    format: date-time
-    readOnly: true
-    example: '2026-08-22T15:30:00Z'
+    pattern: '^[0-9]+$'
+    description: Fábrica del encargado, serializada como string.
+    example: '1'
+  isActive:
+    type: boolean
+    description: '`false` si fue dado de baja.'
+    example: true

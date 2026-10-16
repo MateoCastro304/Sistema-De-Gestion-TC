@@ -1,38 +1,116 @@
 type: object
-description: Standard shape of an API error response.
+description: |
+  Forma única de toda respuesta de error (§5.2 del contrato).
+
+  **El cliente decide por `code`, no por el texto de `message`.** Dos
+  situaciones que la pantalla resuelve distinto tienen códigos distintos aunque
+  compartan el código HTTP.
+
+  Algunos errores suman campos propios, indicados en su respuesta: el `409
+  CATEGORY_HAS_ACTIVE_FACTORIES` trae `factories`.
 required:
   - statusCode
   - error
+  - code
   - message
   - path
   - timestamp
 properties:
   statusCode:
     type: integer
-    description: HTTP status code, replicated in the body for convenience.
-    example: 404
+    description: Código HTTP, repetido en el cuerpo.
+    example: 409
   error:
     type: string
-    description: Short, stable name of the error type (do not translate).
-    example: Not Found
+    description: Nombre corto del código HTTP ("Bad Request", "Conflict").
+    example: Conflict
+  code:
+    type: string
+    description: |
+      Código del catálogo (§5.3 del contrato).
+
+      **Generales y del Sprint 2**
+      - `VALIDATION_ERROR` (400): datos del cuerpo o de la consulta inválidos. Incluye `details`.
+      - `INVALID_PATH_PARAMETER` (400): identificador de la ruta que no es un entero.
+      - `INVALID_CREDENTIALS` (401): usuario o contraseña incorrectos, o usuario dado de baja. Exclusivo de `POST /auth/login`.
+      - `ACCESS_TOKEN_EXPIRED` (401): el `accessToken` venció y la sesión sigue abierta; renovarlo con `POST /auth/refresh`.
+      - `SESSION_EXPIRED` (401): sesión cerrada por 30 minutos de inactividad o por cumplir sus 7 días.
+      - `UNAUTHENTICATED` (401): sin token, token desconocido o adulterado, sesión cerrada o revocada, o usuario bloqueado o inactivo.
+      - `FORBIDDEN` (403): usuario autenticado sin ninguno de los roles que pide el endpoint.
+      - `EMPLOYEE_NOT_FOUND`, `USER_NOT_FOUND`, `PROCESS_TYPE_NOT_FOUND` (404): recurso inexistente.
+      - `RESOURCE_NOT_FOUND` (404): ruta inexistente.
+      - `EMPLOYEE_DNI_TAKEN` (409): DNI ya registrado en otro empleado.
+      - `USERNAME_TAKEN` (409): nombre de usuario ya registrado, aunque sea de un usuario dado de baja.
+      - `EMPLOYEE_ALREADY_HAS_USER` (409): el empleado ya tiene un usuario.
+      - `PROCESS_TYPE_NAME_TAKEN` (409): nombre de tipo de proceso ya registrado.
+      - `MATERIAL_ALREADY_EXISTS` (409): combinación de nombre y calidad ya registrada.
+      - `EMPLOYEE_INACTIVE` (422): alta de usuario para un empleado dado de baja.
+      - `USER_BLOCKED` (423): usuario bloqueado por intentos fallidos. Exclusivo de `POST /auth/login`.
+      - `INTERNAL_SERVER_ERROR` (500): error interno inesperado.
+      - `EXCHANGE_RATE_UNAVAILABLE` (502): el backend no pudo obtener ninguna cotización del dólar.
+
+      **Del Sprint 1**
+      - `CATEGORY_NOT_FOUND` (404), `CATEGORY_NAME_TAKEN` (409), `CATEGORY_INACTIVE` (409), `CATEGORY_HAS_ACTIVE_FACTORIES` (409). Un alta con el nombre de un rubro dado de baja no da error: lo reactiva.
+      - `FACTORY_NOT_FOUND` (404), `FACTORY_CUIT_TAKEN` (409), `FACTORY_NAME_TAKEN` (409), `FACTORY_INACTIVE` (409), `FACTORY_HAS_ACTIVE_MANAGERS` (409).
+      - `MANAGER_NOT_FOUND` (404), `MANAGER_MAIL_TAKEN` (409), `MANAGER_INACTIVE` (409).
+      - `SUPPLIER_NOT_FOUND` (404), `SUPPLIER_CUIT_TAKEN` (409), `SUPPLIER_LEGAL_NAME_TAKEN` (409).
+    enum:
+      - VALIDATION_ERROR
+      - INVALID_PATH_PARAMETER
+      - INVALID_CREDENTIALS
+      - ACCESS_TOKEN_EXPIRED
+      - SESSION_EXPIRED
+      - UNAUTHENTICATED
+      - FORBIDDEN
+      - EMPLOYEE_NOT_FOUND
+      - USER_NOT_FOUND
+      - PROCESS_TYPE_NOT_FOUND
+      - RESOURCE_NOT_FOUND
+      - EMPLOYEE_DNI_TAKEN
+      - USERNAME_TAKEN
+      - EMPLOYEE_ALREADY_HAS_USER
+      - PROCESS_TYPE_NAME_TAKEN
+      - MATERIAL_ALREADY_EXISTS
+      - EMPLOYEE_INACTIVE
+      - USER_BLOCKED
+      - INTERNAL_SERVER_ERROR
+      - EXCHANGE_RATE_UNAVAILABLE
+      - CATEGORY_NOT_FOUND
+      - CATEGORY_NAME_TAKEN
+      - CATEGORY_INACTIVE
+      - CATEGORY_HAS_ACTIVE_FACTORIES
+      - FACTORY_NOT_FOUND
+      - FACTORY_CUIT_TAKEN
+      - FACTORY_NAME_TAKEN
+      - FACTORY_INACTIVE
+      - FACTORY_HAS_ACTIVE_MANAGERS
+      - MANAGER_NOT_FOUND
+      - MANAGER_MAIL_TAKEN
+      - MANAGER_INACTIVE
+      - SUPPLIER_NOT_FOUND
+      - SUPPLIER_CUIT_TAKEN
+      - SUPPLIER_LEGAL_NAME_TAKEN
+    example: USERNAME_TAKEN
   message:
     type: string
-    description: Human-readable message for the end user.
-    example: Category with id 123 was not found.
+    description: |
+      Mensaje para el usuario, en castellano. Cuando el error es de un campo, es
+      el mismo texto que el prototipo muestra debajo del campo.
+    example: El nombre de usuario ya está en uso
   path:
     type: string
-    description: Path of the failing request.
-    example: /api/categories/123
+    description: Ruta de la petición, con su query string si la tuvo.
+    example: /api/users
   timestamp:
     type: string
     format: date-time
-    description: Moment the error was generated (ISO 8601).
-    example: '2026-08-22T15:30:00Z'
+    description: Momento del error (ISO 8601, UTC).
+    example: '2026-10-15T13:10:00.000Z'
   details:
     type: array
     description: |
-      Finer-grained errors, typically per-field. Only appears on
-      validation errors (400). May be omitted or empty on other errors.
+      Una entrada por campo. Aparece en los `400` de validación y en los `409`
+      de unicidad; se omite en el resto.
     items:
       type: object
       required:
@@ -41,9 +119,9 @@ properties:
       properties:
         field:
           type: string
-          description: Name of the request body field that failed validation.
-          example: name
+          description: Campo del cuerpo, de la consulta o de la ruta que falló.
+          example: username
         message:
           type: string
-          description: Reason for the failure, ready to display to the user.
-          example: Name cannot be empty.
+          description: Motivo, listo para mostrar debajo del campo.
+          example: El nombre de usuario ya está en uso
