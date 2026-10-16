@@ -152,7 +152,49 @@ export default defineConfig([
     },
   },
 
+  {
+    // The *.mocks.ts files are a fake backend. Like backend modules, they may
+    // read each other's tables (`api/*.db.ts`) and types: a factory needs its
+    // rubro to exist, a user needs its employee. They are only loaded from
+    // app/mocks in dev, so this coupling never reaches the production bundle.
+    files: ['src/features/**/api/*.mocks.ts', 'src/features/**/api/*.db.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            { group: ['../../*'], message: 'To leave your folder use the @/ alias.' },
+            {
+              regex: '^@/features/.+/(api/(?!.+\\.db$)|components|pages|schemas|utils)',
+              message: 'A mock may only read other features through their api/*.db.ts and types/.',
+            },
+            {
+              group: ['@/app/*'],
+              message: 'Mocks must not depend on app/.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
   // --- Tooling config (Node, not browser) ----------------------------------
+  {
+    // E2E tests (Playwright) and their config run in Node, not in the app.
+    files: ['playwright.config.ts', 'e2e/**/*.ts'],
+    extends: [js.configs.recommended, tseslint.configs.recommendedTypeChecked],
+    languageOptions: {
+      globals: globals.node,
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      // Playwright fixtures destructure `{}` when they need nothing.
+      'no-empty-pattern': 'off',
+    },
+  },
   {
     files: ['vite.config.ts'],
     extends: [js.configs.recommended, tseslint.configs.recommendedTypeChecked],

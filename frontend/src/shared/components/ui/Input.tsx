@@ -1,4 +1,4 @@
-import { forwardRef } from 'react'
+import { forwardRef, useId } from 'react'
 import type { InputHTMLAttributes } from 'react'
 import { cn } from '@/shared/lib/cn'
 
@@ -17,9 +17,15 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
  * react-hook-form can register the underlying `<input>`.
  */
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { label, error, hint, className, id, full = false, ...rest },
+  { label, error, hint, className, id: idProp, full = false, ...rest },
   ref,
 ) {
+  // Sin id el <label htmlFor> no apunta a nada: tocar el rótulo no enfoca
+  // el campo y el lector de pantalla lo anuncia sin nombre. Si quien lo usa
+  // no pasa uno, se genera.
+  const generatedId = useId()
+  const id = idProp ?? generatedId
+
   return (
     // form-field--error pinta el borde en rojo (regla del rediseño); sin
     // error la clase no se agrega y el campo se ve igual que siempre.

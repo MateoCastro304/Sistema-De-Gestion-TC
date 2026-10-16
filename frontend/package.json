@@ -8,7 +8,12 @@
     "build": "tsc -b && vite build",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:e2e": "playwright test",
+    "test:e2e:sprint1": "playwright test --project=sprint-1",
+    "test:e2e:sprint2": "playwright test --project=sprint-2",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report e2e/.report"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -22,6 +27,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.64.1",
     "@tanstack/react-query-devtools": "^5.101.4",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.17",

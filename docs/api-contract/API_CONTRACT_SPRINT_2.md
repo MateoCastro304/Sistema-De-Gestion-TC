@@ -147,20 +147,6 @@ Estado de un usuario. Lo calcula el backend; no se envía en ningún cuerpo.
 
 Si un usuario está dado de baja y además bloqueado, su estado es `INACTIVE`.
 
-### `ProcessTypeField`
-
-Campo de un tipo de proceso que registra el historial.
-
-| Código            | Rótulo                 |
-| ----------------- | ---------------------- |
-| `NAME`            | Nombre                 |
-| `DESCRIPTION`     | Descripción            |
-| `HOURLY_RATE_ARS` | Precio hora en pesos   |
-| `HOURLY_RATE_USD` | Precio hora en dólares |
-
-El tipo de cambio no forma parte del historial (ver
-[D-32](#81-decisiones-tomadas)).
-
 ---
 
 ## 3. Endpoints
@@ -1348,7 +1334,7 @@ choca con "Mecanizado Torno Manual" (D-34).
 
 **Sobre `updatedAt`:** es la columna "Última actualización" del listado. Cambia
 con cualquier modificación (nombre, descripción o precios), igual que en el
-prototipo, y coincide con el registro más reciente del historial.
+prototipo. Si el último cambio fue de precio, coincide con el registro más reciente del historial.
 
 **Sobre las cotizaciones:** modificar un precio no toca las cotizaciones ya
 cargadas: cada una conserva el costo hora con el que se cotizó (RN17).
@@ -1685,13 +1671,16 @@ tipo de cambio, los pesos se mantienen y los dólares se recalculan.
 
 **Efectos de la modificación**
 
-- Por **cada campo que cambió** de `name`, `description`, `hourlyRateArs` y
-  `hourlyRateUsd` se agrega un registro al historial, con el valor anterior, el
-  nuevo, el usuario de la sesión y la fecha y hora (RNF10). Todos los registros
-  de una misma modificación llevan la misma fecha y hora.
+- Si cambió **alguno de los dos precios hora** (`hourlyRateArs` o
+  `hourlyRateUsd`), se agrega **un** registro al historial de precios con el
+  precio hora en dólares anterior y el nuevo, el tipo de cambio usado, el
+  usuario de la sesión y la fecha y hora (RNF10). Es lo que muestra la tabla
+  "Historial de precios" del prototipo: fecha y hora, usuario, valor anterior
+  (US$), valor nuevo (US$) y tipo de cambio (D-32).
+- Cambiar solo el nombre o la descripción **no genera registro**: el historial
+  es de precios.
 - Un campo que llega con el mismo valor que ya tenía no cuenta como cambio.
 - `updatedAt` pasa a ser la fecha y hora de la modificación.
-- `exchangeRate` se guarda, pero **no genera registro** en el historial (D-32).
 - **Sin cambios** (CU-10, escenario 6): si ningún campo cambió, la respuesta es
   `200` con el tipo de proceso tal como estaba, sin registros nuevos en el
   historial y sin tocar `updatedAt` (D-31). El cliente igual compara antes de
@@ -1821,9 +1810,12 @@ paginador.
 | `id`              | Integer                    | Identificador del registro                                                                                          |
 | `changedAt`       | String (ISO 8601)          | "Fecha y hora"                                                                                                      |
 | `changedBy`       | Object                     | "Usuario": `id` y `username` del usuario que hizo el cambio                                                         |
-| `exchangeRateArs` | String \| Number \| `null` | "Tipo de cambio en la fecha del cambio modificado"                                                                  |
-| `previousValue`   | String \| Number \| `null` | "Valor anterior". Número en los precios; texto en el nombre y la descripción; `null` si la descripción estaba vacía |
-| `newValue`        | String \| Number \| `null` | "Valor nuevo". Mismo criterio                                                                                       |
+| `exchangeRateArs` | Number                     | "Tipo de cambio": pesos por dólar con el que se calculó el precio nuevo                                             |
+| `previousValueUsd` | Number                    | "Valor anterior (US$)": precio hora en dólares antes del cambio                                                     |
+| `newValueUsd`     | Number                     | "Valor nuevo (US$)": precio hora en dólares después del cambio                                                      |
+
+Los dos valores van **siempre en dólares**: son las columnas "Valor anterior
+(US$)" y "Valor nuevo (US$)" de la tabla del detalle (D-32).
 
 Un tipo de proceso sin cambios devuelve `items` vacío. El prototipo muestra
 "Todavía no hubo cambios en este tipo de proceso."
@@ -2562,7 +2554,6 @@ Ningún cuerpo ni respuesta exitosa del Sprint 1 cambia. Lo que cambia es que si
 | `Role`             | Roles de los usuarios (RN44)                           |
 | `EmployeePosition` | Puesto del empleado, un desplegable fijo del prototipo |
 | `UserStatus`       | Estado del usuario: activo, bloqueado o inactivo       |
-| `ProcessTypeField` | Campo modificado en el historial del tipo de proceso   |
 
 ### 7.4 Códigos de error y códigos HTTP
 
@@ -2625,7 +2616,7 @@ Decisiones de diseño de este contrato y puntos que quedan abiertos.
 | D-29 | El tipo de proceso guarda los dos precios tal como llegan y el tipo de cambio con que se vincularon; el cálculo lo hace el cliente                                                                                                                                                    | El prototipo calcula en el formulario y deja editar cualquiera de los tres valores. Si el servidor recalculara, el redondeo podría guardar un valor distinto del que el usuario confirmó                                                                                                                                           |
 | D-30 | El tipo de cambio lo provee el backend en `GET /exchange-rate`                                                                                                                                                                                                                        | El prototipo lo precarga "con la cotización del backend" y muestra la fecha de actualización                                                                                                                                                                                                                                       |
 | D-31 | Un `PATCH` sin cambios responde `200` sin tocar nada                                                                                                                                                                                                                                  | CU-10, escenario 6: no se registra nada en el historial. El aviso "No hay cambios para guardar" es del cliente, que compara antes de enviar                                                                                                                                                                                        |
-| D-32 | El historial registra un cambio por campo, solo de nombre, descripción y los dos precios; no el tipo de cambio. Se consulta en su propio endpoint, sin paginar, del más reciente al más antiguo                                                                                       | Son los campos del historial del prototipo (`TP_CAMPOS`) y de CU-10                                                                                                                                                                                                                                                                |
+| D-32 | El historial es de precios: un registro por modificación que cambia alguno de los dos precios hora, con el precio en dólares anterior y el nuevo en dólares (`previousValueUsd`, `newValueUsd`) y el tipo de cambio usado. Los cambios de nombre o descripción no se registran. Se consulta en su propio endpoint, sin paginar, del más reciente al más antiguo | Definido por el equipo: la tabla "Historial de precios" del prototipo muestra los valores en US$ ("Valor anterior (US$)", "Valor nuevo (US$)", "Tipo de cambio") |
 | D-33 | `updatedAt` cambia con cualquier modificación y es la "Última actualización" del listado                                                                                                                                                                                              | Es como la calcula el prototipo (último registro del historial o el alta)                                                                                                                                                                                                                                                          |
 | D-34 | El nombre del tipo de proceso es único sin distinguir mayúsculas, acentos ni espacios repetidos                                                                                                                                                                                       | CU-09, escenario 2, y el prototipo, que además ignora los acentos                                                                                                                                                                                                                                                                  |
 | D-35 | Montos y tipo de cambio viajan como números con hasta dos decimales y mayores a 0                                                                                                                                                                                                     | Validación del prototipo (`parseMonto`) y RNF12 (dos decimales)                                                                                                                                                                                                                                                                    |
@@ -2712,8 +2703,9 @@ incorporar la autenticación a la vez.
   leer `code` y `details` (hoy lee `message` y `field`).
 - **Arranque:** al cargar la aplicación, llamar a `POST /auth/refresh` para
   recuperar la sesión antes de decidir si se muestra el ingreso.
-- **Roles:** `domain/roles.ts` tiene un rol `A` ("Administrativo") que no existe
-  (D-11).
+- **Roles:** `domain/roles.ts` tiene exactamente los seis roles del contrato
+  (D-11) y la matriz por recurso (`MODULE_ROLES`, `canAccess()`). Ya corregido:
+  tenía un rol `A` ("Administrativo") que no existe.
 - **Rutas:** guards por rol con los permisos de la matriz, pantalla de acceso
   denegado e inicio vacío para JT y ER.
 - **Pantallas nuevas:** ingreso, Administración (empleados y usuarios), y en
@@ -2742,7 +2734,7 @@ incorporar la autenticación a la vez.
 | DTC-129 | 05  | `POST /users`, un usuario por empleado activo, nombre único y al menos un rol                                                                                                              |
 | DTC-131 | 07  | `GET /users` con búsqueda, filtro por rol e inactivos; `GET /users/{userId}`                                                                                                               |
 | DTC-203 | 09  | `POST /process-types` con los dos precios vinculados y `GET /exchange-rate`                                                                                                                |
-| DTC-204 | 10  | `PATCH /process-types/{processTypeId}` con historial por campo y `GET /process-types/{processTypeId}/history`                                                                              |
+| DTC-204 | 10  | `PATCH /process-types/{processTypeId}` con historial de precios en dólares y `GET /process-types/{processTypeId}/history`                                                                              |
 | DTC-205 | 11  | `GET /process-types` y `GET /process-types/{processTypeId}`                                                                                                                                |
 | DTC-116 | 37  | `POST /materials`, nombre y calidad únicos, y `GET /materials/names`                                                                                                                       |
 | DTC-118 | 39  | `GET /materials` con filtro por material y búsqueda por calidad                                                                                                                            |
@@ -2751,5 +2743,5 @@ Además: los endpoints del Sprint 1 pasan a exigir sesión y rol (D-40), y las
 respuestas de error suman `code` (D-41).
 
 En números: **18 endpoints nuevos**, **4 grupos de endpoints del Sprint 1** que
-pasan a exigir sesión, 4 enumerados, 20 códigos de error, 3 códigos HTTP nuevos,
+pasan a exigir sesión, 3 enumerados, 20 códigos de error, 3 códigos HTTP nuevos,
 50 decisiones (D-01 a D-50) y ningún punto abierto.

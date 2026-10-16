@@ -166,7 +166,7 @@ export function CustomerDetailPage() {
                 >
                   Cancelar
                 </Button>
-                <Button type="submit" form={EDIT_FORM_ID} disabled={update.isPending}>
+                <Button key="save" type="submit" form={EDIT_FORM_ID} disabled={update.isPending}>
                   {update.isPending ? 'Guardando…' : 'Guardar cambios'}
                 </Button>
               </>
@@ -177,7 +177,10 @@ export function CustomerDetailPage() {
                     Eliminar
                   </Button>
                 )}
-                <Button onClick={() => setEditing(true)}>Editar</Button>
+                {/* key: sin ella React reusa este mismo <button> para "Guardar
+                    cambios" (type="submit") en medio del click, y el navegador
+                    envía el formulario apenas se entra a editar. */}
+                <Button key="edit" onClick={() => setEditing(true)}>Editar</Button>
               </>
             )}
           </div>
