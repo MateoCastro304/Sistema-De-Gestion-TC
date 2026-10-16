@@ -2,10 +2,9 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 
 import { startTestApp, stopTestApp, getPrisma } from '../../shared/harness/test-app';
-import { expectData, expectError, expectList, expectNoContent } from '../../shared/contract/envelopes';
+import { expectData, expectError, expectNoContent } from '../../shared/contract/envelopes';
 import { createCategory } from '../../shared/factories/category.factory';
 import { aFactoryBody, createFactory } from '../../shared/factories/factory.factory';
-import { createManager } from '../../shared/factories/manager.factory';
 
 describe('Factories', () => {
   let app: INestApplication;
@@ -33,35 +32,35 @@ describe('Factories', () => {
 
       const factory = expectData(res, 201);
       expect(factory).toMatchObject({
-        id: expect.any(Number),
+        id: expect.any(String),
         legalName: body.legalName,
-        taxId: body.taxId,
-        categoryId: category.id,
+        cuit: body.cuit.replace(/-/g, ''),
+        categoryId: String(category.id),
       });
 
-      const saved = await getPrisma().factory.findUnique({ where: { id: factory.id } });
+      const saved = await getPrisma().factory.findUnique({ where: { id: Number(factory.id) } });
       expect(saved).toMatchObject({ name: body.legalName, categoryId: category.id });
     });
 
-    it('rechaza un taxId con formato inválido y no guarda nada', async () => {
+    it('rechaza un cuit con formato inválido y no guarda nada', async () => {
       const category = await createCategory();
 
       const res = await request(app.getHttpServer())
         .post('/factories')
-        .send(aFactoryBody({ categoryId: category.id, taxId: '123' }));
+        .send(aFactoryBody({ categoryId: category.id, cuit: '123' }));
 
-      expectError(res, 400, 'Bad Request', ['taxId']);
+      expectError(res, 400, 'Bad Request', ['cuit']);
       expect(await getPrisma().factory.count()).toBe(0);
     });
 
-    it('rechaza un taxId ya registrado', async () => {
+    it('rechaza un cuit ya registrado', async () => {
       const existing = await createFactory();
       const category = await createCategory();
       const d = existing.cuit;
 
       const res = await request(app.getHttpServer())
         .post('/factories')
-        .send(aFactoryBody({ categoryId: category.id, taxId: `${d.slice(0, 2)}-${d.slice(2, 10)}-${d.slice(10)}` }));
+        .send(aFactoryBody({ categoryId: category.id, cuit: `${d.slice(0, 2)}-${d.slice(2, 10)}-${d.slice(10)}` }));
 
       expectError(res, 409, 'Conflict');
       expect(await getPrisma().factory.count()).toBe(1); // solo la que ya existía
@@ -69,18 +68,20 @@ describe('Factories', () => {
   });
 
   describe('GET /factories', () => {
-    it('lista las fábricas', async () => {
+    it('lista las fábricas, con el total', async () => {
       await createFactory();
       await createFactory();
 
-      const factories = expectList(await request(app.getHttpServer()).get('/factories'));
+      const res = await request(app.getHttpServer()).get('/factories');
 
-      expect(factories).toHaveLength(2);
-      expect(factories[0]).toMatchObject({
-        id: expect.any(Number),
+      expect(res.status).toBe(200);
+      expect(res.body.items).toHaveLength(2);
+      expect(res.body.total).toBe(2);
+      expect(res.body.items[0]).toMatchObject({
+        id: expect.any(String),
         legalName: expect.any(String),
-        taxId: expect.any(String),
-        categoryId: expect.any(Number),
+        cuit: expect.any(String),
+        categoryId: expect.any(String),
       });
     });
   });
@@ -91,7 +92,7 @@ describe('Factories', () => {
 
       const res = await request(app.getHttpServer()).get(`/factories/${existing.id}`);
 
-      expect(expectData(res, 200)).toMatchObject({ id: existing.id, legalName: existing.name });
+      expect(expectData(res, 200)).toMatchObject({ id: String(existing.id), legalName: existing.name });
     });
 
     it('responde 404 si no existe', async () => {
@@ -109,17 +110,15 @@ describe('Factories', () => {
         .patch(`/factories/${existing.id}`)
         .send({ legalName: 'Nuevo Nombre S.A.' });
 
-      expect(expectData(res, 200)).toMatchObject({ id: existing.id, legalName: 'Nuevo Nombre S.A.' });
+      expect(expectData(res, 200)).toMatchObject({ id: String(existing.id), legalName: 'Nuevo Nombre S.A.' });
       const saved = await getPrisma().factory.findUnique({ where: { id: existing.id } });
       expect(saved?.name).toBe('Nuevo Nombre S.A.');
     });
 
-    it('rechaza modificar el taxId (inmutable) y no cambia nada', async () => {
+    it('rechaza modificar el cuit (inmutable) y no cambia nada', async () => {
       const existing = await createFactory();
 
-      const res = await request(app.getHttpServer())
-        .patch(`/factories/${existing.id}`)
-        .send({ taxId: '30-11111111-1' });
+      const res = await request(app.getHttpServer()).patch(`/factories/${existing.id}`).send({ cuit: '30-11111111-1' });
 
       expectError(res, 400, 'Bad Request');
       const saved = await getPrisma().factory.findUnique({ where: { id: existing.id } });
@@ -133,19 +132,20 @@ describe('Factories', () => {
     });
   });
 
-  describe('DELETE /factories/:id', () => {
-    it('elimina la fábrica junto con sus encargados', async () => {
-      const manager = await createManager();
+  describe('PATCH /factories/:id/deactivate', () => {
+    it('da de baja lógica la fábrica (el registro se conserva)', async () => {
+      const existing = await createFactory();
 
-      const res = await request(app.getHttpServer()).delete(`/factories/${manager.factoryId}`);
+      const res = await request(app.getHttpServer()).patch(`/factories/${existing.id}/deactivate`);
 
       expectNoContent(res);
-      expect(await getPrisma().factory.findUnique({ where: { id: manager.factoryId } })).toBeNull();
-      expect(await getPrisma().customer.count()).toBe(0); // cascada del contrato
+      const saved = await getPrisma().factory.findUnique({ where: { id: existing.id } });
+      expect(saved).not.toBeNull(); // baja lógica: el registro se conserva
+      expect(saved?.isActive).toBe(false);
     });
 
     it('responde 404 si no existe', async () => {
-      const res = await request(app.getHttpServer()).delete('/factories/999999');
+      const res = await request(app.getHttpServer()).patch('/factories/999999/deactivate');
 
       expectError(res, 404, 'Not Found');
     });

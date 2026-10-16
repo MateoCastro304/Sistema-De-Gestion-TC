@@ -24,7 +24,7 @@ import type { Customer } from '../types/customer'
 import type { Factory, FactoryInput } from '../types/factory'
 import { formatCuit, toFactoryFormValues } from '../schemas/factory.schema'
 import {
-  useCustomers,
+  useAllCustomers,
   useDeactivateCustomer,
   useDeactivateFactory,
   useFactories,
@@ -51,7 +51,7 @@ export function FactoryDetailPage() {
   const factoriesQuery = useFactories()
   const { data: categories = [] } = useCategories()
   // Encargados activos de esta fábrica (GET /customers?factoryId=...).
-  const customersQuery = useCustomers({ factoryId: id, limit: 200, active: true })
+  const customersQuery = useAllCustomers({ factoryId: id, active: true })
   const update = useUpdateFactory(id)
   const deactivate = useDeactivateCustomer()
   const navigate = useNavigate()
@@ -121,7 +121,7 @@ export function FactoryDetailPage() {
   const categoryName =
     categories.find((c) => c.id === factory.categoryId)?.name ?? '—'
   // El backend ya acotó a esta fábrica vía `factoryId` y solo trae activos.
-  const contacts = customersQuery.data?.items ?? []
+  const contacts = customersQuery.data ?? []
   const fullName = (c: Customer) => customerFullName(c)
 
   const handleUpdate = (input: FactoryInput) => {

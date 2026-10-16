@@ -9,19 +9,38 @@ get:
     - $ref: '../components/parameters/LimitParam.yaml'
   responses:
     '200':
-      description: List of categories for the requested page.
+      description: Page of categories matching the filters, with the total count.
       content:
         application/json:
           schema:
-            type: array
-            items:
-              $ref: '../components/schemas/Category.yaml'
+            type: object
+            required: [items, total, page, limit]
+            properties:
+              items:
+                type: array
+                items:
+                  $ref: '../components/schemas/Category.yaml'
+              total:
+                type: integer
+                minimum: 0
+                description: Total number of categories matching the filters.
+              page:
+                type: integer
+                minimum: 1
+              limit:
+                type: integer
+                minimum: 1
     '401':
       $ref: '../components/responses/Unauthorized.yaml'
 
 post:
   summary: Create a category
-  description: Registers a new category in the system.
+  description: |
+    Registers a new category. The name is the category's unique key (unlike
+    Manager/Factory/Supplier, which key on an optional cuit/cuil and can
+    have several inactive rows with the same value): if an inactive category
+    already has this name, this reactivates that row instead of creating a
+    duplicate.
   operationId: createCategory
   tags:
     - Categories
@@ -33,7 +52,7 @@ post:
           $ref: '../components/schemas/CategoryCreate.yaml'
   responses:
     '201':
-      description: Category created successfully.
+      description: Category created, or reactivated if an inactive one had this name.
       content:
         application/json:
           schema:
@@ -42,3 +61,5 @@ post:
       $ref: '../components/responses/BadRequest.yaml'
     '401':
       $ref: '../components/responses/Unauthorized.yaml'
+    '409':
+      $ref: '../components/responses/Conflict.yaml'

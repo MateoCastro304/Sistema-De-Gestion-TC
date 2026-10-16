@@ -23,7 +23,7 @@ patch:
   summary: Update a factory
   description: |
     Partial update. Only the fields sent are modified.
-    The taxId cannot be modified.
+    The cuit cannot be modified.
   operationId: updateFactory
   tags:
     - Factories

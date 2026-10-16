@@ -136,12 +136,22 @@ function findFactory(id: string): Factory | undefined {
   return factories.find((f) => f.id === id)
 }
 
+// El backend llama `legalName` a la razón social; acá adentro se guarda como
+// `name` (mismo campo que usan los formularios) y se traduce en la frontera,
+// igual que hace customers.api.ts con la respuesta real.
+type FactoryWireBody = Omit<FactoryInput, 'name'> & { legalName: string }
+
+function toWireFactory(factory: Factory) {
+  const { name, ...rest } = factory
+  return { ...rest, legalName: name }
+}
+
 export const customerHandlers = [
-  // Customers (EncargadoCliente) ------------------------------------------
+  // Managers (EncargadoCliente) --------------------------------------------
   // Item operations are nested under the owning factory because a manager is
-  // identified by the composite key (factoryId, id); `/customers` stays as the
+  // identified by the composite key (factoryId, id); `/managers` stays as the
   // flat global list only.
-  http.get('/api/customers', ({ request }) => {
+  http.get('/api/managers', ({ request }) => {
     const url = new URL(request.url)
     const page = Number(url.searchParams.get('page') ?? '1')
     const limit = Number(url.searchParams.get('limit') ?? '20')
@@ -167,13 +177,13 @@ export const customerHandlers = [
     return HttpResponse.json({ items, total, page, limit })
   }),
 
-  http.get('/api/factories/:factoryId/customers/:id', ({ params }) => {
+  http.get('/api/factories/:factoryId/managers/:id', ({ params }) => {
     const customer = findCustomer(String(params.factoryId), String(params.id))
     if (!customer) return new HttpResponse(null, { status: 404 })
     return HttpResponse.json(customer)
   }),
 
-  http.post('/api/factories/:factoryId/customers', async ({ params, request }) => {
+  http.post('/api/factories/:factoryId/managers', async ({ params, request }) => {
     const factoryId = String(params.factoryId)
     const body = (await request.json()) as CustomerBody
     // Regla: un encargado se asocia a una fábrica activa (FK a Fábrica activa).
@@ -202,7 +212,7 @@ export const customerHandlers = [
   // Must precede the generic ":id" PATCH so the extra path segment is not
   // mistaken for an id. Answers 204 No Content, like the backend.
   http.patch(
-    '/api/factories/:factoryId/customers/:id/deactivate',
+    '/api/factories/:factoryId/managers/:id/deactivate',
     ({ params }) => {
       const customer = findCustomer(String(params.factoryId), String(params.id))
       if (!customer) return new HttpResponse(null, { status: 404 })
@@ -212,7 +222,7 @@ export const customerHandlers = [
   ),
 
   http.patch(
-    '/api/factories/:factoryId/customers/:id',
+    '/api/factories/:factoryId/managers/:id',
     async ({ params, request }) => {
       const customer = findCustomer(String(params.factoryId), String(params.id))
       if (!customer) return new HttpResponse(null, { status: 404 })
@@ -236,7 +246,7 @@ export const customerHandlers = [
     const limit = Number(url.searchParams.get('limit') ?? '20')
     const start = (page - 1) * limit
     return HttpResponse.json({
-      items: factories.slice(start, start + limit),
+      items: factories.slice(start, start + limit).map(toWireFactory),
       total: factories.length,
       page,
       limit,
@@ -244,16 +254,17 @@ export const customerHandlers = [
   }),
 
   http.post('/api/factories', async ({ request }) => {
-    const body = (await request.json()) as FactoryInput
-    const conflict = factoryConflict(body)
+    const { legalName, ...body } = (await request.json()) as FactoryWireBody
+    const input = { ...body, name: legalName }
+    const conflict = factoryConflict(input)
     if (conflict) return conflict
     const newFactory: Factory = {
       id: nextFactoryId(),
       isActive: true,
-      ...body,
+      ...input,
     }
     factories = [...factories, newFactory]
-    return HttpResponse.json(newFactory, { status: 201 })
+    return HttpResponse.json(toWireFactory(newFactory), { status: 201 })
   }),
 
   // Va antes del PATCH genérico ":id", como los de encargados.
@@ -277,8 +288,8 @@ export const customerHandlers = [
     const factory = findFactory(String(params.id))
     if (!factory) return new HttpResponse(null, { status: 404 })
     // El CUIT no se modifica: no viaja en el cuerpo y no se chequea.
-    const body = (await request.json()) as Partial<FactoryInput>
-    Object.assign(factory, body)
-    return HttpResponse.json(factory)
+    const { legalName, ...rest } = (await request.json()) as Partial<FactoryWireBody>
+    Object.assign(factory, rest, legalName !== undefined ? { name: legalName } : {})
+    return HttpResponse.json(toWireFactory(factory))
   }),
 ]

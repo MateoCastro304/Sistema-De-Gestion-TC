@@ -1,26 +1,50 @@
-import { faker } from '@faker-js/faker';
 import { getPrisma } from '../harness/test-app';
 import { createCategory } from './category.factory';
 
+/**
+ * Contador en vez de faker: bajo --experimental-vm-modules (que exige el
+ * compilador wasm de Prisma 7) el bundle de @faker-js/faker falla con
+ * "exports is not defined". Ver supplier-factory.ts para el detalle.
+ */
+let sequence = 0;
+
+function nextSequence(): number {
+  sequence += 1;
+  return sequence;
+}
+
+const CUIT_WEIGHTS = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
+
+/** Mismo algoritmo que el value object Cuit de shared/domain. */
+function checkDigit(firstTen: string): number | null {
+  const sum = [...firstTen].reduce((acc, digit, i) => acc + Number(digit) * CUIT_WEIGHTS[i], 0);
+  const check = 11 - (sum % 11);
+
+  if (check === 11) return 0;
+  if (check === 10) return null;
+  return check;
+}
+
+let cuitSequence = 0;
+
 /** Valid, unique CUIT as 11 digits (check digit included). */
 export function aCuitDigits(): string {
-  const weights = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
   for (;;) {
-    const base = `30${faker.string.numeric({ length: 8, allowLeadingZeros: true })}`;
-    const sum = [...base].reduce((acc, d, i) => acc + Number(d) * weights[i], 0);
-    const check = 11 - (sum % 11);
-    if (check === 10) continue; // no valid check digit for this base
-    return `${base}${check === 11 ? 0 : check}`;
+    cuitSequence += 1;
+    const body = String(cuitSequence).padStart(8, '0');
+    const check = checkDigit(`30${body}`);
+
+    if (check !== null) return `30${body}${check}`;
   }
 }
 
 /** Same CUIT in the contract format XX-XXXXXXXX-X. */
-export function aTaxId(): string {
+export function aCuit(): string {
   const d = aCuitDigits();
   return `${d.slice(0, 2)}-${d.slice(2, 10)}-${d.slice(10)}`;
 }
 
-type FactoryBodyOverrides = { legalName?: string; taxId?: string; categoryId?: number; address?: string };
+type FactoryBodyOverrides = { legalName?: string; cuit?: string; categoryId?: number; address?: string };
 
 /**
  * Request body for POST /factories, with the field names of the API contract
@@ -28,11 +52,12 @@ type FactoryBodyOverrides = { legalName?: string; taxId?: string; categoryId?: n
  * category created with createCategory().
  */
 export function aFactoryBody(overrides: FactoryBodyOverrides = {}) {
+  const n = nextSequence();
   return {
-    legalName: faker.company.name(),
-    taxId: aTaxId(),
+    legalName: `Fabrica de Prueba ${n}`,
+    cuit: aCuit(),
     categoryId: 1,
-    address: faker.location.streetAddress(),
+    address: `Av. Siempre Viva ${n}`,
     ...overrides,
   };
 }
@@ -45,12 +70,13 @@ type FactoryOverrides = { name?: string; cuit?: string; categoryId?: number; add
  */
 export async function createFactory(overrides: FactoryOverrides = {}) {
   const categoryId = overrides.categoryId ?? (await createCategory()).id;
+  const n = nextSequence();
 
   return getPrisma().factory.create({
     data: {
-      name: overrides.name ?? faker.company.name(),
+      name: overrides.name ?? `Fabrica Almacenada ${n}`,
       cuit: overrides.cuit ?? aCuitDigits(),
-      address: overrides.address ?? faker.location.streetAddress(),
+      address: overrides.address ?? `Av. Siempre Viva ${n}`,
       categoryId,
       isActive: overrides.isActive ?? true,
     },

@@ -1,5 +1,5 @@
 import { http } from '@/shared/api/http'
-import type { Page } from '@/shared/api/pagination'
+import { fetchAllPages, type Page } from '@/shared/api/pagination'
 import type {
   Customer,
   CustomerInput,
@@ -15,11 +15,17 @@ import type { Factory, FactoryInput } from '../types/factory'
  * `docs/decisions/decisiones-clientes-fabricas.md`.
  */
 
-const CUSTOMERS = '/customers'
+// La ruta es /managers (el backend llama "Manager" al encargado, para no
+// repetir "customers" como nombre del subsystem y de la entidad a la vez).
+const CUSTOMERS = '/managers'
 const FACTORIES = '/factories'
 
-/** Los catálogos chicos se piden en una sola página grande y se filtran acá. */
-const CATALOG_LIMIT = 1000
+/**
+ * Tamaño de página al paginar un catálogo chico hasta traerlo completo.
+ * Coincide con el cap del backend (`MAX_PAGE_LIMIT`): pedir más no sirve, el
+ * backend lo rechaza con 400.
+ */
+const CATALOG_PAGE_SIZE = 100
 
 // Customers (EncargadoCliente) --------------------------------------------
 //
@@ -51,6 +57,21 @@ export async function listCustomers(
 ): Promise<Page<Customer>> {
   const { data } = await http.get<Page<Customer>>(CUSTOMERS, { params })
   return data
+}
+
+/**
+ * Todos los customers que matchean el filtro, paginando con
+ * `CATALOG_PAGE_SIZE` hasta agotar `total`. Para pantallas que necesitan la
+ * lista completa (ej. contar encargados activos por fábrica) hasta que el
+ * backend ofrezca un conteo dedicado (DTC-54).
+ */
+export async function listAllCustomers(
+  params?: Omit<CustomerListParams, 'page' | 'limit'>,
+): Promise<Customer[]> {
+  return fetchAllPages(
+    (page, limit) => listCustomers({ ...params, page, limit }),
+    CATALOG_PAGE_SIZE,
+  )
 }
 
 export async function getCustomer(
@@ -93,18 +114,39 @@ export async function deactivateCustomer(
 }
 
 // Factories (FabricaCliente) ----------------------------------------------
+//
+// El backend llama `legalName` a la razón social (misma convención que
+// Supplier); acá adentro se sigue usando `name` para no tocar los
+// formularios y tablas que ya lo consumen así.
 
-/** El backend pagina: se pide una página grande y se devuelven sus items. */
+type FactoryWire = Omit<Factory, 'name'> & { legalName: string }
+
+function toFactory({ legalName, ...rest }: FactoryWire): Factory {
+  return { ...rest, name: legalName }
+}
+
+/** Catálogo chico: se pagina con CATALOG_PAGE_SIZE hasta traerlo completo. */
 export async function listFactories(): Promise<Factory[]> {
-  const { data } = await http.get<Page<Factory>>(FACTORIES, {
-    params: { page: 1, limit: CATALOG_LIMIT },
-  })
-  return data.items
+  const items = await fetchAllPages(
+    (page, limit) =>
+      http
+        .get<Page<FactoryWire>>(FACTORIES, { params: { page, limit } })
+        .then((res) => res.data),
+    CATALOG_PAGE_SIZE,
+  )
+  return items.map(toFactory)
 }
 
 export async function createFactory(input: FactoryInput): Promise<Factory> {
-  const { data } = await http.post<Factory>(FACTORIES, input)
-  return data
+  const body = {
+    legalName: input.name,
+    cuit: input.cuit,
+    address: input.address,
+    categoryId: input.categoryId,
+    payMethod: input.payMethod,
+  }
+  const { data } = await http.post<FactoryWire>(FACTORIES, body)
+  return toFactory(data)
 }
 
 export async function updateFactory(
@@ -113,13 +155,13 @@ export async function updateFactory(
 ): Promise<Factory> {
   // El CUIT no se puede modificar: el backend lo ignora, así que ni se manda.
   const body = {
-    name: input.name,
+    legalName: input.name,
     address: input.address,
     categoryId: input.categoryId,
     payMethod: input.payMethod,
   }
-  const { data } = await http.patch<Factory>(`${FACTORIES}/${id}`, body)
-  return data
+  const { data } = await http.patch<FactoryWire>(`${FACTORIES}/${id}`, body)
+  return toFactory(data)
 }
 
 /** Baja lógica de una fábrica. Responde 409 si tiene encargados activos. */
