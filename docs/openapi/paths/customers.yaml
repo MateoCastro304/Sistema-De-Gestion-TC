@@ -1,0 +1,66 @@
+get:
+  summary: Consultar encargados
+  description: |
+    **Rol:** `ERP`.
+
+    Listado global y paginado de encargados, de todas las fábricas o de una
+    sola con `factoryId`. Sin `active` devuelve activos y dados de baja.
+
+    Las operaciones sobre un encargado van anidadas bajo su fábrica
+    (`/factories/{factoryId}/customers/{id}`), porque su `id` solo es único
+    dentro de la fábrica.
+  operationId: listCustomers
+  tags:
+    - Encargados
+  x-roles:
+    - ERP
+  parameters:
+    - $ref: '../components/parameters/PageParam.yaml'
+    - $ref: '../components/parameters/LimitParam.yaml'
+    - name: factoryId
+      in: query
+      required: false
+      description: Solo los encargados de esa fábrica.
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+      example: 1
+    - name: nameContains
+      in: query
+      required: false
+      description: Encargados cuyo nombre o apellido contiene el texto, sin distinguir mayúsculas.
+      schema:
+        type: string
+      example: ríos
+    - name: active
+      in: query
+      required: false
+      description: '`true`: solo los activos. `false`: solo los dados de baja. Sin el parámetro, todos.'
+      schema:
+        type: boolean
+  responses:
+    '200':
+      description: Página de encargados.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/CustomerList.yaml'
+          example:
+            items:
+              - id: '1'
+                firstName: Marcela
+                lastName: Ríos
+                phone: '+5493515551234'
+                mail: compras@oxycam.com
+                factoryId: '1'
+                isActive: true
+            total: 1
+            page: 1
+            limit: 20
+    '400':
+      $ref: '../components/responses/InvalidQuery.yaml'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'

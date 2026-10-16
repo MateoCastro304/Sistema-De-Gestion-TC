@@ -1,0 +1,45 @@
+type: object
+description: |
+  Respuesta de `POST /auth/login` y `POST /auth/refresh`. El refresh token no
+  viaja acá: va solo en la cookie `refresh_token`.
+required:
+  - accessToken
+  - tokenType
+  - expiresIn
+  - inactivityTimeoutSeconds
+  - sessionExpiresAt
+  - user
+properties:
+  accessToken:
+    type: string
+    description: |
+      Token que el cliente envía en `Authorization: Bearer` en todas las
+      peticiones. Opaco para el cliente. Se guarda **en memoria**, no en
+      `localStorage`: al recargar la página se pide uno nuevo con
+      `POST /auth/refresh`.
+    example: eyJhbGciOi...
+  tokenType:
+    type: string
+    description: Siempre `Bearer`.
+    enum:
+      - Bearer
+    example: Bearer
+  expiresIn:
+    type: integer
+    description: Segundos de vida del `accessToken` (15 minutos).
+    example: 900
+  inactivityTimeoutSeconds:
+    type: integer
+    description: |
+      Tiempo sin actividad tras el que la sesión se cierra, en segundos (30
+      minutos). Permite que el cliente lleve su propio reloj, como el prototipo.
+    example: 1800
+  sessionExpiresAt:
+    type: string
+    format: date-time
+    description: |
+      Fin de la sesión por su duración máxima: el ingreso más 7 días. Es
+      también el vencimiento del refresh token; renovar no lo corre.
+    example: '2026-10-22T12:30:00.000Z'
+  user:
+    $ref: './User.yaml'

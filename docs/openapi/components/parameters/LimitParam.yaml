@@ -1,7 +1,7 @@
 name: limit
 in: query
 required: false
-description: Number of results per page.
+description: Cantidad máxima de elementos por página.
 schema:
   type: integer
   minimum: 1

@@ -19,7 +19,7 @@ Cada ítem adjudicado tiene una OT independiente, con precio pactado congelado. 
 - El desvío compara cada ejecución con su planificación y el material real con el cotizado (RN40).
 - La entrega y facturación pueden realizarse por separado entre trabajos de una cotización; se registran números de remito y factura (RN41).
 
-Las fórmulas, condiciones y trazabilidad permanecen en [RN34–RN41](../domain/02-reglas-de-negocio.md#f-trabajo-adjudicado-orden-de-trabajo). La visibilidad económica de JT se delimita en [roles y permisos](../conceptos-transversales/roles-y-permisos.md).
+Las fórmulas, condiciones y trazabilidad permanecen en [RN34–RN41](../dominio/02-reglas-de-negocio.md#f-trabajo-adjudicado-orden-de-trabajo). La visibilidad económica de JT se delimita en [roles y permisos](../conceptos-transversales/roles-y-permisos.md).
 
 ## Flujo de ejecución
 
@@ -39,8 +39,8 @@ Las fórmulas, condiciones y trazabilidad permanecen en [RN34–RN41](../domain/
 
 El recorrido operativo es `PteCompraMaterial` → `MaterialPedido` → `PteConstruccion` → `EnConstruccion` → `Finalizado` → `Entregado` → `Facturado`. `Cancelado` es una salida excepcional final.
 
-Las guardas, efectos y transiciones ilegales permanecen en la [máquina de estados, §2](../domain/06-maquinas-de-estado.md#2-orden-de-trabajo-ordendetrabajoestado--estadoot). La fecha de entrega calculada desde la orden de compra y el plazo del ítem está marcada como supuesto en esa fuente.
+Las guardas, efectos y transiciones ilegales permanecen en la [máquina de estados, §2](../dominio/06-maquinas-de-estado.md#2-orden-de-trabajo-ordendetrabajoestado--estadoot). La fecha de entrega calculada desde la orden de compra y el plazo del ítem está marcada como supuesto en esa fuente.
 
 ## Documentación relacionada
 
-Fuentes: [RF10](../domain/03-requerimientos.md), [CU-19 y CU-23–CU-32](../domain/04-actores-y-casos-de-uso.md), [modelo, §2.5](../domain/05-modelo-de-dominio.md#25-producción-y-ejecución-real) y [matriz de permisos](../domain/Matriz%20de%20permisos.md). Se conserva en `domain/` el detalle formal de reglas, estados y relaciones.
+Fuentes: [RF10](../dominio/03-requerimientos.md), [CU-19 y CU-23–CU-32](../dominio/04-actores-y-casos-de-uso.md), [modelo, §2.5](../dominio/05-modelo-de-dominio.md#25-producción-y-ejecución-real) y [matriz de permisos](../dominio/Matriz%20de%20permisos.md). Se conserva en `domain/` el detalle formal de reglas, estados y relaciones.

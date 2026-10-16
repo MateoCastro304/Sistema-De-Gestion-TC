@@ -1,0 +1,181 @@
+parameters:
+  - $ref: '../components/parameters/ProcessTypeIdParam.yaml'
+
+get:
+  summary: Consultar tipo de proceso
+  description: |
+    **Roles:** `AT` o `EC`.
+
+    Obtiene un tipo de proceso (CU-11): el bloque "Datos del tipo de proceso" y
+    el recuadro "Registro" del detalle. El historial se pide aparte con
+    `GET /process-types/{processTypeId}/history`.
+  operationId: getProcessTypeById
+  tags:
+    - Tipos de proceso
+  x-roles:
+    - AT
+    - EC
+  responses:
+    '200':
+      description: Tipo de proceso pedido.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/ProcessType.yaml'
+          example:
+            id: 1
+            name: Mecanizado Torno Manual
+            description: 'Torneado convencional: cilindrado, refrentado, roscado y ranurado.'
+            hourlyRateArs: 1557
+            hourlyRateUsd: 1.13
+            exchangeRate: 1377.88
+            createdAt: '2026-03-12T12:10:00.000Z'
+            updatedAt: '2026-10-01T13:22:00.000Z'
+    '400':
+      $ref: '../components/responses/InvalidProcessTypeId.yaml'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
+    '404':
+      $ref: '../components/responses/ProcessTypeNotFound.yaml'
+
+patch:
+  summary: Modificar tipo de proceso
+  description: |
+    **Roles:** `AT` o `EC`.
+
+    Modifica un tipo de proceso (CU-10). Se envían solo los campos que
+    cambiaron; al menos uno. `exchangeRate` es obligatorio si llega alguno de
+    los dos precios.
+
+    **Efectos**
+
+    - Si cambió **alguno de los dos precios hora**, se agrega **un** registro
+      al historial de precios con el precio en dólares anterior y el nuevo, el
+      tipo de cambio usado, el usuario de la sesión y la fecha y hora (RNF10,
+      D-32).
+    - Cambiar solo el nombre o la descripción **no genera registro**: el
+      historial es de precios.
+    - **El tipo de cambio solo se guarda junto con un cambio de precio**
+      (D-52). Si llega `exchangeRate` y ningún precio cambia, se ignora.
+    - Un campo que llega con el mismo valor que ya tenía no cuenta como cambio.
+    - `updatedAt` pasa a ser la fecha y hora de la modificación.
+    - **Sin cambios** (CU-10, escenario 6): `200` con el tipo de proceso tal
+      como estaba, sin registros nuevos y sin tocar `updatedAt` (D-31). El
+      cliente igual compara antes de enviar y muestra "No hay cambios para
+      guardar" sin llamar a la API.
+
+    **En el prototipo:** "Modificar" abre el formulario con los valores
+    actuales y el tipo de cambio de `GET /exchange-rate`. Al guardar muestra el
+    modal "Confirmar cambios" (cada campo como "anterior → nuevo", armado por
+    el cliente) y recién al confirmar envía el `PATCH`.
+  operationId: updateProcessType
+  tags:
+    - Tipos de proceso
+  x-roles:
+    - AT
+    - EC
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/ProcessTypeUpdate.yaml'
+        examples:
+          dollarVariation:
+            summary: Actualización por variación del dólar (CU-10, escenario 1)
+            description: |
+              El usuario cambia el tipo de cambio: los pesos se mantienen y los
+              dólares se recalculan (1557 ÷ 1390 = 1.12).
+            value:
+              hourlyRateUsd: 1.12
+              exchangeRate: 1390
+          rename:
+            summary: Solo el nombre (no genera registro en el historial)
+            value:
+              name: Mecanizado Torno Convencional
+  responses:
+    '200':
+      description: Tipo de proceso modificado (o tal como estaba, si no hubo cambios).
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/ProcessType.yaml'
+          example:
+            id: 1
+            name: Mecanizado Torno Manual
+            description: 'Torneado convencional: cilindrado, refrentado, roscado y ranurado.'
+            hourlyRateArs: 1557
+            hourlyRateUsd: 1.12
+            exchangeRate: 1390
+            createdAt: '2026-03-12T12:10:00.000Z'
+            updatedAt: '2026-10-15T13:30:00.000Z'
+    '400':
+      description: |
+        - `VALIDATION_ERROR`: algún campo no es válido, falta `exchangeRate`
+          junto con un precio, o el cuerpo está vacío ("Enviá al menos un campo
+          para modificar.").
+        - `INVALID_PATH_PARAMETER`: `processTypeId` no es un entero.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          examples:
+            invalidExchangeRate:
+              summary: VALIDATION_ERROR — tipo de cambio inválido
+              value:
+                statusCode: 400
+                error: Bad Request
+                code: VALIDATION_ERROR
+                message: Los datos enviados no son válidos.
+                path: /api/process-types/1
+                timestamp: '2026-10-15T13:30:00.000Z'
+                details:
+                  - field: exchangeRate
+                    message: Ingresá un tipo de cambio mayor a 0, con hasta dos decimales
+            emptyBody:
+              summary: VALIDATION_ERROR — cuerpo vacío
+              value:
+                statusCode: 400
+                error: Bad Request
+                code: VALIDATION_ERROR
+                message: Enviá al menos un campo para modificar.
+                path: /api/process-types/1
+                timestamp: '2026-10-15T13:30:00.000Z'
+            invalidPathParameter:
+              summary: INVALID_PATH_PARAMETER
+              value:
+                statusCode: 400
+                error: Bad Request
+                code: INVALID_PATH_PARAMETER
+                message: El identificador del tipo de proceso no es válido.
+                path: /api/process-types/abc
+                timestamp: '2026-10-15T13:30:00.000Z'
+                details:
+                  - field: processTypeId
+                    message: Debe ser un número entero válido.
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
+    '404':
+      $ref: '../components/responses/ProcessTypeNotFound.yaml'
+    '409':
+      description: |
+        `PROCESS_TYPE_NAME_TAKEN`: el nombre nuevo ya es de **otro** tipo de
+        proceso (CU-10, escenario 5).
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 409
+            error: Conflict
+            code: PROCESS_TYPE_NAME_TAKEN
+            message: Ya existe un tipo de proceso con ese nombre
+            path: /api/process-types/1
+            timestamp: '2026-10-15T13:30:00.000Z'
+            details:
+              - field: name
+                message: Ya existe un tipo de proceso con ese nombre

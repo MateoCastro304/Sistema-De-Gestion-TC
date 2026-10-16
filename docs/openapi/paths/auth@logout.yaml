@@ -1,0 +1,33 @@
+post:
+  summary: Cerrar sesión
+  description: |
+    Cierra la sesión del usuario (CU-52). La sesión se identifica con la cookie
+    `refresh_token` o, si no llega, con el `accessToken` de `Authorization`:
+    así se puede cerrar sesión aunque el `accessToken` esté vencido.
+
+    **Efectos**
+
+    - La sesión queda cerrada en el servidor, con su fecha y hora de fin y el
+      motivo `MANUAL`. Desde la próxima petición, el `accessToken` de esa
+      sesión responde `401 UNAUTHENTICATED` aunque no hayan pasado sus 15
+      minutos, y el refresh token deja de servir (CU-52, escenario 3).
+    - No afecta otras sesiones del mismo usuario en otros equipos.
+    - La confirmación "Se van a perder los datos que no guardaste" es del
+      cliente: la pide antes de llamar a este endpoint.
+
+    Responde `204` **siempre**, también si la sesión ya había expirado, ya
+    estaba cerrada o no llegó ningún token: el usuario quería salir y ya está
+    afuera (CU-52, escenario 5). Por eso no tiene respuestas de error.
+  operationId: logout
+  tags:
+    - Sesión
+  security:
+    - refreshCookie: []
+    - bearerAuth: []
+    - {}
+  responses:
+    '204':
+      description: Sesión cerrada. Sin cuerpo; borra la cookie.
+      headers:
+        Set-Cookie:
+          $ref: '../components/headers/ClearRefreshCookie.yaml'

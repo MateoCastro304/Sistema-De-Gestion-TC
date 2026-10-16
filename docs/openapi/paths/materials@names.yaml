@@ -1,0 +1,36 @@
+get:
+  summary: Consultar los nombres de material
+  description: |
+    **Roles:** `AT` o `EC`.
+
+    Devuelve los nombres de material distintos, en orden alfabético. Lo usan el
+    filtro "Todos los materiales" del listado y el campo "Material" de la
+    ventana "Nuevo material" ("Elegí uno de la lista o escribí uno nuevo"). No
+    se pagina (D-38).
+  operationId: listMaterialNames
+  tags:
+    - Materiales
+  x-roles:
+    - AT
+    - EC
+  responses:
+    '200':
+      description: Nombres de material distintos.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/MaterialNames.yaml'
+          example:
+            items:
+              - Acero
+              - Acero inoxidable
+              - Aluminio
+              - Bronce
+              - Fundición gris
+              - Nylon
+              - POM
+              - Teflón
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'

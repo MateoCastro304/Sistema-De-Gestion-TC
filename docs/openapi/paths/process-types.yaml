@@ -1,0 +1,176 @@
+get:
+  summary: Consultar tipos de proceso
+  description: |
+    **Roles:** `AT` o `EC`.
+
+    Lista paginada de tipos de proceso (CU-11), ordenada por nombre. Columnas
+    del listado: nombre y descripción, "Precio hora en pesos", "Precio hora en
+    dólares" y "Última actualización" (`updatedAt`).
+
+    El Jefe de Taller, el Encargado de Recepción y el Encargado de Reportes
+    reciben `403`: el precio hora es información interna (D-13).
+
+    **En el prototipo**
+
+    - Tipos de proceso → listado ("Buscar por nombre"): `search` con lo
+      escrito.
+    - Tipos de proceso → encabezado ("7 tipos de proceso registrados"):
+      `limit=1` sin filtros; el número es `total`.
+  operationId: listProcessTypes
+  tags:
+    - Tipos de proceso
+  x-roles:
+    - AT
+    - EC
+  parameters:
+    - $ref: '../components/parameters/PageParam.yaml'
+    - $ref: '../components/parameters/LimitParam.yaml'
+    - name: search
+      in: query
+      required: false
+      description: Tipos cuyo nombre contiene el texto. Sin distinguir mayúsculas ni acentos.
+      schema:
+        type: string
+        maxLength: 120
+      example: torno
+  responses:
+    '200':
+      description: |
+        Página de tipos de proceso. Sin resultados, `items` vacío y `total` en
+        `0`; el prototipo muestra "No se encontraron tipos de proceso con ese
+        criterio" y ofrece "+ Nuevo tipo de proceso".
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/ProcessTypeList.yaml'
+          example:
+            items:
+              - id: 7
+                name: Armado / Desarmado
+                description: Desarme, inspección y rearmado en trabajos de reparación.
+                hourlyRateArs: 1180
+                hourlyRateUsd: 0.85
+                exchangeRate: 1385.5
+                createdAt: '2026-06-02T11:34:00.000Z'
+                updatedAt: '2026-06-02T11:34:00.000Z'
+              - id: 2
+                name: Mecanizado Torno CNC
+                description: Torneado por control numérico para series y piezas de precisión.
+                hourlyRateArs: 2547
+                hourlyRateUsd: 1.85
+                exchangeRate: 1376.76
+                createdAt: '2026-03-12T12:14:00.000Z'
+                updatedAt: '2026-10-01T13:24:00.000Z'
+            total: 7
+            page: 1
+            limit: 20
+    '400':
+      $ref: '../components/responses/InvalidQuery.yaml'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
+
+post:
+  summary: Registrar tipo de proceso
+  description: |
+    **Roles:** `AT` o `EC`.
+
+    Registra un tipo de proceso (CU-09). El formulario calcula los dos precios
+    con el tipo de cambio y la API los guarda tal como llegan (D-29). **El
+    alta no genera registros en el historial.**
+  operationId: createProcessType
+  tags:
+    - Tipos de proceso
+  x-roles:
+    - AT
+    - EC
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/ProcessTypeCreate.yaml'
+        example:
+          name: Mecanizado Torno CNC 5 ejes
+          description: null
+          hourlyRateArs: 3100
+          hourlyRateUsd: 2.24
+          exchangeRate: 1385.5
+  responses:
+    '201':
+      description: Tipo de proceso registrado, con `createdAt` y `updatedAt` iguales.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/ProcessType.yaml'
+          example:
+            id: 8
+            name: Mecanizado Torno CNC 5 ejes
+            description: null
+            hourlyRateArs: 3100
+            hourlyRateUsd: 2.24
+            exchangeRate: 1385.5
+            createdAt: '2026-10-15T13:20:00.000Z'
+            updatedAt: '2026-10-15T13:20:00.000Z'
+    '400':
+      description: '`VALIDATION_ERROR`: faltan obligatorios o los precios no son válidos (CU-09, escenario 3).'
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          examples:
+            missing:
+              summary: Faltan los obligatorios
+              value:
+                statusCode: 400
+                error: Bad Request
+                code: VALIDATION_ERROR
+                message: Los datos enviados no son válidos.
+                path: /api/process-types
+                timestamp: '2026-10-15T13:20:00.000Z'
+                details:
+                  - field: name
+                    message: Ingresá el nombre del tipo de proceso
+                  - field: hourlyRateArs
+                    message: Ingresá el precio hora en pesos
+                  - field: hourlyRateUsd
+                    message: Ingresá el precio hora en dólares
+                  - field: exchangeRate
+                    message: Ingresá un tipo de cambio mayor a 0, con hasta dos decimales
+            invalidPrices:
+              summary: Precios inválidos
+              value:
+                statusCode: 400
+                error: Bad Request
+                code: VALIDATION_ERROR
+                message: Los datos enviados no son válidos.
+                path: /api/process-types
+                timestamp: '2026-10-15T13:20:00.000Z'
+                details:
+                  - field: hourlyRateArs
+                    message: El precio hora en pesos tiene que ser un número mayor a 0
+                  - field: hourlyRateUsd
+                    message: El precio hora en dólares admite como máximo dos decimales
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
+    '409':
+      description: |
+        `PROCESS_TYPE_NAME_TAKEN`: ya existe un tipo de proceso con ese nombre,
+        sin distinguir mayúsculas, acentos ni espacios repetidos.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 409
+            error: Conflict
+            code: PROCESS_TYPE_NAME_TAKEN
+            message: Ya existe un tipo de proceso con ese nombre
+            path: /api/process-types
+            timestamp: '2026-10-15T13:20:00.000Z'
+            details:
+              - field: name
+                message: Ya existe un tipo de proceso con ese nombre

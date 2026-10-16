@@ -1,0 +1,119 @@
+post:
+  summary: Iniciar sesión
+  description: |
+    Inicia una sesión con el nombre de usuario y la contraseña (CU-53). Es el
+    único endpoint público.
+
+    **Efectos**
+
+    - **Ingreso correcto.** Se abre una sesión nueva en el servidor, el
+      contador de intentos fallidos vuelve a `0` y el inicio de la sesión pasa
+      a ser el `lastAccessAt` del usuario. La respuesta emite la cookie
+      `refresh_token`.
+    - **Contraseña incorrecta de un usuario activo.** Suma un intento fallido.
+      Al **quinto intento fallido consecutivo** el usuario queda bloqueado
+      (RNF08) y la respuesta ya es `423`.
+    - **Usuario bloqueado.** Se rechaza con `423` **aunque la contraseña sea
+      correcta**. No suma intentos. Lo desbloquea el Administrador desde
+      "Modificar usuario" (CU-06), que llega en el próximo sprint (D-49).
+    - **Usuario inexistente o dado de baja.** Mismo `401` que una contraseña
+      incorrecta (no revela cuál de los dos datos falló). No suma intentos.
+    - **Campo vacío.** `400` antes de intentar autenticar; **no cuenta como
+      intento**.
+
+    **En el prototipo:** con `401` o `423` conserva el usuario y limpia la
+    contraseña; con `200` muestra la primera pantalla que permiten los roles,
+    o "Todavía no hay módulos disponibles para tu rol".
+  operationId: login
+  tags:
+    - Sesión
+  security: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/LoginRequest.yaml'
+        example:
+          username: wcastro
+          password: Castro1977
+  responses:
+    '200':
+      description: |
+        Sesión abierta. `user` tiene la misma estructura que
+        `GET /users/{userId}`; `user.roles` es lo que el cliente usa para armar
+        el menú.
+      headers:
+        Set-Cookie:
+          $ref: '../components/headers/SetRefreshCookie.yaml'
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Session.yaml'
+          example:
+            accessToken: eyJhbGciOi...
+            tokenType: Bearer
+            expiresIn: 900
+            inactivityTimeoutSeconds: 1800
+            sessionExpiresAt: '2026-10-22T12:30:00.000Z'
+            user:
+              id: 1
+              username: wcastro
+              employee:
+                id: 1
+                firstName: Walter
+                lastName: Castro
+              roles:
+                - AS
+              status: ACTIVE
+              lastAccessAt: '2026-10-15T12:30:00.000Z'
+              createdAt: '2026-03-12T12:00:00.000Z'
+    '400':
+      description: '`VALIDATION_ERROR`: usuario o contraseña vacíos. No cuenta como intento.'
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 400
+            error: Bad Request
+            code: VALIDATION_ERROR
+            message: Los datos enviados no son válidos.
+            path: /api/auth/login
+            timestamp: '2026-10-15T12:30:00.000Z'
+            details:
+              - field: username
+                message: Ingresá tu nombre de usuario
+              - field: password
+                message: Ingresá tu contraseña
+    '401':
+      description: |
+        `INVALID_CREDENTIALS`: el usuario no existe, la contraseña es incorrecta
+        o el usuario está dado de baja (CU-53, escenarios 2 y 4). El mensaje es
+        el mismo en los tres casos.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 401
+            error: Unauthorized
+            code: INVALID_CREDENTIALS
+            message: Usuario o contraseña incorrectos
+            path: /api/auth/login
+            timestamp: '2026-10-15T12:30:00.000Z'
+    '423':
+      description: |
+        `USER_BLOCKED`: se responde en el quinto intento fallido consecutivo y
+        en todo intento posterior, con la contraseña correcta o no (D-06).
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 423
+            error: Locked
+            code: USER_BLOCKED
+            message: Tu usuario fue bloqueado por intentos fallidos. Contactá al Administrador del Sistema.
+            path: /api/auth/login
+            timestamp: '2026-10-15T12:30:00.000Z'

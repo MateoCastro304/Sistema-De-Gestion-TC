@@ -1,0 +1,59 @@
+type: object
+description: |
+  Historial de precios de un tipo de proceso, del más reciente al más antiguo.
+  **No se pagina** (D-32): un tipo de proceso cambia unas pocas veces al año.
+  Un tipo sin cambios de precio devuelve `items` vacío.
+required:
+  - items
+properties:
+  items:
+    type: array
+    items:
+      type: object
+      description: |
+        Un registro por modificación que cambió alguno de los dos precios hora.
+        Los dos valores van **siempre en dólares** (D-32).
+      required:
+        - id
+        - changedAt
+        - changedBy
+        - exchangeRate
+        - previousValueUsd
+        - newValueUsd
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Identificador del registro.
+          example: 14
+        changedAt:
+          type: string
+          format: date-time
+          description: '"Fecha y hora".'
+          example: '2026-10-01T13:22:00.000Z'
+        changedBy:
+          type: object
+          description: '"Usuario": el que hizo el cambio.'
+          required:
+            - id
+            - username
+          properties:
+            id:
+              type: integer
+              format: int64
+              example: 4
+            username:
+              type: string
+              example: lbenitez
+        exchangeRate:
+          type: number
+          description: '"Tipo de cambio": pesos por dólar con el que se calculó el precio nuevo.'
+          example: 1377.88
+        previousValueUsd:
+          type: number
+          description: '"Valor anterior (US$)": precio hora en dólares antes del cambio.'
+          example: 1.21
+        newValueUsd:
+          type: number
+          description: '"Valor nuevo (US$)": precio hora en dólares después del cambio.'
+          example: 1.13

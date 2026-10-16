@@ -1,0 +1,200 @@
+get:
+  summary: Consultar empleados
+  description: |
+    **Rol:** `AS`.
+
+    Lista paginada de empleados (CU-47), ordenada por apellido y nombre.
+
+    **En el prototipo**
+
+    - Empleados → listado ("Buscar por nombre, apellido, DNI o puesto"):
+      `search` con lo escrito; `includeInactive=true` si está tildado "Incluir
+      dados de baja".
+    - Empleados → encabezado ("11 empleados activos"): `limit=1` sin filtros;
+      el número es `total`.
+    - Nuevo usuario → buscador de empleado: `search` con lo escrito, `limit=8`.
+      Los que tienen `user` llevan la etiqueta "Ya tiene usuario". Muestra solo
+      activos, que es lo que devuelve el listado sin `includeInactive`.
+  operationId: listEmployees
+  tags:
+    - Empleados
+  x-roles:
+    - AS
+  parameters:
+    - $ref: '../components/parameters/PageParam.yaml'
+    - $ref: '../components/parameters/LimitParam.yaml'
+    - name: search
+      in: query
+      required: false
+      description: |
+        Busca en nombre, apellido, DNI y el rótulo del puesto ("Jefe de
+        taller"). Sin distinguir mayúsculas ni acentos.
+      schema:
+        type: string
+        maxLength: 120
+      example: castro
+    - $ref: '../components/parameters/IncludeInactiveParam.yaml'
+    - name: hasUser
+      in: query
+      required: false
+      description: '`true`: solo los que tienen usuario; `false`: solo los que no tienen. Sin el parámetro, todos.'
+      schema:
+        type: boolean
+  responses:
+    '200':
+      description: |
+        Página de empleados. Sin resultados, `items` vacío y `total` en `0`; el
+        prototipo muestra "No hay empleados que coincidan con la búsqueda."
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/EmployeeList.yaml'
+          example:
+            items:
+              - id: 6
+                firstName: Gabriela
+                lastName: Torres
+                dni: '28789012'
+                position: ADMINISTRATION
+                address: null
+                email: gtorres@castrotorneria.com.ar
+                phone: null
+                active: true
+                user:
+                  id: 6
+                  username: gtorres
+                  roles:
+                    - ER
+                  status: ACTIVE
+                createdAt: '2026-03-12T12:00:00.000Z'
+                updatedAt: '2026-03-12T12:00:00.000Z'
+              - id: 11
+                firstName: Carla
+                lastName: Videla
+                dni: '41234567'
+                position: EMPLOYEE
+                address: null
+                email: null
+                phone: null
+                active: true
+                user: null
+                createdAt: '2026-03-12T12:00:00.000Z'
+                updatedAt: '2026-03-12T12:00:00.000Z'
+            total: 11
+            page: 1
+            limit: 20
+    '400':
+      $ref: '../components/responses/InvalidQuery.yaml'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
+
+post:
+  summary: Registrar empleado
+  description: |
+    **Rol:** `AS`.
+
+    Registra un empleado (CU-45). También lo usa el formulario de usuario:
+    "+ Registrar empleado" abre el mismo formulario en una ventana y, al
+    registrarlo, el empleado queda elegido para el usuario nuevo.
+
+    El empleado queda **activo** y **sin usuario** (`user` en `null`).
+  operationId: createEmployee
+  tags:
+    - Empleados
+  x-roles:
+    - AS
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/EmployeeCreate.yaml'
+        example:
+          firstName: Julián
+          lastName: Ferreyra
+          dni: '42345678'
+          position: EMPLOYEE
+          address: null
+          email: null
+          phone: +54 351 555-1013
+  responses:
+    '201':
+      description: Empleado registrado.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Employee.yaml'
+          example:
+            id: 13
+            firstName: Julián
+            lastName: Ferreyra
+            dni: '42345678'
+            position: EMPLOYEE
+            address: null
+            email: null
+            phone: +54 351 555-1013
+            active: true
+            user: null
+            createdAt: '2026-10-15T13:05:00.000Z'
+            updatedAt: '2026-10-15T13:05:00.000Z'
+    '400':
+      description: '`VALIDATION_ERROR`: faltan obligatorios o algún campo no cumple su formato.'
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          examples:
+            missing:
+              summary: Faltan los obligatorios
+              value:
+                statusCode: 400
+                error: Bad Request
+                code: VALIDATION_ERROR
+                message: Los datos enviados no son válidos.
+                path: /api/employees
+                timestamp: '2026-10-15T13:05:00.000Z'
+                details:
+                  - field: firstName
+                    message: Ingresá el nombre
+                  - field: lastName
+                    message: Ingresá el apellido
+                  - field: dni
+                    message: Ingresá el DNI
+                  - field: position
+                    message: Elegí el puesto
+            invalidFormat:
+              summary: Formato inválido
+              value:
+                statusCode: 400
+                error: Bad Request
+                code: VALIDATION_ERROR
+                message: Los datos enviados no son válidos.
+                path: /api/employees
+                timestamp: '2026-10-15T13:05:00.000Z'
+                details:
+                  - field: dni
+                    message: El DNI tiene que tener 7 u 8 números
+                  - field: email
+                    message: Revisá el formato del email
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
+    '409':
+      description: '`EMPLOYEE_DNI_TAKEN`: el DNI ya es de otro empleado, aunque esté dado de baja.'
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 409
+            error: Conflict
+            code: EMPLOYEE_DNI_TAKEN
+            message: Ya existe un empleado con ese DNI
+            path: /api/employees
+            timestamp: '2026-10-15T13:05:00.000Z'
+            details:
+              - field: dni
+                message: Ya existe un empleado con ese DNI

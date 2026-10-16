@@ -1,0 +1,14 @@
+type: apiKey
+in: cookie
+name: refresh_token
+description: |
+  Refresh token de la sesión. Viaja **solo** en la cookie `refresh_token`
+  (`HttpOnly; Secure; SameSite=Strict; Path=/api/auth`), nunca en el cuerpo.
+  La emite `POST /auth/login`, la rota `POST /auth/refresh` y la borra
+  `POST /auth/logout`. Vence a los **7 días** del ingreso, que es la duración
+  máxima de la sesión.
+
+  Desde Swagger no hace falta cargarla en **Authorize**: el navegador la guarda
+  al ejecutar el login y la manda sola a `/api/auth/*`. Para eso hay que elegir
+  el server `http://localhost/api` (nginx): con el backend directo la ruta no
+  empieza con `/api/auth` y el navegador no envía la cookie.

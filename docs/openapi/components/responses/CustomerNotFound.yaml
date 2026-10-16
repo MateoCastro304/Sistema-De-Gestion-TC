@@ -1,0 +1,12 @@
+description: '`CUSTOMER_NOT_FOUND`: no existe un encargado con ese `id` en esa fábrica.'
+content:
+  application/json:
+    schema:
+      $ref: '../schemas/Error.yaml'
+    example:
+      statusCode: 404
+      error: Not Found
+      code: CUSTOMER_NOT_FOUND
+      message: Customer 99 not found in factory 1
+      path: /api/factories/1/customers/99
+      timestamp: '2026-10-15T13:00:00.000Z'

@@ -1,0 +1,12 @@
+description: '`FACTORY_NOT_FOUND`: no existe una fábrica con ese identificador.'
+content:
+  application/json:
+    schema:
+      $ref: '../schemas/Error.yaml'
+    example:
+      statusCode: 404
+      error: Not Found
+      code: FACTORY_NOT_FOUND
+      message: Factory with ID 99 not found
+      path: /api/factories/99
+      timestamp: '2026-10-15T13:00:00.000Z'

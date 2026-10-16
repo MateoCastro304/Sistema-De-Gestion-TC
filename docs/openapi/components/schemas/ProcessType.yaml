@@ -1,0 +1,80 @@
+type: object
+description: |
+  Proceso propio del taller con su precio por hora (CU-09, CU-10 y CU-11).
+
+  **Precios.** Cada tipo de proceso tiene su precio hora en pesos y en dólares
+  (RN16), vinculados por el tipo de cambio. El cálculo lo hace el cliente y la
+  API guarda los dos precios tal como llegan, sin recalcularlos (D-29).
+  `exchangeRate` es el tipo de cambio de la última modificación de precios
+  (D-52): coincide con el del registro más reciente del historial, si lo hay, o
+  con el del alta.
+
+  **`name`** es único sin distinguir mayúsculas, acentos ni espacios repetidos
+  (D-34).
+
+  **`updatedAt`** es la "Última actualización" del listado: cambia con
+  cualquier modificación (nombre, descripción o precios), mientras que el
+  historial solo registra cambios de precio (D-33).
+
+  Modificar un precio no toca las cotizaciones ya cargadas (RN17).
+required:
+  - id
+  - name
+  - description
+  - hourlyRateArs
+  - hourlyRateUsd
+  - exchangeRate
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: integer
+    format: int64
+    description: Identificador único. No cambia nunca, aunque se renombre el tipo.
+    readOnly: true
+    example: 1
+  name:
+    type: string
+    maxLength: 100
+    description: Nombre. Único.
+    example: Mecanizado Torno Manual
+  description:
+    type: string
+    nullable: true
+    maxLength: 500
+    description: Qué incluye el proceso.
+    example: 'Torneado convencional: cilindrado, refrentado, roscado y ranurado.'
+  hourlyRateArs:
+    type: number
+    minimum: 0
+    exclusiveMinimum: true
+    description: Precio hora en pesos. Mayor a 0, hasta dos decimales.
+    example: 1557
+  hourlyRateUsd:
+    type: number
+    minimum: 0
+    exclusiveMinimum: true
+    description: Precio hora en dólares. Mayor a 0, hasta dos decimales.
+    example: 1.13
+  exchangeRate:
+    type: number
+    minimum: 0
+    exclusiveMinimum: true
+    description: |
+      Tipo de cambio (pesos por dólar) con el que se vincularon los dos precios
+      la última vez que cambiaron. Hasta dos decimales.
+    example: 1377.88
+  createdAt:
+    type: string
+    format: date-time
+    description: Fecha y hora del alta ("Alta").
+    readOnly: true
+    example: '2026-03-12T12:10:00.000Z'
+  updatedAt:
+    type: string
+    format: date-time
+    description: |
+      Fecha y hora del último cambio; igual a `createdAt` si nunca cambió
+      ("Última actualización").
+    readOnly: true
+    example: '2026-10-01T13:22:00.000Z'

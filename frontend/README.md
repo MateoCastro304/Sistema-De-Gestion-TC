@@ -30,4 +30,4 @@ Para trabajar sin backend, los mocks de la API se prenden con `VITE_USE_MOCKS=tr
 
 El código se organiza en tres capas: `app/` (arranque), `features/` (módulos
 de negocio) y `shared/` (infraestructura técnica). Ver la
-[documentación de arquitectura](../docs/architecture/overview.md) del repositorio para más detalles.
+[documentación de arquitectura](../docs/arquitectura/overview.md) del repositorio para más detalles.

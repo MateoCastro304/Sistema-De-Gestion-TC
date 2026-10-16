@@ -1,0 +1,35 @@
+description: |
+  - `SUPPLIER_LEGAL_NAME_TAKEN`: la razón social ya es de otro proveedor activo
+    (sin distinguir mayúsculas).
+  - `SUPPLIER_CUIT_TAKEN`: el CUIT ya es de otro proveedor activo.
+
+  El campo va en `details`, como en el resto de los `409` de unicidad (D-41).
+content:
+  application/json:
+    schema:
+      $ref: '../schemas/Error.yaml'
+    examples:
+      legalNameTaken:
+        summary: SUPPLIER_LEGAL_NAME_TAKEN
+        value:
+          statusCode: 409
+          error: Conflict
+          code: SUPPLIER_LEGAL_NAME_TAKEN
+          message: Supplier with legalName "Aceros del Sur S.A." already exists
+          path: /api/suppliers
+          timestamp: '2026-10-15T13:00:00.000Z'
+          details:
+            - field: legalName
+              message: Supplier with legalName "Aceros del Sur S.A." already exists
+      cuitTaken:
+        summary: SUPPLIER_CUIT_TAKEN
+        value:
+          statusCode: 409
+          error: Conflict
+          code: SUPPLIER_CUIT_TAKEN
+          message: Supplier with cuit "30712345671" already exists
+          path: /api/suppliers
+          timestamp: '2026-10-15T13:00:00.000Z'
+          details:
+            - field: cuit
+              message: Supplier with cuit "30712345671" already exists

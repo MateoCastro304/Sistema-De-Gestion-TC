@@ -1,0 +1,72 @@
+parameters:
+  - $ref: '../components/parameters/UserIdParam.yaml'
+
+get:
+  summary: Consultar usuario
+  description: |
+    **Rol:** `AS`.
+
+    Obtiene un usuario (CU-07): la pantalla de detalle. Un usuario dado de baja
+    también se devuelve, con `status` en `INACTIVE`. El prototipo muestra el
+    aviso de cada estado:
+
+    - `INACTIVE`: "Este usuario está inactivo: no puede ingresar al sistema."
+    - `BLOCKED`: "Este usuario está bloqueado por 5 intentos fallidos de
+      ingreso: no puede ingresar al sistema."
+  operationId: getUserById
+  tags:
+    - Usuarios
+  x-roles:
+    - AS
+  responses:
+    '200':
+      description: Usuario pedido.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/User.yaml'
+          example:
+            id: 8
+            username: hfunes
+            employee:
+              id: 8
+              firstName: Hugo
+              lastName: Funes
+            roles:
+              - AT
+            status: BLOCKED
+            lastAccessAt: '2026-10-06T11:40:00.000Z'
+            createdAt: '2026-03-12T12:00:00.000Z'
+    '400':
+      description: '`INVALID_PATH_PARAMETER`: `userId` no es un entero.'
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 400
+            error: Bad Request
+            code: INVALID_PATH_PARAMETER
+            message: El identificador del usuario no es válido.
+            path: /api/users/abc
+            timestamp: '2026-10-15T13:10:00.000Z'
+            details:
+              - field: userId
+                message: Debe ser un número entero válido.
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
+    '404':
+      description: '`USER_NOT_FOUND`: no existe un usuario con ese identificador.'
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 404
+            error: Not Found
+            code: USER_NOT_FOUND
+            message: No se encontró el usuario solicitado.
+            path: /api/users/99
+            timestamp: '2026-10-15T13:10:00.000Z'

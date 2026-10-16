@@ -1,0 +1,30 @@
+parameters:
+  - $ref: '../components/parameters/IdParam.yaml'
+
+post:
+  summary: Restaurar un rubro
+  description: |
+    **Rol:** `ERP`.
+
+    Reactiva un rubro dado de baja. Sobre un rubro activo no cambia nada y
+    responde igual `200`.
+  operationId: restoreCategory
+  tags:
+    - Rubros
+  x-roles:
+    - ERP
+  responses:
+    '200':
+      description: Rubro restaurado, con `active` en `true`.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Category.yaml'
+    '400':
+      $ref: '../components/responses/InvalidId.yaml'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
+    '404':
+      $ref: '../components/responses/CategoryNotFound.yaml'

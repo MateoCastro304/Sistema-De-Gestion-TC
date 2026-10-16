@@ -1,0 +1,54 @@
+type: object
+description: |
+  Alta de empleado. Los textos se guardan sin espacios al principio ni al
+  final; un campo opcional vacío (`""`) se guarda como `null`.
+
+  El empleado queda **activo** y **sin usuario**. No se avisa de un posible
+  homónimo (D-18): lo que identifica a la persona es el DNI.
+additionalProperties: false
+required:
+  - firstName
+  - lastName
+  - dni
+  - position
+properties:
+  firstName:
+    type: string
+    minLength: 1
+    maxLength: 100
+    description: '"Nombre". No vacío.'
+    example: Julián
+  lastName:
+    type: string
+    minLength: 1
+    maxLength: 100
+    description: '"Apellido". No vacío.'
+    example: Ferreyra
+  dni:
+    type: string
+    pattern: '^[0-9]{7,8}$'
+    description: |
+      "DNI". 7 u 8 dígitos, sin puntos. Único entre todos los empleados,
+      incluidos los dados de baja.
+    example: '42345678'
+  position:
+    $ref: './EmployeePosition.yaml'
+  address:
+    type: string
+    nullable: true
+    maxLength: 200
+    description: '"Dirección".'
+    example: Bv. San Juan 450, Córdoba
+  email:
+    type: string
+    nullable: true
+    format: email
+    maxLength: 120
+    description: '"Email". Formato de correo válido.'
+    example: jferreyra@castrotorneria.com.ar
+  phone:
+    type: string
+    nullable: true
+    maxLength: 50
+    description: '"Teléfono".'
+    example: +54 351 555-1013

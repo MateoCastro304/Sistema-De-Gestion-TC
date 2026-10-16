@@ -1,0 +1,111 @@
+post:
+  summary: Renovar el token de acceso
+  description: |
+    Entrega un `accessToken` nuevo a partir del refresh token de la cookie
+    `refresh_token` (CU-53). El `accessToken` puede estar vencido: la sesión se
+    identifica con la cookie. No recibe cuerpo ni `Authorization`.
+
+    El cliente lo usa en dos momentos:
+
+    - **Una petición responde `401 ACCESS_TOKEN_EXPIRED`:** pide un token nuevo
+      y repite la petición; el usuario no se entera.
+    - **Al cargar o recargar la página:** como el `accessToken` vive en
+      memoria, lo pide de nuevo. Con `200` la sesión sigue; con `401` muestra
+      el ingreso.
+
+    **Efectos**
+
+    - **Rotación.** En cada uso el refresh token se **reemplaza** por uno nuevo
+      (misma cookie) y el anterior queda revocado. El nuevo vence en el mismo
+      momento que el original: renovar no estira la sesión más allá de los 7
+      días desde el ingreso.
+    - **Reuso de un refresh revocado.** Se considera robado y se **cierra la
+      sesión entera**, salvo en los 30 segundos siguientes a la rotación, para
+      que dos pestañas que renuevan a la vez no se cierren la sesión (D-47).
+    - **No cuenta como actividad** (D-46): no corre el reloj de inactividad.
+
+    **Para probarlo desde Swagger** hay que usar el server
+    `http://localhost/api` y haber hecho el login desde acá mismo, para que el
+    navegador tenga la cookie.
+  operationId: refreshSession
+  tags:
+    - Sesión
+  security:
+    - refreshCookie: []
+  responses:
+    '200':
+      description: |
+        Misma estructura que la respuesta del login. `user` trae los datos
+        **vigentes** (si cambiaron sus roles después del ingreso, ya vienen los
+        nuevos) y `lastAccessAt` sigue siendo el inicio de esta sesión.
+      headers:
+        Set-Cookie:
+          $ref: '../components/headers/SetRefreshCookie.yaml'
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Session.yaml'
+          example:
+            accessToken: eyJhbGciOi...
+            tokenType: Bearer
+            expiresIn: 900
+            inactivityTimeoutSeconds: 1800
+            sessionExpiresAt: '2026-10-22T14:02:00.000Z'
+            user:
+              id: 7
+              username: dcastro
+              employee:
+                id: 7
+                firstName: Daniel
+                lastName: Castro
+              roles:
+                - ERP
+                - EC
+              status: ACTIVE
+              lastAccessAt: '2026-10-15T14:02:00.000Z'
+              createdAt: '2026-03-12T12:00:00.000Z'
+    '401':
+      description: |
+        No hay una sesión válida. En todos los casos la respuesta borra la
+        cookie y el cliente muestra el ingreso, con "Tu sesión expiró por
+        inactividad" cuando el `code` es `SESSION_EXPIRED`.
+
+        - `SESSION_EXPIRED`: 30 minutos de inactividad o 7 días desde el ingreso.
+        - `UNAUTHENTICATED`: no hay cookie, el refresh token no existe, la sesión
+          se cerró con `POST /auth/logout`, se detectó el reuso de un refresh
+          revocado, o el usuario quedó bloqueado o inactivo.
+      headers:
+        Set-Cookie:
+          $ref: '../components/headers/ClearRefreshCookie.yaml'
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          examples:
+            inactivity:
+              summary: SESSION_EXPIRED — 30 minutos sin actividad
+              value:
+                statusCode: 401
+                error: Unauthorized
+                code: SESSION_EXPIRED
+                message: Tu sesión expiró por inactividad
+                path: /api/auth/refresh
+                timestamp: '2026-10-15T15:00:00.000Z'
+            maxDuration:
+              summary: SESSION_EXPIRED — se cumplieron los 7 días
+              value:
+                statusCode: 401
+                error: Unauthorized
+                code: SESSION_EXPIRED
+                message: Tu sesión expiró. Volvé a ingresar.
+                path: /api/auth/refresh
+                timestamp: '2026-10-22T12:31:00.000Z'
+            unauthenticated:
+              summary: UNAUTHENTICATED — no hay una sesión válida
+              value:
+                statusCode: 401
+                error: Unauthorized
+                code: UNAUTHENTICATED
+                message: La autenticación es requerida.
+                path: /api/auth/refresh
+                timestamp: '2026-10-15T15:00:00.000Z'

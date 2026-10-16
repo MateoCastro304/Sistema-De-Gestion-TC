@@ -1,8 +1,12 @@
 type: object
 description: |
-  Modifiable fields of a category. All optional — the client sends only
-  the fields that should change. At least one property must be present.
-minProperties: 1
+  Campos modificables de un rubro. Un cuerpo sin campos responde el rubro sin
+  cambios.
+additionalProperties: false
 properties:
   name:
-    $ref: "./Category.yaml#/properties/name"
+    type: string
+    minLength: 3
+    maxLength: 80
+    description: Nuevo nombre, de 3 a 80 caracteres sin contar los espacios de los extremos.
+    example: Autopartes

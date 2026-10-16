@@ -1,0 +1,15 @@
+description: '`INVALID_PATH_PARAMETER`: un identificador de la ruta no es un entero.'
+content:
+  application/json:
+    schema:
+      $ref: '../schemas/Error.yaml'
+    example:
+      statusCode: 400
+      error: Bad Request
+      code: INVALID_PATH_PARAMETER
+      message: Validation failed (numeric string is expected)
+      path: /api/categories/abc
+      timestamp: '2026-10-15T13:00:00.000Z'
+      details:
+        - field: id
+          message: Validation failed (numeric string is expected)

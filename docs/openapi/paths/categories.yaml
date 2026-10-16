@@ -1,44 +1,148 @@
 get:
-  summary: List categories
-  description: Returns a paginated list of categories.
+  summary: Consultar rubros
+  description: |
+    **Rol:** `ERP`.
+
+    Lista paginada de rubros, ordenada por identificador. Sin `active` devuelve
+    solo los activos; con `active=false`, solo los dados de baja.
   operationId: listCategories
   tags:
-    - Categories
+    - Rubros
+  x-roles:
+    - ERP
   parameters:
     - $ref: '../components/parameters/PageParam.yaml'
     - $ref: '../components/parameters/LimitParam.yaml'
+    - name: name
+      in: query
+      required: false
+      description: Rubros cuyo nombre contiene el texto, sin distinguir mayúsculas.
+      schema:
+        type: string
+      example: auto
+    - name: active
+      in: query
+      required: false
+      description: '`true` (por defecto): solo los activos. `false`: solo los dados de baja.'
+      schema:
+        type: boolean
+        default: true
   responses:
     '200':
-      description: List of categories for the requested page.
+      description: Página de rubros.
       content:
         application/json:
           schema:
-            type: array
+            $ref: '../components/schemas/CategoryList.yaml'
+          example:
             items:
-              $ref: '../components/schemas/Category.yaml'
+              - id: 1
+                name: Metalúrgica
+                active: true
+                createdAt: '2026-08-22T15:30:00.000Z'
+                updatedAt: '2026-08-22T15:30:00.000Z'
+              - id: 2
+                name: Autopartes
+                active: true
+                createdAt: '2026-08-22T15:31:00.000Z'
+                updatedAt: '2026-08-22T15:31:00.000Z'
+            total: 2
+            page: 1
+            limit: 20
+    '400':
+      $ref: '../components/responses/InvalidQuery.yaml'
     '401':
       $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
 
 post:
-  summary: Create a category
-  description: Registers a new category in the system.
+  summary: Registrar rubro
+  description: |
+    **Rol:** `ERP`.
+
+    Registra un rubro, que queda activo. Si el nombre es de un rubro dado de
+    baja responde `409 CATEGORY_NAME_TAKEN_BY_INACTIVE` con su `categoryId`,
+    para que el cliente ofrezca restaurarlo en vez de crear un duplicado.
   operationId: createCategory
   tags:
-    - Categories
+    - Rubros
+  x-roles:
+    - ERP
   requestBody:
     required: true
     content:
       application/json:
         schema:
           $ref: '../components/schemas/CategoryCreate.yaml'
+        example:
+          name: Metalúrgica
   responses:
     '201':
-      description: Category created successfully.
+      description: Rubro registrado.
       content:
         application/json:
           schema:
             $ref: '../components/schemas/Category.yaml'
+          example:
+            id: 1
+            name: Metalúrgica
+            active: true
+            createdAt: '2026-08-22T15:30:00.000Z'
+            updatedAt: '2026-08-22T15:30:00.000Z'
     '400':
-      $ref: '../components/responses/BadRequest.yaml'
+      description: '`VALIDATION_ERROR`: el nombre falta, tiene menos de 3 caracteres o más de 80.'
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 400
+            error: Bad Request
+            code: VALIDATION_ERROR
+            message: name must be longer than or equal to 3 characters
+            path: /api/categories
+            timestamp: '2026-10-15T13:00:00.000Z'
+            details:
+              - field: name
+                message: name must be longer than or equal to 3 characters
     '401':
       $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
+    '409':
+      description: |
+        - `CATEGORY_NAME_TAKEN`: el nombre ya es de un rubro activo (sin
+          distinguir mayúsculas).
+        - `CATEGORY_NAME_TAKEN_BY_INACTIVE`: el nombre es de un rubro dado de
+          baja. El cuerpo suma `categoryId`, el rubro a restaurar.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/CategoryConflictError.yaml'
+          examples:
+            nameTaken:
+              summary: CATEGORY_NAME_TAKEN
+              value:
+                statusCode: 409
+                error: Conflict
+                code: CATEGORY_NAME_TAKEN
+                message: Ya existe un rubro con ese nombre
+                path: /api/categories
+                timestamp: '2026-10-15T13:00:00.000Z'
+                details:
+                  - field: name
+                    message: Ya existe un rubro con ese nombre
+            nameTakenByInactive:
+              summary: CATEGORY_NAME_TAKEN_BY_INACTIVE
+              value:
+                statusCode: 409
+                error: Conflict
+                code: CATEGORY_NAME_TAKEN_BY_INACTIVE
+                message: El rubro existe pero está dado de baja
+                path: /api/categories
+                timestamp: '2026-10-15T13:00:00.000Z'
+                details:
+                  - field: name
+                    message: El rubro existe pero está dado de baja
+                categoryId: 4

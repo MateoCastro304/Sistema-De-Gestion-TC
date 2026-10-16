@@ -1,11 +1,12 @@
 type: object
 description: |
-  A page of suppliers together with the total matching the filters, so the
-  client can render a pager without asking for the whole catalogue.
+  Página de proveedores con el total que cumple los filtros, para que el
+  cliente arme el paginador sin pedir todo el catálogo.
 
-  `total` counts the suppliers that match the filters, not the ones in this
-  page: with `limit=20` over 57 matches, `items` has 20 and `total` is 57.
-  `page` and `limit` are echoed back because the server defaults them.
+  `total` cuenta los proveedores que cumplen los filtros, no los de esta
+  página: con `limit=20` sobre 57 coincidencias, `items` trae 20 y `total` es
+  57. `page` y `limit` repiten los aplicados porque el servidor completa los
+  valores por defecto.
 required:
   - items
   - total
@@ -14,23 +15,23 @@ required:
 properties:
   items:
     type: array
-    description: The suppliers in the requested page. Only active ones.
+    description: Los proveedores de la página pedida. Solo activos.
     items:
       $ref: './Supplier.yaml'
   total:
     type: integer
     format: int64
     minimum: 0
-    description: Total number of active suppliers matching the filters.
+    description: Total de proveedores activos que cumplen los filtros.
     example: 57
   page:
     type: integer
     minimum: 1
-    description: The page that was returned.
+    description: Página devuelta.
     example: 1
   limit:
     type: integer
     minimum: 1
     maximum: 1000
-    description: Page size that was applied.
+    description: Tamaño de página aplicado.
     example: 20

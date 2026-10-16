@@ -1,0 +1,18 @@
+type: string
+description: |
+  Puesto del empleado. El rótulo lo pone el cliente.
+
+  - `ADMINISTRATION` — Administración
+  - `WORKSHOP_HEAD` — Jefe de taller
+  - `HEAD` — Jefe
+  - `EMPLOYEE` — Empleado
+
+  No confundir con `Role`: el puesto es un dato del empleado; el rol es un
+  permiso del usuario (RN44). Un empleado con puesto "Jefe de taller" no tiene
+  el rol `JT` salvo que su usuario lo tenga asignado.
+enum:
+  - ADMINISTRATION
+  - WORKSHOP_HEAD
+  - HEAD
+  - EMPLOYEE
+example: EMPLOYEE

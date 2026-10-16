@@ -1,0 +1,60 @@
+parameters:
+  - $ref: '../components/parameters/ProcessTypeIdParam.yaml'
+
+get:
+  summary: Consultar el historial de precios
+  description: |
+    **Roles:** `AT` o `EC`.
+
+    Historial de precios de un tipo de proceso, **del más reciente al más
+    antiguo** (CU-10, escenario 4): la tabla "Historial de precios" del
+    detalle. Solo tiene registros de las modificaciones que cambiaron algún
+    precio hora. No se pagina (D-32).
+
+    El historial no se puede modificar ni borrar por ningún rol (RNF10): no
+    existe ningún endpoint de escritura sobre él.
+  operationId: getProcessTypePriceHistory
+  tags:
+    - Tipos de proceso
+  x-roles:
+    - AT
+    - EC
+  responses:
+    '200':
+      description: |
+        Historial del tipo de proceso. Sin cambios de precio, `items` vacío; el
+        prototipo muestra "Todavía no hubo cambios en este tipo de proceso."
+
+        El ejemplo es el historial del tipo `1` ("Mecanizado Torno Manual"): el
+        registro más reciente coincide con su `hourlyRateUsd`, su
+        `exchangeRate` y su `updatedAt`.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/ProcessTypePriceHistory.yaml'
+          example:
+            items:
+              - id: 14
+                changedAt: '2026-10-01T13:22:00.000Z'
+                changedBy:
+                  id: 4
+                  username: lbenitez
+                exchangeRate: 1377.88
+                previousValueUsd: 1.21
+                newValueUsd: 1.13
+              - id: 6
+                changedAt: '2026-07-04T14:05:00.000Z'
+                changedBy:
+                  id: 3
+                  username: fpaz
+                exchangeRate: 1287.5
+                previousValueUsd: 1.1
+                newValueUsd: 1.21
+    '400':
+      $ref: '../components/responses/InvalidProcessTypeId.yaml'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
+    '404':
+      $ref: '../components/responses/ProcessTypeNotFound.yaml'

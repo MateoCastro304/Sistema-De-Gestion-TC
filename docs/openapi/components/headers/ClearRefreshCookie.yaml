@@ -1,0 +1,4 @@
+description: Borra la cookie del refresh token.
+schema:
+  type: string
+example: refresh_token=; HttpOnly; Secure; SameSite=Strict; Path=/api/auth; Max-Age=0

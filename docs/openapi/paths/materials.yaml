@@ -1,0 +1,149 @@
+get:
+  summary: Consultar materiales
+  description: |
+    **Roles:** `AT` o `EC`.
+
+    Lista paginada de materiales (CU-39), ordenada por nombre y, dentro de cada
+    nombre, por calidad con orden natural de los números. Columnas del
+    listado: "Material" y "Calidad"; no tiene detalle ni acciones por fila.
+
+    **En el prototipo**
+
+    - Materiales → filtro "Todos los materiales": `name` con el material
+      elegido; sin el parámetro, todos.
+    - Materiales → buscador ("Buscar por calidad"): `quality` con lo escrito.
+    - Materiales → encabezado ("13 materiales registrados"): `limit=1` sin
+      filtros; el número es `total`.
+  operationId: listMaterials
+  tags:
+    - Materiales
+  x-roles:
+    - AT
+    - EC
+  parameters:
+    - $ref: '../components/parameters/PageParam.yaml'
+    - $ref: '../components/parameters/LimitParam.yaml'
+    - name: name
+      in: query
+      required: false
+      description: |
+        Solo los materiales con ese nombre. Coincidencia exacta, sin distinguir
+        mayúsculas ni acentos.
+      schema:
+        type: string
+        maxLength: 60
+      example: Acero
+    - name: quality
+      in: query
+      required: false
+      description: Materiales cuya calidad contiene el texto. Sin distinguir mayúsculas ni acentos.
+      schema:
+        type: string
+        maxLength: 60
+      example: '10'
+  responses:
+    '200':
+      description: |
+        Página de materiales. Sin resultados, `items` vacío y `total` en `0`; el
+        prototipo muestra "No se encontraron materiales con ese criterio" y
+        ofrece "+ Nuevo material".
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/MaterialList.yaml'
+          example:
+            items:
+              - id: 1
+                name: Acero
+                quality: '1010'
+                createdAt: '2026-03-12T12:00:00.000Z'
+              - id: 2
+                name: Acero
+                quality: '1045'
+                createdAt: '2026-03-12T12:00:00.000Z'
+            total: 2
+            page: 1
+            limit: 20
+    '400':
+      $ref: '../components/responses/InvalidQuery.yaml'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
+
+post:
+  summary: Registrar material
+  description: |
+    **Roles:** `AT` o `EC`.
+
+    Registra un material (CU-37): la ventana "Nuevo material" del listado. Si
+    el nombre coincide con uno existente, se guarda con la grafía del
+    existente (D-37).
+  operationId: createMaterial
+  tags:
+    - Materiales
+  x-roles:
+    - AT
+    - EC
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/MaterialCreate.yaml'
+        example:
+          name: Acero
+          quality: '4140'
+  responses:
+    '201':
+      description: Material registrado.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Material.yaml'
+          example:
+            id: 14
+            name: Acero
+            quality: '4140'
+            createdAt: '2026-10-15T13:40:00.000Z'
+    '400':
+      description: '`VALIDATION_ERROR`: falta el material o la calidad, o superan los 60 caracteres.'
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 400
+            error: Bad Request
+            code: VALIDATION_ERROR
+            message: Los datos enviados no son válidos.
+            path: /api/materials
+            timestamp: '2026-10-15T13:40:00.000Z'
+            details:
+              - field: name
+                message: Ingresá el material
+              - field: quality
+                message: Ingresá la calidad
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
+    '409':
+      description: |
+        `MATERIAL_ALREADY_EXISTS`: la combinación de nombre y calidad ya está
+        registrada. El error va sobre `quality` porque así lo marca el
+        prototipo: el nombre puede repetirse, la calidad dentro de ese nombre no.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 409
+            error: Conflict
+            code: MATERIAL_ALREADY_EXISTS
+            message: Ya existe un material registrado con ese nombre y calidad
+            path: /api/materials
+            timestamp: '2026-10-15T13:40:00.000Z'
+            details:
+              - field: quality
+                message: Ya existe un material registrado con ese nombre y calidad

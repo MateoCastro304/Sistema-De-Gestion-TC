@@ -1,11 +1,49 @@
-description: Missing or invalid authentication token.
+description: |
+  `401` de sesión. El cliente decide por `code`:
+
+  - `ACCESS_TOKEN_EXPIRED`: pide un token nuevo con `POST /auth/refresh` y
+    repite la petición, sin que el usuario lo note. Si varias peticiones lo
+    reciben a la vez, hace **un solo** refresh.
+  - `SESSION_EXPIRED`: vuelve al ingreso mostrando el mensaje de la respuesta.
+  - `UNAUTHENTICATED`: vuelve al ingreso sin mensaje.
 content:
   application/json:
     schema:
       $ref: '../schemas/Error.yaml'
-    example:
-      statusCode: 401
-      error: Unauthorized
-      message: Missing or invalid authentication token.
-      path: /api/categories
-      timestamp: '2026-08-22T15:30:00Z'
+    examples:
+      accessTokenExpired:
+        summary: ACCESS_TOKEN_EXPIRED — el accessToken pasó sus 15 minutos
+        value:
+          statusCode: 401
+          error: Unauthorized
+          code: ACCESS_TOKEN_EXPIRED
+          message: El token de acceso expiró.
+          path: /api/employees
+          timestamp: '2026-10-15T13:05:00.000Z'
+      sessionExpiredInactivity:
+        summary: SESSION_EXPIRED — 30 minutos sin actividad
+        value:
+          statusCode: 401
+          error: Unauthorized
+          code: SESSION_EXPIRED
+          message: Tu sesión expiró por inactividad
+          path: /api/employees
+          timestamp: '2026-10-15T15:00:00.000Z'
+      sessionExpiredMaxDuration:
+        summary: SESSION_EXPIRED — se cumplieron los 7 días desde el ingreso
+        value:
+          statusCode: 401
+          error: Unauthorized
+          code: SESSION_EXPIRED
+          message: Tu sesión expiró. Volvé a ingresar.
+          path: /api/employees
+          timestamp: '2026-10-22T12:31:00.000Z'
+      unauthenticated:
+        summary: UNAUTHENTICATED — sin token, sesión cerrada o usuario bloqueado o inactivo
+        value:
+          statusCode: 401
+          error: Unauthorized
+          code: UNAUTHENTICATED
+          message: La autenticación es requerida.
+          path: /api/employees
+          timestamp: '2026-10-15T13:05:00.000Z'

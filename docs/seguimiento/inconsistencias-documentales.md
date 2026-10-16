@@ -26,7 +26,7 @@ Diferencias entre documentos detectadas durante la reorganización de la documen
 ### DOC-01 · Estados de los ADR
 
 - ADR-001, ADR-003, ADR-005 y ADR-006 tienen estado **Decisión pendiente**; ADR-002 y ADR-004, **Recomendado** (pendiente de confirmación); ADR-009, **Pendiente de aprobación**. Sin embargo, el apartado «Decisión» de ADR-001, 003 y 006 dice «La decisión final es adoptar…», y los demás formulan la elección como adoptada.
-- La tabla de [arquitectura](../architecture/overview.md#decisiones-de-arquitectura-adr) muestra ADR-001 a 006 y ADR-009 como **Aprobado**, y no incluye ADR-010 (**Aceptado**, implementado parcialmente).
+- La tabla de [arquitectura](../arquitectura/overview.md#decisiones-de-arquitectura-adr) muestra ADR-001 a 006 y ADR-009 como **Aprobado**, y no incluye ADR-010 (**Aceptado**, implementado parcialmente).
 
 **A resolver:** confirmar el estado de cada ADR y alinear encabezado, texto y tabla.
 
@@ -34,22 +34,22 @@ Diferencias entre documentos detectadas durante la reorganización de la documen
 
 ### DOC-02 · Frecuencia de respaldos
 
-[RNF14](../domain/03-requerimientos.md#rnf14--confiabilidad--backups-y-recuperación) exige respaldo automático **diario** de la base y los adjuntos, conservando **≥ 15 copias** (RPO ≤ 24 h). [ADR-009](../decisions/009-deploy-infrastructure.md) propone una **frecuencia semanal** de respaldos.
+[RNF14](../dominio/03-requerimientos.md#rnf14--confiabilidad--backups-y-recuperación) exige respaldo automático **diario** de la base y los adjuntos, conservando **≥ 15 copias** (RPO ≤ 24 h). [ADR-009](../decisiones/009-deploy-infrastructure.md) propone una **frecuencia semanal** de respaldos.
 
 ### DOC-03 · Formato del informe de cotización
 
-[RN30](../domain/02-reglas-de-negocio.md#rn30--formato-y-contenido-del-informe-de-cotización) establece que el informe se emite en el **formato propio de Tornería Castro**, cualquiera sea el formato que pida el cliente. [ADR-004](../decisions/004-generate-pdf.md) parte de que **cada cliente puede tener un formato específico** y prevé plantillas por formato de cliente.
+[RN30](../dominio/02-reglas-de-negocio.md#rn30--formato-y-contenido-del-informe-de-cotización) establece que el informe se emite en el **formato propio de Tornería Castro**, cualquiera sea el formato que pida el cliente. [ADR-004](../decisiones/004-generate-pdf.md) parte de que **cada cliente puede tener un formato específico** y prevé plantillas por formato de cliente.
 
 ### DOC-04 · Referencias a reglas en ADR-008
 
-[ADR-008](../decisions/008-whatsapp-integration.md) liga la vigencia de la oferta al envío mediante «RN-06», pero en el [catálogo de reglas](../domain/02-reglas-de-negocio.md) RN06 es «Identificación y documentación de la pieza»; la validez de la oferta está en RN29. Además, ADR-007 y ADR-008 citan los casos de uso como `UC-xx` y ADR-008 las reglas como `RN-xx`, distinto de `CU-xx` y `RNxx` del dominio.
+[ADR-008](../decisiones/008-whatsapp-integration.md) liga la vigencia de la oferta al envío mediante «RN-06», pero en el [catálogo de reglas](../dominio/02-reglas-de-negocio.md) RN06 es «Identificación y documentación de la pieza»; la validez de la oferta está en RN29. Además, ADR-007 y ADR-008 citan los casos de uso como `UC-xx` y ADR-008 las reglas como `RN-xx`, distinto de `CU-xx` y `RNxx` del dominio.
 
 ## Roles y permisos
 
 ### DOC-05 · Roles y accesos de ADR-005 y de la arquitectura
 
-- [ADR-005](../decisions/005-autentication.md) menciona **7 roles** y su tabla de autorización incluye el rol `A`; el [catálogo de actores](../domain/04-actores-y-casos-de-uso.md#11-catálogo) define seis roles (JT, ERP, ER, EC, AT, AS). La [arquitectura](../architecture/overview.md) también incluye `A` entre el personal administrativo.
-- La tabla de ADR-005 asigna accesos distintos de las matrices del dominio (por ejemplo, Cotizaciones a AT y AS, y Reportes a AT y AS). Las asignaciones de referencia del dominio están en la [Matriz de permisos](../domain/Matriz%20de%20permisos.md) y la [matriz RBAC](../domain/07-matriz-rbac.md).
+- [ADR-005](../decisiones/005-autentication.md) menciona **7 roles** y su tabla de autorización incluye el rol `A`; el [catálogo de actores](../dominio/04-actores-y-casos-de-uso.md#11-catálogo) define seis roles (JT, ERP, ER, EC, AT, AS). La [arquitectura](../arquitectura/overview.md) también incluye `A` entre el personal administrativo.
+- La tabla de ADR-005 asigna accesos distintos de las matrices del dominio (por ejemplo, Cotizaciones a AT y AS, y Reportes a AT y AS). Las asignaciones de referencia del dominio están en la [Matriz de permisos](../dominio/Matriz%20de%20permisos.md) y la [matriz RBAC](../dominio/07-matriz-rbac.md).
 
 **Resuelto aparte:** la diferencia de CU-55 y CU-56 entre la matriz RBAC y la Matriz de permisos se resolvió a favor de esta última (CU-55: EC; CU-56: ER).
 
@@ -58,20 +58,20 @@ Diferencias entre documentos detectadas durante la reorganización de la documen
 ### DOC-06 · Organización y ejecución de las pruebas
 
 - [Estructura de pruebas de QA](../testing/code-structure.md) separa las pruebas de integración (`int/`) y de API (`api/`); el [README de la suite](../../backend/test/README.md) documenta tests de integración que verifican contrato y base en el mismo test.
-- La guía indica que CI ejecuta `test:int` y `test:api` en cada push; [ADR-010](../decisions/010-continuous-integration.md) ubica las pruebas de integración en el nivel de validación previo a `main`.
+- La guía indica que CI ejecuta `test:int` y `test:api` en cada push; [ADR-010](../decisiones/010-continuous-integration.md) ubica las pruebas de integración en el nivel de validación previo a `main`.
 - La guía describe una suite `e2e/` en la raíz del repositorio, que todavía no existe.
 
 ## Modelo y prototipo
 
 ### DOC-07 · Tipos por proveedor
 
-El [modelo de dominio](../domain/05-modelo-de-dominio.md) asocia cada proveedor con **un** `TipoProveedor`; el [contexto del prototipo](../prototipo/fuente/CONTEXTO.md#sprint-1) admite **varios tipos** por proveedor.
+El [modelo de dominio](../dominio/05-modelo-de-dominio.md) asocia cada proveedor con **un** `TipoProveedor`; el [contexto del prototipo](../prototipo/fuente/CONTEXTO.md#sprint-1) admite **varios tipos** por proveedor.
 
 ## Trazabilidad
 
 ### DOC-08 · Decisiones `D-xx`
 
-El dominio marca textos modificados con `🔁 D-01`, `🔁 D-02` y `🔁 D-03` ([convenciones, §2.2](../domain/00-indice-y-convenciones.md#22-marcas-en-el-texto)), pero no existe un catálogo de esas decisiones: [02-reglas-de-negocio.md](../domain/02-reglas-de-negocio.md) remitía a un «§4» de `00-indice-y-convenciones.md` que no existe. Además, [pendientes actuales](pendientes-actuales.md) usa `D-02` y `D-03` para decisiones de proceso distintas (merge de PR y promoción a `main`). El [backlog de ingeniería](engineering-backlog.md) usa a su vez `I-01`, `I-02`, `I-04` e `I-05`, identificadores del `pendientes-sprint-1.md` ausente.
+El dominio marca textos modificados con `🔁 D-01`, `🔁 D-02` y `🔁 D-03` ([convenciones, §2.2](../dominio/00-indice-y-convenciones.md#22-marcas-en-el-texto)), pero no existe un catálogo de esas decisiones: [02-reglas-de-negocio.md](../dominio/02-reglas-de-negocio.md) remitía a un «§4» de `00-indice-y-convenciones.md` que no existe. Además, [pendientes actuales](pendientes-actuales.md) usa `D-02` y `D-03` para decisiones de proceso distintas (merge de PR y promoción a `main`). El [backlog de ingeniería](engineering-backlog.md) usa a su vez `I-01`, `I-02`, `I-04` e `I-05`, identificadores del `pendientes-sprint-1.md` ausente.
 
 ### DOC-09 · Archivos citados que no existen
 
@@ -95,4 +95,4 @@ El `Makefile` solo define `migrate-dev`, `migrate-deploy` y `migrate-create` (`m
 
 ### DOC-12 · Módulos del backend
 
-La [arquitectura](../architecture/overview.md#backend) lista los módulos `identity`, `customers`, `employees`, `supplier` y `technicalCatalog`; `backend/src/` contiene hoy `categories`, `customers`, `factory`, `suppliers`, `health`, `config` y `shared`.
+La [arquitectura](../arquitectura/overview.md#backend) lista los módulos `identity`, `customers`, `employees`, `supplier` y `technicalCatalog`; `backend/src/` contiene hoy `categories`, `customers`, `factory`, `suppliers`, `health`, `config` y `shared`.

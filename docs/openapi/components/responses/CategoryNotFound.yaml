@@ -1,0 +1,12 @@
+description: '`CATEGORY_NOT_FOUND`: no existe un rubro con ese identificador.'
+content:
+  application/json:
+    schema:
+      $ref: '../schemas/Error.yaml'
+    example:
+      statusCode: 404
+      error: Not Found
+      code: CATEGORY_NOT_FOUND
+      message: Category with id 99 not found
+      path: /api/categories/99
+      timestamp: '2026-10-15T13:00:00.000Z'

@@ -1,0 +1,40 @@
+type: object
+description: |
+  Alta de encargado. La fábrica sale de la ruta, no va en el cuerpo. Un campo
+  opcional vacío (`""`) se guarda como `null`.
+
+  **Hace falta al menos un contacto:** `phone` o `mail`. Si no llega ninguno,
+  responde `400`.
+additionalProperties: false
+required:
+  - firstName
+properties:
+  firstName:
+    type: string
+    minLength: 1
+    maxLength: 50
+    description: Nombre. No vacío.
+    example: Marcela
+  lastName:
+    type: string
+    nullable: true
+    maxLength: 50
+    description: Apellido.
+    example: Ríos
+  phone:
+    type: string
+    nullable: true
+    maxLength: 50
+    description: |
+      Teléfono: de 8 a 15 dígitos, con `+` internacional opcional. Acepta
+      espacios, guiones, puntos y paréntesis, que se descartan al guardar.
+    example: +54 9 351 555-1234
+  mail:
+    type: string
+    nullable: true
+    format: email
+    maxLength: 120
+    description: |
+      Mail. Se guarda en minúsculas. Único entre los encargados activos de la
+      misma fábrica.
+    example: compras@oxycam.com

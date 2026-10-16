@@ -1,0 +1,32 @@
+type: object
+description: |
+  Página de empleados, ordenada por apellido y nombre. `total` cuenta los que
+  cumplen los filtros en todas las páginas. Sin resultados, `items` vacío y
+  `total` en `0`: no es un error.
+required:
+  - items
+  - total
+  - page
+  - limit
+properties:
+  items:
+    type: array
+    items:
+      $ref: './Employee.yaml'
+  total:
+    type: integer
+    format: int64
+    minimum: 0
+    description: Total de empleados que cumplen los filtros.
+    example: 11
+  page:
+    type: integer
+    minimum: 1
+    description: Página devuelta.
+    example: 1
+  limit:
+    type: integer
+    minimum: 1
+    maximum: 1000
+    description: Tamaño de página aplicado.
+    example: 20

@@ -1,0 +1,9 @@
+name: employeeId
+in: path
+required: true
+description: Identificador único del empleado. Un valor que no es un entero responde `400 INVALID_PATH_PARAMETER`.
+schema:
+  type: integer
+  format: int64
+  minimum: 1
+example: 1

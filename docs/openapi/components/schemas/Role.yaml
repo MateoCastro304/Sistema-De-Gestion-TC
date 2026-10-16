@@ -1,0 +1,23 @@
+type: string
+description: |
+  Rol de un usuario (RN44). Catálogo cerrado: se corresponde con los actores
+  internos y no se administra. Un usuario puede tener más de un rol y sus
+  permisos son la suma de los de cada uno. El rótulo lo pone el cliente.
+
+  - `JT` — Jefe de Taller: coordina y supervisa las órdenes de trabajo. No ve precios ni costos.
+  - `ERP` — Encargado de Recepción: registra las solicitudes de cotización y mantiene clientes, fábricas y rubros.
+  - `EC` — Encargado de Cotización: elabora y administra las cotizaciones. Incluye los permisos del Administrativo Técnico.
+  - `ER` — Encargado de Reportes: obtiene información estadística y gerencial.
+  - `AT` — Administrativo Técnico: administra los catálogos de materiales, tipos de proceso y proveedores.
+  - `AS` — Administrador del Sistema: gestiona empleados y usuarios, y asigna sus roles.
+
+  Las listas de roles que devuelve la API vienen siempre en este orden, sin
+  importar el orden en que se enviaron.
+enum:
+  - JT
+  - ERP
+  - EC
+  - ER
+  - AT
+  - AS
+example: AS

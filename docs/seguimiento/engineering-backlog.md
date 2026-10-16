@@ -51,7 +51,7 @@ La CI está integrada en `develop`, pero el job `backend` está en rojo, por lo 
 
 ## 3. Despliegue continuo (rama propia, ADR propio)
 
-Definido a alto nivel en [ADR-009](../decisions/009-deploy-infrastructure.md) (paso 4). Necesita **ADR-011** antes de implementarse.
+Definido a alto nivel en [ADR-009](../decisiones/009-deploy-infrastructure.md) (paso 4). Necesita **ADR-011** antes de implementarse.
 
 | Hecho | Pri | Ítem | Responsable |
 | :--: | :-: | --- | --- |

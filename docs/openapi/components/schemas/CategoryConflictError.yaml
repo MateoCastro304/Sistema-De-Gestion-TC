@@ -1,0 +1,13 @@
+description: |
+  Error del alta de rubro. En `CATEGORY_NAME_TAKEN_BY_INACTIVE` suma
+  `categoryId`, el rubro dado de baja que tiene ese nombre, para que el cliente
+  ofrezca restaurarlo.
+allOf:
+  - $ref: './Error.yaml'
+  - type: object
+    properties:
+      categoryId:
+        type: integer
+        format: int64
+        description: Rubro dado de baja que tiene ese nombre. Solo en `CATEGORY_NAME_TAKEN_BY_INACTIVE`.
+        example: 4

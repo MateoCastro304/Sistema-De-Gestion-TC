@@ -1,7 +1,9 @@
 name: factoryId
 in: path
 required: true
-description: Identifier of the parent factory.
+description: |
+  Identificador de la fábrica. Junto con el `id` del encargado forma su clave:
+  el `id` de los encargados reinicia en 1 en cada fábrica.
 schema:
   type: integer
   format: int64

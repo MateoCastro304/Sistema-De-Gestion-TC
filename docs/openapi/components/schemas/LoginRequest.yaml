@@ -1,0 +1,20 @@
+type: object
+description: |
+  Credenciales del ingreso. Un campo vacío responde `400` antes de intentar
+  autenticar y **no cuenta como intento** (CU-53, escenario 9).
+additionalProperties: false
+required:
+  - username
+  - password
+properties:
+  username:
+    type: string
+    minLength: 1
+    description: No vacío. Se compara sin distinguir mayúsculas de minúsculas.
+    example: wcastro
+  password:
+    type: string
+    format: password
+    minLength: 1
+    description: No vacía. Se compara tal cual.
+    example: Castro1977

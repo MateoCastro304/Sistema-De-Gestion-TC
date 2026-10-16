@@ -101,19 +101,10 @@ Lo que seguía pendiente en el documento viejo, revisado contra el código del 1
 
 ### H-01 · P1 · Contrato y documentación desactualizados
 
-- **OpenAPI de fábricas y encargados.** `docs/openapi/openapi.yaml` y sus esquemas no describen la API real:
-
-| Tema | Contrato | Backend |
-|---|---|---|
-| Rutas de encargados | `/factories/{factoryId}/managers` | `/factories/{factoryId}/customers` y `/customers` |
-| Campos del encargado | `name`, `email`, `phone`, `role` | `firstName`, `lastName`, `phone`, `mail` |
-| Campos de la fábrica | `legalName`, `taxId` | `name`, `cuit`, `payMethod`, `isActive` |
-| Baja | `DELETE`, 204 | `PATCH .../deactivate` (204); no hay reactivación |
-| Listados | Array | `{ items, total, page, limit }` en fábricas y encargados |
-
-  Faltan además los 409 de fábricas (CUIT, nombre y encargados activos) y los filtros `active`, `nameContains` y `categoryId` en `GET /factories`. Swagger UI (`localhost:8081`) muestra este contrato, así que hoy informa mal. Cuando se haga A-01, agregar también `code`.
-- **`docs/openapi/customers.yaml`** quedó huérfano: no lo enlaza `openapi.yaml` y ya no coincide con nada. Hay que borrarlo o integrarlo al oficial.
-- **Referencias rotas a `docs/decisiones-clientes-fabricas.md`**, que ya no existe: `backend/prisma/schema.prisma:100`, `frontend/.../customers/api/customers.api.ts:15` y `frontend/.../customers/types/factory.ts:8`. Las reglas de la sección 5.3 (bajas, unicidad, CUIT inmutable, nombre único) y las consultas para detectar duplicados antes de migrar solo están en el historial de git (commit anterior a `06c16`). Hay que restaurar el documento o mover esas reglas a otro lado, y actualizar los tres comentarios.
+- ~~**OpenAPI de fábricas y encargados.**~~ Resuelto el 16/10/2026: `docs/openapi` describe el Sprint 1 tal como está implementado (encargados en `/factories/{factoryId}/customers` y `/customers`, campos reales de fábrica y encargado, bajas con `PATCH .../deactivate`, listados paginados, filtros y los 409) y suma el Sprint 2. Cuando se haga A-01, agregar `code` a `Factory.yaml`, `FactoryCreate.yaml` y el 409 de `factories.yaml`.
+- ~~**`docs/openapi/customers.yaml`**~~ Resuelto: se borró; su contenido quedó integrado al contrato oficial.
+- **Referencias rotas a `docs/decisiones-clientes-fabricas.md`**, que ya no existe: `backend/prisma/schema.prisma:100`, `frontend/src/features/catalogs/customers/api/customers.api.ts:15` y `frontend/src/features/catalogs/customers/types/factory.ts:8`. Las reglas de la sección 5.3 (bajas, unicidad, CUIT inmutable, nombre único) y las consultas para detectar duplicados antes de migrar solo están en el historial de git (commit anterior a `06c16`). Hay que restaurar el documento o mover esas reglas a otro lado, y actualizar los tres comentarios.
+- **`backend/prisma/schema.prisma:1`** dice que el schema se basa en `docs/database/setup_support_sprint1.sql`, que se borró en `d337154` (y la carpeta ahora es `docs/uso-ORM-DB/`). Hay que actualizar o sacar el comentario.
 - **`SETUP.md` de la raíz** está vacío (0 bytes); el real es `docs/SETUP.md`.
 - **`README.md` de la raíz** tiene un comentario de plantilla sin sacar (líneas 3 a 6).
 
@@ -159,9 +150,7 @@ Nunca se comprobó:
 
 El backend de rubros ya está hecho (código y tests). Queda pendiente lo que no se tocó:
 
-- **Contrato OpenAPI.** Falta reflejar en `docs/openapi`:
-  - `GET /categories` devuelve `{ items, total, page, limit }` y acepta `active` (por defecto solo activos; `active=false` solo los dados de baja). Hay que editar `paths/categories.yaml` y crear `components/schemas/CategoryList.yaml`.
-  - `POST /categories/{id}/restore` (antes `PATCH`): crear `paths/categories@{id}@restore.yaml` y registrarlo en `openapi.yaml`.
+- ~~**Contrato OpenAPI.**~~ Resuelto el 16/10/2026: `GET /categories` con `{ items, total, page, limit }` y el filtro `active`, y `POST /categories/{id}/restore`.
 - **`category.name` NOT NULL.** La columna admite `NULL` aunque el dominio exige nombre. Se resuelve en `develop` (schema y migración); mientras tanto `CategoriesPrismaRepository.toDomain` usa `row.name!`.
 - **Frontend (otra persona).** Leer `data.items` en `categories.api.ts`, usar `POST` para restaurar, y no pasar `active` como argumento de `listCategories` (React Query la llama con un objeto de contexto).
 

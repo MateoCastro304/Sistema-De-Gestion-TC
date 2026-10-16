@@ -1,0 +1,75 @@
+type: object
+description: |
+  Cuenta de acceso al sistema (CU-05 y CU-07). Pertenece a un empleado; el
+  nombre de la persona es el del empleado (D-19).
+
+  **La contraseña no se devuelve en ninguna respuesta**, ni en texto plano ni
+  cifrada (RNF08).
+
+  Un usuario bloqueado o dado de baja sigue apareciendo en la API con su
+  `status`: los bloqueados se listan siempre; los inactivos, solo con
+  `includeInactive`.
+required:
+  - id
+  - username
+  - employee
+  - roles
+  - status
+  - lastAccessAt
+  - createdAt
+properties:
+  id:
+    type: integer
+    format: int64
+    description: Identificador único.
+    readOnly: true
+    example: 1
+  username:
+    type: string
+    maxLength: 30
+    description: Nombre de usuario. Único sin distinguir mayúsculas.
+    example: wcastro
+  employee:
+    type: object
+    description: Empleado del usuario.
+    required:
+      - id
+      - firstName
+      - lastName
+    properties:
+      id:
+        type: integer
+        format: int64
+        example: 1
+      firstName:
+        type: string
+        example: Walter
+      lastName:
+        type: string
+        example: Castro
+  roles:
+    type: array
+    description: Al menos uno, sin repetir, en el orden del enumerado `Role`.
+    minItems: 1
+    uniqueItems: true
+    items:
+      $ref: './Role.yaml'
+    example:
+      - AS
+  status:
+    $ref: './UserStatus.yaml'
+  lastAccessAt:
+    type: string
+    format: date-time
+    nullable: true
+    description: |
+      Inicio de su última sesión (D-27). `null` si nunca ingresó ("Nunca
+      ingresó"). En la respuesta del login y del refresh es el inicio de la
+      sesión en curso.
+    example: '2026-10-15T12:30:00.000Z'
+  createdAt:
+    type: string
+    format: date-time
+    description: Fecha y hora del alta.
+    readOnly: true
+    example: '2026-03-12T12:00:00.000Z'

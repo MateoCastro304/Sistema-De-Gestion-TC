@@ -1,27 +1,44 @@
 type: object
-description: Payload required to create a new factory.
+description: |
+  Alta de fábrica. Queda activa y sin encargados; se agregan después con
+  `POST /factories/{factoryId}/customers`. Un campo opcional vacío (`""`) se
+  guarda como `null`.
+additionalProperties: false
 required:
-  - legalName
-  - taxId
+  - name
+  - cuit
   - categoryId
 properties:
-  legalName:
+  name:
     type: string
     minLength: 1
-    maxLength: 120
+    maxLength: 100
+    description: Razón social. No vacía. Única entre las fábricas activas, sin distinguir mayúsculas.
     example: OxyCAM S.A.
-  taxId:
+  cuit:
     type: string
-    pattern: '^[0-9]{2}-[0-9]{8}-[0-9]{1}$'
-    description: Argentine CUIT. Format XX-XXXXXXXX-X. Immutable.
-    example: '30-71234567-8'
+    minLength: 1
+    maxLength: 50
+    description: |
+      CUIT. Acepta separadores (`33-70912345-4`), que se descartan al guardar.
+      Tiene que tener 11 dígitos, un prefijo asignable y el dígito verificador
+      correcto. Único entre las fábricas activas.
+    example: 33-70912345-4
+  address:
+    type: string
+    nullable: true
+    maxLength: 255
+    description: Dirección.
+    example: Ruta 9 Km 12, Córdoba
+  payMethod:
+    type: string
+    nullable: true
+    maxLength: 255
+    description: Aclaraciones sobre el pago (texto libre).
+    example: Transferencia a 30 días
   categoryId:
     type: integer
     format: int64
     minimum: 1
-    description: ID of the category this factory belongs to (references /categories/{id}).
+    description: Rubro de la fábrica. Tiene que existir y estar activo; si no, responde `400`.
     example: 1
-  address:
-    type: string
-    maxLength: 200
-    example: Ruta 9 Km 12, Cordoba

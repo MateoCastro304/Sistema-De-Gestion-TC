@@ -1,0 +1,36 @@
+type: object
+description: |
+  Material del catálogo (CU-37 y CU-39). Se identifica por su **nombre y su
+  calidad**: "Acero 1010" y "Acero 1045" son dos materiales distintos. No
+  guarda precio, proveedor ni presentación: eso se elige al cotizar.
+
+  La combinación de nombre y calidad no se repite, sin distinguir mayúsculas,
+  acentos ni espacios repetidos (D-36).
+required:
+  - id
+  - name
+  - quality
+  - createdAt
+properties:
+  id:
+    type: integer
+    format: int64
+    description: Identificador único.
+    readOnly: true
+    example: 1
+  name:
+    type: string
+    maxLength: 60
+    description: 'Material: "Acero", "Bronce", "Nylon".'
+    example: Acero
+  quality:
+    type: string
+    maxLength: 60
+    description: 'Calidad: "1045", "SAE 65", "AISI 304".'
+    example: '1010'
+  createdAt:
+    type: string
+    format: date-time
+    description: Fecha y hora del alta.
+    readOnly: true
+    example: '2026-03-12T12:00:00.000Z'

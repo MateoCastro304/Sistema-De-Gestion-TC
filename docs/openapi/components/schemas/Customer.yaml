@@ -1,0 +1,57 @@
+type: object
+description: |
+  Encargado de una fábrica cliente: la persona de contacto. Se identifica por
+  la clave compuesta (`factoryId`, `id`): el `id` reinicia en 1 en cada
+  fábrica.
+
+  La baja es lógica (`PATCH .../deactivate`): un encargado dado de baja se
+  sigue devolviendo con `isActive` en `false`.
+
+  A diferencia del resto de la API, `id` y `factoryId` se serializan como
+  string, y los campos opcionales vacíos como `""` en vez de `null`.
+required:
+  - id
+  - firstName
+  - lastName
+  - phone
+  - mail
+  - factoryId
+  - isActive
+properties:
+  id:
+    type: string
+    pattern: '^[0-9]+$'
+    description: Identificador dentro de la fábrica (entero serializado como string).
+    readOnly: true
+    example: '1'
+  firstName:
+    type: string
+    maxLength: 50
+    description: Nombre.
+    example: Marcela
+  lastName:
+    type: string
+    maxLength: 50
+    description: Apellido; `""` si no tiene.
+    example: Ríos
+  phone:
+    type: string
+    maxLength: 50
+    description: |
+      Teléfono normalizado: solo dígitos, con el `+` internacional si lo tenía.
+      `""` si no tiene.
+    example: '+5493515551234'
+  mail:
+    type: string
+    maxLength: 120
+    description: Mail en minúsculas; `""` si no tiene.
+    example: compras@oxycam.com
+  factoryId:
+    type: string
+    pattern: '^[0-9]+$'
+    description: Fábrica del encargado, serializada como string.
+    example: '1'
+  isActive:
+    type: boolean
+    description: '`false` si fue dado de baja.'
+    example: true

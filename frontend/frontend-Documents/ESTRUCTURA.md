@@ -251,7 +251,7 @@ Cada catálogo repite el mismo trío: `<Entidades>Page` (listado), `New<Entidad>
 
 ## 4. Épicas y módulos
 
-Cada épica de Jira (proyecto **DTC**) se desarrolla en uno o más módulos de `features/`. Los casos de uso (CU) son los del documento *Casos de Uso V1.1* (`docs/domain/`).
+Cada épica de Jira (proyecto **DTC**) se desarrolla en uno o más módulos de `features/`. Los casos de uso (CU) son los del documento *Casos de Uso V1.1* (`docs/dominio/`).
 
 | Épica      | Nombre                                      | Módulo(s) en `features/`                          | Casos de uso                     |
 | ---------- | ------------------------------------------- | ------------------------------------------------- | -------------------------------- |

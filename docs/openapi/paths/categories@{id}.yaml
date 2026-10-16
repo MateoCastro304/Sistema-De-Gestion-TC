@@ -2,63 +2,158 @@ parameters:
   - $ref: '../components/parameters/IdParam.yaml'
 
 get:
-  summary: Get a category by id
-  description: Returns the complete data of a category by its identifier.
+  summary: Consultar rubro
+  description: |
+    **Rol:** `ERP`.
+
+    Obtiene un rubro. Un rubro dado de baja también se devuelve, con `active`
+    en `false`.
   operationId: getCategoryById
   tags:
-    - Categories
+    - Rubros
+  x-roles:
+    - ERP
   responses:
     '200':
-      description: Requested category.
+      description: Rubro pedido.
       content:
         application/json:
           schema:
             $ref: '../components/schemas/Category.yaml'
+    '400':
+      $ref: '../components/responses/InvalidId.yaml'
     '401':
       $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
     '404':
-      $ref: '../components/responses/NotFound.yaml'
+      $ref: '../components/responses/CategoryNotFound.yaml'
 
 patch:
-  summary: Update a category
-  description: Partial update. Only the fields sent are modified.
+  summary: Modificar rubro
+  description: |
+    **Rol:** `ERP`.
+
+    Renombra un rubro. Un rubro dado de baja no se puede modificar: hay que
+    restaurarlo antes (`409 CATEGORY_INACTIVE`).
   operationId: updateCategory
   tags:
-    - Categories
+    - Rubros
+  x-roles:
+    - ERP
   requestBody:
     required: true
     content:
       application/json:
         schema:
           $ref: '../components/schemas/CategoryUpdate.yaml'
+        example:
+          name: Autopartes
   responses:
     '200':
-      description: Updated category.
+      description: Rubro modificado.
       content:
         application/json:
           schema:
             $ref: '../components/schemas/Category.yaml'
     '400':
-      $ref: '../components/responses/BadRequest.yaml'
+      description: |
+        - `VALIDATION_ERROR`: el nombre tiene menos de 3 caracteres o más de 80.
+        - `INVALID_PATH_PARAMETER`: `id` no es un entero.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 400
+            error: Bad Request
+            code: VALIDATION_ERROR
+            message: name must be longer than or equal to 3 characters
+            path: /api/categories/1
+            timestamp: '2026-10-15T13:00:00.000Z'
+            details:
+              - field: name
+                message: name must be longer than or equal to 3 characters
     '401':
       $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
     '404':
-      $ref: '../components/responses/NotFound.yaml'
+      $ref: '../components/responses/CategoryNotFound.yaml'
+    '409':
+      description: |
+        - `CATEGORY_NAME_TAKEN`: el nombre ya es de otro rubro, activo o dado de
+          baja.
+        - `CATEGORY_INACTIVE`: el rubro está dado de baja.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          examples:
+            nameTaken:
+              summary: CATEGORY_NAME_TAKEN
+              value:
+                statusCode: 409
+                error: Conflict
+                code: CATEGORY_NAME_TAKEN
+                message: Ya existe un rubro con ese nombre
+                path: /api/categories/2
+                timestamp: '2026-10-15T13:00:00.000Z'
+                details:
+                  - field: name
+                    message: Ya existe un rubro con ese nombre
+            inactive:
+              summary: CATEGORY_INACTIVE
+              value:
+                statusCode: 409
+                error: Conflict
+                code: CATEGORY_INACTIVE
+                message: Debe reactivar el rubro antes de modificarlo
+                path: /api/categories/4
+                timestamp: '2026-10-15T13:00:00.000Z'
 
 delete:
-  summary: Delete a category
+  summary: Dar de baja un rubro
   description: |
-    Deletes a category by id. Fails with 409 if the category is
-    in use by any factory.
-  operationId: deleteCategory
+    **Rol:** `ERP`.
+
+    Baja lógica: el rubro queda con `active` en `false` y se puede restaurar
+    con `POST /categories/{id}/restore`. No se puede dar de baja un rubro con
+    fábricas activas.
+  operationId: deactivateCategory
   tags:
-    - Categories
+    - Rubros
+  x-roles:
+    - ERP
   responses:
     '204':
-      description: Category deleted successfully.
+      description: Rubro dado de baja. Sin cuerpo.
+    '400':
+      $ref: '../components/responses/InvalidId.yaml'
     '401':
       $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
     '404':
-      $ref: '../components/responses/NotFound.yaml'
+      $ref: '../components/responses/CategoryNotFound.yaml'
     '409':
-      $ref: '../components/responses/Conflict.yaml'
+      description: |
+        `CATEGORY_HAS_ACTIVE_FACTORIES`: el rubro tiene fábricas activas. El
+        cuerpo suma `factories`, con el `id` y el `name` de cada una, para que
+        el usuario las reasigne.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/CategoryHasActiveFactoriesError.yaml'
+          example:
+            statusCode: 409
+            error: Conflict
+            code: CATEGORY_HAS_ACTIVE_FACTORIES
+            message: 'No es posible dar de baja el rubro: existen 2 fábricas activas asociadas. Reasignelas antes de continuar'
+            path: /api/categories/1
+            timestamp: '2026-10-15T13:00:00.000Z'
+            factories:
+              - id: 10
+                name: OxyCAM S.A.
+              - id: 11
+                name: Metalúrgica del Centro S.R.L.

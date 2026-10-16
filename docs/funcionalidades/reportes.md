@@ -2,7 +2,7 @@
 
 ## Propósito y actores
 
-Ofrecer información para evaluar facturación, desvíos y efectividad de adjudicación. El Encargado de Reportes (ER) utiliza CU-49–CU-51, CU-56 y CU-57, conforme a la [matriz de permisos](../domain/Matriz%20de%20permisos.md).
+Ofrecer información para evaluar facturación, desvíos y efectividad de adjudicación. El Encargado de Reportes (ER) utiliza CU-49–CU-51, CU-56 y CU-57, conforme a la [matriz de permisos](../dominio/Matriz%20de%20permisos.md).
 
 ## Información y dependencias
 
@@ -16,7 +16,7 @@ Los reportes usan datos de [cotizaciones](cotizaciones.md) y [órdenes de trabaj
 - CU-56: trabajos realizados, filtrados por fábrica, material y descripción, con acceso a la cotización de origen, hoja de ruta y desvíos.
 - CU-57: efectividad de adjudicación de presupuestos.
 
-Los criterios completos se conservan en [RF09 y RF11](../domain/03-requerimientos.md) y el [catálogo de casos de uso, §2.6](../domain/04-actores-y-casos-de-uso.md#26-reportes-y-consultas-gerenciales--rf09-rf11). Las fórmulas de desvío se definen en RN40; no se redefine aquí su cálculo.
+Los criterios completos se conservan en [RF09 y RF11](../dominio/03-requerimientos.md) y el [catálogo de casos de uso, §2.6](../dominio/04-actores-y-casos-de-uso.md#26-reportes-y-consultas-gerenciales--rf09-rf11). Las fórmulas de desvío se definen en RN40; no se redefine aquí su cálculo.
 
 ## Alcance documental
 

@@ -1,6 +1,6 @@
 # Plantilla de registro de decisión
 
-Ubicación: `docs/decisions/`. Título: «ADR-[identificador existente] — [Título de la decisión]».
+Ubicación: `docs/decisiones/`. Título: «ADR-[identificador existente] — [Título de la decisión]».
 
 Conservar el identificador y el estado existentes. Mantener fecha y responsables si están documentados; no inventarlos. Una implementación no convierte una propuesta pendiente en una decisión aprobada.
 
