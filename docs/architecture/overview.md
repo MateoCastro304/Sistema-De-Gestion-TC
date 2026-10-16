@@ -1,26 +1,41 @@
-﻿# Arquitectura del sistema — Visión general
+# Arquitectura del sistema — Visión general
 
-Este documento describe la arquitectura de alto nivel del sistema de gestión de Tornería Castro SRL. Las decisiones técnicas detalladas están en los [ADR](../decisions/).
+Este documento describe la arquitectura de alto nivel del sistema de gestión de Tornería Castro SRL siguiendo el progreso por sprint. Actualmente estamos en el sprint 2. Las decisiones técnicas detalladas están en los [ADR](../decisions/).
 
 ---
 
-## Contexto del sistema (C4 nivel 1)
+## Contexto y alcance
+
+El sistema de gestión es una aplicación web de uso interno. Lo utilizan el personal administrativo (EC, ERP, A, ER, AT, AS) y el personal de taller (JT). Para enviar el informe de cotización al cliente se comunica con dos sistemas externos: el **Servidor de Correo (SC)** y el **Servidor de Mensajería (SM)**, definidos como actores en el [catálogo de actores](../domain/04-actores-y-casos-de-uso.md#11-catálogo) y tratados en [ADR-007](../decisions/007-mail-integration.md) y [ADR-008](../decisions/008-whatsapp-integration.md).
+
+```mermaid
+flowchart TB
+    ADM([Personal administrativo<br/>EC, ERP, A, ER, AT, AS])
+    TAL([Personal de taller<br/>JT])
+    SIS["Sistema de gestión<br/>Tornería Castro SRL"]
+    SC[/Servidor de Correo/]
+    SM[/Servidor de Mensajería/]
+
+    ADM --> SIS
+    TAL --> SIS
+    SIS -->|Informe de cotización| SC
+    SIS -->|Informe de cotización| SM
+```
+
+> Los roles del diagrama se conservan como estaban documentados. El rol `A` no figura en el [catálogo de actores del dominio](../domain/04-actores-y-casos-de-uso.md#11-catálogo); ver [inconsistencias documentales](../seguimiento/inconsistencias-documentales.md#roles-y-permisos).
+
+---
+
+## Bloques y responsabilidades
+
+Vista de contenedores dentro del sistema:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                   Tornería Castro SRL                    │
 │                   Sistema de gestión                    │
 │                                                         │
-│  ┌───────────────┐    ┌───────────────┐                  │
-│  │   Personal    │    │   Personal    │                  │
-│  │administrativo │    │  de taller    │                  │
-│  │(EC, ERP, A,   │    │    (JT)       │                  │
-│  │  ER, AT, AS)  │    │               │                  │
-│  └──────┬────────┘    └──────┬────────┘                  │
-│         │                   │                           │
-│         └────────┬──────────┘                           │
-│                  │                                      │
-│          ┌───────▼───────┐                              │
+│          ┌───────────────┐                              │
 │          │   Frontend    │                              │
 │          │ (React SPA)   │                              │
 │          └───────┬───────┘                              │
@@ -42,88 +57,44 @@ Este documento describe la arquitectura de alto nivel del sistema de gestión de
 └─────────────────────────────────────────────────────────┘
 ```
 
----
-
-## Módulos del backend
-
-El backend está organizado en módulos funcionales alineados con el dominio:
-
-### `auth`
-
-Autenticación y autorización. JWT + Guards de RBAC. Protege todos los endpoints mediante validación de roles.
-
-### `usuarios`
-
-Gestión de usuarios del sistema (creación, desactivación, cambios de rol, restablecimiento de contraseñas). Accesible solo para AS.
-
-### `clientes`
-
-CRUD de clientes (empresas industriales como EDASA, CorBlock, OxyCAM). Almacena datos de contacto y formato preferido de cotización.
-
-### `piezas`
-
-Catálogo de piezas cotizadas y fabricadas. Incluye número de plano, ID interno (cuando no hay plano), variantes y archivos adjuntos (planos PDF, diseños 3D).
-
-### `cotizaciones`
-
-Módulo central. Gestiona el ciclo de vida de una cotización: creación, desglose por ítems, actualizaciones del tipo de cambio del dólar y adjudicación total/parcial. Implementa la máquina de estados de cotización.
-
-### `ordenes-de-trabajo`
-
-Generación y seguimiento de órdenes de trabajo (OT). Implementa la máquina de estados de WorkOrder. Registra procesos planificados y ejecutados. Se integra con el módulo de reportes para la trazabilidad de rentabilidad.
-
-### `produccion`
-
-Submódulo accesible para JT. Permite registrar avances de procesos y tiempos reales. Sin acceso a datos económicos.
-
-### `reportes`
-
-Estadísticas para tomar decisiones: trabajos por empresa, tasas de adjudicación de presupuestos, variaciones mensuales y trazabilidad entre lo presupuestado y lo real.
-
-### `pdf`
-
-Cliente HTTP que se comunica con el servicio Python de generación de PDF. Recibe una cotización (con todos sus datos) y devuelve el archivo PDF al frontend.
-
-### `notificaciones`
-
-Envía el PDF de cotización al cliente por correo electrónico (Amazon SES o un proveedor externo, ver [ADR-007](../decisions/007-mail-integration.md)) y WhatsApp (AWS End User Messaging Social o un BSP externo, ver [ADR-008](../decisions/008-whatsapp-integration.md)). Se activa al enviar la cotización (UC-21); la vigencia de la oferta comienza con ese envío (RN-06). No procesa ni automatiza las conversaciones posteriores con el cliente.
-
-### `scheduler`
-
-Tareas programadas:
-
-- Vencimiento automático de cotizaciones (diario).
-- (Futuro) Alertas de demora en órdenes de trabajo.
-
----
-
-## Módulos del frontend
+### Frontend
 
 El frontend es una **SPA React + TypeScript** compilada con Vite y servida como archivos estáticos mediante Nginx. Ver [ADR-006](../decisions/006-frontend-stack.md) para los fundamentos completos y las bibliotecas complementarias.
 
 La SPA se organiza en las siguientes secciones principales:
 
-- Panel principal — resumen de cotizaciones y órdenes de trabajo activas
-- Cotizaciones — listado, detalle, creación y adjudicación
-- Órdenes de trabajo — listado, detalle y seguimiento de producción
-- Clientes — CRUD de clientes
-- Piezas — catálogo con historial
-- Reportes — estadísticas y métricas
-- Configuración — solo AS: usuarios, roles, tipos de proceso y tarifas
+- **Solicitud de Cotizaciones** — Listado, detalle, creación y adjudicación.
+- **Clientes** — CRUD de encargado, fábrica y rubros.
+- **Gestión** — CRUD de proveedores, CRUD de materiales, CRUD de Tipo de Proceso.
+- **Administración** — CRUD de usuarios, CRUD de empleados.
+
+### Backend
+
+El backend está organizado en módulos funcionales alineados con el dominio. En este sprint 2 tenemos hasta:
+
+| Módulo | Responsabilidad |
+| --- | --- |
+| `identity` | Gestión de usuarios del sistema, autenticación y autorización (creación, desactivación, cambios de rol, restablecimiento de contraseñas, guards de RBAC). |
+| `customers` | Subsistema conformado por las entidades/componentes Rubro, Encargados y Fábricas. |
+| `employees` | Empleados. |
+| `supplier` | Proveedores. |
+| `technicalCatalog` | Va a contener Materiales y Tipos de Proceso. |
+
+### Servicios de soporte
+
+- **Servicio PDF (Python):** proceso auxiliar que genera los PDF; el backend lo invoca por HTTP interno ([ADR-004](../decisions/004-generate-pdf.md)).
+- **PostgreSQL:** datos relacionales persistentes ([ADR-002](../decisions/002-data-base.md)).
+- **Amazon S3:** almacenamiento persistente de objetos (planos, fotos, diseños 3D y PDF generados), abstraído mediante un servicio de almacenamiento para poder cambiar el proveedor sin afectar la lógica de negocio ([ADR-009](../decisions/009-deploy-infrastructure.md)).
 
 ---
 
-## Principios de arquitectura
+## Principios y restricciones
 
 **Sin sobrediseño para esta escala.** Sin Redis, Kafka, Kubernetes ni Event Sourcing. El sistema es un monolito modular con un proceso Python auxiliar para PDF. Es suficiente y mantenible para el equipo y el volumen actuales (ver [ADR-009](../decisions/009-deploy-infrastructure.md)).
 
-**Separación de información pública y privada desde el backend.** Los endpoints que devuelven datos de cotización al frontend tienen dos variantes: una con datos completos (roles administrativos) y otra sin costos ni márgenes (JT). El filtrado nunca se realiza únicamente en el frontend.
+**Separación de información pública y privada desde el backend.** Los endpoints que devuelven datos de cotización al frontend tienen dos variantes: una con datos completos (roles administrativos) y otra sin costos ni márgenes (JT). El filtrado nunca se realiza únicamente en el frontend. Las reglas de visibilidad se explican en [roles y permisos](../conceptos-transversales/roles-y-permisos.md).
 
-**Tareas con `@nestjs/schedule`.** Suficiente para el vencimiento de cotizaciones y futuras alertas. No requiere infraestructura adicional.
-
-**Almacenamiento de archivos.** Amazon S3 para almacenamiento persistente de objetos (planos, fotos, diseños 3D y PDF generados), abstraído mediante un servicio de almacenamiento para poder cambiar el proveedor sin afectar la lógica de negocio. Ver [ADR-009](../decisions/009-deploy-infrastructure.md).
-
-**Despliegue.** Docker Compose en una única instancia Amazon EC2, con Nginx como proxy inverso/punto de entrada HTTPS, PostgreSQL como contenedor con almacenamiento persistente y GitHub Actions para CI/CD. CloudWatch gestiona métricas y registros de infraestructura; Sentry gestiona el seguimiento de errores de la aplicación. Ver [ADR-009](../decisions/009-deploy-infrastructure.md).
+**Despliegue.** Docker Compose en una única instancia Amazon EC2, con Nginx como proxy inverso/punto de entrada HTTPS, PostgreSQL como contenedor con almacenamiento persistente y GitHub Actions para CI/CD. CloudWatch gestiona métricas y registros de infraestructura; Sentry gestiona el seguimiento de errores de la aplicación. Ver [ADR-009](../decisions/009-deploy-infrastructure.md) y [ADR-010](../decisions/010-continuous-integration.md).
 
 ---
 
@@ -140,3 +111,13 @@ La SPA se organiza en las siguientes secciones principales:
 | Integración de correo | [ADR-007](../decisions/007-mail-integration.md) | Orientación arquitectónica aprobada; proveedor pendiente de presupuesto |
 | Integración de WhatsApp | [ADR-008](../decisions/008-whatsapp-integration.md) | Orientación arquitectónica aprobada; proveedor pendiente de presupuesto |
 | Infraestructura de despliegue y almacenamiento de archivos | [ADR-009](../decisions/009-deploy-infrastructure.md) | Aprobado |
+
+> Los estados de esta tabla difieren de los registrados en los ADR: ADR-001, 003, 005 y 006 figuran como «Decisión pendiente»; ADR-002 y 004 como «Recomendado» pendiente de confirmación; ADR-009 como «Pendiente de aprobación». ADR-010 no figura en la tabla. Ver [inconsistencias documentales](../seguimiento/inconsistencias-documentales.md#estados-de-los-adr).
+
+---
+
+## Documentación relacionada
+
+- [Requisitos no funcionales](../domain/03-requerimientos.md) (RNF01–RNF21): rendimiento, seguridad, confiabilidad y portabilidad.
+- [Configuración del entorno](../SETUP.md) y [migraciones](../database/Migrations.md).
+- [Contrato OpenAPI](../openapi/openapi.yaml) y [referencia de API del Sprint 2](../api-contract/API_CONTRACT_SPRINT_2.md).

@@ -1,4 +1,4 @@
-﻿# ADR-004 — Generación de PDF
+# ADR-004 — Generación de PDF
 
 **Fecha:** 2026-08  
 **Estado:** Recomendado (pendiente de confirmación)  
@@ -6,11 +6,11 @@
 
 ---
 
-## Contexto
+## Contexto y problema
 
 El sistema debe generar informes de cotización en PDF. Cada cliente puede tener un formato específico (algunos lo cargan en su propio sistema y otros requieren una disposición particular). Los PDF deben tener calidad profesional, con tablas, logos y datos estructurados.
 
-## Opciones evaluadas
+## Alternativas consideradas
 
 ### Opción A: Servicio Python (WeasyPrint / ReportLab)
 
@@ -42,7 +42,6 @@ Puppeteer inicia una instancia de Chromium, renderiza HTML y lo exporta a PDF.
 - El PDF resultante puede variar entre versiones de Chromium.
 - Problemático en entornos Docker con restricciones de aislamiento.
 
-
 ### Opción C: Node.js con pdfmake
 
 Biblioteca que genera PDF a partir de un JSON descriptivo (no HTML).
@@ -56,6 +55,8 @@ Biblioteca que genera PDF a partir de un JSON descriptivo (no HTML).
 - Las disposiciones complejas son difíciles de mantener en JSON.
 
 ## Decisión
+
+> Estado registrado: **Recomendado (pendiente de confirmación)**. El texto formula la elección, pero no implica aprobación formal; ver [inconsistencias documentales](../seguimiento/inconsistencias-documentales.md#estados-de-los-adr).
 
 **Servicio Python con WeasyPrint**, ejecutado como proceso en el mismo servidor, con comunicación HTTP síncrona desde el backend Node.js y uso ocasional de ReportLab para casos especiales.
 

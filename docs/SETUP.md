@@ -1,4 +1,4 @@
-﻿# Configuración del proyecto — Tornería Castro
+# Configuración del proyecto — Tornería Castro
 
 Guía de incorporación: cómo poner en funcionamiento el proyecto localmente desde cero.
 
@@ -16,7 +16,42 @@ Guía de incorporación: cómo poner en funcionamiento el proyecto localmente de
 
 ---
 
-## 2. Clonar el repositorio y configurar variables de entorno
+## 2. Inicio rápido
+
+Para un desarrollador que ya tiene Docker y `make` instalados, el camino más corto hacia un entorno de desarrollo funcional es:
+
+```bash
+cp infrastructure/docker/.env.example infrastructure/docker/.env.dev
+```
+
+Configurá los valores requeridos en `.env.dev` (ver [sección 3](#3-clonar-el-repositorio-y-configurar-variables-de-entorno)) y luego:
+
+```bash
+make dev-build
+make migrate-dev
+make seed
+```
+
+Después de eso, el entorno de desarrollo está listo.
+Usá:
+
+```bash
+make ps
+```
+
+para comprobar los contenedores y:
+
+```bash
+make dev-logs
+```
+
+para inspeccionar los registros.
+
+Las secciones siguientes explican cada paso en detalle.
+
+---
+
+## 3. Clonar el repositorio y configurar variables de entorno
 
 Cloná el repositorio:
 
@@ -61,11 +96,11 @@ ALLOWED_ORIGINS=http://localhost:8081
 
 `ALLOWED_ORIGINS` es opcional y recibe una lista separada por comas. En desarrollo debe incluir `http://localhost:8081` para que Swagger UI pueda enviar solicitudes al backend. Dejalo sin definir en producción: el frontend accede al backend mediante Nginx desde el mismo origen, por lo que CORS permanece deshabilitado.
 
-> Regla del proyecto: si agregás una variable de entorno nueva, actualizá `.env.example` en el mismo commit (ver `docs/CONTRIBUTING.md`).
+> Regla del proyecto: si agregás una variable de entorno nueva, actualizá `.env.example` en el mismo commit (ver [CONTRIBUTING.MD](CONTRIBUTING.MD)).
 
 ---
 
-## 3. Iniciar el entorno de desarrollo con Docker
+## 4. Iniciar el entorno de desarrollo con Docker
 
 El entorno de desarrollo está compuesto por tres servicios principales:
 
@@ -73,7 +108,7 @@ El entorno de desarrollo está compuesto por tres servicios principales:
 - **Frontend** — Aplicación React/Vite.
 - **PostgreSQL** — Base de datos de desarrollo.
 
-> Además de estos tres, un servicio auxiliar `openapi-docs` sirve la documentación del contrato de la API de forma independiente: ver sección 4.
+> Además de estos tres, un servicio auxiliar `openapi-docs` sirve la documentación del contrato de la API de forma independiente: ver [Verificar la documentación OpenAPI](#verificar-la-documentación-openapi).
 
 Con el `Makefile` de la raíz del repositorio, todo el flujo de desarrollo se maneja mediante comandos breves.
 
@@ -103,15 +138,17 @@ make help
 
 ---
 
-## 4. Primeros pasos después de iniciar
+## 5. Primeros pasos después de iniciar
 
 ### Ejecutar migraciones Prisma
 
 Una vez que los contenedores estén ejecutándose, aplicá las migraciones de la base de datos:
 
 ```bash
-make migrate
+make migrate-dev
 ```
+
+El procedimiento completo de migraciones se explica en [Migraciones de base de datos con Prisma](database/Migrations.md).
 
 ### Cargar datos de prueba
 
@@ -149,7 +186,7 @@ http://localhost:8081
 
 Se ejecuta en su propio contenedor (`openapi-docs`), separado del backend, por lo que el contrato sigue siendo legible incluso si el backend está detenido o falla.
 
-«Try it out» envía solicitudes desde tu navegador directamente a `http://localhost:3000` (la entrada `servers` de `openapi.yaml`), sin pasar por Nginx. Como la página se encuentra en un origen diferente (`:8081`), el backend debe permitirlo mediante CORS: ver `ALLOWED_ORIGINS` en la sección 2.
+«Try it out» envía solicitudes desde tu navegador directamente a `http://localhost:3000` (la entrada `servers` de `openapi.yaml`), sin pasar por Nginx. Como la página se encuentra en un origen diferente (`:8081`), el backend debe permitirlo mediante CORS: ver `ALLOWED_ORIGINS` en la [sección 3](#3-clonar-el-repositorio-y-configurar-variables-de-entorno).
 
 Después de editar el contrato, ejecutá `make openapi-docs-build` y recargá la página con `Ctrl+F5`. No hace falta reiniciar `openapi-docs`: lee `build/openapi.yaml` en cada carga.
 
@@ -212,59 +249,6 @@ make db-shell
 
 ---
 
-## 5. Comandos disponibles (resumen)
-
-### Para todo el entorno
-
-| Comando | Qué hace |
-| ----------------- | -------------------------------------------------------------------------------- |
-| `make dev-up` | Inicia backend + frontend + postgres (desarrollo) |
-| `make dev-build` | Reconstruye todas las imágenes e inicia los servicios (usar después de cambiar un Dockerfile o dependencias) |
-| `make dev-down` | Detiene los contenedores |
-| `make dev-down-v` | Detiene los contenedores **y elimina los datos de Postgres** (reinicio completo) |
-| `make dev-logs` | Registros en vivo de todos los servicios |
-| `make ps` | Estado de los contenedores |
-| `make clean` | Detiene todo, elimina volúmenes e imágenes/contenedores huérfanos |
-| `make prod-up` | Inicia el entorno de producción |
-| `make prod-build` | Reconstruye todas las imágenes de producción e inicia el entorno de producción |
-| `make prod-logs` | Registros en vivo de producción |
-| `make prod-down` | Detiene el entorno de producción |
-
-### Para el backend
-
-| Comando | Qué hace |
-| ---------------------- | ---------------------------------- |
-| `make backend-restart` | Reinicia solo el contenedor del backend |
-| `make backend-logs` | Registros en vivo solo del backend |
-| `make backend-shell` | Consola dentro del contenedor del backend |
-| `make backend-build` | Reconstruye solo la imagen del backend |
-| `make migrate` | Ejecuta migraciones Prisma |
-| `make seed` | Carga datos de prueba |
-
-### Para la documentación OpenAPI
-
-| Comando | Qué hace |
-| ------------------------- | -------------------------------------------------------------------- |
-| `make openapi-docs-build` | Valida y vuelve a empaquetar el contrato OpenAPI (luego `Ctrl+F5` en Swagger) |
-| `make openapi-docs-logs` | Registros en vivo del servicio Swagger UI |
-
-### Para el frontend
-
-| Comando | Qué hace |
-| ----------------------- | ----------------------------------- |
-| `make frontend-restart` | Reinicia solo el contenedor del frontend |
-| `make frontend-logs` | Registros en vivo solo del frontend |
-| `make frontend-shell` | Consola dentro del contenedor del frontend |
-| `make frontend-build` | Reconstruye solo la imagen del frontend |
-
-### Para la base de datos
-
-| Comando | Qué hace |
-| --------------- | -------------------- |
-| `make db-shell` | psql dentro de Postgres |
-
----
-
 ## 6. Flujo de desarrollo
 
 La configuración Docker Compose de desarrollo está diseñada para ofrecer un ciclo rápido de retroalimentación.
@@ -308,6 +292,33 @@ O reconstruí todo:
 ```bash
 make dev-build
 ```
+
+### Reiniciar la base de datos de desarrollo
+
+Si necesitás reiniciar completamente la base de datos PostgreSQL local, usá:
+
+```bash
+make dev-down-v
+```
+
+Esto detiene los contenedores de desarrollo y elimina sus volúmenes Docker.
+
+**Advertencia:** esto elimina los datos locales de PostgreSQL.
+
+Después de reiniciar, volvé a iniciar el entorno:
+
+```bash
+make dev-up
+```
+
+Luego ejecutá:
+
+```bash
+make migrate-dev
+make seed
+```
+
+para recrear el esquema de la base de datos y cargar los datos de desarrollo.
 
 ---
 
@@ -368,36 +379,7 @@ Nunca incluyas este archivo en un commit del repositorio.
 
 ---
 
-## 8. Reiniciar la base de datos de desarrollo
-
-Si necesitás reiniciar completamente la base de datos PostgreSQL local, usá:
-
-```bash
-make dev-down-v
-```
-
-Esto detiene los contenedores de desarrollo y elimina sus volúmenes Docker.
-
-**Advertencia:** esto elimina los datos locales de PostgreSQL.
-
-Después de reiniciar, volvé a iniciar el entorno:
-
-```bash
-make dev-up
-```
-
-Luego ejecutá:
-
-```bash
-make migrate
-make seed
-```
-
-para recrear el esquema de la base de datos y cargar los datos de desarrollo.
-
----
-
-## 9. Problemas comunes
+## 8. Problemas frecuentes
 
 | Síntoma | Causa probable / solución |
 | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -415,44 +397,64 @@ para recrear el esquema de la base de datos y cargar los datos de desarrollo.
 
 ---
 
-## 10. Convenciones relacionadas
+## 9. Referencia de comandos
 
-- Ramas, commits (Conventional Commits) y PR: ver `docs/CONTRIBUTING.md`.
-- Decisiones de arquitectura: ver los ADR en `docs/architecture/`.
-- Organización de infraestructura Docker: ver `infrastructure/docker/README.md`.
-- Las configuraciones Docker Compose se encuentran en `infrastructure/docker/`.
-- Las variables de entorno de desarrollo se almacenan en `infrastructure/docker/.env.dev`.
-- Las variables de entorno de producción se almacenan en `infrastructure/docker/.env.prod`.
+### Para todo el entorno
+
+| Comando | Qué hace |
+| ----------------- | -------------------------------------------------------------------------------- |
+| `make dev-up` | Inicia backend + frontend + postgres (desarrollo) |
+| `make dev-build` | Reconstruye todas las imágenes e inicia los servicios (usar después de cambiar un Dockerfile o dependencias) |
+| `make dev-down` | Detiene los contenedores |
+| `make dev-down-v` | Detiene los contenedores **y elimina los datos de Postgres** (reinicio completo) |
+| `make dev-logs` | Registros en vivo de todos los servicios |
+| `make ps` | Estado de los contenedores |
+| `make clean` | Detiene todo, elimina volúmenes e imágenes/contenedores huérfanos |
+| `make prod-up` | Inicia el entorno de producción |
+| `make prod-build` | Reconstruye todas las imágenes de producción e inicia el entorno de producción |
+| `make prod-logs` | Registros en vivo de producción |
+| `make prod-down` | Detiene el entorno de producción |
+
+### Para el backend
+
+| Comando | Qué hace |
+| ---------------------- | ---------------------------------- |
+| `make backend-restart` | Reinicia solo el contenedor del backend |
+| `make backend-logs` | Registros en vivo solo del backend |
+| `make backend-shell` | Consola dentro del contenedor del backend |
+| `make backend-build` | Reconstruye solo la imagen del backend |
+| `make migrate-dev` | Ejecuta migraciones Prisma |
+| `make seed` | Carga datos de prueba |
+
+### Para la documentación OpenAPI
+
+| Comando | Qué hace |
+| ------------------------- | -------------------------------------------------------------------- |
+| `make openapi-docs-build` | Valida y vuelve a empaquetar el contrato OpenAPI (luego `Ctrl+F5` en Swagger) |
+| `make openapi-docs-logs` | Registros en vivo del servicio Swagger UI |
+
+### Para el frontend
+
+| Comando | Qué hace |
+| ----------------------- | ----------------------------------- |
+| `make frontend-restart` | Reinicia solo el contenedor del frontend |
+| `make frontend-logs` | Registros en vivo solo del frontend |
+| `make frontend-shell` | Consola dentro del contenedor del frontend |
+| `make frontend-build` | Reconstruye solo la imagen del frontend |
+
+### Para la base de datos
+
+| Comando | Qué hace |
+| --------------- | -------------------- |
+| `make db-shell` | psql dentro de Postgres |
 
 ---
 
-## 11. Inicio rápido
+## 10. Convenciones relacionadas
 
-Para un desarrollador que ya tiene Docker y `make` instalados, el camino más corto hacia un entorno de desarrollo funcional es:
-
-```bash
-cp infrastructure/docker/.env.example infrastructure/docker/.env.dev
-```
-
-Configurá los valores requeridos en `.env.dev` y luego:
-
-```bash
-make dev-build
-make migrate
-make seed
-```
-
-Después de eso, el entorno de desarrollo está listo.
-Usá:
-
-```bash
-make ps
-```
-
-para comprobar los contenedores y:
-
-```bash
-make dev-logs
-```
-
-para inspeccionar los registros.
+- Ramas, commits (Conventional Commits) y PR: ver [CONTRIBUTING.MD](CONTRIBUTING.MD).
+- Decisiones de arquitectura: ver los ADR en [`docs/decisions/`](decisions/).
+- Organización de infraestructura Docker: ver [`infrastructure/docker/README.md`](../infrastructure/docker/README.md).
+- Las configuraciones Docker Compose se encuentran en `infrastructure/docker/`.
+- Las variables de entorno de desarrollo se almacenan en `infrastructure/docker/.env.dev`.
+- Las variables de entorno de producción se almacenan en `infrastructure/docker/.env.prod`.

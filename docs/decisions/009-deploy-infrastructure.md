@@ -1,20 +1,10 @@
-﻿# ADR-009 — Infraestructura de despliegue
+# ADR-009 — Infraestructura de despliegue
 
 **Fecha:** 2026-08
 **Estado:** Pendiente de aprobación
 **Responsables de la decisión:** Equipo DevOps
 
-## Decisión
-
-Usaremos **Docker y Docker Compose** como solución de contenedores y orquestación para la aplicación, desplegada en **AWS**.
-
-El entorno de producción usará **Amazon EC2** para alojar los contenedores de la aplicación, **Amazon S3** para almacenamiento persistente de objetos y **Amazon CloudWatch** para monitoreo de infraestructura y registros centralizados. **PostgreSQL** se ejecutará como un contenedor dedicado dentro de la instancia EC2 con almacenamiento persistente.
-
-Este enfoque ofrece un equilibrio adecuado entre **simplicidad, mantenibilidad, portabilidad y eficiencia de recursos**, con escalabilidad suficiente para la carga esperada y los requisitos actuales del proyecto.
-
-No se adoptará Kubernetes en esta etapa porque su complejidad operativa adicional y sus requisitos de recursos no se justifican para la escala esperada del sistema.
-
-## Contexto
+## Contexto y problema
 
 La aplicación requiere una infraestructura de despliegue capaz de ofrecer entornos consistentes en desarrollo, pruebas y producción, manteniendo un nivel razonable de complejidad operativa.
 
@@ -29,7 +19,7 @@ El sistema consta de varios servicios, incluidos:
 
 La carga esperada es relativamente pequeña, con un número limitado de usuarios concurrentes. Por lo tanto, la infraestructura debe priorizar la **simplicidad y la mantenibilidad** frente a una orquestación muy sofisticada y el escalado horizontal automático.
 
-## Tecnologías de contenedores y orquestación
+## Alternativas consideradas
 
 Se evaluaron dos enfoques principales: **Docker con Docker Compose** y **Kubernetes**.
 
@@ -154,24 +144,28 @@ Sin embargo, Kubernetes introduce requisitos adicionales de infraestructura y op
 - Requiere monitoreo y gestión adicionales
 - Complejidad excesiva para la carga esperada
 
-## Fundamentos de la decisión
+### Resumen de alternativas
 
-Se seleccionó Docker Compose porque los requisitos actuales de la aplicación no justifican la complejidad de Kubernetes.
+| Alternativa | Decisión | Motivo |
+| ----------------------------------- | ------------ | ------------------------------------------------------------------------ |
+| **Docker + Docker Compose** | **Seleccionada** | Complejidad adecuada, bajos requisitos de recursos y mantenimiento sencillo |
+| **Kubernetes** | Rechazada | Complejidad y requisitos de recursos excesivos para la carga esperada |
+| **EC2 sin contenedores** | Rechazada | Entornos menos reproducibles y gestión de dependencias más difícil |
+| **Orquestación administrada de contenedores** | Postergada | Podría considerarse si aumentan los requisitos de escalado o disponibilidad |
 
-La carga esperada es relativamente pequeña y la aplicación consta de un número limitado de servicios. Por lo tanto, una única instancia EC2 con Docker Compose es suficiente para ofrecer la funcionalidad requerida y mantener una infraestructura fácil de comprender, operar y mantener.
+## Decisión
 
-Kubernetes puede reconsiderarse si los requisitos futuros introducen:
+> Estado registrado: **Pendiente de aprobación**. Lo siguiente es la propuesta; no implica aprobación formal.
 
-- Aumentos significativos del tráfico o de los usuarios concurrentes
-- Múltiples instancias de la aplicación que requieran escalado horizontal
-- Requisitos de alta disponibilidad entre varios servidores
-- Un mayor número de servicios desplegables de manera independiente
-- Estrategias de despliegue más sofisticadas
-- Recursos DevOps dedicados
+Usaremos **Docker y Docker Compose** como solución de contenedores y orquestación para la aplicación, desplegada en **AWS**.
 
-Esta decisión favorece deliberadamente la **complejidad adecuada frente a la máxima escalabilidad**.
+El entorno de producción usará **Amazon EC2** para alojar los contenedores de la aplicación, **Amazon S3** para almacenamiento persistente de objetos y **Amazon CloudWatch** para monitoreo de infraestructura y registros centralizados. **PostgreSQL** se ejecutará como un contenedor dedicado dentro de la instancia EC2 con almacenamiento persistente.
 
-## Arquitectura de despliegue
+Este enfoque ofrece un equilibrio adecuado entre **simplicidad, mantenibilidad, portabilidad y eficiencia de recursos**, con escalabilidad suficiente para la carga esperada y los requisitos actuales del proyecto.
+
+No se adoptará Kubernetes en esta etapa porque su complejidad operativa adicional y sus requisitos de recursos no se justifican para la escala esperada del sistema.
+
+### Arquitectura de despliegue
 
 La infraestructura de producción seguirá la siguiente arquitectura:
 
@@ -221,9 +215,9 @@ Las responsabilidades de cada componente son:
 | **CloudWatch** | Métricas de infraestructura y registros centralizados |
 | **Sentry** | Seguimiento de errores y diagnóstico de la aplicación |
 
-## Estrategia de despliegue
+### Estrategia de despliegue
 
-### Plan de implementación
+#### Plan de implementación
 
 El proceso de despliegue constará de las siguientes etapas:
 
@@ -259,7 +253,9 @@ El proceso de despliegue constará de las siguientes etapas:
 
    Dado el volumen de datos esperado relativamente pequeño, se considera suficiente una **frecuencia semanal de respaldos** para los requisitos actuales del proyecto. Esta política puede revisarse si aumentan el volumen de datos o los requisitos de recuperación del sistema.
 
-## Arquitectura de CI/CD
+   > Esta frecuencia difiere de [RNF14](../domain/03-requerimientos.md#rnf14--confiabilidad--backups-y-recuperación) (respaldo diario, ≥ 15 copias); ver [inconsistencias documentales](../seguimiento/inconsistencias-documentales.md#requisitos-y-adr).
+
+### Arquitectura de CI/CD
 
 El proceso de CI/CD seguirá este flujo general:
 
@@ -288,7 +284,7 @@ flowchart LR
 
 El proceso asegura que los cambios de la aplicación se validen antes de desplegarse en producción.
 
-## Arquitectura de almacenamiento de datos
+### Arquitectura de almacenamiento de datos
 
 Los datos de la aplicación se separarán según su naturaleza.
 
@@ -311,15 +307,22 @@ Por ejemplo, PostgreSQL puede almacenar los metadatos de un documento cargado mi
 
 Esta separación evita que los archivos binarios grandes aumenten innecesariamente el tamaño de la base de datos relacional.
 
-## Consideraciones operativas
+## Fundamentos de la decisión
 
-La arquitectura seleccionada mantiene deliberadamente bajo el número de componentes de infraestructura.
+Se seleccionó Docker Compose porque los requisitos actuales de la aplicación no justifican la complejidad de Kubernetes.
 
-El entorno inicial de producción constará de una única instancia EC2 que ejecutará los contenedores de la aplicación mediante Docker Compose. Esto ofrece un modelo de despliegue sencillo, adecuado para la carga esperada.
+La carga esperada es relativamente pequeña y la aplicación consta de un número limitado de servicios. Por lo tanto, una única instancia EC2 con Docker Compose es suficiente para ofrecer la funcionalidad requerida y mantener una infraestructura fácil de comprender, operar y mantener.
 
-Sin embargo, una única instancia EC2 representa un posible **punto único de falla**. Por lo tanto, la alta disponibilidad y el escalado horizontal automático no se consideran requisitos del despliegue inicial.
+Kubernetes puede reconsiderarse si los requisitos futuros introducen:
 
-Si estos requisitos aparecen en el futuro, la arquitectura puede evolucionar hacia un despliegue de múltiples instancias mediante servicios adicionales de AWS o una plataforma de orquestación de contenedores como Kubernetes.
+- Aumentos significativos del tráfico o de los usuarios concurrentes
+- Múltiples instancias de la aplicación que requieran escalado horizontal
+- Requisitos de alta disponibilidad entre varios servidores
+- Un mayor número de servicios desplegables de manera independiente
+- Estrategias de despliegue más sofisticadas
+- Recursos DevOps dedicados
+
+Esta decisión favorece deliberadamente la **complejidad adecuada frente a la máxima escalabilidad**.
 
 ## Consecuencias
 
@@ -343,14 +346,15 @@ Si estos requisitos aparecen en el futuro, la arquitectura puede evolucionar hac
 - Los procedimientos de respaldo y recuperación deben mantenerse adecuadamente
 - No están disponibles las funciones de orquestación del nivel de Kubernetes
 
-## Alternativas consideradas
+### Consideraciones operativas
 
-| Alternativa | Decisión | Motivo |
-| ----------------------------------- | ------------ | ------------------------------------------------------------------------ |
-| **Docker + Docker Compose** | **Seleccionada** | Complejidad adecuada, bajos requisitos de recursos y mantenimiento sencillo |
-| **Kubernetes** | Rechazada | Complejidad y requisitos de recursos excesivos para la carga esperada |
-| **EC2 sin contenedores** | Rechazada | Entornos menos reproducibles y gestión de dependencias más difícil |
-| **Orquestación administrada de contenedores** | Postergada | Podría considerarse si aumentan los requisitos de escalado o disponibilidad |
+La arquitectura seleccionada mantiene deliberadamente bajo el número de componentes de infraestructura.
+
+El entorno inicial de producción constará de una única instancia EC2 que ejecutará los contenedores de la aplicación mediante Docker Compose. Esto ofrece un modelo de despliegue sencillo, adecuado para la carga esperada.
+
+Sin embargo, una única instancia EC2 representa un posible **punto único de falla**. Por lo tanto, la alta disponibilidad y el escalado horizontal automático no se consideran requisitos del despliegue inicial.
+
+Si estos requisitos aparecen en el futuro, la arquitectura puede evolucionar hacia un despliegue de múltiples instancias mediante servicios adicionales de AWS o una plataforma de orquestación de contenedores como Kubernetes.
 
 ## Evolución futura
 

@@ -1,4 +1,4 @@
-﻿# ADR-008 — Integración de WhatsApp
+# ADR-008 — Integración de WhatsApp
 
 **Fecha:** 2026-08  
 **Estado:** Orientación arquitectónica definida; proveedor pendiente de confirmación de presupuesto  
@@ -6,7 +6,7 @@
 
 ---
 
-## Contexto
+## Contexto y problema
 
 La ERS habilita WhatsApp en dos puntos: recepción de solicitudes de cotización (UC-13, registro manual con documentación adjunta) y envío automático del informe de cotización (UC-21, con la vigencia de la oferta ligada a ese envío mediante la regla de negocio RN-06). El modelo de dominio lo representa mediante **SM (Servidor de mensajería)**, un actor externo abstracto no ligado a ningún proveedor.
 
@@ -14,7 +14,7 @@ La recepción de solicitudes y órdenes de compra por WhatsApp sigue siendo un p
 
 Por lo tanto, la integración se limita a enviar el informe de cotización y un breve mensaje de acompañamiento al número de WhatsApp registrado del cliente. El sistema no gestiona ni automatiza la conversación posterior con el cliente.
 
-## Opciones evaluadas
+## Alternativas consideradas
 
 ### Opción A: Bibliotecas no oficiales (whatsapp-web.js, Baileys)
 
@@ -49,10 +49,6 @@ Por lo tanto, la integración se limita a enviar el informe de cotización y un 
 - Menor documentación de terceros y comunidad que un BSP establecido como Twilio.
 - Depende de la disponibilidad de la cuenta AWS, una dependencia que el resto del sistema ya asume según ADR-009.
 
-## Recomendación provisional
-
-Se descarta la opción A: el riesgo de bloqueo del número compromete un canal que también recibe órdenes de compra, no solo notificaciones salientes. Entre las opciones B y C, el equipo se inclina provisionalmente por **AWS End User Messaging Social** (opción C), por su coherencia con la infraestructura ya definida en ADR-009. Si el presupuesto que confirme el cliente o algún requisito operativo no cubierto por AWS hace más adecuado a un BSP externo, la opción B sigue siendo una alternativa válida.
-
 ## Decisión
 
 La decisión final es adoptar la **WhatsApp Business Platform oficial** como orientación arquitectónica; se descartan las bibliotecas no oficiales.
@@ -61,7 +57,11 @@ La elección entre un BSP externo (opción B) y AWS End User Messaging Social (o
 
 La integración se limitará al envío de cotizaciones. El sistema enviará el PDF generado junto con un mensaje breve y no procesará ni automatizará las conversaciones posteriores con el cliente.
 
-## Pendientes
+## Fundamentos (recomendación provisional)
+
+Se descarta la opción A: el riesgo de bloqueo del número compromete un canal que también recibe órdenes de compra, no solo notificaciones salientes. Entre las opciones B y C, el equipo se inclina provisionalmente por **AWS End User Messaging Social** (opción C), por su coherencia con la infraestructura ya definida en ADR-009. Si el presupuesto que confirme el cliente o algún requisito operativo no cubierto por AWS hace más adecuado a un BSP externo, la opción B sigue siendo una alternativa válida.
+
+## Referencias y pendientes
 
 **Decisiones de arquitectura:** ninguna pendiente; está definido el uso de la WhatsApp Business Platform oficial.
 

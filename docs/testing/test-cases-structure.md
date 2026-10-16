@@ -3,9 +3,11 @@
 Este documento explica cómo se gestionan los casos de prueba en el sistema de
 gestión de Tornería Castro SRL: **por qué existen**, **dónde están** y **cómo cada uno
 mantiene su vínculo** desde la especificación de negocio hasta el código que
-lo comprueba en CI. Complementa a [`estrategia-qa.md`](./estrategia-qa.md), que
+lo comprueba en CI. Complementa a `estrategia-qa.md` (archivo citado, ausente en este repositorio), que
 define la *estrategia* de pruebas (la pirámide, las herramientas, los invariantes); este
 documento define su *registro y organización* (los artefactos y cómo se conectan).
+
+> La organización de la suite se describe en [Estructura de pruebas de QA](code-structure.md). Sus diferencias con el [README de la suite](../../backend/test/README.md) están registradas en [inconsistencias documentales](../seguimiento/inconsistencias-documentales.md).
 
 ---
 

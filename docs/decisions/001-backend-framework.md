@@ -1,4 +1,4 @@
-﻿# ADR-001 — Framework del backend
+# ADR-001 — Framework del backend
 
 **Fecha:** 2026-08  
 **Estado:** Decisión pendiente  
@@ -6,11 +6,11 @@
 
 ---
 
-## Contexto
+## Contexto y problema
 
 El sistema requiere un backend Node.js/TypeScript que soporte un dominio rico: dos máquinas de estados, un patrón Composite en los ítems de cotización, RBAC con múltiples roles, generación de PDF delegada a un servicio Python y tareas programadas para el vencimiento de cotizaciones.
 
-## Opciones evaluadas
+## Alternativas consideradas
 
 ### Opción A: NestJS
 
@@ -40,10 +40,12 @@ Framework minimalista que no impone una estructura. Requiere decidir y construir
 - Todo lo que NestJS ya proporciona debe construirse manualmente: guards de RBAC, inyección de dependencias y planificador de tareas.
 - Más tiempo de configuración inicial sin valor para el negocio.
 
-## Recomendación provisional
-
-**NestJS**, dado el tamaño del equipo y la complejidad del dominio. La estructura impuesta es una ventaja, y no un costo, cuando varios módulos deben crecer en paralelo.
-
 ## Decisión
 
+> Estado registrado: **Decisión pendiente**. El texto formula la elección, pero no implica aprobación formal; ver [inconsistencias documentales](../seguimiento/inconsistencias-documentales.md#estados-de-los-adr).
+
 La decisión final es adoptar **NestJS** como framework del backend.
+
+## Fundamentos (recomendación provisional)
+
+**NestJS**, dado el tamaño del equipo y la complejidad del dominio. La estructura impuesta es una ventaja, y no un costo, cuando varios módulos deben crecer en paralelo.

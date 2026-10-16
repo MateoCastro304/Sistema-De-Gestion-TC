@@ -1,4 +1,4 @@
-﻿# ADR-002 — Base de datos
+# ADR-002 — Base de datos
 
 **Fecha:** 2026-08  
 **Estado:** Recomendado (pendiente de confirmación formal)  
@@ -6,11 +6,11 @@
 
 ---
 
-## Contexto
+## Contexto y problema
 
 El sistema maneja un dominio relacional complejo: cotizaciones con múltiples ítems (Composite), órdenes de trabajo con procesos planificados y ejecutados, historial de cambios de precios, secuencias (SEQUENCE) para números correlativos y relaciones entre clientes, piezas y planos.
 
-## Opciones evaluadas
+## Alternativas consideradas
 
 ### Opción A: PostgreSQL
 
@@ -35,6 +35,8 @@ Similares en capacidades generales, pero con un ecosistema de herramientas algo 
 Base de datos documental. Inadecuada para este dominio: el sistema tiene relaciones fuertes, integridad referencial crítica y necesita secuencias que no existen de forma nativa en MongoDB.
 
 ## Decisión
+
+> Estado registrado: **Recomendado (pendiente de confirmación formal)**. El texto formula la elección, pero no implica aprobación formal; ver [inconsistencias documentales](../seguimiento/inconsistencias-documentales.md#estados-de-los-adr).
 
 **PostgreSQL**. Es la única opción correcta para este dominio relacional. Las secuencias para el número correlativo y las restricciones para los invariantes de precios no tienen un sustituto adecuado en las otras opciones.
 

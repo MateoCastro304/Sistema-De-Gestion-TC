@@ -1,4 +1,4 @@
-﻿# ADR-007 — Integración de correo electrónico
+# ADR-007 — Integración de correo electrónico
 
 **Fecha:** 2026-08  
 **Estado:** Orientación arquitectónica definida; proveedor pendiente de confirmación de presupuesto  
@@ -6,13 +6,13 @@
 
 ---
 
-## Contexto
+## Contexto y problema
 
 El correo electrónico cumple los mismos dos roles que WhatsApp en la ERS: canal de recepción de solicitudes de cotización (UC-13, registro manual) y canal de salida automático para el informe de cotización (UC-21). El modelo de dominio lo representa mediante **SC (Servidor de correo)**, un actor externo abstracto no ligado a ningún proveedor.
 
 Esta decisión cubre únicamente el correo transaccional saliente: enviar al cliente el informe de cotización generado por el sistema como PDF. El procesamiento de buzones de entrada queda fuera del alcance, de acuerdo con la ERS.
 
-## Opciones evaluadas
+## Alternativas consideradas
 
 ### Opción A: SMTP corporativo (Gmail / Google Workspace)
 
@@ -59,10 +59,6 @@ Esta decisión cubre únicamente el correo transaccional saliente: enviar al cli
 - Requiere gestionar manualmente la reputación de IP, SPF/DKIM/DMARC y las listas de bloqueo.
 - Sin ventajas frente a un servicio administrado para este volumen; se considera sobrediseño para la escala del proyecto.
 
-## Recomendación provisional
-
-Se descarta la opción D por sobrediseño y la opción A por su falta de trazabilidad de entrega y el riesgo que representa para el buzón real de la empresa. Entre las opciones B y C, el equipo se inclina provisionalmente por **Amazon SES** (opción C), por su coherencia con la infraestructura ya definida en ADR-009. Si el presupuesto que confirme el cliente o algún requisito no cubierto por SES hace más adecuado a Resend o SendGrid, la opción B sigue siendo una alternativa válida.
-
 ## Decisión
 
 La decisión final es adoptar un **servicio administrado de correo transaccional** como orientación arquitectónica; se descartan SMTP corporativo y un servidor autogestionado.
@@ -71,7 +67,11 @@ La elección entre un proveedor externo (opción B) y Amazon SES (opción C) no 
 
 La integración se limitará al envío de cotizaciones. El sistema enviará el PDF de cotización generado a la dirección de correo registrada del cliente y no procesará ni automatizará las conversaciones posteriores por correo.
 
-## Pendientes
+## Fundamentos (recomendación provisional)
+
+Se descarta la opción D por sobrediseño y la opción A por su falta de trazabilidad de entrega y el riesgo que representa para el buzón real de la empresa. Entre las opciones B y C, el equipo se inclina provisionalmente por **Amazon SES** (opción C), por su coherencia con la infraestructura ya definida en ADR-009. Si el presupuesto que confirme el cliente o algún requisito no cubierto por SES hace más adecuado a Resend o SendGrid, la opción B sigue siendo una alternativa válida.
+
+## Referencias y pendientes
 
 **Decisiones de arquitectura:** ninguna pendiente; está definido el uso de un servicio administrado de correo transaccional en lugar de SMTP corporativo o un servidor autogestionado.
 
