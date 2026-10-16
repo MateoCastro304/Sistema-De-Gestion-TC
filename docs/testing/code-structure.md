@@ -108,6 +108,7 @@ La convención más importante: qué significa cada nivel en este proyecto. Esto
 | **Integración** | `backend/test/modules/<module>/int/` | endpoint → guard → servicio → Prisma → **Postgres real** | reglas de negocio e invariantes que solo se cumplen de extremo a extremo (la mayor parte de la suite de QA) | Jest + Supertest + Testcontainers, un contenedor de base de datos iniciado por ejecución y aislado para ella |
 | **API / contrato** | `backend/test/modules/<module>/api/` | la interfaz HTTP | códigos de estado, estructura de respuesta (contra OpenAPI), validación de entrada, filtros y paginación; **no** reglas profundas de negocio | Jest + Supertest (misma aplicación de prueba que integración) |
 | **E2E** | `e2e/<module>/` | un navegador real contra el conjunto de servicios `docker-compose` | recorridos críticos completos de usuario | Playwright |
+| **E2E del frontend** | `frontend/e2e/<area>/<feature>/` | un navegador real contra el frontend, con la API simulada (MSW), sin backend | pantallas, navegación, validaciones, acceso por rol y cómo se muestran las respuestas de la API (ver §2.5) | Playwright |
 
 Regla práctica:
 
@@ -115,6 +116,20 @@ Regla práctica:
 - Comprobar *«el precio no cambia una vez adjudicado»* → **integración**.
 - Comprobar *«devuelve 400 cuando falta la moneda»* → **API**.
 - Comprobar *«el usuario puede completar la cotización»* → **E2E**.
+- Comprobar *«el formulario marca el CUIT repetido y la pantalla oculta lo que el rol no puede usar»* → **E2E del frontend**.
+
+---
+
+### 2.5 Pruebas del frontend
+
+El frontend tiene su propia suite, distinta de la de QA ([ADR-012](../decisiones/012-frontend-e2e-tests.md), en estado de propuesta):
+
+- **Qué prueba:** el frontend, no el sistema completo. Corre contra la aplicación en modo desarrollo con la API simulada por MSW ([ADR-011](../decisiones/011-frontend-api-mocks.md)), así que no necesita backend, base de datos ni Docker. La integración con el backend real sigue siendo responsabilidad de la suite `e2e/` de QA.
+- **Quién la escribe:** quien desarrolla la pantalla, a partir de los criterios de aceptación de la historia de Jira y antes de la pantalla.
+- **Etiquetas:** cada `describe` lleva la historia y los casos de uso que cubre, más la etiqueta del sprint: `test.describe('[DTC-33][CU-53] …', { tag: '@sprint2' }, …)`. No usa los ids `CP-NN` del catálogo de casos de prueba.
+- **Cómo se ejecuta:** desde `frontend/`, `npm run test:e2e:sprint1` (tiene que estar siempre en verde) o `npm run test:e2e:sprint2`. Todavía no corre en la CI ([ADR-010](../decisiones/010-continuous-integration.md)).
+
+Las pruebas unitarias del frontend (Vitest + React Testing Library, ver [casos de prueba](test-cases-structure.md#23-qué-queda-deliberadamente-fuera-de-backendtest-y-e2e)) todavía no existen. El detalle de la suite está en [TESTING.md](../../frontend/frontend-Documents/TESTING.md).
 
 ---
 

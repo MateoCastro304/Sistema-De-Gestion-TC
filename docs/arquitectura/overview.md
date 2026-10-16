@@ -59,7 +59,7 @@ Vista de contenedores dentro del sistema:
 
 ### Frontend
 
-El frontend es una **SPA React + TypeScript** compilada con Vite y servida como archivos estáticos mediante Nginx. Ver [ADR-006](../decisiones/006-frontend-stack.md) para los fundamentos completos y las bibliotecas complementarias.
+El frontend es una **SPA React + TypeScript** compilada con Vite y servida como archivos estáticos mediante Nginx. Ver [ADR-006](../decisiones/006-frontend-stack.md) para los fundamentos completos y las bibliotecas complementarias, y la [arquitectura del frontend](frontend.md) para sus capas, su relación con el backend, los mocks de la API y las pruebas.
 
 La SPA se organiza en las siguientes secciones principales:
 
@@ -111,6 +111,8 @@ El backend está organizado en módulos funcionales alineados con el dominio. En
 | Integración de correo | [ADR-007](../decisiones/007-mail-integration.md) | Orientación arquitectónica aprobada; proveedor pendiente de presupuesto |
 | Integración de WhatsApp | [ADR-008](../decisiones/008-whatsapp-integration.md) | Orientación arquitectónica aprobada; proveedor pendiente de presupuesto |
 | Infraestructura de despliegue y almacenamiento de archivos | [ADR-009](../decisiones/009-deploy-infrastructure.md) | Aprobado |
+| Simulación de la API en el frontend (MSW) | [ADR-011](../decisiones/011-frontend-api-mocks.md) | Propuesta |
+| Pruebas E2E del frontend (Playwright) | [ADR-012](../decisiones/012-frontend-e2e-tests.md) | Propuesta |
 
 > Los estados de esta tabla difieren de los registrados en los ADR: ADR-001, 003, 005 y 006 figuran como «Decisión pendiente»; ADR-002 y 004 como «Recomendado» pendiente de confirmación; ADR-009 como «Pendiente de aprobación». ADR-010 no figura en la tabla. Ver [inconsistencias documentales](../seguimiento/inconsistencias-documentales.md#estados-de-los-adr).
 

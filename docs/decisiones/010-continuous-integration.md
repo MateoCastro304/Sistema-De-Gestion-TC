@@ -112,6 +112,6 @@ El job del contrato verifica que la especificación OpenAPI esté **bien formada
 
 ## Evolución futura
 
-- Agregar pruebas del frontend e incluirlas en el Nivel 1.
+- Incluir las pruebas del frontend en el Nivel 1. Ya existen pruebas E2E con Playwright contra los mocks de MSW (`frontend/e2e/`, `npm run test:e2e:sprint1`), pero el job `frontend` todavía no las ejecuta.
 - Despliegue continuo ([ADR-009](./009-deploy-infrastructure.md), paso 4): publicar las imágenes validadas por el Nivel 2 y desplegarlas en EC2.
 - Revisar el reparto si los fallos del Nivel 2 se vuelven frecuentes; la primera opción es mover las pruebas de integración a cada push a `develop`.
