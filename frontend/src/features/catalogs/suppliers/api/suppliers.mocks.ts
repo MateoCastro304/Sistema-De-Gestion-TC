@@ -11,7 +11,7 @@ import type {
 
 /**
  * MSW handlers que reemplazan al módulo de proveedores del backend
- * (`backend/src/suppliers`): mismas validaciones, mismos códigos y la misma
+ * (`backend/src/subsystems/supplier`): mismas validaciones, mismos códigos y la misma
  * forma de los datos (CUIT con guiones, mail en minúsculas, teléfono sin
  * separadores). Los `delay` están para ver los estados de carga.
  */

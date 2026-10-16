@@ -53,7 +53,7 @@ function toCustomerFields(
   body: Required<CustomerBody>,
 ): Pick<Customer, 'firstName' | 'lastName' | 'phone' | 'mail'> | Response {
   const firstName = body.firstName?.trim() ?? ''
-  if (!firstName) return invalid(request, 'firstName', 'Manager name cannot be empty')
+  if (!firstName) return invalid(request, 'name', 'Manager name cannot be empty')
 
   const mail = body.mail?.trim().toLowerCase() ?? ''
   if (mail && !MAIL_RE.test(mail)) return invalid(request, 'mail', 'Invalid email format')
@@ -69,7 +69,7 @@ function toCustomerFields(
   const phone = rawPhone ? `${rawPhone.startsWith('+') ? '+' : ''}${digits}` : ''
 
   if (!phone && !mail) {
-    return invalid(request, 'phone', 'Manager must have at least one contact: phone or mail')
+    return invalid(request, 'mail', 'Manager must have at least one contact: phone or mail')
   }
   return { firstName, lastName: body.lastName?.trim() ?? '', phone, mail }
 }

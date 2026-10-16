@@ -31,8 +31,8 @@ const CATALOG_PAGE_SIZE = 100
 //
 // A customer is identified by the composite key (factoryId, id), mirroring the
 // DB primary key `manager_customer(factory_id, id)`. Item operations are nested
-// under the owning factory: `/factories/{factoryId}/customers/{id}`. The flat
-// `/customers` collection is kept only for the global list view.
+// under the owning factory: `/factories/{factoryId}/managers/{id}`. The flat
+// `/managers` collection is kept only for the global list view.
 
 function customerPath(factoryId: string, id: string): string {
   return `${FACTORIES}/${factoryId}${CUSTOMERS}/${id}`

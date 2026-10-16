@@ -35,7 +35,7 @@ los junta todos:
 | Feature            | Archivos                                                       | Endpoints                                     |
 | ------------------ | -------------------------------------------------------------- | --------------------------------------------- |
 | Rubros             | `catalogs/categories/api/categories.{db,mocks}.ts`             | `/categories`                                 |
-| Encargados y fábricas | `catalogs/customers/api/customers.{db,mocks}.ts`            | `/customers`, `/factories`, `/factories/{id}/customers` |
+| Encargados y fábricas | `catalogs/customers/api/customers.{db,mocks}.ts`            | `/managers`, `/factories`, `/factories/{id}/managers` |
 | Proveedores        | `catalogs/suppliers/api/suppliers.{db,mocks}.ts`               | `/suppliers`                                  |
 | Sesión             | `auth/api/auth.mocks.ts`                                       | `/auth/login`, `/auth/refresh`, `/auth/logout` |
 | Empleados          | `catalogs/employees/api/employees.{db,mocks}.ts`               | `/employees`                                  |
@@ -46,12 +46,13 @@ los junta todos:
 ## Reglas
 
 - **Los mocks copian al backend, no al revés.** Para el Sprint 1 la fuente es el
-  código de `backend/src/` (mensajes, `409`, normalizaciones); para el Sprint 2,
+  código de `backend/src/subsystems/` (`customers/` tiene rubros, fábricas y
+  encargados; `supplier/`, proveedores: mensajes, `409`, normalizaciones); para el Sprint 2,
   [`API_CONTRACT_SPRINT_2.md`](../../docs/api-contract/API_CONTRACT_SPRINT_2.md). Si
   el backend o el contrato cambian, se actualiza el mock **en el mismo PR**.
 - **Los mensajes que la pantalla interpreta tienen que ser idénticos.** Por
   ejemplo, `customers/utils/errorMessages.ts` traduce los 409 de fábricas leyendo
-  el texto en inglés del backend (`"active customers"`, `"already inactive"`): si
+  el texto en inglés del backend (`"active managers"`, `"already inactive"`): si
   el mock manda otro texto, la pantalla muestra el error equivocado.
 - **Los datos se guardan como los guarda el backend:** CUIT de proveedor con
   guiones, CUIT de fábrica en 11 dígitos, mails en minúsculas, teléfonos sin
@@ -121,7 +122,7 @@ En `src/shared/mocks/`:
 | `apiError(request, status, message, opts)`   | `errors.ts`  | Cualquier error con la forma del backend (`statusCode`, `error`, `message`, `path`, `timestamp`). `opts`: `code`, `details`, `extra` |
 | `validationError(request, details, message?)` | `errors.ts` | El `400 VALIDATION_ERROR` del Sprint 2 con un `{ field, message }` por campo       |
 | `authorize(request, roles)`                  | `session.ts` | Verifica sesión y rol. Devuelve quién llama o el `401` / `403` a devolver          |
-| `readPageOrError(request)`                   | `paging.ts`  | `page` y `limit` (defaults 1 y 20, máximo 1000) o el `400` del Sprint 2            |
+| `readPageOrError(request)`                   | `paging.ts`  | `page` y `limit` (defaults 1 y 20, máximo 100) o el `400` del Sprint 2             |
 | `readPageParams(url)` + `PAGE_LIMIT_ERROR`   | `paging.ts`  | Lo mismo con el mensaje del backend del Sprint 1                                   |
 | `paginate(items, pageParams)`                | `paging.ts`  | El sobre `{ items, total, page, limit }`                                           |
 | `readPathId(request, raw, field, message)`   | `paging.ts`  | El id de la ruta como entero, o el `400 INVALID_PATH_PARAMETER`                     |
@@ -193,6 +194,21 @@ Habían quedado atrás del backend. Lo que se corrigió:
   entre los activos de la fábrica; teléfono guardado sin separadores.
 - **Proveedores:** el CUIT vuelve con guiones y se valida; mail en minúsculas y
   teléfono sin separadores; el 404 con el mensaje y el `id` del backend.
+
+Con la reorganización del backend en subsistemas (16/10/2026):
+
+- **Encargados:** la ruta pasó de `/customers` a `/managers` (el backend llama
+  `Manager` al encargado) y la baja de una fábrica con encargados responde
+  `"... has active managers and cannot be deactivated"`.
+- **Fábricas:** la razón social viaja como `legalName`. El mock la guarda como
+  `name` (igual que los formularios) y la traduce al recibir y al responder, como
+  hace `customers.api.ts` con el backend real.
+- **Rubros:** el alta con el nombre de un rubro dado de baja lo reactiva y
+  responde `201` con ese rubro (antes era un `409` con su `categoryId`). Al
+  modificar, el nombre no puede ser el de otro rubro, activo o dado de baja.
+- **Encargados:** los `400` de validación marcan el campo como el backend:
+  `name` si falta el nombre y `mail` si no hay ningún medio de contacto.
+- **Paginación:** el tope de `limit` es `100` en todos los listados (antes `1000`).
 
 ### Sprint 2 (según el contrato)
 

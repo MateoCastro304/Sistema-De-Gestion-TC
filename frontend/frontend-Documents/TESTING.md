@@ -129,7 +129,7 @@ agregan está en [MOCKS.md](MOCKS.md). Lo que importa para escribir un test:
 
 | Feature     | Archivo                                     | Casos de uso    | Qué cubre                                                                                     |
 | ----------- | ------------------------------------------- | --------------- | --------------------------------------------------------------------------------------------- |
-| Rubros      | `catalogs/categories/categories.e2e.spec.ts`  | CU-41 a CU-44   | Listado y búsqueda sin acentos, alta y mínimo de 3, nombre repetido, reactivación, edición, baja bloqueada por fábricas activas |
+| Rubros      | `catalogs/categories/categories.e2e.spec.ts`  | CU-41 a CU-44   | Listado y búsqueda sin acentos, alta y mínimo de 3, nombre repetido, reactivación (el alta de un dado de baja se ve como un alta), edición, baja bloqueada por fábricas activas |
 | Encargados  | `catalogs/customers/customers.e2e.spec.ts`    | CU-01 a CU-04   | Listado con fábrica, búsqueda, alta, "al menos un contacto", mail repetido en la fábrica, edición, baja |
 | Fábricas    | `catalogs/customers/factories.e2e.spec.ts`    | CU-58 a CU-61   | Búsqueda por CUIT y filtro por rubro, alta que abre "Agregar encargado", CUIT inválido y repetido, edición sin CUIT, baja bloqueada con encargados y baja permitida |
 | Proveedores | `catalogs/suppliers/suppliers.e2e.spec.ts`    | CU-33 a CU-36   | Listado sin dados de baja, búsqueda por CUIT, filtro por tipo, alta, razón social repetida, edición, baja múltiple |

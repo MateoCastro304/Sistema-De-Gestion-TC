@@ -34,7 +34,7 @@ export interface Customer {
 }
 
 /**
- * Filtros del listado (`GET /customers`). Todos opcionales y combinables; el
+ * Filtros del listado (`GET /managers`). Todos opcionales y combinables; el
  * backend filtra y pagina del lado del servidor (DTC-54). `factoryId` acota a
  * una fábrica (sección "encargados de la fábrica"); `nameContains` busca por
  * nombre o apellido; `active` deja solo activos (`true`) o solo inactivos

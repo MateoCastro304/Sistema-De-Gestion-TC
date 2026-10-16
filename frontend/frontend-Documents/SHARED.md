@@ -88,23 +88,29 @@ import { http } from '@/shared/api/http'
 import type { Page } from '@/shared/api/pagination'
 
 export async function listCustomers(params?: CustomerListParams): Promise<Page<Customer>> {
-  const { data } = await http.get<Page<Customer>>('/customers', { params })
+  const { data } = await http.get<Page<Customer>>('/managers', { params })
   return data
 }
 ```
 
-Las rutas son relativas al `baseURL` (`/customers`, no `/api/customers`). Los parámetros `undefined` no se mandan en la query string.
+Las rutas son relativas al `baseURL` (`/managers`, no `/api/managers`). Los parámetros `undefined` no se mandan en la query string.
+
+En el frontend el feature y sus funciones se siguen llamando `customers` (`listCustomers`, `useCustomers`), pero el backend llama `Manager` al encargado: la ruta es `/managers` y las de un encargado, `/factories/{factoryId}/managers/{id}`.
 
 ### Catálogos chicos y listados grandes
 
-Los catálogos chicos (**Fábricas** y **Rubros**) se piden en una sola página grande y la pantalla filtra y pagina en el navegador con `usePagedList`. La función de la API devuelve solo `data.items`:
+Los catálogos chicos (**Fábricas** y **Rubros**) se piden enteros y la pantalla filtra y pagina en el navegador con `usePagedList`. El backend no acepta un `limit` mayor a **100** (responde `400`), así que no se puede pedir "una página grande":
 
-```ts
-export async function listCategories(): Promise<Category[]> {
-  const { data } = await http.get<Page<Category>>('/categories', { params: { page: 1, limit: 100 } })
-  return data.items
-}
-```
+- **Rubros** pide una sola página de 100 y devuelve solo `data.items`:
+
+  ```ts
+  export async function listCategories(): Promise<Category[]> {
+    const { data } = await http.get<Page<Category>>('/categories', { params: { page: 1, limit: 100 } })
+    return data.items
+  }
+  ```
+
+- **Fábricas**, y cualquier lista que se necesite completa (por ejemplo, los encargados activos para contarlos por fábrica con `useAllCustomers`), pagina con `fetchAllPages` de a 100 hasta traer todo (ver [Paginación](#paginación-sharedapipaginationts)).
 
 Los listados grandes (**Encargados** y **Proveedores**) dejan que el backend filtre y pagine: le pasan la búsqueda, los filtros y la página, y devuelven el `Page<T>` completo. La pantalla usa `total` para `<Pagination />` y `keepPreviousData` para que no parpadee al cambiar de página.
 
@@ -120,6 +126,14 @@ Es el cliente de React Query de toda la app (lo monta `app/providers/QueryProvid
 
 - `Page<T>`: la forma de las respuestas paginadas del backend (`items`, `total`, `page`, `limit`). La página empieza en 1.
 - `DEFAULT_PAGE_SIZE = 20`: coincide con el default del backend.
+- `fetchAllPages(fetchPage, limit)`: pide página tras página hasta juntar `total` y devuelve todos los items en un array. Para listas que se necesitan completas sin pasarse del tope del backend (`limit` máximo 100):
+
+  ```ts
+  const factories = await fetchAllPages(
+    (page, limit) => http.get<Page<FactoryWire>>('/factories', { params: { page, limit } }).then((res) => res.data),
+    100,
+  )
+  ```
 
 ### Pendiente del Sprint 2
 
@@ -191,7 +205,9 @@ Rubros es la excepción: sus 409 ya vienen en español y se muestran tal cual.
 
 ### Cuando necesitás otro dato del cuerpo del error
 
-`ApiError` guarda solo `message`, `details` y `field`; el resto del cuerpo se pierde. Si una pantalla necesita otro dato, la llamada acepta ese código como respuesta válida con `validateStatus` y lee el cuerpo ella misma. Es lo que hace el alta de Rubros: un 409 trae el `categoryId` de un rubro dado de baja para reactivarlo.
+`ApiError` guarda solo `message`, `details` y `field`; el resto del cuerpo se pierde. Si una pantalla necesita otro dato, la llamada acepta ese código como respuesta válida con `validateStatus` y lee el cuerpo ella misma. Es lo que hace el alta de Rubros: si un 409 trae el `categoryId` de un rubro dado de baja, lo reactiva con `/restore`.
+
+> Hoy el backend ya no manda ese 409: si el nombre es de un rubro dado de baja, el alta lo reactiva y responde `201` con el rubro, igual que un alta nueva (la pantalla muestra "Rubro "X" creado."). La rama del 409 con `categoryId` quedó en el código pero no se usa; el ejemplo sirve igual para el patrón.
 
 ```ts
 const response = await http.post<Category | CreateConflictBody>('/categories', input, {
@@ -431,7 +447,7 @@ Solo los usan los `*.mocks.ts` de las features, que se cargan en desarrollo con 
 | `validationError(request, details, message?)` | `errors.ts`  | El `400 VALIDATION_ERROR` del Sprint 2, con un `{ field, message }` por campo |
 | `authorize(request, roles)`                   | `session.ts` | Verifica la sesión simulada y el rol: devuelve quién llama o el `401` / `403` |
 | `openSession`, `currentSession`, `closeSession`, `issueAccessToken` | `session.ts` | La sesión simulada (la "cookie" en `localStorage`) |
-| `readPageOrError(request)`                    | `paging.ts`  | `page` y `limit` (defaults 1 y 20, máximo 1000) o el `400` del Sprint 2   |
+| `readPageOrError(request)`                    | `paging.ts`  | `page` y `limit` (defaults 1 y 20, máximo 100) o el `400` del Sprint 2    |
 | `readPageParams(url)` + `PAGE_LIMIT_ERROR`    | `paging.ts`  | Lo mismo con el mensaje del backend del Sprint 1                          |
 | `paginate(items, pageParams)`                 | `paging.ts`  | El sobre `{ items, total, page, limit }`                                  |
 | `readPathId(request, raw, field, message)`    | `paging.ts`  | El id de la ruta como entero, o el `400 INVALID_PATH_PARAMETER`           |

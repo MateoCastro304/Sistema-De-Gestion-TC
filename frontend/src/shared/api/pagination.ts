@@ -1,5 +1,5 @@
 /**
- * Envelope the API uses for paginated collections (e.g. `GET /customers`).
+ * Envelope the API uses for paginated collections (e.g. `GET /managers`).
  * Mirrors the backend response `{ items, total, page, limit }` (DTC-54): the
  * server does the filtering and paging, so the client just renders the page it
  * gets back and uses `total` to know how many pages there are.
