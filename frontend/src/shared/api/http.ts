@@ -72,7 +72,7 @@ http.interceptors.request.use(
 );
 
 
-/**LA FUNCION OBTENER TOKEN HOY EN DIA DEVUELVE NULL, MAS ADELANTE VA A FUNCIONAR */
+/**Hasta que este creada la funcion del token pongo uno falso */
 function getToken(): string | null {
-    return null
+    return localStorage.getItem("dev-token")
 }

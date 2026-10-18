@@ -293,7 +293,8 @@ Tabla genérica: cada columna (`Column<T>`) dice su `header` y cómo pintar su c
 | `variant`      | `table` (por defecto, `<table>` clásico) o `cards` (filas en tarjeta, la del rediseño) |
 | `gridTemplate` | Anchos de columna en `cards`. Las flexibles van con `minmax(0, Nfr)`, no con `1fr` a secas, para que los textos largos no desborden |
 | `rowClassName` | Clase extra por fila, por ejemplo la franja de color (`table__row--azul`) |
-| `onRowClick`   | Hace clickeable la fila entera, también con Enter y Espacio               |
+| `onRowClick`   | Hace clickeable la fila entera, también con Enter y Espacio (la selección del modo eliminación) |
+| `rowHref`      | Tocar la fila abre esa URL, como su "Ver". Sólo mouse: la fila no se vuelve botón y el teclado entra por el "Ver" |
 | `emptyState`   | Lo que se muestra sin filas (un `<EmptyState />`)                         |
 | `emptyMessage` | Texto simple sin filas, si no hay `emptyState`                            |
 | `footer`       | Pie de la tarjeta (un `<Pagination />`)                                   |

@@ -785,6 +785,7 @@ table { border-collapse: collapse; width: 100%; }
    pone el cursor; el onClick lo pone Table.tsx). En el celular
    eso es la diferencia entre acertarle y no.
    ============================================================ */
+.table__row--clickable,
 .table__row--selectable { cursor: pointer; }
 /* Calificadas con .table-card--cards para igualar la especificidad de
    la regla base de la fila; si no, el resaltado no llega a pintarse. */

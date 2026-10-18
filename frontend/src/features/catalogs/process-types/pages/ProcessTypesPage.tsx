@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link } from 'react-router'
 import { Button, PageHero, Pagination, SearchField, Table, type Column } from '@/shared/components/ui'
 import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import { DEFAULT_PAGE_SIZE } from '@/shared/api/pagination'
@@ -42,7 +42,6 @@ const COLUMNS: Column<ProcessType>[] = [
 
 /** CU-11 Consultar tipos de proceso: listado con búsqueda por nombre. */
 export function ProcessTypesPage() {
-  const navigate = useNavigate()
   // `search` es lo que se ve en el buscador; `debouncedSearch`, lo que viaja a la API.
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -129,7 +128,7 @@ export function ProcessTypesPage() {
       <Table
         variant="cards"
         gridTemplate="minmax(0,2fr) 170px 160px 200px 80px"
-        onRowClick={(processType) => void navigate(`${LIST_PATH}/${processType.id}`)}
+        rowHref={(processType) => `${LIST_PATH}/${processType.id}`}
         columns={COLUMNS}
         data={rows}
         rowKey={(processType) => processType.id}
