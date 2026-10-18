@@ -41,7 +41,7 @@ export interface ProcessTypeHistoryEntry {
   changedAt: string
   changedBy: { id: number; username: string }
   /** Tipo de cambio con el que se calculó el precio nuevo. */
-  exchangeRateArs: number
+  exchangeRate: number
   previousValueUsd: number
   newValueUsd: number
 }

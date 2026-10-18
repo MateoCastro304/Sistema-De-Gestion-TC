@@ -217,15 +217,18 @@ cuenta:
 
 - **Historial de tipos de proceso, en dólares:** hay un registro cada vez que
   cambia alguno de los dos precios, con `previousValueUsd`, `newValueUsd` y
-  `exchangeRateArs`, que son las columnas de la tabla "Historial de precios" del
+  `exchangeRate`, que son las columnas de la tabla "Historial de precios" del
   prototipo (D-32). Los cambios de nombre o descripción no quedan en el historial.
+- **El tipo de cambio de un tipo de proceso** sólo se guarda junto con un cambio
+  de precio: si el `PATCH` lo manda sin que cambie ningún precio, se ignora (D-52).
 - **El tipo de cambio** (`GET /exchange-rate`) es fijo: $ 1.385,50 al 15/10/2026
-  09:30, el del prototipo.
+  09:30, el del prototipo. Con la clave `castro-mock-exchange-rate-down` en
+  `localStorage` responde el `502 EXCHANGE_RATE_UNAVAILABLE`, como si el backend
+  nunca hubiera podido obtener la cotización (lo usan los tests E2E).
 - **Materiales** no tiene `.db.ts` porque ningún otro mock lo lee todavía.
 
 ### Lo que no está mockeado
 
-- El `502 EXCHANGE_RATE_UNAVAILABLE` de `/exchange-rate`.
 - El vencimiento del `accessToken` (`401 ACCESS_TOKEN_EXPIRED`) con su refresh
   automático: el token del mock no vence. Conviene cubrirlo con un test unitario
   del interceptor de `http.ts`.

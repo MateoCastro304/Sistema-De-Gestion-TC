@@ -41,8 +41,8 @@ export const processTypesDb = {
         createdAt: '2026-03-12T12:10:00.000Z',
       },
       [
-        { changedAt: '2026-10-01T13:22:00.000Z', changedBy: LBENITEZ, exchangeRateArs: 1377.88, previousValueUsd: 1.21, newValueUsd: 1.13 },
-        { changedAt: '2026-07-04T14:05:00.000Z', changedBy: FPAZ, exchangeRateArs: 1286.78, previousValueUsd: 1.07, newValueUsd: 1.21 },
+        { changedAt: '2026-10-01T13:22:00.000Z', changedBy: LBENITEZ, exchangeRate: 1377.88, previousValueUsd: 1.21, newValueUsd: 1.13 },
+        { changedAt: '2026-07-04T14:05:00.000Z', changedBy: FPAZ, exchangeRate: 1286.78, previousValueUsd: 1.07, newValueUsd: 1.21 },
       ],
     ),
     row(
@@ -56,8 +56,8 @@ export const processTypesDb = {
         createdAt: '2026-03-12T12:14:00.000Z',
       },
       [
-        { changedAt: '2026-10-01T13:24:00.000Z', changedBy: LBENITEZ, exchangeRateArs: 1376.76, previousValueUsd: 1.98, newValueUsd: 1.85 },
-        { changedAt: '2026-07-04T14:08:00.000Z', changedBy: FPAZ, exchangeRateArs: 1286.36, previousValueUsd: 1.76, newValueUsd: 1.98 },
+        { changedAt: '2026-10-01T13:24:00.000Z', changedBy: LBENITEZ, exchangeRate: 1376.76, previousValueUsd: 1.98, newValueUsd: 1.85 },
+        { changedAt: '2026-07-04T14:08:00.000Z', changedBy: FPAZ, exchangeRate: 1286.36, previousValueUsd: 1.76, newValueUsd: 1.98 },
       ],
     ),
     row(
@@ -71,7 +71,7 @@ export const processTypesDb = {
         createdAt: '2026-03-12T12:20:00.000Z',
       },
       [
-        { changedAt: '2026-10-01T13:26:00.000Z', changedBy: LBENITEZ, exchangeRateArs: 1379.56, previousValueUsd: 1.47, newValueUsd: 1.37 },
+        { changedAt: '2026-10-01T13:26:00.000Z', changedBy: LBENITEZ, exchangeRate: 1379.56, previousValueUsd: 1.47, newValueUsd: 1.37 },
       ],
     ),
     // Sin cambios: el detalle muestra "Todavía no hubo cambios en este tipo de proceso."

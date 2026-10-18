@@ -172,7 +172,7 @@ Las completas están en el contrato; estas son las que más se olvidan:
   tal cual (D-29). Modificar muestra "Confirmar cambios" con "anterior → nuevo",
   y "No hay cambios para guardar" sin llamar a la API.
 - El historial de precios va **en dólares** (`previousValueUsd`, `newValueUsd`,
-  `exchangeRateArs`); nombre y descripción no se registran (D-32).
+  `exchangeRate`); nombre y descripción no se registran (D-32).
 - Empleados y usuarios dados de baja **se ven** con "Incluir dados de baja"; los
   bloqueados se listan siempre (D-17, D-28).
 - "Repetir contraseña", "Generar" y el nombre de usuario propuesto son del
