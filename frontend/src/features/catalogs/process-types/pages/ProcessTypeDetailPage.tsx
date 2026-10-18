@@ -25,7 +25,8 @@ export function ProcessTypeDetailPage() {
   // false = viendo el detalle; true = modificando (CU-10).
   const [editing, setEditing] = useState(false)
   // El nombre en la miga de pan; `undefined` mientras carga.
-  useCrumbTitle(processType?.name)
+  // Editando, el último tramo dice "Modificar", como en el prototipo.
+  useCrumbTitle(editing ? 'Modificar' : processType?.name)
 
   const notFound = !Number.isInteger(processTypeId) || processTypeId <= 0 || (isApiError(error) && error.isNotFound)
 

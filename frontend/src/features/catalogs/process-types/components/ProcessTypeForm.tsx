@@ -91,7 +91,14 @@ export function ProcessTypeForm({
 
   return (
     <form className="card" onSubmit={submit} noValidate>
-      {editing && <p className="card__subtitle">{EDIT_NOTICE}</p>}
+      {editing && (
+        <div className="form-notice">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M10 9v5M10 6.2v.01M17 10a7 7 0 1 1-14 0a7 7 0 1 1 14 0" />
+          </svg>
+          <p>{EDIT_NOTICE}</p>
+        </div>
+      )}
 
       <div className="card__grid card__grid--2">
         <Input
@@ -120,6 +127,7 @@ export function ProcessTypeForm({
 
         <Input
           label="Precio hora en pesos"
+          prefix="$"
           placeholder="0,00"
           inputMode="decimal"
           autoComplete="off"
@@ -129,6 +137,7 @@ export function ProcessTypeForm({
 
         <Input
           label="Precio hora en dólares"
+          prefix="US$"
           placeholder="0,00"
           inputMode="decimal"
           autoComplete="off"
@@ -140,6 +149,7 @@ export function ProcessTypeForm({
         <div className="form-field--full">
           <Input
             label="Tipo de cambio (USD → ARS)"
+            prefix="US$ 1 = $"
             placeholder="0,00"
             inputMode="decimal"
             autoComplete="off"

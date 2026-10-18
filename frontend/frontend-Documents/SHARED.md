@@ -248,7 +248,7 @@ El dibujo del tacho. Normalmente no se usa suelto: ya lo incluyen `TrashButton` 
 
 ### `Input`
 
-Campo de texto con `label`, `error` y `hint` (el error tiene prioridad sobre la ayuda). `full` lo hace ocupar todas las columnas de un `.form-grid`. Usa `forwardRef`, así que funciona con `register()` de react-hook-form.
+Campo de texto con `label`, `error` y `hint` (el error tiene prioridad sobre la ayuda). `full` lo hace ocupar todas las columnas de un `.form-grid`. `prefix` muestra un texto fijo adentro del campo, a la izquierda (`"$"`, `"US$"`, como los montos de tipos de proceso): es sólo visual, no entra en el valor ni en el nombre accesible. Usa `forwardRef`, así que funciona con `register()` de react-hook-form.
 
 Si no se le pasa `id`, genera uno con `useId()`: así el `<label>` siempre queda asociado al campo, tocar el rótulo enfoca el input y el lector de pantalla lo anuncia con su nombre. Los tests E2E encuentran los campos por su rótulo (`getByLabel`), así que esto no se puede romper.
 
