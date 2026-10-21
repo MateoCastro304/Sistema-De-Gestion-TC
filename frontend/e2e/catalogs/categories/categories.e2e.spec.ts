@@ -51,9 +51,10 @@ test.describe('[CU-41][CU-42][CU-43][CU-44] Rubros', { tag: '@sprint1' }, () => 
     await dialog.getByRole('button', { name: 'Crear rubro' }).click()
     await expect(toast(page, 'Ya existe un rubro con ese nombre')).toBeVisible()
 
+    // El backend reactiva el rubro dado de baja y responde 201, como un alta.
     await dialog.getByLabel('Nombre del rubro').fill('Fundición')
     await dialog.getByRole('button', { name: 'Crear rubro' }).click()
-    await expect(toast(page, 'El rubro "Fundición" estaba dado de baja y se reactivó.')).toBeVisible()
+    await expect(toast(page, 'Rubro "Fundición" creado.')).toBeVisible()
     await expect(row(page, 'Fundición')).toBeVisible()
   })
 

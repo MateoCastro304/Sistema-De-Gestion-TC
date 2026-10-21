@@ -123,6 +123,8 @@ export function CustomersTable({
          van fijos; nombre y email se reparten el resto. */
       gridTemplate="minmax(0,1.4fr) 220px minmax(0,1.3fr) 150px 140px 190px"
       rowClassName={(c) => cn(`table__row--${toneByStatus(c.isActive)}`)}
+      // Tocar la fila abre el detalle, igual que "Ver".
+      rowHref={(c) => `/catalogos/encargados/${c.factoryId}/${c.id}`}
       columns={columns}
       data={customers}
       rowKey={(c) => `${c.factoryId}-${c.id}`}

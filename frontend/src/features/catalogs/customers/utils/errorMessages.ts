@@ -23,7 +23,7 @@ export function factoryErrorMessage(error: unknown, fallback: string): string {
     if (error.isConflict) {
       // 409 posibles: baja con encargados activos, ya dada de baja, nombre
       // repetido o CUIT repetido.
-      if (error.message.includes('active customers')) {
+      if (error.message.includes('active managers')) {
         return 'No se puede eliminar: la fábrica tiene encargados activos. Eliminá primero a sus encargados.'
       }
       if (error.message.includes('already inactive')) return 'La fábrica ya estaba eliminada.'

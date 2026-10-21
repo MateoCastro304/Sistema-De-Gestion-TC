@@ -60,6 +60,7 @@ Diferencias entre documentos detectadas durante la reorganización de la documen
 - [Estructura de pruebas de QA](../testing/code-structure.md) separa las pruebas de integración (`int/`) y de API (`api/`); el [README de la suite](../../backend/test/README.md) documenta tests de integración que verifican contrato y base en el mismo test.
 - La guía indica que CI ejecuta `test:int` y `test:api` en cada push; [ADR-010](../decisiones/010-continuous-integration.md) ubica las pruebas de integración en el nivel de validación previo a `main`.
 - La guía describe una suite `e2e/` en la raíz del repositorio, que todavía no existe.
+- Las pruebas del frontend (`frontend/e2e/`, [estructura de pruebas, §2.5](../testing/code-structure.md#25-pruebas-del-frontend)) se vinculan con la historia de Jira y los casos de uso (`[DTC-33][CU-53]`), mientras que la [guía de casos de prueba](../testing/test-cases-structure.md#3-trazabilidad--el-readmemd-del-módulo) pide vincular cada prueba con un id `CP-NN` del catálogo y una fila en el README del módulo. Ver [ADR-012](../decisiones/012-frontend-e2e-tests.md).
 
 ## Modelo y prototipo
 

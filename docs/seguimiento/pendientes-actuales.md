@@ -115,15 +115,15 @@ Lo que seguía pendiente en el documento viejo, revisado contra el código del 1
 - **Faltan tests de integración de las reglas nuevas de fábricas:** crear con el CUIT o el nombre de una fábrica dada de baja anda; con los de una activa da 409; `PATCH` no cambia el CUIT. Hoy `factories.int.spec.ts` cubre solo parte.
 - **`Phone` exige 8 a 15 dígitos.** Si hay teléfonos más cortos en la base o en el frontend, el alta y la edición de encargados los van a rechazar.
 - **Migración con índices parciales.** Prisma no los expresa en `schema.prisma`: hay que aplicarla con `prisma migrate deploy`, y `prisma migrate dev` puede proponer borrarlos.
-- **Deuda del tope de `limit`.** Fábricas y encargados se filtran en el navegador con páginas de hasta 1000 (y 200 en el detalle de fábrica). Si hay más, el frontend muestra datos de menos sin avisar. La solución de fondo es filtrar y paginar en el backend.
+- ~~**Deuda del tope de `limit`.**~~ Resuelto el 16/10/2026: el tope del backend es 100 y el frontend trae fábricas y encargados completos pidiendo páginas de 100 hasta agotar `total` (`fetchAllPages`). Queda Rubros, que pide una sola página de 100: con más de 100 rubros activos, el resto no se vería.
 
 ### H-03 · P2 · Frontend: deuda técnica
 
-- **No hay tests** (F-06): ni archivos de test ni script `test` en `package.json`. Lo más barato de cubrir son las validaciones (`shared/lib/cuit.ts`, teléfono, `formatPhone` y los esquemas de los formularios).
-- **El bundle pesa 536 kB sin dividir** (F-09). No hay `lazy()` ni `manualChunks`; Vite lo advierte al compilar.
+- **Faltan tests unitarios** (F-06). Hay tests E2E con Playwright en `frontend/e2e/`, contra los mocks de MSW (`npm run test:e2e:sprint1`), pero ningún test unitario. Lo más barato de cubrir son las validaciones (`shared/lib/cuit.ts`, teléfono, `formatPhone` y los esquemas de los formularios). Ninguno corre todavía en la CI.
+- **El bundle pesa 554 kB sin dividir** (F-09). No hay `lazy()` ni `manualChunks`; Vite lo advierte al compilar.
 - **Los tipos de la API están escritos a mano** en cada feature. La carpeta `src/api-contract`, pensada para generarlos del contrato, no existe.
-- **Límites silenciosos** (F-08): páginas grandes filtradas en el navegador (ver H-02).
-- **Mensajes de error crudos.** Algunas pantallas muestran el mensaje del backend tal cual al fallar la carga de un listado (por ejemplo `CategoriesPage.tsx:108`).
+- ~~**Límites silenciosos** (F-08)~~. Resuelto: ver H-02.
+- **Mensajes de error crudos.** Algunas pantallas muestran el mensaje del backend tal cual al fallar la carga de un listado (por ejemplo `CategoriesPage.tsx:133`).
 
 ### H-04 · P2 · Infraestructura y proceso
 
@@ -152,7 +152,7 @@ El backend de rubros ya está hecho (código y tests). Queda pendiente lo que no
 
 - ~~**Contrato OpenAPI.**~~ Resuelto el 16/10/2026: `GET /categories` con `{ items, total, page, limit }` y el filtro `active`, y `POST /categories/{id}/restore`.
 - **`category.name` NOT NULL.** La columna admite `NULL` aunque el dominio exige nombre. Se resuelve en `develop` (schema y migración); mientras tanto `CategoriesPrismaRepository.toDomain` usa `row.name!`.
-- **Frontend (otra persona).** Leer `data.items` en `categories.api.ts`, usar `POST` para restaurar, y no pasar `active` como argumento de `listCategories` (React Query la llama con un objeto de contexto).
+- ~~**Frontend (otra persona).**~~ Resuelto: `categories.api.ts` lee `data.items`, restaura con `POST /categories/{id}/restore` y `listCategories` no recibe argumentos.
 
 ### D-02 · PRs revisados o merge directo
 
@@ -170,5 +170,5 @@ El backend de rubros ya está hecho (código y tests). Queda pendiente lo que no
 
 ## En manos de otras personas
 
-- Restaurar rubros en el frontend (F-04).
+- ~~Restaurar rubros en el frontend (F-04).~~ Resuelto: el frontend tiene `restoreCategory`, y desde el 16/10/2026 el backend reactiva el rubro dado de baja al darlo de alta con el mismo nombre.
 - Infraestructura: WebSocket del nginx de desarrollo, `docker.sock` en dev y ramas de CI.

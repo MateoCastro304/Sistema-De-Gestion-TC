@@ -61,9 +61,10 @@ post:
   description: |
     **Rol:** `ERP`.
 
-    Registra un rubro, que queda activo. Si el nombre es de un rubro dado de
-    baja responde `409 CATEGORY_NAME_TAKEN_BY_INACTIVE` con su `categoryId`,
-    para que el cliente ofrezca restaurarlo en vez de crear un duplicado.
+    Registra un rubro, que queda activo. El nombre es la clave del rubro
+    (a diferencia de Manager/Factory/Supplier, que usan un cuit/cuil
+    opcional): si el nombre es de un rubro dado de baja, esta operación lo
+    reactiva en vez de crear un duplicado.
   operationId: createCategory
   tags:
     - Rubros
@@ -79,7 +80,7 @@ post:
           name: Metalúrgica
   responses:
     '201':
-      description: Rubro registrado.
+      description: Rubro registrado, o reactivado si ya existía uno dado de baja con ese nombre.
       content:
         application/json:
           schema:
@@ -111,38 +112,18 @@ post:
     '403':
       $ref: '../components/responses/Forbidden.yaml'
     '409':
-      description: |
-        - `CATEGORY_NAME_TAKEN`: el nombre ya es de un rubro activo (sin
-          distinguir mayúsculas).
-        - `CATEGORY_NAME_TAKEN_BY_INACTIVE`: el nombre es de un rubro dado de
-          baja. El cuerpo suma `categoryId`, el rubro a restaurar.
+      description: '`CATEGORY_NAME_TAKEN`: el nombre ya es de un rubro activo (sin distinguir mayúsculas).'
       content:
         application/json:
           schema:
-            $ref: '../components/schemas/CategoryConflictError.yaml'
-          examples:
-            nameTaken:
-              summary: CATEGORY_NAME_TAKEN
-              value:
-                statusCode: 409
-                error: Conflict
-                code: CATEGORY_NAME_TAKEN
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 409
+            error: Conflict
+            code: CATEGORY_NAME_TAKEN
+            message: Ya existe un rubro con ese nombre
+            path: /api/categories
+            timestamp: '2026-10-15T13:00:00.000Z'
+            details:
+              - field: name
                 message: Ya existe un rubro con ese nombre
-                path: /api/categories
-                timestamp: '2026-10-15T13:00:00.000Z'
-                details:
-                  - field: name
-                    message: Ya existe un rubro con ese nombre
-            nameTakenByInactive:
-              summary: CATEGORY_NAME_TAKEN_BY_INACTIVE
-              value:
-                statusCode: 409
-                error: Conflict
-                code: CATEGORY_NAME_TAKEN_BY_INACTIVE
-                message: El rubro existe pero está dado de baja
-                path: /api/categories
-                timestamp: '2026-10-15T13:00:00.000Z'
-                details:
-                  - field: name
-                    message: El rubro existe pero está dado de baja
-                categoryId: 4

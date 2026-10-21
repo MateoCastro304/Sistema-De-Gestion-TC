@@ -95,5 +95,5 @@ patch:
             path: /api/factories/2
             timestamp: '2026-10-15T13:00:00.000Z'
             details:
-              - field: name
+              - field: legalName
                 message: Factory with name "OxyCAM S.A." already exists

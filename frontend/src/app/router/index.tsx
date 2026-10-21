@@ -15,6 +15,11 @@ import {
   NewFactoryPage,
   FactoryDetailPage,
 } from '@/features/catalogs/customers'
+import {
+  ProcessTypesPage,
+  NewProcessTypePage,
+  ProcessTypeDetailPage,
+} from '@/features/catalogs/process-types'
 import { CategoriesPage } from '@/features/catalogs/categories'
 import { PanelPage } from '@/features/catalogs/panels'
 
@@ -67,6 +72,14 @@ export const router = createBrowserRouter([
           {
             path: '/catalogos/rubros',
             children: [{ index: true, element: <CategoriesPage /> }],
+          },
+          {
+            path: '/catalogos/tipos-de-proceso',
+            children: [
+              { index: true, element: <ProcessTypesPage /> },
+              { path: 'nuevo', element: <NewProcessTypePage /> },
+              { path: ':id', element: <ProcessTypeDetailPage /> },
+            ],
           },
           // Cualquier otra URL.
           { path: '*', element: <NotFoundPage /> },

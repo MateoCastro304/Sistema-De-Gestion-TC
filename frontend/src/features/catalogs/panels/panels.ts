@@ -5,7 +5,7 @@ import fotoPrensa from '@/assets/foto-prensa.webp'
 import fotoDisco from '@/assets/foto-disco.webp'
 import fotoHero from '@/assets/hero-castro.webp'
 import fotoBronce from '@/assets/foto-piezas-bronce.webp'
-
+import fotoCnc from '@/assets/foto-cnc.webp'
 /**
  * Los paneles de tarjetas del menú. "Clientes" y "Gestión" no son un
  * catálogo: son la puerta a varios. Cada tarjeta lleva a un listado.
@@ -14,8 +14,8 @@ import fotoBronce from '@/assets/foto-piezas-bronce.webp'
  * de la topbar (de qué panel cuelga cada listado), así que agregar un
  * catálogo nuevo a un panel es una entrada en `items`.
  *
- * Gestión muestra por ahora sólo Proveedores: Materiales y Tipos de
- * proceso son del sprint 2 y se suman acá cuando existan sus pantallas.
+ * Gestión muestra Proveedores y Tipos de proceso; Materiales se suma
+ * cuando exista su pantalla.
  */
 export interface PanelItem {
   /** Ruta del listado. */
@@ -91,6 +91,14 @@ export const PANELS = {
         icon: 'proveedor',
         photo: fotoBronce,
         photoPosition: 'center 60%',
+      },
+      {
+        to: '/catalogos/tipos-de-proceso',
+        label: 'Tipos de proceso',
+        description: 'Procesos propios del taller con su precio por hora.',
+        icon: 'proceso',
+        photo: fotoCnc,
+        photoPosition: 'center 55%',
       },
     ],
   },

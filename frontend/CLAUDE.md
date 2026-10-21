@@ -47,6 +47,14 @@ Todo en `frontend/frontend-Documents/`, salvo el contrato y el prototipo:
 Si un documento y el contrato no coinciden, manda el contrato; si el contrato y
 el prototipo no coinciden en una pantalla, el contrato ya lo resolvió (§8).
 
+**Lo ya hecho del Sprint 1 sigue al backend.** Sus pantallas y mocks copian lo
+que hace hoy `backend/src/subsystems/` (`customers/`: rubros, fábricas y
+encargados; `supplier/`: proveedores). Si el backend cambia y una pantalla del
+Sprint 1 sigue andando, se adaptan los mocks (y el test, si esperaba algo que la
+app ya no muestra), no la pantalla. Ojo con los nombres: el backend llama
+`Manager` al encargado (`/managers`, `/factories/{factoryId}/managers`), pero en
+el frontend el módulo sigue siendo `customers`.
+
 ## Cómo se programa una feature
 
 Siempre en este orden. No pases al paso siguiente sin terminar el anterior.
@@ -164,7 +172,7 @@ Las completas están en el contrato; estas son las que más se olvidan:
   tal cual (D-29). Modificar muestra "Confirmar cambios" con "anterior → nuevo",
   y "No hay cambios para guardar" sin llamar a la API.
 - El historial de precios va **en dólares** (`previousValueUsd`, `newValueUsd`,
-  `exchangeRateArs`); nombre y descripción no se registran (D-32).
+  `exchangeRate`); nombre y descripción no se registran (D-32).
 - Empleados y usuarios dados de baja **se ven** con "Incluir dados de baja"; los
   bloqueados se listan siempre (D-17, D-28).
 - "Repetir contraseña", "Generar" y el nombre de usuario propuesto son del
@@ -183,6 +191,13 @@ npm run build
 npm run test:e2e:sprint1
 npx playwright test e2e/catalogs/<feature>
 ```
+
+- Si **todos** los tests fallan en milisegundos con `Executable doesn't exist`,
+  falta el navegador de Playwright (no es un error del código): `npx playwright
+  install chromium`. Pasa la primera vez y cada vez que se actualiza Playwright.
+- Si un test falla, Playwright deja el reporte en `e2e/.report` y, mientras
+  exista, `npm run lint` falla porque ESLint no ignora esa carpeta. Borrar
+  `e2e/.report` y `e2e/.results` antes de correr el lint.
 
 Para desarrollar sin backend: `VITE_USE_MOCKS=true` en `.env.local`. Usuarios
 de prueba (contraseña `Castro1977`) en `MOCKS.md`.

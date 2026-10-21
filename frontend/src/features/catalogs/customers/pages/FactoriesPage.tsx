@@ -7,7 +7,7 @@ import { usePagedList } from '@/shared/hooks/usePagedList'
 import fotoTaller from '@/assets/foto-ejes.webp'
 import { PANELS } from '@/features/catalogs/panels'
 import {
-  useCustomers,
+  useAllCustomers,
   useFactories,
   useCategories,
 } from '../api/customers.queries'
@@ -18,10 +18,9 @@ import { normalizeText } from '@/shared/lib/normalizeText'
 export function FactoriesPage() {
   const factoriesQuery = useFactories()
   const { data: categories = [] } = useCategories()
-  // Para contar encargados activos por fábrica necesitamos todos: pedimos una
-  // página grande hasta que el backend ofrezca un conteo dedicado (DTC-54).
-  const { data: customersPage } = useCustomers({ active: true, limit: 1000 })
-  const customers = customersPage?.items ?? []
+  // Para contar encargados activos por fábrica necesitamos todos: paginamos
+  // internamente hasta que el backend ofrezca un conteo dedicado (DTC-54).
+  const { data: customers = [] } = useAllCustomers({ active: true })
 
   // Filters: free-text search (razón social / CUIT, case-insensitive) + rubro.
   const [search, setSearch] = useState('')

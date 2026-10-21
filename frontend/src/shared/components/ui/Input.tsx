@@ -10,6 +10,11 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   hint?: string
   /** Makes the field span every column of its `.form-grid`. */
   full?: boolean
+  /**
+   * Texto fijo adentro del campo, a la izquierda ("$", "US$"). Es sólo
+   * visual: no forma parte del valor ni del nombre accesible.
+   */
+  prefix?: string
 }
 
 /**
@@ -17,7 +22,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
  * react-hook-form can register the underlying `<input>`.
  */
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { label, error, hint, className, id: idProp, full = false, ...rest },
+  { label, error, hint, className, id: idProp, full = false, prefix, ...rest },
   ref,
 ) {
   // Sin id el <label htmlFor> no apunta a nada: tocar el rótulo no enfoca
@@ -35,13 +40,22 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           {label}
         </label>
       )}
-      <input
-        ref={ref}
-        id={id}
-        className={cn('form-field__input', className)}
-        aria-invalid={error ? true : undefined}
-        {...rest}
-      />
+      {prefix ? (
+        <span className="form-field__affix">
+          <span className="form-field__prefix" aria-hidden="true">
+            {prefix}
+          </span>
+          <input ref={ref} id={id} className={className} aria-invalid={error ? true : undefined} {...rest} />
+        </span>
+      ) : (
+        <input
+          ref={ref}
+          id={id}
+          className={cn('form-field__input', className)}
+          aria-invalid={error ? true : undefined}
+          {...rest}
+        />
+      )}
       {/* __error en vez de __hint--error: el rediseño lo muestra con su
           ícono de advertencia. Es el mismo texto y la misma condición. */}
       {error ? (

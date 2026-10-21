@@ -53,6 +53,18 @@ describe('Categories', () => {
       expectError(res, 409, 'Conflict');
       expect(await getPrisma().category.count()).toBe(1); // solo la que ya existía
     });
+
+    it('reactiva el rubro dado de baja en vez de crear uno duplicado', async () => {
+      const inactive = await createCategory({ isActive: false });
+
+      const res = await request(app.getHttpServer()).post('/categories').send({ name: inactive.name });
+
+      const category = expectData(res, 201);
+      expect(category).toMatchObject({ id: inactive.id, name: inactive.name, active: true });
+      expect(await getPrisma().category.count()).toBe(1); // no se creó una fila nueva
+      const saved = await getPrisma().category.findUnique({ where: { id: inactive.id } });
+      expect(saved?.isActive).toBe(true);
+    });
   });
 
   describe('GET /categories', () => {
@@ -161,13 +173,15 @@ describe('Categories', () => {
   });
 
   describe('DELETE /categories/:id', () => {
-    it('elimina la categoría', async () => {
+    it('da de baja lógica la categoría (el registro se conserva)', async () => {
       const existing = await createCategory();
 
       const res = await request(app.getHttpServer()).delete(`/categories/${existing.id}`);
 
       expectNoContent(res);
-      expect(await getPrisma().category.findUnique({ where: { id: existing.id } })).toBeNull();
+      const saved = await getPrisma().category.findUnique({ where: { id: existing.id } });
+      expect(saved).not.toBeNull(); // baja lógica: el registro se conserva
+      expect(saved?.isActive).toBe(false);
     });
 
     it('responde 409 si tiene fábricas asociadas y no la elimina', async () => {

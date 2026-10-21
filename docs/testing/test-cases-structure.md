@@ -177,8 +177,10 @@ pertenecen allí:
   de un cliente o el formato DNI/CUIT) están junto al código que prueban, en
   `backend/src/<module>/*.spec.ts`, y se ejecutan con una **base de datos simulada**.
 - **Pruebas de frontend** (comportamiento de componentes y cualquier caso puramente de interfaz como
-  «cancelar descarta el formulario») están en `frontend/` con Vitest + React Testing
-  Library.
+  «cancelar descarta el formulario») están en `frontend/`. Hoy son pruebas E2E con
+  Playwright contra la API simulada, en `frontend/e2e/` ([estructura de pruebas, §2.5](code-structure.md#25-pruebas-del-frontend));
+  las pruebas de componentes con Vitest + React Testing Library están previstas, pero
+  todavía no existen.
 
 Esos casos siguen registrados en el `.docx` (para que la visión de negocio esté
 completa) y conservan un id `CP-NN`; solo su *implementación* está

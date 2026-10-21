@@ -28,7 +28,7 @@ patch:
     '409':
       description: |
         - `FACTORY_INACTIVE`: la fábrica ya estaba dada de baja.
-        - `FACTORY_HAS_ACTIVE_CUSTOMERS`: la fábrica tiene encargados activos.
+        - `FACTORY_HAS_ACTIVE_MANAGERS`: la fábrica tiene encargados activos.
       content:
         application/json:
           schema:
@@ -43,12 +43,12 @@ patch:
                 message: Factory with ID 3 is already inactive
                 path: /api/factories/3/deactivate
                 timestamp: '2026-10-15T13:00:00.000Z'
-            hasActiveCustomers:
-              summary: FACTORY_HAS_ACTIVE_CUSTOMERS
+            hasActiveManagers:
+              summary: FACTORY_HAS_ACTIVE_MANAGERS
               value:
                 statusCode: 409
                 error: Conflict
-                code: FACTORY_HAS_ACTIVE_CUSTOMERS
-                message: Factory with ID 1 has active customers and cannot be deactivated
+                code: FACTORY_HAS_ACTIVE_MANAGERS
+                message: Factory with ID 1 has active managers and cannot be deactivated
                 path: /api/factories/1/deactivate
                 timestamp: '2026-10-15T13:00:00.000Z'

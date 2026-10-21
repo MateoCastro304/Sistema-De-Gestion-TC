@@ -2,7 +2,7 @@ import type { Page } from '@/shared/api/pagination'
 import { apiError, validationError } from './errors'
 
 /** Tope de `limit` del backend (`MAX_PAGE_LIMIT`). */
-export const MAX_PAGE_LIMIT = 1000
+export const MAX_PAGE_LIMIT = 100
 
 /** Mensaje del 400 de paginación del backend del Sprint 1 (`PAGE_LIMIT_ERROR`). */
 export const PAGE_LIMIT_ERROR = `page must be at least 1 and limit must be between 1 and ${MAX_PAGE_LIMIT}`
