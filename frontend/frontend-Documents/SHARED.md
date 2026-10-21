@@ -76,8 +76,13 @@ shared/
 
 Tiene dos interceptores:
 
-- **De request:** agrega el token si existe. Hoy `getToken()` devuelve siempre `null`: el token llega con el login del Sprint 2.
-- **De response:** convierte **cualquier** error en un `ApiError`. Ninguna pantalla recibe errores de axios.
+- **De request:** agrega el `accessToken` si hay sesión. El token vive **sólo en memoria** y lo guarda la sesión con `setAccessToken()`; nunca va a `localStorage`.
+- **De response:** convierte **cualquier** error en un `ApiError`. Ninguna pantalla recibe errores de axios. Además maneja la sesión (contrato §4):
+  - `401 ACCESS_TOKEN_EXPIRED`: hace **un solo** `POST /auth/refresh`, aunque venzan varias peticiones a la vez, y las repite con el token nuevo. El usuario no se entera.
+  - `401 SESSION_EXPIRED` o `UNAUTHENTICATED`: avisa que la sesión terminó, y la app va al ingreso.
+  - Los errores de `/auth/*` no pasan por esta lógica: los maneja quien llama (el ingreso, el arranque).
+
+`shared/` no conoce `features/`, así que `http` no sabe cómo renovar el token ni qué es el ingreso: se lo enseña `app/providers/SessionProvider.tsx` con `configureSession({ refresh, onSessionEnd })`. Ninguna feature llama a `setAccessToken` ni a `configureSession`.
 
 ### Cómo se usa
 
@@ -135,14 +140,6 @@ Es el cliente de React Query de toda la app (lo monta `app/providers/QueryProvid
   )
   ```
 
-### Pendiente del Sprint 2
-
-El contrato del Sprint 2 (§8.4) pide cambios en esta capa cuando llegue el login:
-
-- `getToken()` tiene que devolver el `accessToken`, guardado **en memoria** (no en `localStorage`).
-- El interceptor de response, ante `401 ACCESS_TOKEN_EXPIRED`, llama **una sola vez** a `POST /auth/refresh` y repite las peticiones pendientes; ante `SESSION_EXPIRED` o `UNAUTHENTICATED`, manda al ingreso.
-- `ApiError` tiene que leer `code` y `details` como `{ field, message }[]` (ver la sección 3).
-
 ---
 
 ## 3. `ApiError` (`shared/api/ApiError.ts`)
@@ -152,9 +149,12 @@ Todo error que sale de `http` es un `ApiError`, con estas propiedades:
 | Propiedad | Qué tiene                                                                  |
 | --------- | -------------------------------------------------------------------------- |
 | `status`  | Código HTTP. `0` significa que no hubo respuesta (sin red, backend caído, timeout) |
+| `code`    | Código del catálogo del contrato (`INVALID_CREDENTIALS`, `USERNAME_TAKEN`...). Falta en los errores de red y en los del Sprint 1 que no lo mandan |
 | `message` | Mensaje para mostrar (del backend, o uno en español por defecto)           |
-| `details` | Todos los mensajes, cuando el backend manda `message` como lista (validaciones de Nest) |
+| `details` | Errores por campo, `{ field, message }[]` (400 de validación y 409 de unicidad). Lista vacía si el error no es de un campo |
 | `field`   | El campo que causó el error, si el backend lo informa (por ejemplo, `cuit` en un 409 de proveedores) |
+
+Se crea con `new ApiError(status, message, { code, details, field })`; las opciones son todas optativas.
 
 Y estos atajos para no comparar códigos a mano:
 
@@ -169,12 +169,12 @@ Y estos atajos para no comparar códigos a mano:
 
 ### De dónde sale el `message`
 
-1. Si el backend manda una lista de mensajes, se usa el primero y la lista completa queda en `details`.
+1. Si el backend manda una lista de mensajes, se usa el primero.
 2. Si manda un texto, se usa ese texto (y `field`, si vino).
 3. Si no manda nada, se usa un mensaje en español según el código (por ejemplo, 403: *"No tenés permiso para realizar esta acción."*).
 4. Sin respuesta: *"Error de red..."* o, si fue timeout, *"El servidor tardó demasiado..."*.
 
-> **Va a cambiar en el Sprint 2.** Desde el Sprint 2 todas las respuestas de error traen `code` (`USERNAME_TAKEN`, `EMPLOYEE_DNI_TAKEN`...) y los 400 y 409 informan los campos en `details: { field, message }[]` (contrato §5.2). La pantalla tiene que decidir por `code`, no por el texto. No diseñes nada nuevo en base a `field`: es la forma vieja de proveedores.
+> **Desde el Sprint 2** todas las respuestas de error traen `code` y los 400 y 409 informan los campos en `details` (contrato §5.2). La pantalla tiene que decidir por `code`, no por el texto (por ejemplo, el ingreso marca los campos de un `VALIDATION_ERROR`). No diseñes nada nuevo en base a `field`: es la forma vieja de proveedores.
 
 ### Cómo se usa
 
@@ -447,7 +447,7 @@ Solo los usan los `*.mocks.ts` de las features, que se cargan en desarrollo con 
 | `apiError(request, status, message, opts)`    | `errors.ts`  | Un error con la forma del backend (`statusCode`, `error`, `message`, `path`, `timestamp`). `opts`: `code`, `details`, `extra` |
 | `validationError(request, details, message?)` | `errors.ts`  | El `400 VALIDATION_ERROR` del Sprint 2, con un `{ field, message }` por campo |
 | `authorize(request, roles)`                   | `session.ts` | Verifica la sesión simulada y el rol: devuelve quién llama o el `401` / `403` |
-| `openSession`, `currentSession`, `closeSession`, `issueAccessToken` | `session.ts` | La sesión simulada (la "cookie" en `localStorage`) |
+| `openSession`, `currentSession`, `saveSession`, `closeSession`, `issueAccessToken` | `session.ts` | La sesión simulada (la "cookie" en `localStorage`) |
 | `readPageOrError(request)`                    | `paging.ts`  | `page` y `limit` (defaults 1 y 20, máximo 100) o el `400` del Sprint 2    |
 | `readPageParams(url)` + `PAGE_LIMIT_ERROR`    | `paging.ts`  | Lo mismo con el mensaje del backend del Sprint 1                          |
 | `paginate(items, pageParams)`                 | `paging.ts`  | El sobre `{ items, total, page, limit }`                                  |

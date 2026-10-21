@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import { apiError, validationError, type FieldError } from '@/shared/mocks/errors'
-import { closeSession, currentSession, issueAccessToken, openSession, type MockSession } from '@/shared/mocks/session'
+import { closeSession, currentSession, issueAccessToken, openSession, saveSession, type MockSession } from '@/shared/mocks/session'
 import { findUser, toUserResponse, usersDb, type UserRow } from '@/features/catalogs/users/api/users.db'
 import type { LoginRequest, SessionResponse } from '../types/session'
 
@@ -74,6 +74,11 @@ export const authHandlers = [
     if (!session) {
       return apiError(request, 401, 'La autenticación es requerida.', { code: 'UNAUTHENTICATED' })
     }
+    // Refresh token ya reemplazado: se toma como robado y se cierra la sesión (D-47).
+    if (session.refreshRevoked) {
+      closeSession()
+      return apiError(request, 401, 'La autenticación es requerida.', { code: 'UNAUTHENTICATED' })
+    }
     if (session.expiredByInactivity) {
       closeSession()
       return apiError(request, 401, 'Tu sesión expiró por inactividad', { code: 'SESSION_EXPIRED' })
@@ -87,7 +92,9 @@ export const authHandlers = [
       closeSession()
       return apiError(request, 401, 'La autenticación es requerida.', { code: 'UNAUTHENTICATED' })
     }
-    // Rota el token pero no estira la sesión: mismo `sessionExpiresAt`.
+    // Rota el token pero no estira la sesión: mismo `sessionExpiresAt`. El
+    // token nuevo ya no está vencido.
+    if (session.accessTokenExpired) saveSession({ ...session, accessTokenExpired: false })
     return HttpResponse.json(sessionResponse(session, user))
   }),
 

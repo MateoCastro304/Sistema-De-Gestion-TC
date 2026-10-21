@@ -67,7 +67,8 @@ frontend/
 Las carpetas vacías se mantienen con un `.gitkeep` para que la estructura exista desde el principio. Estado actual:
 
 - **Con pantallas (Sprint 1):** `catalogs/panels`, `categories`, `customers` y `suppliers`.
-- **Con tipos y mocks, sin pantallas todavía (Sprint 2):** `auth`, `catalogs/employees`, `users`, `process-types` y `materials`. Sus tipos (`types/`) siguen el contrato del Sprint 2 y sus mocks (`api/*.mocks.ts`) ya responden todos los endpoints, así que las pantallas se pueden hacer sin backend.
+- **Con pantallas (Sprint 2):** `auth` (el ingreso; falta cerrar sesión) y `process-types`.
+- **Con tipos y mocks, sin pantallas todavía (Sprint 2):** `catalogs/employees`, `users` y `materials`. Sus tipos (`types/`) siguen el contrato del Sprint 2 y sus mocks (`api/*.mocks.ts`) ya responden todos los endpoints, así que las pantallas se pueden hacer sin backend.
 - **Solo el esqueleto:** `requests`, `quotations`, `parts`, `work-orders` y `reports`.
 
 ### 1.1 Roles y permisos (`domain/roles.ts`)
@@ -133,15 +134,17 @@ Para sumar un catálogo nuevo a un panel, alcanza con agregar una entrada en `it
 
 | Ruta                                   | Pantalla                |
 | -------------------------------------- | ----------------------- |
-| `/`                                    | Redirige a `/catalogos/clientes` |
+| `/ingresar`                            | `LoginPage` (fuera del layout, sin sesión) |
+| `/`                                    | `HomePage`: la primera pantalla del rol, o "Todavía no hay módulos disponibles para tu rol." |
 | `/catalogos/clientes`, `/catalogos/gestion` | `PanelPage`        |
 | `/catalogos/encargados`                | `CustomersPage`, `nuevo`, `:factoryId/:id` |
 | `/catalogos/fabricas`                  | `FactoriesPage`, `nuevo`, `:id` |
 | `/catalogos/rubros`                    | `CategoriesPage`        |
 | `/catalogos/proveedores`               | `SuppliersPage`, `nuevo`, `:id` |
+| `/catalogos/tipos-de-proceso`          | `ProcessTypesPage`, `nuevo`, `:id` |
 | `*`                                    | `NotFoundPage`          |
 
-Todas cuelgan de un único `AppLayout`, así el menú no se vuelve a crear al cambiar de sección.
+Salvo `/ingresar`, todas cuelgan de un único `AppLayout`, así el menú no se vuelve a crear al cambiar de sección. Los guards de `app/router/guards.tsx` las protegen: sin sesión llevan al ingreso (`RequireSession`) y una pantalla que no permiten los roles muestra "Acceso denegado" (`RequireAccess`, con `canOpen()` de `catalogs/panels`). Cómo funciona la sesión está en [`src/features/auth/README.md`](../src/features/auth/README.md).
 
 Las rutas del Sprint 2 que esperan los tests (`/ingresar`, `/administracion/...`, `/catalogos/materiales`, `/catalogos/tipos-de-proceso`) están en `frontend/e2e/support/routes.ts` y en [TESTING.md](TESTING.md).
 

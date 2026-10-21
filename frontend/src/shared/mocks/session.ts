@@ -28,6 +28,16 @@ export interface MockSession {
   expiresAt: string
   /** Simula la sesión cerrada por 30 minutos sin actividad. */
   expiredByInactivity?: boolean
+  /**
+   * Simula el `accessToken` vencido (15 minutos): las peticiones responden
+   * `401 ACCESS_TOKEN_EXPIRED` hasta el próximo `POST /auth/refresh`.
+   */
+  accessTokenExpired?: boolean
+  /**
+   * Simula que el refresh token de la cookie ya fue reemplazado (D-47): el
+   * próximo `POST /auth/refresh` lo toma como robado y cierra la sesión.
+   */
+  refreshRevoked?: boolean
 }
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
@@ -53,8 +63,12 @@ export function openSession(userId: number): MockSession {
     startedAt: now.toISOString(),
     expiresAt: new Date(now.getTime() + SEVEN_DAYS_MS).toISOString(),
   }
-  localStorage.setItem(MOCK_SESSION_KEY, JSON.stringify(session))
+  saveSession(session)
   return session
+}
+
+export function saveSession(session: MockSession): void {
+  localStorage.setItem(MOCK_SESSION_KEY, JSON.stringify(session))
 }
 
 export function closeSession(): void {
@@ -92,7 +106,8 @@ export interface Caller {
  * Verifica la sesión y el rol de una petición. Devuelve quién llama, o la
  * respuesta de error para que el handler la devuelva tal cual:
  *   - sin token, token desconocido o sesión cerrada → 401 UNAUTHENTICATED;
- *   - sesión vencida por inactividad → 401 SESSION_EXPIRED;
+ *   - sesión vencida por sus 7 días o por inactividad → 401 SESSION_EXPIRED;
+ *   - accessToken vencido → 401 ACCESS_TOKEN_EXPIRED;
  *   - sin ninguno de los roles pedidos → 403 FORBIDDEN.
  *
  *   const caller = authorize(request, ['AT', 'EC'])
@@ -104,8 +119,14 @@ export function authorize(request: Request, roles: readonly string[]): Caller | 
   if (!token || !session || session.sid !== token.sid) {
     return apiError(request, 401, 'La autenticación es requerida.', { code: 'UNAUTHENTICATED' })
   }
+  if (new Date(session.expiresAt).getTime() <= Date.now()) {
+    return apiError(request, 401, 'Tu sesión expiró. Volvé a ingresar.', { code: 'SESSION_EXPIRED' })
+  }
   if (session.expiredByInactivity) {
     return apiError(request, 401, 'Tu sesión expiró por inactividad', { code: 'SESSION_EXPIRED' })
+  }
+  if (session.accessTokenExpired) {
+    return apiError(request, 401, 'El token de acceso expiró.', { code: 'ACCESS_TOKEN_EXPIRED' })
   }
   if (!roles.some((role) => token.roles.includes(role))) {
     return apiError(request, 403, 'No tenés permisos para realizar esta operación.', { code: 'FORBIDDEN' })

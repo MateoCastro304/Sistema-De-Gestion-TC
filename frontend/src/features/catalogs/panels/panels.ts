@@ -1,4 +1,5 @@
 import type { EntityIconName } from '@/shared/components/ui'
+import { canAccess, type AppModule, type Rol } from '@/domain/roles'
 import fotoEjes from '@/assets/foto-ejes.webp'
 import fotoCono from '@/assets/foto-cono.webp'
 import fotoPrensa from '@/assets/foto-prensa.webp'
@@ -113,4 +114,55 @@ export function panelOf(pathname: string): Panel | undefined {
       pathname.startsWith(panel.to) ||
       panel.items.some((item) => pathname === item.to || pathname.startsWith(item.to + '/')),
   )
+}
+
+/**
+ * La URL de cada módulo de la matriz de permisos (`MODULE_ROLES`), con sus
+ * altas y detalles abajo. Incluye los del Sprint 2 que todavía no tienen
+ * tarjeta (las rutas de `e2e/support/routes.ts`), así una URL de otro rol
+ * muestra "Acceso denegado" aunque la pantalla no exista todavía.
+ */
+const MODULE_PATHS: Record<AppModule, string> = {
+  customers: '/catalogos/encargados',
+  factories: '/catalogos/fabricas',
+  categories: '/catalogos/rubros',
+  suppliers: '/catalogos/proveedores',
+  employees: '/administracion/empleados',
+  users: '/administracion/usuarios',
+  processTypes: '/catalogos/tipos-de-proceso',
+  materials: '/catalogos/materiales',
+}
+
+function isUnder(pathname: string, base: string): boolean {
+  return pathname === base || pathname.startsWith(base + '/')
+}
+
+/** Las tarjetas del panel que permiten esos roles. */
+export function visibleItems(panel: Panel, roles: readonly Rol[]): PanelItem[] {
+  return panel.items.filter((item) => canOpen(item.to, roles))
+}
+
+/**
+ * Si esos roles pueden abrir la URL (CU-53, escenario 8). Un módulo, según
+ * `canAccess()`; un panel, si muestra alguna tarjeta. Lo demás (el inicio,
+ * una URL que no existe) no pide rol.
+ */
+export function canOpen(pathname: string, roles: readonly Rol[]): boolean {
+  const entry = Object.entries(MODULE_PATHS).find(([, base]) => isUnder(pathname, base))
+  if (entry) return canAccess(roles, entry[0] as AppModule)
+
+  const panel = Object.values(PANELS).find((p) => pathname === p.to)
+  if (panel) return visibleItems(panel, roles).length > 0
+
+  return true
+}
+
+/**
+ * La primera pantalla que permiten esos roles (CU-53, escenario 1): el
+ * primer panel con alguna tarjeta, en el orden del menú. `null` si no tienen
+ * ningún módulo (Jefe de Taller, Encargado de Reportes).
+ */
+export function homePathFor(roles: readonly Rol[]): string | null {
+  const panel = Object.values(PANELS).find((p) => visibleItems(p, roles).length > 0)
+  return panel?.to ?? null
 }

@@ -667,6 +667,8 @@ table { border-collapse: collapse; width: 100%; }
   display: inline-flex; align-items: center; justify-content: center;
 }
 .system-page__icon svg { width: 33px; height: 33px; }
+/* El inicio sin módulos: el ícono en azul suave, no en rojo. */
+.system-page__icon--suave { background: var(--rp-suave); color: var(--rp-acento); }
 .system-page__line { width: 80px; height: 3px; background: var(--rp-acento); }
 .system-page--error .system-page__line { background: var(--rp-peligro); }
 .system-page__title { margin: 0; font-size: 34px; font-weight: 800; text-transform: uppercase; color: var(--rp-navy); }
@@ -1654,6 +1656,59 @@ form .card__grid--2, form .card__grid--3 { row-gap: 20px; column-gap: 24px; }
 @media (max-width: 768px) {
   .detail-header__actions { width: 100%; }
   .detail-layout { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   INGRESO (features/auth, LoginPage)
+   Como en el prototipo: la marca sobre una foto del taller a la
+   izquierda y la tarjeta "Ingresar" a la derecha. En celular las
+   dos columnas se apilan solas (auto-fit).
+   ============================================================ */
+.login {
+  min-height: calc(100vh / var(--rp-zoom)); min-height: calc(100dvh / var(--rp-zoom));
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  background: var(--rp-fondo);
+}
+.login__hero {
+  position: relative; overflow: hidden; min-height: 280px;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 40px;
+  padding: clamp(28px, 5vw, 56px);
+  background:
+    linear-gradient(165deg, rgba(21,34,62,.95) 0%, rgba(21,34,62,.8) 50%, rgba(21,34,62,.35) 100%),
+    var(--hero-foto) 60% center / cover no-repeat,
+    var(--rp-navy);
+}
+.login__logo { height: 56px; max-width: 200px; object-fit: contain; object-position: left; align-self: flex-start; }
+.login__claim { display: flex; flex-direction: column; gap: 16px; max-width: 480px; animation: rpFadeUp .6s ease both; }
+.login__eyebrow { font-size: 14px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #e6e9f0; }
+.login__eyebrow-accent { color: #7f9bd6; }
+.login__line { width: 90px; height: 3px; background: var(--rp-acento); }
+.login__title { margin: 0; font-size: 40px; font-weight: 800; line-height: 1.08; text-transform: uppercase; color: #fff; text-wrap: balance; }
+.login__subtitle { margin: 0; font-size: 16px; color: #d4d9e4; }
+
+.login__side { display: flex; align-items: center; justify-content: center; padding: clamp(28px, 5vw, 56px) 16px; }
+.login__form {
+  width: 100%; max-width: 440px; box-sizing: border-box;
+  display: flex; flex-direction: column; gap: 22px;
+  padding: 36px 32px; border-radius: var(--rp-r-tarjeta); background: #fff;
+  box-shadow: 0 14px 36px rgba(23,38,69,.10);
+  animation: rpFadeUp .5s .1s ease both;
+}
+.login__heading { display: flex; flex-direction: column; gap: 10px; }
+.login__form-title { margin: 0; font-size: 28px; font-weight: 800; text-transform: uppercase; color: var(--rp-navy); }
+.login__form-line { width: 50px; height: 3px; background: var(--rp-acento); }
+/* Aviso arriba del formulario: suave para la sesión expirada, rojo para un intento fallido. */
+.login__alert {
+  padding: 14px 16px; border-radius: var(--rp-r-control);
+  background: var(--rp-suave); color: var(--rp-navy);
+  font-size: 14.5px; font-weight: 700; line-height: 1.5;
+}
+.login__alert--error { background: var(--rp-peligro-fondo); color: var(--rp-peligro); }
+.login__help { margin: 0; font-size: 13.5px; line-height: 1.6; color: var(--rp-texto-sec); text-wrap: pretty; }
+
+@media (max-width: 900px) {
+  .login__title { font-size: 30px; }
+  .login__form { padding: 28px 20px; }
 }
 
 /* Respeta a quien pidió menos movimiento en su sistema. */

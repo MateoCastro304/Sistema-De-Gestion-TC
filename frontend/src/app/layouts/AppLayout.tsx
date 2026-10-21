@@ -1,7 +1,8 @@
 import { Fragment, useEffect, useState } from 'react'
 import { Outlet, Link, useLocation } from 'react-router'
 import { BreadcrumbContext } from '@/app/providers/BreadcrumbContext'
-import { PANELS, panelOf } from '@/features/catalogs/panels'
+import { useSession } from '@/app/providers/SessionContext'
+import { PANELS, canOpen, panelOf, visibleItems } from '@/features/catalogs/panels'
 import { cn } from '@/shared/lib/cn'
 import logoBlanco from '@/assets/logo-castro-white.png'
 import logoMarino from '@/assets/logo-castro-navy.png'
@@ -54,7 +55,9 @@ type Crumb = { label: string; to?: string }
  *   detalle  → CLIENTES / ENCARGADOS / Laura Gómez
  * El nombre del detalle lo publica la pantalla (useCrumbTitle).
  */
-function breadcrumb(pathname: string, title: string | null): Crumb[] {
+function breadcrumb(pathname: string, title: string | null, allowed: boolean): Crumb[] {
+  if (pathname === '/') return [{ label: 'Sistema' }, { label: 'Inicio' }]
+  if (!allowed) return [{ label: 'Sistema' }, { label: 'Acceso denegado' }]
   const panel = panelOf(pathname)
   if (!panel) return [{ label: 'Sistema' }, { label: 'Página no encontrada' }]
   if (pathname === panel.to) return [{ label: 'Catálogos' }, { label: panel.label }]
@@ -74,9 +77,16 @@ export function AppLayout() {
   const { pathname } = useLocation()
   const activePanel = panelOf(pathname)
 
+  /** El menú sólo muestra los paneles con alguna tarjeta para los roles (CU-53). */
+  const roles = useSession().user?.roles ?? []
+  const navGroups = NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter(({ panel }) => visibleItems(panel, roles).length > 0),
+  })).filter((group) => group.items.length > 0)
+
   /** Nombre del registro abierto, para la miga de pan (ver BreadcrumbContext). */
   const [crumbTitle, setCrumbTitle] = useState<string | null>(null)
-  const crumbs = breadcrumb(pathname, crumbTitle)
+  const crumbs = breadcrumb(pathname, crumbTitle, canOpen(pathname, roles))
 
   /** Escritorio: barra ancha o riel de íconos. */
   const [collapsed, setCollapsed] = useState(false)
@@ -141,7 +151,7 @@ export function AppLayout() {
         </div>
 
         <nav className="sidebar__nav">
-          {NAV_GROUPS.map((group) => (
+          {navGroups.map((group) => (
             <div key={group.label} className="sidebar__section">
               <span className="sidebar__section-label">{group.label}</span>
               <ul className="sidebar__list">

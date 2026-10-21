@@ -1,6 +1,6 @@
-import { expect, test } from '../support/fixtures'
+import { expect, rows, test } from '../support/fixtures'
 import { ROUTES } from '../support/routes'
-import { DEMO_PASSWORD, seedSession } from '../support/session'
+import { changeSession, DEMO_PASSWORD, seedSession } from '../support/session'
 import type { Page } from '@playwright/test'
 
 /**
@@ -94,6 +94,59 @@ test.describe('[CU-53] Iniciar sesión', { tag: '@sprint2' }, () => {
     await page.goto(ROUTES.customers)
     await expect(loginHeading(page)).toBeVisible()
     await expect(page.getByText('Tu sesión expiró por inactividad')).toBeVisible()
+  })
+})
+
+/**
+ * Lo que pasa con la sesión mientras se usa (escenarios 5, 11 y 12). Los
+ * tiempos (15 minutos, 7 días) no se esperan: `changeSession` deja la sesión
+ * simulada en ese estado después de que la app arrancó, y la acción es abrir
+ * Encargados, que pide tres listados a la vez (encargados, fábricas y rubros).
+ */
+test.describe('[DTC-33][CU-53] Sesión abierta', { tag: '@sprint2' }, () => {
+  test.use({ sessionUser: 'mrios' })
+
+  const encargados = (page: Page) => page.getByRole('link', { name: /^Encargados/ })
+
+  test('renueva el token vencido sin que se note, con un solo refresh', async ({ page }) => {
+    await page.goto(ROUTES.customersPanel)
+    await expect(encargados(page)).toBeVisible()
+
+    const refreshes: string[] = []
+    page.on('request', (request) => {
+      if (request.url().endsWith('/api/auth/refresh')) refreshes.push(request.url())
+    })
+    await changeSession(page, { accessTokenExpired: true })
+
+    await encargados(page).click()
+    await expect(rows(page).first()).toBeVisible()
+    await expect(loginHeading(page)).toHaveCount(0)
+    // Las tres peticiones vencieron juntas y compartieron un solo refresh.
+    expect(refreshes).toHaveLength(1)
+  })
+
+  test('a los 7 días del ingreso la sesión vence aunque se use el sistema', async ({ page }) => {
+    await page.goto(ROUTES.customersPanel)
+    await expect(encargados(page)).toBeVisible()
+    await changeSession(page, { maxDurationReached: true })
+
+    await encargados(page).click()
+    await expect(loginHeading(page)).toBeVisible()
+    await expect(page.getByText('Tu sesión expiró. Volvé a ingresar.')).toBeVisible()
+  })
+
+  test('si el refresh token ya fue reemplazado, cierra la sesión sin mensaje', async ({ page }) => {
+    await page.goto(ROUTES.customersPanel)
+    await expect(encargados(page)).toBeVisible()
+    await changeSession(page, { accessTokenExpired: true, refreshRevoked: true })
+
+    await encargados(page).click()
+    await expect(loginHeading(page)).toBeVisible()
+    await expect(page.getByRole('alert')).toHaveCount(0)
+
+    // La sesión quedó cerrada en el servidor: recargar no la recupera.
+    await page.reload()
+    await expect(loginHeading(page)).toBeVisible()
   })
 })
 

@@ -36,6 +36,36 @@ export type Username = keyof typeof USERS
 
 export const DEMO_PASSWORD = 'Castro1977'
 
+/** Cambios a la sesión abierta, para los escenarios que dependen del tiempo. */
+interface SessionChanges {
+  /** Pasaron los 15 minutos del `accessToken`: la próxima petición responde `ACCESS_TOKEN_EXPIRED`. */
+  accessTokenExpired?: boolean
+  /** El refresh token de la cookie ya fue reemplazado: el próximo refresh cierra la sesión (D-47). */
+  refreshRevoked?: boolean
+  /** Pasaron los 7 días desde el ingreso: la sesión vence aunque se use el sistema (D-44). */
+  maxDurationReached?: boolean
+}
+
+/**
+ * Cambia la sesión ya abierta en medio de un test, sin recargar. Se usa
+ * después de que la app arrancó, porque el refresh del arranque renueva el
+ * token. Escribe la misma clave que `src/shared/mocks/session.ts`.
+ */
+export async function changeSession(page: Page, changes: SessionChanges) {
+  await page.evaluate(
+    ({ key, changes }) => {
+      const raw = localStorage.getItem(key)
+      if (!raw) throw new Error('No hay una sesión abierta para cambiar')
+      const session = JSON.parse(raw) as Record<string, unknown>
+      if (changes.accessTokenExpired) session.accessTokenExpired = true
+      if (changes.refreshRevoked) session.refreshRevoked = true
+      if (changes.maxDurationReached) session.expiresAt = new Date(Date.now() - 1000).toISOString()
+      localStorage.setItem(key, JSON.stringify(session))
+    },
+    { key: MOCK_SESSION_KEY, changes },
+  )
+}
+
 interface SeedOptions {
   /** La sesión quedó cerrada por 30 minutos sin actividad. */
   expiredByInactivity?: boolean

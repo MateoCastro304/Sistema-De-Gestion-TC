@@ -143,8 +143,15 @@ En el backend la sesión vive en el servidor y el refresh token viaja en la cook
   token. `POST /auth/logout` la borra: desde la petición siguiente ese token
   responde `401 UNAUTHENTICATED`.
 - `authorize(request, roles)` responde `401 UNAUTHENTICATED` sin token o con la
-  sesión cerrada, `401 SESSION_EXPIRED` si la sesión está marcada como vencida por
-  inactividad, y `403 FORBIDDEN` sin el rol.
+  sesión cerrada, `401 SESSION_EXPIRED` si pasaron los 7 días o si la sesión está
+  marcada como vencida por inactividad, `401 ACCESS_TOKEN_EXPIRED` si está marcada
+  con el token vencido, y `403 FORBIDDEN` sin el rol.
+- Marcas de la sesión simulada que usan los tests E2E (`changeSession` y
+  `seedSession` de `e2e/support/session.ts`):
+  - `expiredByInactivity`: la sesión se cerró por 30 minutos sin actividad.
+  - `accessTokenExpired`: el token venció; el próximo `POST /auth/refresh` la borra.
+  - `refreshRevoked`: el refresh token ya fue reemplazado; el próximo
+    `POST /auth/refresh` cierra la sesión con `401 UNAUTHENTICATED` (D-47).
 - El login cuenta los intentos fallidos y bloquea al quinto (`423`), mientras no
   se recargue la página.
 
@@ -162,17 +169,12 @@ En el backend la sesión vive en el servidor y el refresh token viaja en la cook
 | `hfunes`   | AT       | Bloqueado                 |
 | `ogimenez` | ERP      | Dado de baja              |
 
-### El Sprint 1 todavía no pide sesión
+### El Sprint 1 pide sesión
 
-El contrato hace que todo el Sprint 1 pida sesión y rol (§7.2), pero hoy el
-frontend no manda el token: si los mocks lo exigieran, todas esas pantallas
-quedarían en 401. Por eso `src/app/mocks/handlers.ts` tiene
-`SPRINT_1_REQUIRES_SESSION = false` y una tabla con el rol de cada catálogo.
-Cuando el login esté hecho:
-
-1. Pasar `SPRINT_1_REQUIRES_SESSION` a `true`.
-2. Correr `npm run test:e2e:sprint1`: tiene que seguir en verde, porque esos tests
-   ya arrancan con el usuario del rol que les toca.
+El contrato hace que todo el Sprint 1 pida sesión y rol (§7.2). Desde el login
+(DTC-33), `src/app/mocks/handlers.ts` tiene `SPRINT_1_REQUIRES_SESSION = true` y
+una tabla con el rol de cada catálogo. Los tests del Sprint 1 siguen en verde
+porque ya arrancan con el usuario del rol que les toca.
 
 ## Estado de los mocks
 
@@ -229,9 +231,9 @@ cuenta:
 
 ### Lo que no está mockeado
 
-- El vencimiento del `accessToken` (`401 ACCESS_TOKEN_EXPIRED`) con su refresh
-  automático: el token del mock no vence. Conviene cubrirlo con un test unitario
-  del interceptor de `http.ts`.
+- Los tiempos reales de la sesión (15 minutos, 30 minutos, 7 días) y la
+  tolerancia de 30 segundos después de rotar el refresh token (D-47): el mock
+  no los mide, se simulan con las marcas de la [sesión simulada](#sesión-simulada).
 
 ## Para el futuro CLAUDE.md
 
