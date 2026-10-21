@@ -324,7 +324,9 @@ table { border-collapse: collapse; width: 100%; }
   border-radius: var(--rp-r-tarjeta); background: #fff;
   box-shadow: 0 4px 18px rgba(23,38,69,.06);
   transition: transform .2s ease, box-shadow .2s ease;
-  animation: rpFadeUp .5s .1s ease both;
+  /* backwards y no both: con both la animación se queda con su último
+     cuadro (transform: none) y le gana al translateY del hover. */
+  animation: rpFadeUp .5s .1s ease backwards;
 }
 .panel-card:hover { transform: translateY(-4px); box-shadow: 0 18px 36px rgba(23,38,69,.14); }
 .panel-card:focus-visible { outline: none; box-shadow: 0 0 0 4px var(--rp-halo); }
@@ -783,6 +785,7 @@ table { border-collapse: collapse; width: 100%; }
    pone el cursor; el onClick lo pone Table.tsx). En el celular
    eso es la diferencia entre acertarle y no.
    ============================================================ */
+.table__row--clickable,
 .table__row--selectable { cursor: pointer; }
 /* Calificadas con .table-card--cards para igualar la especificidad de
    la regla base de la fila; si no, el resaltado no llega a pintarse. */
@@ -1014,6 +1017,36 @@ table { border-collapse: collapse; width: 100%; }
   display: inline-flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 800;
 }
+/* Campo con prefijo ("$", "US$", "US$ 1 = $"): el borde, el hover y el
+   foco pasan al contenedor, y el input queda adentro sin borde propio. */
+.form-field__affix {
+  display: flex; align-items: center; gap: 10px;
+  box-sizing: border-box; width: 100%; padding: 0 16px;
+  border: 1.5px solid var(--rp-linea); border-radius: var(--rp-r-control); background: #fff;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.form-field__affix:hover { border-color: var(--rp-acento); }
+.form-field__affix:focus-within { border-color: var(--rp-azul); box-shadow: 0 0 0 4px var(--rp-halo); }
+.form-field--error .form-field__affix { border-color: var(--rp-peligro); box-shadow: 0 0 0 4px rgba(179,38,30,.10); }
+.form-field__prefix { flex-shrink: 0; font-size: 15px; font-weight: 700; color: var(--rp-texto-sec); white-space: nowrap; }
+.form-field .form-field__affix input,
+.form-field .form-field__affix input:focus,
+.form-field--error .form-field__affix input {
+  flex: 1; min-width: 0; padding: 15px 0;
+  border: 0; background: transparent; box-shadow: none;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Aviso informativo arriba de un formulario (modificar tipo de proceso). */
+.form-notice {
+  display: flex; align-items: flex-start; gap: 12px;
+  margin: 0 0 24px; padding: 14px 16px;
+  border-radius: var(--rp-r-tarjeta); background: var(--rp-suave);
+  font-size: 14.5px; font-weight: 600; line-height: 1.55; color: var(--rp-navy);
+}
+.form-notice p { margin: 0; }
+.form-notice svg { width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px; color: var(--rp-acento); }
+
 /* Botones al pie de un formulario. */
 .form-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
 /* Al pie de la tarjeta del alta van separados por una línea (prototipo). */

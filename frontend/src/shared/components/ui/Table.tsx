@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
+import { useNavigate } from 'react-router'
 import { cn } from '@/shared/lib/cn'
 
 /**
@@ -53,7 +54,18 @@ import { cn } from '@/shared/lib/cn'
  * Si se pasa, la fila entera se vuelve clickeable. Cuando eso pasa el
  * componente le agrega `role="button"`, `tabIndex` y manejo de Enter
  * y Espacio: sin eso la selección sólo funcionaría con mouse y la
- * pantalla quedaría inaccesible por teclado.
+ * pantalla quedaría inaccesible por teclado. Es para tildar (modo
+ * eliminación de Proveedores); el resaltado de ese modo
+ * (`table__row--selectable`) lo agrega quien lo usa.
+ *
+ * SOBRE `rowHref`
+ * Para abrir el detalle tocando la fila: `rowHref={(r) => \`/x/${r.id}\`}`.
+ * La fila NO se vuelve botón (tiene un "Ver" y a veces un tacho adentro,
+ * y un botón con botones adentro confunde al lector de pantalla); el
+ * teclado sigue entrando por el "Ver".
+ *
+ * En los dos casos, los botones y enlaces de adentro de la fila ("Ver",
+ * el tacho) hacen lo suyo y su click no dispara además el de la fila.
  *
  * SOBRE LA ANIMACIÓN DE ENTRADA
  * Cada fila entra con un retardo de 60ms escalonado, cortado a la
@@ -115,7 +127,16 @@ interface TableProps<T> {
   rowClassName?: (row: T) => string | undefined
   /** Si está, toda la fila es clickeable (selección múltiple). */
   onRowClick?: (row: T) => void
+  /**
+   * Si está, tocar la fila abre esa URL (el detalle), igual que su
+   * botón "Ver". Sólo mouse: el teclado y el lector de pantalla usan
+   * el "Ver". Si también hay `onRowClick`, gana `onRowClick`.
+   */
+  rowHref?: (row: T) => string
 }
+
+/** Lo que tiene su propio click adentro de una fila. */
+const INTERACTIVE = 'a, button, input, select, textarea, label, [role="combobox"]'
 
 export function Table<T>({
   columns,
@@ -128,7 +149,9 @@ export function Table<T>({
   gridTemplate,
   rowClassName,
   onRowClick,
+  rowHref,
 }: TableProps<T>) {
+  const navigate = useNavigate()
   /* ---------- Variante del rediseño: filas en grid ---------- */
   if (variant === 'cards') {
     // El ancho de columnas viaja como custom property, así una sola
@@ -150,39 +173,57 @@ export function Table<T>({
         {data.length === 0 ? (
           (emptyState ?? <div className="table__empty">{emptyMessage}</div>)
         ) : (
-          data.map((row, index) => (
-            <div
-              key={rowKey(row)}
-              className={cn('table__row', rowClassName?.(row), onRowClick && 'table__row--selectable')}
-              // Escalonado de la entrada: 60ms por fila. Se corta a
-              // los 6 para que una lista larga no tarde en aparecer.
-              style={{ animationDelay: `${Math.min(index, 6) * 0.06}s` }}
-              onClick={onRowClick ? () => onRowClick(row) : undefined}
-              // Si la fila es clickeable tiene que ser alcanzable por
-              // teclado: sin esto la selección no es accesible.
-              role={onRowClick ? 'button' : undefined}
-              tabIndex={onRowClick ? 0 : undefined}
-              onKeyDown={
-                onRowClick
-                  ? (e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        onRowClick(row)
+          data.map((row, index) => {
+            // A dónde lleva la fila, si es una fila de "abrir el detalle".
+            const href = rowHref?.(row)
+            const handleClick = onRowClick ? () => onRowClick(row) : href ? () => void navigate(href) : undefined
+            return (
+              <div
+                key={rowKey(row)}
+                className={cn('table__row', rowClassName?.(row), handleClick && 'table__row--clickable')}
+                // Escalonado de la entrada: 60ms por fila. Se corta a
+                // los 6 para que una lista larga no tarde en aparecer.
+                style={{ animationDelay: `${Math.min(index, 6) * 0.06}s` }}
+                // Un click en un botón o enlace de la fila ("Ver", el tacho)
+                // hace lo suyo y no dispara además el de la fila.
+                onClick={
+                  handleClick
+                    ? (e) => {
+                        const control = (e.target as HTMLElement).closest(INTERACTIVE)
+                        if (control && control !== e.currentTarget) return
+                        handleClick()
                       }
-                    }
-                  : undefined
-              }
-            >
-              {columns.map((col, i) => (
-                <div
-                  key={i}
-                  className={cn('table__cell', col.align === 'center' && 'table__cell--center', col.cellClassName)}
-                >
-                  {col.render(row)}
-                </div>
-              ))}
-            </div>
-          ))
+                    : undefined
+                }
+                // Selección: la fila tiene que ser alcanzable por teclado.
+                // Con `rowHref` no hace falta: el "Ver" de la fila ya es un
+                // enlace, y la fila no se vuelve un botón con botones adentro.
+                role={onRowClick ? 'button' : undefined}
+                tabIndex={onRowClick ? 0 : undefined}
+                onKeyDown={
+                  onRowClick
+                    ? (e) => {
+                        // Enter sobre un botón de adentro es de ese botón, no de la fila.
+                        if (e.target !== e.currentTarget) return
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          onRowClick(row)
+                        }
+                      }
+                    : undefined
+                }
+              >
+                {columns.map((col, i) => (
+                  <div
+                    key={i}
+                    className={cn('table__cell', col.align === 'center' && 'table__cell--center', col.cellClassName)}
+                  >
+                    {col.render(row)}
+                  </div>
+                ))}
+              </div>
+            )
+          })
         )}
 
         {footer}
