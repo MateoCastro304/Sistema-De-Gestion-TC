@@ -13,7 +13,7 @@ Este índice reúne la documentación del negocio, las referencias técnicas y l
 | [architecture/](arquitectura/) | Arquitectura del sistema. Documento actual: [visión general de arquitectura](arquitectura/overview.md). |
 | [openapi/](openapi/) | Contratos de la API. Punto de entrada: [openapi.yaml](openapi/openapi.yaml). |
 | [api-contract/](api-contract/) | [Referencia de API del Sprint 2](api-contract/API_CONTRACT_SPRINT_2.md): endpoints, convenciones y puntos abiertos. |
-| [database/](uso-ORM-DB/) | Procedimiento de [migraciones con Prisma](uso-ORM-DB/Migrations.md). |
+| [database/](database/) | Base de datos: [cambios para el Sprint 2](database/cambios-bdd-sprint2.md) (evaluación del Sprint 1, tablas nuevas, restricciones y plan de migraciones; propuesta, sin aplicar), [DER de los Sprints 1 y 2](database/der-sprint-1-2.md) y procedimiento de [migraciones con Prisma](database/Prisma/Migrations.md). |
 | [testing/](testing/) | [Organización de pruebas](testing/code-structure.md) y [casos de prueba y trazabilidad](testing/test-cases-structure.md). |
 | [prototipo/](prototipo/) | Prototipos y recursos de interfaz. El [contexto del prototipo](prototipo/fuente/CONTEXTO.md) describe su contenido, funcionamiento y limitaciones. |
 | [decisions/](decisiones/) | Registros ADR-001 a ADR-010. Consultar el estado de cada decisión en su documento. |
