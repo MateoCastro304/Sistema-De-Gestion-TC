@@ -1,5 +1,5 @@
 /** Máximo de filas por página en cualquier listado. */
-export const MAX_PAGE_LIMIT = 1000;
+export const MAX_PAGE_LIMIT = 100;
 
 export const PAGE_LIMIT_ERROR = `page must be at least 1 and limit must be between 1 and ${MAX_PAGE_LIMIT}`;
 

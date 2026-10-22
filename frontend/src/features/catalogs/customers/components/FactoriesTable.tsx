@@ -80,6 +80,8 @@ export function FactoriesTable({
       variant="cards"
       gridTemplate="minmax(0,2fr) 150px minmax(0,1fr) 120px 80px"
       rowClassName={(f) => cn(`table__row--${toneByStatus(f.isActive)}`)}
+      // Tocar la fila abre el detalle, igual que "Ver".
+      rowHref={(f) => `/catalogos/fabricas/${f.id}`}
       columns={columns}
       data={factories}
       rowKey={(f) => f.id}

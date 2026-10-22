@@ -24,7 +24,7 @@ const SPRINT_1_ROLES: [path: string, roles: readonly string[]][] = [
   ['/api/suppliers*', MODULE_ROLES.suppliers],
   ['/api/categories*', MODULE_ROLES.categories],
   ['/api/factories*', MODULE_ROLES.factories],
-  ['/api/customers*', MODULE_ROLES.customers],
+  ['/api/managers*', MODULE_ROLES.customers],
 ]
 
 /**

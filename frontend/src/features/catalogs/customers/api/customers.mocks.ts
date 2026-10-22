@@ -9,12 +9,13 @@ import type { Factory, FactoryInput } from '../types/factory'
 import { customersDb, findFactory } from './customers.db'
 
 /**
- * MSW handlers that stand in for the backend's customers and factory modules
- * (`backend/src/customers`, `backend/src/factory`): encargados (EncargadoCliente)
- * y sus fábricas (FabricaCliente). Mismas reglas, mismos códigos y mismos
- * mensajes que el backend, porque la pantalla traduce los 409 leyendo el
- * texto (`utils/errorMessages.ts`). Los rubros los mockea el feature de
- * categorías; acá sólo se lee su tabla para validar la fábrica.
+ * MSW handlers that stand in for the backend's customers subsystem
+ * (`backend/src/subsystems/customers`): encargados (EncargadoCliente, el
+ * backend los llama "Manager") y sus fábricas (FabricaCliente). Mismas
+ * reglas, mismos códigos y mismos mensajes que el backend, porque la
+ * pantalla traduce los 409 leyendo el texto (`utils/errorMessages.ts`). Los
+ * rubros los mockea el feature de categorías; acá sólo se lee su tabla para
+ * validar la fábrica.
  */
 
 /** El factoryId viaja en la URL, no en el cuerpo. */
@@ -43,8 +44,8 @@ function nextCustomerId(factoryId: string): string {
 }
 
 /**
- * Normaliza y valida los datos de contacto como `Customer.create` /
- * `Customer.update`: textos recortados, mail en minúsculas, teléfono sin
+ * Normaliza y valida los datos de contacto como `Manager.create` /
+ * `Manager.update`: textos recortados, mail en minúsculas, teléfono sin
  * separadores (conserva el `+`) y al menos un medio de contacto.
  */
 function toCustomerFields(
@@ -52,7 +53,7 @@ function toCustomerFields(
   body: Required<CustomerBody>,
 ): Pick<Customer, 'firstName' | 'lastName' | 'phone' | 'mail'> | Response {
   const firstName = body.firstName?.trim() ?? ''
-  if (!firstName) return invalid(request, 'firstName', 'Customer name cannot be empty')
+  if (!firstName) return invalid(request, 'name', 'Manager name cannot be empty')
 
   const mail = body.mail?.trim().toLowerCase() ?? ''
   if (mail && !MAIL_RE.test(mail)) return invalid(request, 'mail', 'Invalid email format')
@@ -68,7 +69,7 @@ function toCustomerFields(
   const phone = rawPhone ? `${rawPhone.startsWith('+') ? '+' : ''}${digits}` : ''
 
   if (!phone && !mail) {
-    return invalid(request, 'phone', 'Customer must have at least one contact: phone or mail')
+    return invalid(request, 'mail', 'Manager must have at least one contact: phone or mail')
   }
   return { firstName, lastName: body.lastName?.trim() ?? '', phone, mail }
 }
@@ -82,7 +83,7 @@ function mailTaken(factoryId: string, mail: string, exceptId?: string): boolean 
 }
 
 function customerNotFound(request: Request, factoryId: string, id: string) {
-  return apiError(request, 404, `Customer ${id} not found in factory ${factoryId}`)
+  return apiError(request, 404, `Manager ${id} not found in factory ${factoryId}`)
 }
 
 // Factories (FabricaCliente) ----------------------------------------------
@@ -112,12 +113,22 @@ function categoryProblem(request: Request, categoryId: string | number | undefin
   return apiError(request, 400, `Category with ID ${categoryId} not found or inactive`)
 }
 
+// El backend llama `legalName` a la razón social; acá adentro se guarda como
+// `name` (mismo campo que usan los formularios) y se traduce en la frontera,
+// igual que hace customers.api.ts con la respuesta real.
+type FactoryWireBody = Omit<FactoryInput, 'name'> & { legalName: string }
+
+function toWireFactory(factory: Factory) {
+  const { name, ...rest } = factory
+  return { ...rest, legalName: name }
+}
+
 export const customerHandlers = [
-  // Customers (EncargadoCliente) ------------------------------------------
+  // Managers (EncargadoCliente) --------------------------------------------
   // Item operations are nested under the owning factory because a manager is
-  // identified by the composite key (factoryId, id); `/customers` stays as the
+  // identified by the composite key (factoryId, id); `/managers` stays as the
   // flat global list only.
-  http.get('/api/customers', ({ request }) => {
+  http.get('/api/managers', ({ request }) => {
     const url = new URL(request.url)
     const pageParams = readPageParams(url)
     if (!pageParams) return apiError(request, 400, PAGE_LIMIT_ERROR)
@@ -139,7 +150,7 @@ export const customerHandlers = [
     return HttpResponse.json(paginate(sorted, pageParams))
   }),
 
-  http.get('/api/factories/:factoryId/customers/:id', ({ request, params }) => {
+  http.get('/api/factories/:factoryId/managers/:id', ({ request, params }) => {
     const factoryId = String(params.factoryId)
     const id = String(params.id)
     const customer = findCustomer(factoryId, id)
@@ -147,7 +158,7 @@ export const customerHandlers = [
     return HttpResponse.json(customer)
   }),
 
-  http.post('/api/factories/:factoryId/customers', async ({ request, params }) => {
+  http.post('/api/factories/:factoryId/managers', async ({ request, params }) => {
     const factoryId = String(params.factoryId)
     // Un encargado sólo se agrega a una fábrica que existe y está activa.
     const factory = findFactory(factoryId)
@@ -158,7 +169,7 @@ export const customerHandlers = [
     const fields = toCustomerFields(request, body)
     if (fields instanceof Response) return fields
     if (mailTaken(factoryId, fields.mail)) {
-      return apiError(request, 409, `Customer with mail "${fields.mail}" already exists`)
+      return apiError(request, 409, `Manager with mail "${fields.mail}" already exists`)
     }
 
     const created: Customer = { ...fields, factoryId, id: nextCustomerId(factoryId), isActive: true }
@@ -168,19 +179,19 @@ export const customerHandlers = [
 
   // Must precede the generic ":id" PATCH so the extra path segment is not
   // mistaken for an id. Answers 204 No Content, like the backend.
-  http.patch('/api/factories/:factoryId/customers/:id/deactivate', ({ request, params }) => {
+  http.patch('/api/factories/:factoryId/managers/:id/deactivate', ({ request, params }) => {
     const factoryId = String(params.factoryId)
     const id = String(params.id)
     const customer = findCustomer(factoryId, id)
     if (!customer) return customerNotFound(request, factoryId, id)
     if (!customer.isActive) {
-      return apiError(request, 409, `Customer ${id} in factory ${factoryId} is already inactive`)
+      return apiError(request, 409, `Manager ${id} in factory ${factoryId} is already inactive`)
     }
     customer.isActive = false
     return new HttpResponse(null, { status: 204 })
   }),
 
-  http.patch('/api/factories/:factoryId/customers/:id', async ({ request, params }) => {
+  http.patch('/api/factories/:factoryId/managers/:id', async ({ request, params }) => {
     const factoryId = String(params.factoryId)
     const id = String(params.id)
     const body = (await request.json()) as CustomerBody
@@ -199,7 +210,7 @@ export const customerHandlers = [
     })
     if (fields instanceof Response) return fields
     if (mailTaken(factoryId, fields.mail, id)) {
-      return apiError(request, 409, `Customer with mail "${fields.mail}" already exists`)
+      return apiError(request, 409, `Manager with mail "${fields.mail}" already exists`)
     }
     // La identidad compuesta (factoryId, id) no cambia nunca.
     Object.assign(customer, fields)
@@ -220,20 +231,21 @@ export const customerHandlers = [
     if (categoryId) result = result.filter((f) => f.categoryId === categoryId)
     if (activeParam !== null) result = result.filter((f) => f.isActive === (activeParam === 'true'))
     if (nameContains) result = result.filter((f) => normalizeText(f.name).includes(nameContains))
-    return HttpResponse.json(paginate(result, pageParams))
+    const page = paginate(result, pageParams)
+    return HttpResponse.json({ ...page, items: page.items.map(toWireFactory) })
   }),
 
   http.get('/api/factories/:id', ({ request, params }) => {
     const id = String(params.id)
     const factory = findFactory(id)
     if (!factory) return factoryNotFound(request, id)
-    return HttpResponse.json(factory)
+    return HttpResponse.json(toWireFactory(factory))
   }),
 
   http.post('/api/factories', async ({ request }) => {
-    const body = (await request.json()) as FactoryInput
-    const name = body.name?.trim() ?? ''
-    if (!name) return invalid(request, 'name', 'Factory name cannot be empty')
+    const { legalName, ...body } = (await request.json()) as FactoryWireBody
+    const name = legalName?.trim() ?? ''
+    if (!name) return invalid(request, 'legalName', 'Factory name cannot be empty')
     // El backend valida el CUIT con las mismas reglas que shared/lib/cuit.
     const cuit = cuitDigits(body.cuit ?? '')
     if (cuitError(cuit)) return invalid(request, 'cuit', 'CUIT check digit is invalid')
@@ -253,7 +265,7 @@ export const customerHandlers = [
       isActive: true,
     }
     customersDb.factories.push(created)
-    return HttpResponse.json(created, { status: 201 })
+    return HttpResponse.json(toWireFactory(created), { status: 201 })
   }),
 
   // Va antes del PATCH genérico ":id", como los de encargados.
@@ -263,7 +275,7 @@ export const customerHandlers = [
     if (!factory) return factoryNotFound(request, id)
     if (!factory.isActive) return apiError(request, 409, `Factory with ID ${id} is already inactive`)
     if (customersDb.customers.some((c) => c.factoryId === id && c.isActive)) {
-      return apiError(request, 409, `Factory with ID ${id} has active customers and cannot be deactivated`)
+      return apiError(request, 409, `Factory with ID ${id} has active managers and cannot be deactivated`)
     }
     factory.isActive = false
     return new HttpResponse(null, { status: 204 })
@@ -272,8 +284,8 @@ export const customerHandlers = [
   http.patch('/api/factories/:id', async ({ request, params }) => {
     const id = String(params.id)
     // El CUIT no se modifica: el DTO no lo declara y el whitelist lo descarta.
-    const { cuit: _ignored, ...body } = (await request.json()) as Partial<FactoryInput>
-    if (Object.values(body).every((value) => value === undefined)) {
+    const { cuit: _ignored, legalName, ...body } = (await request.json()) as Partial<FactoryWireBody>
+    if (legalName === undefined && Object.values(body).every((value) => value === undefined)) {
       return apiError(request, 400, 'At least one field must be provided')
     }
     const factory = findFactory(id)
@@ -282,18 +294,18 @@ export const customerHandlers = [
       const badCategory = categoryProblem(request, body.categoryId)
       if (badCategory) return badCategory
     }
-    if (body.name !== undefined) {
-      if (!body.name.trim()) return invalid(request, 'name', 'Factory name cannot be empty')
-      if (nameTaken(body.name, id)) {
-        return apiError(request, 409, `Factory with name "${body.name.trim()}" already exists`)
+    if (legalName !== undefined) {
+      if (!legalName.trim()) return invalid(request, 'legalName', 'Factory name cannot be empty')
+      if (nameTaken(legalName, id)) {
+        return apiError(request, 409, `Factory with name "${legalName.trim()}" already exists`)
       }
     }
     Object.assign(factory, {
-      ...(body.name !== undefined ? { name: body.name.trim() } : {}),
+      ...(legalName !== undefined ? { name: legalName.trim() } : {}),
       ...(body.address !== undefined ? { address: body.address.trim() } : {}),
       ...(body.payMethod !== undefined ? { payMethod: body.payMethod.trim() } : {}),
       ...(body.categoryId !== undefined ? { categoryId: String(body.categoryId) } : {}),
     })
-    return HttpResponse.json(factory)
+    return HttpResponse.json(toWireFactory(factory))
   }),
 ]

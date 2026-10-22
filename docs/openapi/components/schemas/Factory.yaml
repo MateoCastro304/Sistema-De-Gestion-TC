@@ -1,7 +1,7 @@
 type: object
 description: |
   Fábrica cliente: la persona jurídica a la que se factura. Sus personas de
-  contacto son los encargados (`/factories/{factoryId}/customers`).
+  contacto son los encargados (`/factories/{factoryId}/managers`).
 
   La baja es lógica (`PATCH /factories/{id}/deactivate`): una fábrica dada de
   baja se sigue devolviendo con `isActive` en `false`.
@@ -10,7 +10,7 @@ description: |
   string, y los campos opcionales vacíos como `""` en vez de `null`.
 required:
   - id
-  - name
+  - legalName
   - cuit
   - address
   - payMethod
@@ -23,7 +23,7 @@ properties:
     description: Identificador único (entero serializado como string).
     readOnly: true
     example: '1'
-  name:
+  legalName:
     type: string
     maxLength: 100
     description: Razón social. Única entre las fábricas activas, sin distinguir mayúsculas.

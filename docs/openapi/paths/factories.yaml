@@ -45,7 +45,7 @@ get:
           example:
             items:
               - id: '1'
-                name: OxyCAM S.A.
+                legalName: OxyCAM S.A.
                 cuit: '33709123454'
                 address: Ruta 9 Km 12, Córdoba
                 payMethod: Transferencia a 30 días
@@ -81,7 +81,7 @@ post:
         schema:
           $ref: '../components/schemas/FactoryCreate.yaml'
         example:
-          name: OxyCAM S.A.
+          legalName: OxyCAM S.A.
           cuit: 33-70912345-4
           address: Ruta 9 Km 12, Córdoba
           payMethod: Transferencia a 30 días
@@ -95,7 +95,7 @@ post:
             $ref: '../components/schemas/Factory.yaml'
           example:
             id: '1'
-            name: OxyCAM S.A.
+            legalName: OxyCAM S.A.
             cuit: '33709123454'
             address: Ruta 9 Km 12, Córdoba
             payMethod: Transferencia a 30 días
@@ -169,5 +169,5 @@ post:
                 path: /api/factories
                 timestamp: '2026-10-15T13:00:00.000Z'
                 details:
-                  - field: name
+                  - field: legalName
                     message: Factory with name "OxyCAM S.A." already exists

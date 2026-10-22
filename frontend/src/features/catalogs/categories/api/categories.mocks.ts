@@ -8,10 +8,10 @@ import { categoriesDb, findCategory } from './categories.db'
 
 /**
  * MSW handlers that stand in for the backend's `Categories` module. Copian
- * al backend (`backend/src/categories`), que es lo que la pantalla tiene que
- * soportar: baja lógica con `active`, reactivación con `/restore`, mínimo de
- * 3 caracteres y los mensajes de los 409. Donde difiere del contrato, ver
- * `docs/rubros-desvios-contrato.md`.
+ * al backend (`backend/src/subsystems/customers`), que es lo que la pantalla
+ * tiene que soportar: baja lógica con `active`, reactivación en el alta y con
+ * `/restore`, mínimo de 3 caracteres y los mensajes de los 409. Donde difiere
+ * del contrato, ver `docs/rubros-desvios-contrato.md`.
  */
 
 const NAME_MIN_LENGTH = 3
@@ -71,13 +71,13 @@ export const categoryHandlers = [
     if (invalid) return invalid
 
     const existing = categoriesDb.categories.find((c) => sameName(c.name, body.name))
-    // Si el nombre es de un rubro dado de baja, el 409 trae su id para reactivarlo.
-    if (existing && !existing.active) {
-      return apiError(request, 409, 'El rubro existe pero está dado de baja', {
-        extra: { categoryId: existing.id },
-      })
+    if (existing?.active) return apiError(request, 409, 'Ya existe un rubro con ese nombre')
+    // Como el backend: si el nombre es de un rubro dado de baja, el alta lo
+    // reactiva (conserva su nombre original) y responde 201 con ese rubro.
+    if (existing) {
+      Object.assign(existing, { active: true, updatedAt: new Date().toISOString() })
+      return HttpResponse.json(existing, { status: 201 })
     }
-    if (existing) return apiError(request, 409, 'Ya existe un rubro con ese nombre')
 
     const now = new Date().toISOString()
     const created: Category = {
@@ -110,7 +110,8 @@ export const categoryHandlers = [
     const body = (await request.json()) as CategoryInput
     const invalid = invalidName(request, body.name)
     if (invalid) return invalid
-    if (categoriesDb.categories.some((c) => c.id !== id && c.active && sameName(c.name, body.name))) {
+    // Como el backend: el nombre no puede ser el de otro rubro, activo o dado de baja.
+    if (categoriesDb.categories.some((c) => c.id !== id && sameName(c.name, body.name))) {
       return apiError(request, 409, 'Ya existe un rubro con ese nombre')
     }
     Object.assign(category, { name: body.name.trim(), updatedAt: new Date().toISOString() })

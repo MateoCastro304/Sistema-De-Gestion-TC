@@ -1,0 +1,98 @@
+parameters:
+  - $ref: '../components/parameters/FactoryIdParam.yaml'
+
+post:
+  summary: Registrar encargado
+  description: |
+    **Rol:** `ERP`.
+
+    Agrega un encargado a la fábrica de la ruta. La fábrica tiene que existir y
+    estar activa. Hace falta al menos un contacto (`phone` o `mail`) y el mail,
+    si llega, no puede repetirse entre los encargados activos de la fábrica.
+  operationId: createManager
+  tags:
+    - Encargados
+  x-roles:
+    - ERP
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/ManagerCreate.yaml'
+        example:
+          firstName: Marcela
+          lastName: Ríos
+          phone: +54 9 351 555-1234
+          mail: compras@oxycam.com
+  responses:
+    '201':
+      description: Encargado registrado.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Manager.yaml'
+          example:
+            id: '1'
+            firstName: Marcela
+            lastName: Ríos
+            phone: '+5493515551234'
+            mail: compras@oxycam.com
+            factoryId: '1'
+            isActive: true
+    '400':
+      description: |
+        - `VALIDATION_ERROR`: falta el nombre, algún campo no es válido o no
+          llegó ningún contacto.
+        - `INVALID_PATH_PARAMETER`: `factoryId` no es un entero.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          example:
+            statusCode: 400
+            error: Bad Request
+            code: VALIDATION_ERROR
+            message: 'Manager must have at least one contact: phone or mail'
+            path: /api/factories/1/managers
+            timestamp: '2026-10-15T13:00:00.000Z'
+            details:
+              - field: phone
+                message: 'Manager must have at least one contact: phone or mail'
+    '401':
+      $ref: '../components/responses/Unauthorized.yaml'
+    '403':
+      $ref: '../components/responses/Forbidden.yaml'
+    '404':
+      $ref: '../components/responses/FactoryNotFound.yaml'
+    '409':
+      description: |
+        - `FACTORY_INACTIVE`: la fábrica está dada de baja.
+        - `MANAGER_MAIL_TAKEN`: el mail ya es de otro encargado activo de la
+          fábrica.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/Error.yaml'
+          examples:
+            factoryInactive:
+              summary: FACTORY_INACTIVE
+              value:
+                statusCode: 409
+                error: Conflict
+                code: FACTORY_INACTIVE
+                message: Factory with ID 3 is inactive
+                path: /api/factories/3/managers
+                timestamp: '2026-10-15T13:00:00.000Z'
+            mailTaken:
+              summary: MANAGER_MAIL_TAKEN
+              value:
+                statusCode: 409
+                error: Conflict
+                code: MANAGER_MAIL_TAKEN
+                message: Manager with mail "compras@oxycam.com" already exists
+                path: /api/factories/1/managers
+                timestamp: '2026-10-15T13:00:00.000Z'
+                details:
+                  - field: mail
+                    message: Manager with mail "compras@oxycam.com" already exists

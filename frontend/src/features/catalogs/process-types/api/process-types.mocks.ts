@@ -90,6 +90,23 @@ function readId(request: Request, raw: unknown) {
   return readPathId(request, raw, 'processTypeId', 'El identificador del tipo de proceso no es válido.')
 }
 
+/**
+ * Simula que el backend nunca pudo obtener la cotización del dólar (`502`).
+ * Se prende escribiendo esta clave en `localStorage` (lo hacen los tests E2E
+ * antes de cargar la app); sin ella, `/exchange-rate` responde la cotización.
+ */
+const MOCK_EXCHANGE_RATE_DOWN_KEY = 'castro-mock-exchange-rate-down'
+
+const EXCHANGE_RATE_UNAVAILABLE = 'No se pudo obtener la cotización del dólar. Ingresá el tipo de cambio a mano.'
+
+function exchangeRateUnavailable(): boolean {
+  try {
+    return localStorage.getItem(MOCK_EXCHANGE_RATE_DOWN_KEY) !== null
+  } catch {
+    return false
+  }
+}
+
 /** Los datos cuyo cambio cuenta como modificación (el tipo de cambio solo, no). */
 const TRACKED = ['name', 'description', 'hourlyRateArs', 'hourlyRateUsd'] as const
 
@@ -97,6 +114,9 @@ export const processTypeHandlers = [
   http.get('/api/exchange-rate', ({ request }) => {
     const caller = authorize(request, ROLES)
     if (caller instanceof Response) return caller
+    if (exchangeRateUnavailable()) {
+      return apiError(request, 502, EXCHANGE_RATE_UNAVAILABLE, { code: 'EXCHANGE_RATE_UNAVAILABLE' })
+    }
     return HttpResponse.json(CURRENT_EXCHANGE_RATE)
   }),
 
@@ -170,10 +190,10 @@ export const processTypeHandlers = [
     if (Object.values(body).every((value) => value === undefined)) {
       return validationError(request, [], 'Enviá al menos un campo para modificar.')
     }
-    const row = findProcessTypeRow(id)
-    if (!row) return notFound(request)
     const errors = validate(body, false)
     if (errors.length > 0) return validationError(request, errors)
+    const row = findProcessTypeRow(id)
+    if (!row) return notFound(request)
     if (body.name !== undefined && nameTaken(body.name, id)) return nameConflict(request)
 
     const current = row.processType
@@ -183,29 +203,30 @@ export const processTypeHandlers = [
       ...(body.description !== undefined ? { description: body.description?.trim() || null } : {}),
       ...(body.hourlyRateArs !== undefined ? { hourlyRateArs: body.hourlyRateArs } : {}),
       ...(body.hourlyRateUsd !== undefined ? { hourlyRateUsd: body.hourlyRateUsd } : {}),
-      ...(body.exchangeRate !== undefined ? { exchangeRate: body.exchangeRate } : {}),
     }
 
-    // Cambió de verdad algún dato (no el tipo de cambio solo): toca updatedAt.
+    // El tipo de cambio sólo se guarda junto con un cambio de precio (D-52):
+    // es el que vincula los dos precios. Si llega sin que cambie ningún
+    // precio, se ignora.
+    const pricesChanged =
+      current.hourlyRateArs !== next.hourlyRateArs || current.hourlyRateUsd !== next.hourlyRateUsd
+    if (pricesChanged) next.exchangeRate = body.exchangeRate ?? current.exchangeRate
+
+    // Sin cambios (D-31): 200 con lo que había, sin tocar updatedAt ni el historial.
     const changed = TRACKED.filter((key) => current[key] !== next[key])
-    if (changed.length === 0) {
-      // Sin cambios (D-31): 200 con lo que había. Si sólo cambió el tipo de
-      // cambio se guarda, pero no toca updatedAt ni el historial.
-      row.processType = { ...current, exchangeRate: next.exchangeRate }
-      return HttpResponse.json(row.processType)
-    }
+    if (changed.length === 0) return HttpResponse.json(current)
 
     const changedAt = new Date().toISOString()
     const changedBy = { id: caller.userId, username: findUser(caller.userId)?.username ?? '—' }
     // El historial es de precios, mostrados en dólares (D-32, como la tabla del
     // prototipo): un registro si cambió alguno de los dos precios. Nombre o
     // descripción solos no dejan registro.
-    if (current.hourlyRateArs !== next.hourlyRateArs || current.hourlyRateUsd !== next.hourlyRateUsd) {
+    if (pricesChanged) {
       const entry = {
         id: processTypesDb.nextHistoryId++,
         changedAt,
         changedBy,
-        exchangeRateArs: next.exchangeRate,
+        exchangeRate: next.exchangeRate,
         previousValueUsd: current.hourlyRateUsd,
         newValueUsd: next.hourlyRateUsd,
       }

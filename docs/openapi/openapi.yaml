@@ -156,14 +156,14 @@ paths:
   /factories/{id}/deactivate:
     $ref: './paths/factories@{id}@deactivate.yaml'
 
-  /customers:
-    $ref: './paths/customers.yaml'
-  /factories/{factoryId}/customers:
-    $ref: './paths/factories@{factoryId}@customers.yaml'
-  /factories/{factoryId}/customers/{id}:
-    $ref: './paths/factories@{factoryId}@customers@{id}.yaml'
-  /factories/{factoryId}/customers/{id}/deactivate:
-    $ref: './paths/factories@{factoryId}@customers@{id}@deactivate.yaml'
+  /managers:
+    $ref: './paths/managers.yaml'
+  /factories/{factoryId}/managers:
+    $ref: './paths/factories@{factoryId}@managers.yaml'
+  /factories/{factoryId}/managers/{id}:
+    $ref: './paths/factories@{factoryId}@managers@{id}.yaml'
+  /factories/{factoryId}/managers/{id}/deactivate:
+    $ref: './paths/factories@{factoryId}@managers@{id}@deactivate.yaml'
 
   /suppliers:
     $ref: './paths/suppliers.yaml'

@@ -477,14 +477,17 @@ export function SuppliersPage() {
         gridTemplate={gridTemplate}
         /* Tocar cualquier parte de la fila tilda, no sólo el casillero
            (era el pedido del diseño: en celular es la diferencia entre
-           acertarle y no). Sólo en modo eliminación: fuera de él la
-           fila no tiene por qué reaccionar al click.
+           acertarle y no). Fuera del modo eliminación, tocar la fila abre
+           el detalle, igual que "Ver".
            Es el mismo toggleOne de siempre, así que la lógica de
            selección no cambia. */
         onRowClick={isSelecting ? (s) => toggleOne(s) : undefined}
+        rowHref={(s) => `/catalogos/proveedores/${s.id}`}
         rowClassName={(s) =>
           cn(
             `table__row--${supplierTone(s.supplierType)}`,
+            // El resaltado de selección, sólo mientras se elige qué borrar.
+            isSelecting && 'table__row--selectable',
             // Resalta la fila tildada. Es el mismo `selected` que ya
             // usaba el casillero: no hay estado nuevo.
             selected?.has(s.id) && 'table__row--selected',

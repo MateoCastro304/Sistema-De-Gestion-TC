@@ -23,6 +23,7 @@ import {
   deactivateCustomer,
   deactivateFactory,
   getCustomer,
+  listAllCustomers,
   listCustomers,
   listFactories,
   updateCustomer,
@@ -43,6 +44,21 @@ export function useCustomers(params?: CustomerListParams) {
     queryKey: customerKeys.list(params),
     queryFn: () => listCustomers(params),
     placeholderData: keepPreviousData,
+  })
+}
+
+/**
+ * Todos los customers que matchean el filtro (sin `page`/`limit`: pagina
+ * internamente). Para pantallas que necesitan la lista completa, como contar
+ * encargados activos por fábrica, hasta que el backend ofrezca un conteo
+ * dedicado (DTC-54).
+ */
+export function useAllCustomers(
+  params?: Omit<CustomerListParams, 'page' | 'limit'>,
+) {
+  return useQuery({
+    queryKey: [...customerKeys.lists(), 'all', params ?? {}] as const,
+    queryFn: () => listAllCustomers(params),
   })
 }
 

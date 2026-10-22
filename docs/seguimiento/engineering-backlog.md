@@ -65,7 +65,7 @@ Definido a alto nivel en [ADR-009](../decisiones/009-deploy-infrastructure.md) (
 
 | Hecho | Pri | Ítem | Responsable |
 | :--: | :-: | --- | --- |
-| [ ]  | P2  | **Agregar pruebas.** El frontend no tiene ninguna. Definir las herramientas (Vitest + Testing Library es la opción habitual con Vite; MSW ya está instalado para simular la API) y agregar `npm test` al job `frontend`. |       |
+| [ ]  | P2  | **Completar las pruebas.** Ya hay pruebas E2E con Playwright en `frontend/e2e/`, que corren contra los mocks de MSW (`npm run test:e2e:sprint1` y `test:e2e:sprint2`; ver `frontend/frontend-Documents/TESTING.md`). Falta: pruebas unitarias de la lógica suelta (Vitest + Testing Library es la opción habitual con Vite) y sumar las pruebas al job `frontend` de la CI. |       |
 | [ ]  | P2  | **Agregar Prettier** (misma configuración que el backend) y `format:check` a la CI. Hoy el formato es inconsistente (punto y coma e indentación mezclados). Formatear en un único commit dedicado. |       |
 | [ ]  | P2  | **Corregir bien las promesas flotantes** (`invalidateQueries`, `navigate`): decidir en cada caso si hacer `await`/devolver la promesa o marcarla con `void`. Devolver `invalidateQueries` desde `onSuccess` cambia el momento en que se resuelve la mutación. |       |
 | [ ]  | P3  | **Revisar la dependencia `features/` → `app/providers`.** La configuración de lint la permite como excepción deliberada. La alternativa es mover `ToastContext` a `shared/` (existe una carpeta vacía `shared/components/feedback/` para eso). |       |

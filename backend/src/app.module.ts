@@ -2,10 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './shared/infrastructure/prisma/prisma.module';
 import { HealthModule } from './health/health.module';
-import { CustomersModule } from './customers/customers.module';
-import { SuppliersModule } from './suppliers/suppliers.module';
-import { CategoriesModule } from './categories/categories.module';
-import { FactoryModule } from './factory/factory.module';
+import { CustomersModule } from './subsystems/customers/infrastructure/customers.module';
+import { SuppliersModule } from './subsystems/supplier/infrastructure/suppliers.module';
 
 import { validate } from './config/env.validation';
 
@@ -19,8 +17,6 @@ import { validate } from './config/env.validation';
     HealthModule,
     CustomersModule,
     SuppliersModule,
-    CategoriesModule,
-    FactoryModule,
   ],
   controllers: [],
   providers: [],

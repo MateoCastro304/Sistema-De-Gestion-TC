@@ -10,7 +10,7 @@ Guía de incorporación: cómo poner en funcionamiento el proyecto localmente de
 | ------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | **Docker** + **Docker Compose** | `docker --version` / `docker compose version` |
 | **make** | Preinstalado en Linux/Mac. En Windows: usar WSL o Git Bash con `make` instalado (`choco install make`). |
-| **Node.js** | Solo es necesario si planeás ejecutar herramientas del backend o frontend fuera de Docker. No es necesario para el flujo habitual. |
+| **Node.js** | Solo es necesario si planeás ejecutar herramientas del backend o frontend fuera de Docker, por ejemplo el frontend sin backend o sus pruebas E2E (ver [sección 6](#frontend-sin-backend-y-sus-pruebas)). No es necesario para el flujo habitual. |
 
 > El flujo habitual de desarrollo ejecuta el **backend, frontend y PostgreSQL** dentro de Docker. No es necesario instalar Node.js localmente, salvo que quieras ejecutar herramientas del proyecto directamente en tu máquina.
 
@@ -320,6 +320,33 @@ make seed
 
 para recrear el esquema de la base de datos y cargar los datos de desarrollo.
 
+### Frontend sin backend y sus pruebas
+
+El frontend también puede ejecutarse **fuera de Docker y sin backend**, con la API simulada en el navegador ([ADR-011](decisiones/011-frontend-api-mocks.md)). Sirve para trabajar en pantallas cuyo endpoint todavía no existe y es lo que usan las pruebas E2E del frontend. Requiere Node.js 20 o superior.
+
+Desde `frontend/`, con `VITE_USE_MOCKS=true` en `frontend/.env.local`:
+
+```bash
+npm install
+npm run dev
+```
+
+Las peticiones a `/api` las responden los mocks, con datos de prueba que vuelven a su estado inicial al recargar la página. Sin esa variable, o con `false`, van al backend real. Los usuarios de prueba y el detalle de los mocks están en [MOCKS.md](../frontend/frontend-Documents/MOCKS.md).
+
+Para las pruebas E2E del frontend ([ADR-012](decisiones/012-frontend-e2e-tests.md)), la primera vez hay que instalar el navegador de Playwright:
+
+```bash
+npx playwright install chromium
+```
+
+Después, desde `frontend/`:
+
+```bash
+npm run test:e2e:sprint1
+```
+
+Las pruebas levantan solas el frontend con los mocks en el puerto 5180: no hace falta tener nada corriendo. Las del Sprint 1 tienen que pasar siempre; las del Sprint 2 (`npm run test:e2e:sprint2`) fallan hasta que existan sus pantallas. Más opciones en [TESTING.md](../frontend/frontend-Documents/TESTING.md).
+
 ---
 
 ## 7. Producción
@@ -392,6 +419,8 @@ Nunca incluyas este archivo en un commit del repositorio.
 | Los cambios de código no se reflejan en el backend | Confirmá que el montaje de enlace del backend esté activo en la configuración Compose de desarrollo. |
 | Los cambios de código no se reflejan en el frontend | Confirmá que el montaje de enlace del frontend y el servidor de desarrollo Vite se ejecuten correctamente dentro del contenedor del frontend. |
 | Los cambios de dependencias no se reflejan | Reconstruí la imagen afectada con `make backend-build` o `make frontend-build`. |
+| Todas las pruebas E2E del frontend fallan en milisegundos con `Executable doesn't exist` | Falta el navegador de Playwright: ejecutá `npx playwright install chromium` desde `frontend/`. Pasa la primera vez y cada vez que se actualiza Playwright. |
+| `npm run lint` del frontend falla en archivos de `e2e/.report/` | Quedó el reporte de una prueba fallida y ESLint no ignora esa carpeta. Borrá `frontend/e2e/.report` y `frontend/e2e/.results`. |
 | Desaparecieron los datos de la base de datos | `make dev-down-v` o `make clean` pueden haber eliminado el volumen Docker que contiene la base de datos de desarrollo. |
 | Swagger UI no refleja un cambio del contrato | Ejecutá `make openapi-docs-build` y recargá con `Ctrl+F5`. Swagger lee `build/openapi.yaml`, que solo regenera `openapi-build`. |
 | «Try it out» de Swagger falla con un error de CORS | `ALLOWED_ORIGINS` en `.env.dev` debe incluir `http://localhost:8081`. Recreá el contenedor del backend después de cambiarlo. |

@@ -1,15 +1,15 @@
 type: object
 description: |
   Alta de fábrica. Queda activa y sin encargados; se agregan después con
-  `POST /factories/{factoryId}/customers`. Un campo opcional vacío (`""`) se
+  `POST /factories/{factoryId}/managers`. Un campo opcional vacío (`""`) se
   guarda como `null`.
 additionalProperties: false
 required:
-  - name
+  - legalName
   - cuit
   - categoryId
 properties:
-  name:
+  legalName:
     type: string
     minLength: 1
     maxLength: 100

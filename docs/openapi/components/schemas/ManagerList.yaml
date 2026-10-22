@@ -1,0 +1,29 @@
+type: object
+description: Página de encargados, con el total que cumple los filtros.
+required:
+  - items
+  - total
+  - page
+  - limit
+properties:
+  items:
+    type: array
+    items:
+      $ref: './Manager.yaml'
+  total:
+    type: integer
+    format: int64
+    minimum: 0
+    description: Total de encargados que cumplen los filtros.
+    example: 23
+  page:
+    type: integer
+    minimum: 1
+    description: Página devuelta.
+    example: 1
+  limit:
+    type: integer
+    minimum: 1
+    maximum: 100
+    description: Tamaño de página aplicado.
+    example: 20
