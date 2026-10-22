@@ -9,6 +9,8 @@ Relevamiento del 15 de octubre de 2026 sobre `develop`. Reemplaza en la práctic
 | A-01 | Código de fábrica (CU-58) | P1 | Pendiente |
 | A-02 | Tests de integración y API sin verificar | P1 | Pendiente |
 | A-03 | Borrar ramas remotas ya mergeadas u obsoletas | P2 | Pendiente |
+| A-04 | Baja con `DELETE` en fábricas y encargados | P2 | Pendiente |
+| A-05 | Mover `supplier` a `technical-catalog` | P2 | Pendiente |
 | H-01 | Contrato y documentación desactualizados | P1 | Pendiente |
 | H-02 | Backend: detalles menores | P2 | Pendiente |
 | H-03 | Frontend: deuda técnica | P2 | Pendiente |
@@ -92,6 +94,38 @@ feature/tests-clients                    # tests de fábricas y encargados, marc
 ```
 
 Comando para borrar una rama remota: `git push origin --delete <nombre>`.
+
+## A-04 · P2 · Baja con `DELETE` en fábricas y encargados
+
+La [arquitectura del backend](../arquitectura/backend.md#persistencia) define que la baja, aunque sea lógica (`isActive = false`), se expone con `DELETE`. Rubros y proveedores ya lo hacen. Fábricas y encargados todavía usan:
+
+- `PATCH /factories/{id}/deactivate`
+- `PATCH /factories/{factoryId}/managers/{id}/deactivate`
+
+Hay que pasarlos a `DELETE /factories/{id}` y `DELETE /factories/{factoryId}/managers/{id}`. El cambio toca:
+
+| Capa | Cambio |
+|---|---|
+| Contrato | `factories@{id}@deactivate.yaml` y `factories@{factoryId}@managers@{id}@deactivate.yaml` → operación `delete` en los paths del recurso; `openapi.yaml` |
+| Backend | `FactoryController` y `ManagersController` |
+| Tests | Integración de fábricas y encargados |
+| Frontend | Llamadas a la API y mocks de MSW |
+
+**Antes de empezar, hay que decidir** qué responde una segunda baja sobre un registro ya inactivo. Hoy las dos rutas responden 409, rubros no da error y proveedores responde 404. Es parte de [DA-03](../arquitectura/backend.md#decisiones-pendientes).
+
+**Riesgo.** Es un cambio que rompe a los clientes de la API: backend, contrato y frontend tienen que salir juntos.
+
+## A-05 · P2 · Mover `supplier` a `technical-catalog`
+
+El [ADR-014](../decisiones/014-subsistemas.md) ubica a los proveedores dentro del subsistema `technical-catalog`, junto con materiales, tipos de proceso y tipo de cambio. Hoy viven en `backend/src/subsystems/supplier` (en singular), con su propio `SuppliersModule`.
+
+Es un refactor **sin cambio funcional**. Conviene hacerlo cuando se cree `technical-catalog` con las historias del Sprint 2, para no mover el código dos veces:
+
+- mover `core/` e `infrastructure/` a `subsystems/technical-catalog/`;
+- unificar el módulo de NestJS;
+- actualizar los imports y `app.module.ts`.
+
+No se renombran los archivos existentes ([convención de nombres](../arquitectura/backend.md#nombres-e-idioma)).
 
 ---
 
