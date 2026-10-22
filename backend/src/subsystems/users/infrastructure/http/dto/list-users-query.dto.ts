@@ -1,6 +1,7 @@
 import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
-import { ROLES, Role } from '../../../core/domain/value-objects/role';
+import { ROLES } from '../../../core/domain/value-objects/role';
+import type { Role } from '../../../core/domain/value-objects/role';
 
 // Propio de users, sin depender de shared/domain/pagination.ts a propósito.
 const MAX_PAGE_LIMIT = 100;

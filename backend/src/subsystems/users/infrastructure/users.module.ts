@@ -5,7 +5,7 @@ import { ListUsers } from '../core/application/use-cases/list-users.use-case';
 import { UsersRepository } from '../core/domain/ports/users.repository';
 import { PasswordHasher } from '../core/domain/ports/password-hasher.port';
 import { UsersController } from './http/controllers/users.controller';
-import { InMemoryUsersRepository } from './persistence/in-memory/in-memory-users.repository';
+import { UsersPrismaRepository } from './persistence/prisma/users-prisma.repository';
 import { BcryptPasswordHasher } from './bcrypt-password-hasher';
 
 /**
@@ -22,7 +22,7 @@ import { BcryptPasswordHasher } from './bcrypt-password-hasher';
     CreateUser,
     GetUserById,
     ListUsers,
-    { provide: UsersRepository, useClass: InMemoryUsersRepository },
+    { provide: UsersRepository, useClass: UsersPrismaRepository },
     { provide: PasswordHasher, useClass: BcryptPasswordHasher },
   ],
 })
