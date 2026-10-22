@@ -59,9 +59,11 @@ Cada PR se utilizar al subir cambios a main y debe:
 
 ## La regla de las variables de entorno
 
-**Si tu PR introduce una variable de entorno nueva, debe actualizar `.env.example` en el mismo commit.**
+**Si tu PR introduce una variable de entorno nueva, debe actualizar el `.env.example` que corresponda en el mismo commit**: `infrastructure/docker/.env.example` (el que usa Docker) y `backend/.env.example` si es del backend, o `frontend/.env.example` si es del frontend. Si es del backend, también tiene que agregarse a `backend/src/config/env.validation.ts`.
 
-Esta es la causa más común de errores de «en mi máquina funciona» cuando trabajan varios desarrolladores: alguien agrega una variable localmente, se olvida de avisar al equipo y el `docker compose up` de la siguiente persona falla con un error confuso. Hasta que tengamos una validación automática para esto (prevista para el Sprint 1), se exige mediante convenciones y revisión de PR: quienes revisan deben rechazar un PR que agregue configuración sin modificar `.env.example`.
+Esta es la causa más común de errores de «en mi máquina funciona» cuando trabajan varios desarrolladores: alguien agrega una variable localmente, se olvida de avisar al equipo y el `docker compose up` de la siguiente persona falla con un error confuso.
+
+El backend valida sus variables al arrancar, así que una variable obligatoria que falta hace fallar el arranque con un mensaje claro. Pero la validación no sabe si `.env.example` está al día: eso se sigue exigiendo en la revisión de PR. Quienes revisan deben rechazar un PR que agregue configuración sin modificar `.env.example`, y los valores de ejemplo tienen que pasar la validación, para que una copia recién hecha de `.env.example` funcione sin cambios.
 
 ## Primero el contrato: cambios en la especificación OpenAPI
 

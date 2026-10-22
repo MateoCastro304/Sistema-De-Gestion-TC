@@ -255,6 +255,16 @@ El proceso de despliegue constará de las siguientes etapas:
 
    > Esta frecuencia difiere de [RNF14](../dominio/03-requerimientos.md#rnf14--confiabilidad--backups-y-recuperación) (respaldo diario, ≥ 15 copias); ver [inconsistencias documentales](../seguimiento/inconsistencias-documentales.md#requisitos-y-adr).
 
+### Configuración por entorno y secretos
+
+La configuración se inyecta por variables de entorno, nunca dentro de las imágenes:
+
+- Hay un archivo por entorno en `infrastructure/docker/` (`.env.dev`, `.env.prod`, `.env.test`), fuera del control de versiones. Se crea a partir de `.env.example`, el único versionado, que lista todas las variables con valores de ejemplo.
+- Docker Compose recibe ese archivo dos veces: con `--env-file`, para interpolar las credenciales de PostgreSQL en los compose, y con `env_file`, como entorno del backend. `DATABASE_URL` no se define a mano: la arma el compose con esas credenciales y el host del servicio `postgres`.
+- El backend valida sus variables al arrancar (`backend/src/config/env.validation.ts`) y, si falta una o tiene un formato inválido, no levanta. Así un error de configuración aparece en el despliegue y no en el primer pedido de un usuario. Entre otras cosas, exige secretos JWT de al menos 32 caracteres y distintos entre sí.
+- El frontend no recibe variables por entorno: llama a la API en `/api` y Nginx hace el reenvío en todos los entornos, así que la misma compilación sirve para desarrollo y producción.
+- En producción, `.env.prod` vive solo en la instancia EC2, con secretos propios generados para ese entorno. Mover estos secretos a AWS Secrets Manager o SSM Parameter Store queda como evolución futura.
+
 ### Arquitectura de CI/CD
 
 El proceso de CI/CD seguirá este flujo general:
@@ -369,5 +379,6 @@ Las posibles mejoras futuras incluyen:
 - Recuperación ante desastres más avanzada
 - Infraestructura de procesos de trabajo dedicada para servicios Python
 - Infraestructura como código con Terraform o AWS CloudFormation
+- Gestión de secretos con AWS Secrets Manager o SSM Parameter Store, en lugar de `.env.prod` en la instancia
 
 Estas mejoras quedan fuera del alcance de los requisitos actuales de despliegue.

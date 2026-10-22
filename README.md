@@ -10,7 +10,7 @@
 Requirements: Docker, Docker Compose, and `make`.
 
 ```bash
-# 1. Configure environment variables (see the full guide in SETUP.md)
+# 1. Configure environment variables (see the full guide in docs/SETUP.md)
 cp infrastructure/docker/.env.example infrastructure/docker/.env.dev
 
 # 2. Start the project
@@ -24,4 +24,4 @@ The API is available at `http://localhost:3000`. The API contract (Swagger UI) i
 
 See all available commands with `make help`.
 
-📖 Full setup guide, environment variables, and troubleshooting: **[SETUP.md](./SETUP.md)**
+📖 Full setup guide, environment variables, and troubleshooting: **[SETUP.md](./docs/SETUP.md)**
