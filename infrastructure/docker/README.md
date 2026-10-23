@@ -21,10 +21,11 @@ docker/
 ├── docker-compose.yaml        # Base compose configuration (shared by all environments)
 ├── docker-compose.dev.yaml    # Development environment overrides
 ├── docker-compose.prod.yaml   # Production environment overrides
-├── .env                       # Shared Compose interpolation defaults (development only)
-├── .env.dev                   # Development environment variables
-├── .env.prod                  # Production environment variables
-├── .env.example               # Template for environment variables
+├── docker-compose.test.yaml   # Test environment overrides (production images + seed)
+├── .env.example               # Template for environment variables (the only tracked one)
+├── .env.dev                   # Development variables (gitignored, created from .env.example)
+├── .env.prod                  # Production variables (gitignored, created from .env.example)
+├── .env.test                  # Test variables (gitignored, created from .env.example)
 ├── postgres/
 │   ├── Dockerfile             # PostgreSQL container image configuration
 │   └── init/                  # Initialization scripts (executed on first container start)
@@ -97,24 +98,57 @@ The React + Vite application built from `frontend/Dockerfile`.
 
 Vite bakes environment variables into the compiled JavaScript at **build time**, not runtime. This means variables like `VITE_API_URL` cannot be passed the same way as backend variables (`env_file`, read by a running process) — there is no running process reading them in the `production` stage, only Nginx serving static files.
 
-Instead, these are passed as Docker build arguments:
+Today no build argument is needed: the frontend calls the API at `/api` (the default of `VITE_API_URL`, see `frontend/src/shared/api/http.ts`), and Nginx forwards `/api` to the backend in every environment (ADR-009). The same build works in dev and prod, so the Dockerfile declares no `ARG` and the compose files pass no `build.args`.
 
-- The Dockerfile declares `ARG VITE_API_URL` + `ENV VITE_API_URL=$VITE_API_URL` in the `build` stage, before `RUN npm run build`.
-- The compose overrides (`docker-compose.dev.yaml` / `docker-compose.prod.yaml`) pass the value via `build.args`, sourced from `${VITE_API_URL}` in `.env.dev` / `.env.prod` respectively — since the value differs per environment (e.g. `http://localhost:3000` in dev vs. the real domain in prod).
-
-Any new `VITE_`-prefixed variable follows the same rule as backend variables: it must be added to `.env.example` in the same commit that introduces it (see `CONTRIBUTING.md`).
+If a `VITE_` variable ever has to differ per environment, it must be passed as a build argument (`ARG` + `ENV` in the `build` stage, before `RUN npm run build`, and `build.args` in the compose override), never through `env_file`. Like any other variable, it must be added to `frontend/.env.example` in the same commit that introduces it (see `CONTRIBUTING.md`).
 
 ## Environment Variables
 
-Environment variables are loaded from `.env.dev` or `.env.prod` files depending on the environment.
-
 ### Configuration Files
 
-| File           | Purpose                                                            |
-| -------------- | ------------------------------------------------------------------ |
-| `.env.example` | Template with all required variables (check-in to version control) |
-| `.env.dev`     | Development environment (gitignored, local development only)       |
-| `.env.prod`    | Production environment (gitignored, sensitive data)                |
+| File           | Purpose                                                                        |
+| -------------- | ------------------------------------------------------------------------------ |
+| `.env.example` | Template with every variable, with example values (tracked in version control) |
+| `.env.dev`     | Development (gitignored). Used by `make dev-*`                                 |
+| `.env.prod`    | Production (gitignored, real secrets). Used by `make prod-*`                   |
+| `.env.test`    | Test stack (gitignored). Used by `make test-*`                                 |
+
+Each file is created by copying `.env.example` and adjusting the values. The Makefile uses the same file twice:
+
+- `--env-file`: Compose interpolates `${POSTGRES_USER}`, `${POSTGRES_PASSWORD}` and `${POSTGRES_DB}` in the compose files (the `postgres` service and the `DATABASE_URL` anchor).
+- `env_file`: the `backend` container receives every variable in the file as its environment.
+
+There is no `.env` in this directory: Compose only reads the file passed with `--env-file`. Running `docker compose` by hand without that flag leaves the `POSTGRES_*` variables empty.
+
+### Validation
+
+The backend validates its variables on startup (`backend/src/config/env.validation.ts`). If one is missing or invalid, the container exits with the list of errors in `make dev-logs` (or `make backend-logs`). The values in `.env.example` are examples that pass this validation, so a fresh copy works for development as is. They must never be used in production.
+
+### Variables
+
+| Variable | Required | Used by | Description |
+| --- | :-: | --- | --- |
+| `POSTGRES_USER` | Yes | Compose | Database user. Also used in `DATABASE_URL` |
+| `POSTGRES_PASSWORD` | Yes | Compose | Database password. Also used in `DATABASE_URL` |
+| `POSTGRES_DB` | Yes | Compose | Database name. Also used in `DATABASE_URL` |
+| `NODE_ENV` | Yes | Backend | `development`, `production` or `test` |
+| `PORT` | Yes | Backend | Port the backend listens on inside the container (`3000`; the healthcheck and Nginx assume it) |
+| `DATABASE_URL` | — | Backend | **Do not set it.** `docker-compose.yaml` builds it from the `POSTGRES_*` variables and the `postgres` service host |
+| `JWT_SECRET` | Yes | Backend | Access token signing secret. At least 32 characters |
+| `JWT_REFRESH_SECRET` | Yes | Backend | Refresh token signing secret. At least 32 characters and **different from `JWT_SECRET`** |
+| `JWT_EXPIRATION` | No | Backend | Access token lifetime (`15m`, `1h`…). Default `15m` |
+| `JWT_REFRESH_EXPIRATION` | No | Backend | Refresh token lifetime (`7d`…). Default `7d` |
+| `ALLOWED_ORIGINS` | No | Backend | Comma-separated CORS origins. Dev: `http://localhost:8081` (Swagger UI). Leave it unset in prod |
+| `STORAGE_DRIVER` | No | Backend | `local` (default) or `s3` |
+| `S3_BUCKET`, `S3_REGION` | If `s3` | Backend | Required only when `STORAGE_DRIVER=s3` |
+
+To generate a secret:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+Run it once per secret: two runs, two different values.
 
 ### OpenAPI Build Service (Development Only)
 
@@ -158,27 +192,6 @@ The official `swaggerapi/swagger-ui` image (no custom Dockerfile) serving the co
 - `http://localhost:3000`: the backend directly, without Nginx and without `/api`. Everything works except `/auth/refresh` and `/auth/logout`, which never receive the cookie.
 
 Since the page is served from another origin (`:8081`), the backend enables CORS for the origins listed in `ALLOWED_ORIGINS`, with `credentials: true`. `WITH_CREDENTIALS=true` makes Swagger UI send its requests with `credentials: 'include'`, so the browser stores the cookie set by `POST /auth/login` and sends it back to `/auth/refresh` and `/auth/logout`. Both sides are needed: without either, the browser drops the `Set-Cookie`.
-
-### Required Variables
-
-```bash
-# Database
-POSTGRES_USER=              # PostgreSQL user
-POSTGRES_PASSWORD=          # PostgreSQL password
-POSTGRES_DB=                # Database name
-POSTGRES_PORT=              # Port to expose (usually 5432)
-
-# Backend
-PORT=                       # Backend application port (usually 3000)
-NODE_ENV=                   # Environment (development or production)
-DATABASE_URL=               # Connection string (constructed from other vars)
-JWT_SECRET=                 # Secret for JWT token signing
-JWT_REFRESH_SECRET=         # Secret for refresh tokens
-ALLOWED_ORIGINS=            # Optional. Comma-separated CORS origins (dev: http://localhost:8081; unset in prod)
-
-# Frontend (build-time only, see note above)
-VITE_API_URL=                # Base URL the frontend uses to reach the backend API
-```
 
 ## Usage
 
@@ -228,7 +241,7 @@ make shell-db
 
 ## Development Environment Setup
 
-Compose reads `.env` for variable interpolation in the base configuration. The tracked file contains development-only defaults and matches `.env.example`; do not put production credentials in it. The `env_file` used by the development override is a separate, local-only `.env.dev` file. Create it from the template before starting Docker Compose:
+`make dev-*` passes `.env.dev` both to Compose (`--env-file`, for interpolation) and to the backend (`env_file`); see [Environment Variables](#environment-variables). The file is local-only and gitignored. Create it from the template before starting Docker Compose:
 
 ```bash
 cp .env.example .env.dev
@@ -246,13 +259,12 @@ cp .env.example .env.dev
    - Mounts backend and frontend source code as volumes for hot reload
    - Uses development build target with `npm run start:dev` (backend) / `npm run dev` (frontend)
    - Creates persistent volume for database data
-   - Passes `VITE_API_URL` as a build argument for the frontend
+   - Sets the frontend's dev-server variables directly in `environment` (`API_PROXY_TARGET=http://backend:3000`, `VITE_WATCH_POLLING=true`, `VITE_USE_MOCKS=false`)
 
 3. **Environment Variables** (`.env.dev`):
    - Sets NODE_ENV to `development`
-   - Configures accessible ports
-   - Sets database credentials
-   - Sets `VITE_API_URL` pointing to the local backend
+   - Sets database credentials and the JWT secrets (the example values work as is)
+   - Sets `ALLOWED_ORIGINS=http://localhost:8081` so Swagger UI can call the backend
 
 ### Features
 
@@ -276,9 +288,8 @@ cp .env.example .env.dev
 
 3. **Environment Variables** (`.env.prod`):
    - Sets NODE_ENV to `production`
-   - Disables port exposure
-   - Uses production-ready configurations
-   - Sets `VITE_API_URL` to the real production API domain
+   - Uses its own database password and JWT secrets, generated for production and never copied from `.env.example` or `.env.dev`
+   - Leaves `ALLOWED_ORIGINS` unset: the frontend reaches the backend through Nginx from the same origin, so CORS stays disabled
 
 ### Features
 
@@ -430,7 +441,7 @@ This ensures the database is ready before the application attempts to connect. T
 
 1. Check logs: `make dev-logs`
 2. Verify database connectivity: `make shell-db`
-3. Ensure environment variables are set: Check `.env.dev`
+3. Ensure environment variables are set: if the log shows lines like `JWT_SECRET: ...` or `PORT: ...`, the environment validation failed. Compare `.env.dev` with `.env.example` (see [Variables](#variables)) and recreate the container
 4. Check Prisma migrations: `make migrate`
 
 ### Frontend build fails with "file not found" on package.json
@@ -468,7 +479,7 @@ This ensures the database is ready before the application attempts to connect. T
 **Solution**:
 
 1. Stop other containers: `docker compose down` (all projects)
-2. Change port in `.env.dev`: Set `PORT`, `POSTGRES_PORT`, or the frontend's dev port to a different value
+2. Change the host side of the mapping in `docker-compose.dev.yaml` (e.g. `"3001:3000"` or `"5433:5432"`). Do not change `PORT` in `.env.dev`: the healthcheck and Nginx expect the backend on 3000 inside the network
 3. List port usage: `lsof -i :3000` (macOS/Linux) or `netstat -ano | findstr :3000` (Windows)
 
 ### Data persistence issues
@@ -533,7 +544,7 @@ docker compose \
 
 Docker Compose supports environment variable substitution in compose files:
 
-- `${VAR_NAME}`: Expands to the value from `.env` file
+- `${VAR_NAME}`: Expands to the value from the file passed with `--env-file` (`.env.dev`, `.env.prod` or `.env.test`)
 - `$${VAR_NAME}`: Escapes to literal `${VAR_NAME}` (used in shell scripts)
 
 Example in docker-compose.yaml:
@@ -545,7 +556,7 @@ healthcheck:
 
 The double `$$` ensures the variable is passed to the container instead of being expanded by Compose.
 
-This same substitution mechanism (single `$`) is what feeds `VITE_API_URL` into the frontend's `build.args` from `.env.dev` / `.env.prod`.
+This same substitution mechanism (single `$`) is what builds `DATABASE_URL` from the `POSTGRES_*` variables in the `x-database-url` anchor of `docker-compose.yaml`.
 
 ## Pending / Next Steps
 
