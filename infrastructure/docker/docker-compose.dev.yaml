@@ -111,18 +111,46 @@ services:
       - '127.0.0.1:8333:8333'
     networks:
       - torneria-network
+    # Credenciales de backup y admin. Van aparte de .env.dev porque el
+    # backend carga ese archivo entero.
+    env_file:
+      - ./.env.storage.dev
     environment:
       - S3_BUCKET=${S3_BUCKET}
       - S3_BUCKET_UPLOADS=${S3_BUCKET_UPLOADS}
       - S3_BUCKET_BACKUPS=${S3_BUCKET_BACKUPS}
       - S3_BACKEND_ACCESS_KEY=${S3_BACKEND_ACCESS_KEY}
       - S3_BACKEND_SECRET_KEY=${S3_BACKEND_SECRET_KEY}
-      - S3_BACKUP_ACCESS_KEY=${S3_BACKUP_ACCESS_KEY}
-      - S3_BACKUP_SECRET_KEY=${S3_BACKUP_SECRET_KEY}
       - S3_CORS_ORIGINS=${S3_CORS_ORIGINS}
     volumes:
       - ./seaweed:/etc/config:ro
       - seaweed_dev_data:/data
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1:8333/healthz']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # One-shot, como migrate: configura los buckets con la credencial de admin
+  # y termina. Usa la misma API que S3 real.
+  storage-init:
+    image: amazon/aws-cli:2.22.0@sha256:de60944022e023e69cc50e3cfc91766d0788c27586b01fb77806bc435b484a35
+    container_name: torneria-storage-init
+    restart: 'no'
+    entrypoint: ['sh', '/etc/config/init.sh']
+    networks:
+      - torneria-network
+    depends_on:
+      seaweed:
+        condition: service_healthy
+    env_file:
+      - ./.env.storage.dev
+    environment:
+      - S3_BUCKET_UPLOADS=${S3_BUCKET_UPLOADS}
+      - AWS_ENDPOINT_URL=http://seaweed:8333
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      - ./seaweed:/etc/config:ro
 
 volumes:
   postgres_dev_data:

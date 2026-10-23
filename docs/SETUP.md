@@ -22,6 +22,7 @@ Para un desarrollador que ya tiene Docker y `make` instalados, el camino más co
 
 ```bash
 cp infrastructure/docker/.env.example infrastructure/docker/.env.dev
+cp infrastructure/docker/.env.storage.example infrastructure/docker/.env.storage.dev
 ```
 
 Los valores de ejemplo de `.env.example` pasan la validación del backend, así que para desarrollo funcionan sin cambios (ver [sección 3](#3-clonar-el-repositorio-y-configurar-variables-de-entorno)). Luego:
@@ -64,9 +65,10 @@ Completá los archivos de entorno de Docker (no están versionados; cada desarro
 
 ```bash
 cp infrastructure/docker/.env.example infrastructure/docker/.env.dev
+cp infrastructure/docker/.env.storage.example infrastructure/docker/.env.storage.dev
 ```
 
-El backend valida sus variables al arrancar (`backend/src/config/env.validation.ts`) y no levanta si falta alguna o tiene un formato inválido. Los valores de `.env.example` son de ejemplo y **pasan esa validación**, así que para desarrollo podés usarlos tal cual. Lo que contiene:
+El backend valida sus variables al arrancar (`backend/src/config/env.validation.ts`) y no levanta si falta alguna o tiene un formato inválido. Los valores de `.env.example` son de ejemplo y **pasan esa validación**, así que para desarrollo podés usarlos tal cual. `.env.storage.dev` tiene las credenciales de storage que el backend no tiene que ver (backup y admin): va aparte porque el backend carga `.env.dev` entero. Lo que contiene `.env.dev`:
 
 ```env
 POSTGRES_USER=torneria_dev

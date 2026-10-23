@@ -33,6 +33,7 @@ node_modules/
 .env
 .env.*
 !.env.example
+!.env.storage.example
 
 # Credenciales de SeaweedFS ya resueltas. start.sh las genera dentro del
 # contenedor; esto cubre el caso de que alguien las escriba en el repo.

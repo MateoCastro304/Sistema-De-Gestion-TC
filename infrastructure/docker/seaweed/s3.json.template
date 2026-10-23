@@ -30,6 +30,16 @@
         "Write:${S3_BUCKET_BACKUPS}",
         "List:${S3_BUCKET_BACKUPS}"
       ]
+    },
+    {
+      "name": "admin",
+      "credentials": [
+        {
+          "accessKey": "${S3_ADMIN_ACCESS_KEY}",
+          "secretKey": "${S3_ADMIN_SECRET_KEY}"
+        }
+      ],
+      "actions": ["Admin"]
     }
   ]
 }
