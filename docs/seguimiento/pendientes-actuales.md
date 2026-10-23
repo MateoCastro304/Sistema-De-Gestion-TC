@@ -134,15 +134,15 @@ Las [pruebas del backend](../testing/pruebas-backend.md) tienen solo dos niveles
 
 Proveedores es la excepción. Sus pruebas están repartidas en dos carpetas:
 
-- `backend/test/modules/suppliers/int/`: `cu33-register-supplier.int.spec.ts` y `cu35-list-suppliers.int.spec.ts`.
-- `backend/test/modules/suppliers/api/`: cuatro archivos `*.api.spec.ts`, que corren con otra configuración (`test/jest-api.config.ts`, script `test:api`) y que la CI no ejecuta.
+- `backend/test/modules/supplier/int/`: `cu33-register-supplier.int.spec.ts` y `cu35-list-suppliers.int.spec.ts`.
+- `backend/test/modules/supplier/api/`: cuatro archivos `*.api.spec.ts`, que corren con otra configuración (`test/jest-api.config.ts`, script `test:api`) y que la CI no ejecuta.
 
 Varios escenarios están duplicados entre las dos carpetas. Por ejemplo, `cu35-list-suppliers` y `get-suppliers` prueban casi lo mismo.
 
 **Qué hay que hacer:**
 
-1. Unir los escenarios en `backend/test/modules/suppliers/suppliers.int.spec.ts`, sin repetir ninguno y respetando el 70/30 por caso de uso.
-2. Borrar `backend/test/modules/suppliers/api/`, `backend/test/jest-api.config.ts` y el script `test:api` de `backend/package.json`.
+1. Unir los escenarios en `backend/test/modules/supplier/suppliers.int.spec.ts`, sin repetir ninguno y respetando el 70/30 por caso de uso.
+2. Borrar `backend/test/modules/supplier/api/`, `backend/test/jest-api.config.ts` y el script `test:api` de `backend/package.json`.
 3. Quitar la fila de `test:api` de `backend/README.md` y la excepción de `backend/test/README.md`.
 
 Mientras tanto, ningún módulo nuevo crea carpetas `api/` ni `int/`.

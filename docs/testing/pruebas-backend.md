@@ -15,7 +15,7 @@ El backend tiene **solo dos niveles de prueba**.
 | Nivel | Qué ejercita | Dónde vive | Herramientas | Comando |
 | --- | --- | --- | --- | --- |
 | **Unitario** | Una clase aislada: entidad, objeto de valor, caso de uso, mapper. Sin base de datos ni HTTP | `backend/src/**/*.spec.ts`, al lado del archivo que prueba | Jest y repositorios falsos en memoria | `npm test` |
-| **Integración** | Un endpoint completo: controller → caso de uso → dominio → repositorio Prisma → **PostgreSQL real** | `backend/test/modules/<módulo>/*.int.spec.ts` | Jest, Supertest y Testcontainers | `npm run test:int` |
+| **Integración** | Un endpoint completo: controller → caso de uso → dominio → repositorio Prisma → **PostgreSQL real** | `backend/test/modules/<subsistema>/*.int.spec.ts` | Jest, Supertest y Testcontainers | `npm run test:int` |
 
 No hay más niveles:
 
@@ -88,8 +88,8 @@ La configuración está en `backend/test/jest-integration.config.ts`. La suite c
 ### Convenciones
 
 - **Un archivo por recurso o por caso de uso específico:**
-  - por recurso: `test/modules/<módulo>/<recurso>.int.spec.ts`, por ejemplo `categories.int.spec.ts`;
-  - por caso de uso: `test/modules/<módulo>/<caso-de-uso>.int.spec.ts`, por ejemplo `register-supplier.int.spec.ts`. Conviene cuando un caso de uso tiene escenarios suficientes como para ocupar su propio archivo.
+  - por recurso: `test/modules/<subsistema>/<recurso>.int.spec.ts`, por ejemplo `categories.int.spec.ts`;
+  - por caso de uso: `test/modules/<subsistema>/<caso-de-uso>.int.spec.ts`, por ejemplo `register-supplier.int.spec.ts`. Conviene cuando un caso de uso tiene escenarios suficientes como para ocupar su propio archivo.
 
   Hoy todos los archivos son por recurso. Las dos formas son válidas.
 - **Como mucho 5 `describe` por archivo, cada uno con hasta 5 `it`.** Si no alcanza, el archivo se divide por caso de uso. Las variantes del mismo caso van con `it.each`.

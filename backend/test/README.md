@@ -18,8 +18,9 @@ Cada prueba de integración:
 backend/test/
 ├── jest-integration.config.ts
 ├── tsconfig.json
-├── modules/<módulo>/<recurso>.int.spec.ts       ← las pruebas, un archivo por recurso…
-├── modules/<módulo>/<caso-de-uso>.int.spec.ts   ← …o por caso de uso específico
+├── modules/<subsistema>/<recurso>.int.spec.ts       ← las pruebas, un archivo por recurso…
+├── modules/<subsistema>/<caso-de-uso>.int.spec.ts   ← …o por caso de uso específico
+│   (technical-catalog/process-type/ usa <verbo>-<recurso>: post-process-type, get-process-type, get-exchange-rate)
 └── shared/
     ├── harness/    global-setup, global-teardown, container-registry, test-app
     ├── contract/   envelopes.ts → expectData / expectError / expectNoContent
@@ -32,7 +33,7 @@ backend/test/
   - `a<Entidad>Body()` arma el **cuerpo de la petición** con los nombres del contrato y no toca la base.
   - `create<Entidad>()` **guarda** con Prisma el estado previo que necesita la prueba.
 
-> **Excepción heredada.** `modules/suppliers/` tiene sus pruebas repartidas en `int/` y `api/`, con una configuración aparte (`jest-api.config.ts`, script `test:api`) y escenarios duplicados. No es el modelo a seguir: está pendiente unificarlas en `modules/suppliers/*.int.spec.ts` ([A-06](../../docs/seguimiento/pendientes-actuales.md#a-06--p2--unificar-los-tests-de-proveedores-y-quitar-el-nivel-de-api)).
+> **Excepción heredada.** `modules/supplier/` tiene sus pruebas repartidas en `int/` y `api/`, con una configuración aparte (`jest-api.config.ts`, script `test:api`) y escenarios duplicados. No es el modelo a seguir: está pendiente unificarlas en `modules/supplier/*.int.spec.ts` ([A-06](../../docs/seguimiento/pendientes-actuales.md#a-06--p2--unificar-los-tests-de-proveedores-y-quitar-el-nivel-de-api)).
 
 ## Convenciones
 
@@ -78,5 +79,5 @@ Hace falta Docker. El script usa `node --experimental-vm-modules` porque el runt
 ## Agregar las pruebas de un módulo nuevo
 
 1. Crear `shared/factories/<entidad>.factory.ts` con `a<Entidad>Body()` y `create<Entidad>()`.
-2. Crear `modules/<módulo>/<recurso>.int.spec.ts`, o `<caso-de-uso>.int.spec.ts` si el caso de uso amerita su propio archivo.
+2. Crear `modules/<subsistema>/<recurso>.int.spec.ts`, o `<caso-de-uso>.int.spec.ts` si el caso de uso amerita su propio archivo.
 3. Correr solo ese archivo hasta que pase, o hasta que el único rojo sea una brecha documentada. Después, correr toda la suite.

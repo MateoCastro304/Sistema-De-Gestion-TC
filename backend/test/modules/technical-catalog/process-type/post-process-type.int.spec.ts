@@ -1,9 +1,9 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 
-import { startTestApp, stopTestApp, getPrisma } from '../../shared/harness/test-app';
-import { expectData } from '../../shared/contract/envelopes';
-import { aProcessTypeBody, createProcessType } from '../../shared/factories/process-type.factory';
+import { startTestApp, stopTestApp, getPrisma } from '../../../shared/harness/test-app';
+import { expectData } from '../../../shared/contract/envelopes';
+import { aProcessTypeBody, createProcessType } from '../../../shared/factories/process-type.factory';
 
 describe('Process types', () => {
   let app: INestApplication;
