@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ClockPort } from '../../../shared/clock/clock.port';
 import { SystemClock } from '../../../shared/clock/system-clock';
 import { GetExchangeRate } from '../core/application/use-cases/get-exchange-rate.use-case';
@@ -20,7 +21,11 @@ import { PrismaProcessTypeRepository } from './persistence/prisma/prisma-process
     { provide: ProcessTypeRepository, useClass: PrismaProcessTypeRepository },
     { provide: ExchangeRateRepository, useClass: PrismaExchangeRateRepository },
     { provide: ExchangeRateProvider, useClass: DolarApiExchangeRateProvider },
-    { provide: ClockPort, useClass: SystemClock },
+    {
+      provide: ClockPort,
+      useFactory: (config: ConfigService) => new SystemClock(config.get<string>('APP_TIMEZONE') || undefined),
+      inject: [ConfigService],
+    },
   ],
 })
 export class TechnicalCatalogModule {}

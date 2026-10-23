@@ -32,6 +32,10 @@ class EnvironmentVariables {
   @IsOptional()
   @IsString()
   EXCHANGE_RATE_API_URL?: string;
+
+  @IsOptional()
+  @IsString()
+  APP_TIMEZONE?: string;
 }
 
 export function validate(config: Record<string, unknown>) {

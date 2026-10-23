@@ -20,7 +20,7 @@ export class DolarApiExchangeRateProvider extends ExchangeRateProvider {
   }
 
   async fetchCurrent(): Promise<ExchangeQuote | null> {
-    const url = this.config.get<string>('EXCHANGE_RATE_API_URL') ?? DEFAULT_URL;
+    const url = this.config.get<string>('EXCHANGE_RATE_API_URL') || DEFAULT_URL;
     try {
       const response = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);

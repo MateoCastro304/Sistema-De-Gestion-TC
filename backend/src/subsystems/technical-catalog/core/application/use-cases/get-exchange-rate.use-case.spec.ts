@@ -1,4 +1,4 @@
-import { ClockPort } from '../../../../../shared/clock/clock.port';
+import { SystemClock } from '../../../../../shared/clock/system-clock';
 import { InMemoryExchangeRateRepository } from '../../../infrastructure/persistence/in-memory/in-memory-exchange-rate.repository';
 import { ExchangeQuote, ExchangeRate } from '../../domain/entities/exchange-rate.entity';
 import { ExchangeRateUnavailable } from '../../domain/errors/exchange-rate-unavailable.error';
@@ -7,7 +7,7 @@ import { GetExchangeRate } from './get-exchange-rate.use-case';
 
 const NOW = new Date('2026-10-15T13:00:00.000Z');
 
-class FixedClock extends ClockPort {
+class FixedClock extends SystemClock {
   now(): Date {
     return NOW;
   }
