@@ -3,7 +3,7 @@ services:
     build:
       target: development
     ports:
-      - "3000:3000"
+      - '3000:3000'
     env_file:
       - ./.env.dev
     depends_on:
@@ -20,7 +20,7 @@ services:
   postgres:
     container_name: torneria-postgres-dev
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
 
@@ -30,9 +30,9 @@ services:
       context: ../../frontend
       dockerfile: Dockerfile
       target: development
-    restart: "unless-stopped"
+    restart: 'unless-stopped'
     ports:
-      - "5173:5173"
+      - '5173:5173'
     networks:
       - torneria-network
     volumes:
@@ -54,7 +54,7 @@ services:
     image: nginx:alpine
     depends_on: [backend, frontend]
     ports:
-      - "80:80"
+      - '80:80'
     volumes:
       - ./nginx/nginx.dev.conf:/etc/nginx/conf.d/default.conf:ro
 
@@ -63,7 +63,7 @@ services:
       context: ../../tooling/openapi
       dockerfile: Dockerfile
     container_name: torneria-openapi-build
-    restart: "no"
+    restart: 'no'
     networks:
       - torneria-network
     volumes:
@@ -74,7 +74,7 @@ services:
     image: swaggerapi/swagger-ui
     container_name: torneria-openapi-docs
     ports:
-      - "8081:8080"
+      - '8081:8080'
     networks:
       - torneria-network
     depends_on:
@@ -93,12 +93,65 @@ services:
     container_name: torneria-adminer
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - '8080:8080'
     networks:
       - torneria-network
     depends_on:
       postgres:
         condition: service_healthy
 
+  seaweed:
+    image: chrislusf/seaweedfs:4.48@sha256:4e61d15fd35994cb1e43e1e553dff106794841fd9a99ade2fc8c8bfce4d7872d
+    container_name: torneria-seaweed-dev
+    restart: unless-stopped
+    # start.sh arma el JSON de credenciales y despues llama al entrypoint
+    # de la imagen, que corrige los permisos de /data y baja a usuario seaweed.
+    entrypoint: ['sh', '/etc/config/start.sh']
+    ports:
+      - '127.0.0.1:8333:8333'
+    networks:
+      - torneria-network
+    # Credenciales de backup y admin. Van aparte de .env.dev porque el
+    # backend carga ese archivo entero.
+    env_file:
+      - ./.env.storage.dev
+    environment:
+      - S3_BUCKET=${S3_BUCKET}
+      - S3_BUCKET_UPLOADS=${S3_BUCKET_UPLOADS}
+      - S3_BUCKET_BACKUPS=${S3_BUCKET_BACKUPS}
+      - S3_BACKEND_ACCESS_KEY=${S3_BACKEND_ACCESS_KEY}
+      - S3_BACKEND_SECRET_KEY=${S3_BACKEND_SECRET_KEY}
+      - S3_CORS_ORIGINS=${S3_CORS_ORIGINS}
+    volumes:
+      - ./seaweed:/etc/config:ro
+      - seaweed_dev_data:/data
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1:8333/healthz']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # One-shot, como migrate: configura los buckets con la credencial de admin
+  # y termina. Usa la misma API que S3 real.
+  storage-init:
+    image: amazon/aws-cli:2.22.0@sha256:de60944022e023e69cc50e3cfc91766d0788c27586b01fb77806bc435b484a35
+    container_name: torneria-storage-init
+    restart: 'no'
+    entrypoint: ['sh', '/etc/config/init.sh']
+    networks:
+      - torneria-network
+    depends_on:
+      seaweed:
+        condition: service_healthy
+    env_file:
+      - ./.env.storage.dev
+    environment:
+      - S3_BUCKET_UPLOADS=${S3_BUCKET_UPLOADS}
+      - AWS_ENDPOINT_URL=http://seaweed:8333
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      - ./seaweed:/etc/config:ro
+
 volumes:
   postgres_dev_data:
+  seaweed_dev_data:
