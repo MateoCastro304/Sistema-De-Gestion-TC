@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../../../../generated/prisma/client';
+import { PrismaClientProvider } from '../../../../../shared/infrastructure/prisma/prisma-client.provider';
 import { PrismaService } from '../../../../../shared/infrastructure/prisma/prisma.service';
 import { TextKey } from '../../../../../shared/domain/text-key';
 import { ProcessTypePriceChange } from '../../../core/domain/entities/process-type-price-change.entity';
@@ -14,16 +15,19 @@ import { ProcessTypePrismaMapper } from './process-type-prisma.mapper';
 
 @Injectable()
 export class PrismaProcessTypeRepository extends ProcessTypeRepository {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly clients: PrismaClientProvider,
+  ) {
     super();
   }
 
   async existsByNameKey(nameKey: string): Promise<boolean> {
-    return (await this.prisma.processType.count({ where: { nameKey } })) > 0;
+    return (await this.clients.current().processType.count({ where: { nameKey } })) > 0;
   }
 
   async findById(id: number): Promise<ProcessType | null> {
-    const row = await this.prisma.processType.findUnique({ where: { id } });
+    const row = await this.clients.current().processType.findUnique({ where: { id } });
     return row ? ProcessTypePrismaMapper.toDomain(row) : null;
   }
 
@@ -33,6 +37,8 @@ export class PrismaProcessTypeRepository extends ProcessTypeRepository {
       ? { nameKey: { contains: TextKey.create(search).getValue() } }
       : {};
 
+    // Lectura de solo consulta, nunca dentro de una transacción de negocio: usa el cliente base
+    // porque la forma por lotes de $transaction no existe en el cliente transaccional.
     // Una sola transacción: la página y el total salen del mismo estado de la base.
     const [rows, total] = await this.prisma.$transaction([
       this.prisma.processType.findMany({
@@ -48,7 +54,7 @@ export class PrismaProcessTypeRepository extends ProcessTypeRepository {
   }
 
   async findPriceHistory(processTypeId: number): Promise<ProcessTypePriceChange[]> {
-    const rows = await this.prisma.processTypePriceHistory.findMany({
+    const rows = await this.clients.current().processTypePriceHistory.findMany({
       where: { processTypeId },
       // Lectura del autor en app_user (tabla de identity): solo lectura, la escritura sigue siendo de su dueño.
       include: { changedBy: { select: { id: true, username: true } } },
@@ -60,7 +66,7 @@ export class PrismaProcessTypeRepository extends ProcessTypeRepository {
   async save(processType: ProcessType): Promise<ProcessType> {
     try {
       // createdAt y updatedAt salen del mismo instante: en el alta son iguales.
-      const row = await this.prisma.processType.create({
+      const row = await this.clients.current().processType.create({
         data: ProcessTypePrismaMapper.toCreateData(processType, new Date()),
       });
       return ProcessTypePrismaMapper.toDomain(row);
