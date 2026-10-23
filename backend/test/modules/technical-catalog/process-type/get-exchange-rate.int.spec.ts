@@ -1,11 +1,11 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 
-import { Prisma } from '../../../src/generated/prisma/client';
-import { ExchangeQuote } from '../../../src/subsystems/technical-catalog/core/domain/entities/exchange-rate.entity';
-import { ExchangeRateProvider } from '../../../src/subsystems/technical-catalog/core/domain/ports/exchange-rate-provider.port';
-import { startTestApp, stopTestApp, getPrisma } from '../../shared/harness/test-app';
-import { expectData } from '../../shared/contract/envelopes';
+import { Prisma } from '../../../../src/generated/prisma/client';
+import { ExchangeQuote } from '../../../../src/subsystems/technical-catalog/core/domain/entities/exchange-rate.entity';
+import { ExchangeRateProvider } from '../../../../src/subsystems/technical-catalog/core/domain/ports/exchange-rate-provider.port';
+import { startTestApp, stopTestApp, getPrisma } from '../../../shared/harness/test-app';
+import { expectData } from '../../../shared/contract/envelopes';
 
 describe('Exchange rate', () => {
   let app: INestApplication;

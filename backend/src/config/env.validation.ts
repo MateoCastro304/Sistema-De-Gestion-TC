@@ -67,6 +67,8 @@ class EnvironmentVariables {
   @IsOptional()
   @IsString()
   APP_TIMEZONE?: string;
+
+  @IsOptional()
   @IsEnum(StorageDriver)
   STORAGE_DRIVER?: StorageDriver;
 

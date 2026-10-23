@@ -1,6 +1,7 @@
 import { TextKey } from '../../../../../shared/domain/text-key';
 import { FieldError, ProcessTypeValidationError } from '../errors/process-type-validation.error';
 import { AmountProblem, MoneyAmount } from '../value-objects/money-amount.vo';
+import { ProcessTypePriceChange } from './process-type-price-change.entity';
 
 export const NAME_MAX_LENGTH = 100;
 export const DESCRIPTION_MAX_LENGTH = 500;
@@ -12,6 +13,28 @@ export type NewProcessTypeData = {
   hourlyRateArs?: number | null;
   hourlyRateUsd?: number | null;
   exchangeRate?: number | null;
+};
+
+/**
+ * Cambios pedidos sobre un tipo de proceso. `undefined` significa "no tocar";
+ * en la descripción, `null` o `""` la borra.
+ */
+export type ProcessTypeChanges = {
+  name?: string | null;
+  description?: string | null;
+  hourlyRateArs?: number | null;
+  hourlyRateUsd?: number | null;
+  exchangeRate?: number | null;
+};
+
+/**
+ * Resultado de {@link ProcessType.modify}: el tipo de proceso como queda, el
+ * registro de historial si cambió algún precio, y si hubo algún cambio que guardar.
+ */
+export type ProcessTypeModification = {
+  processType: ProcessType;
+  priceChange: ProcessTypePriceChange | null;
+  changed: boolean;
 };
 
 /** Una fila de la base, para {@link ProcessType.reconstruct}. */
@@ -93,6 +116,93 @@ export class ProcessType {
       null,
       null,
     );
+  }
+
+  /**
+   * Aplica los cambios pedidos y devuelve cómo queda el tipo de proceso (CU-10).
+   * No modifica esta instancia.
+   *
+   * - Tiene que llegar al menos un campo.
+   * - El tipo de cambio es obligatorio si llega algún precio, y solo se guarda
+   *   junto con un cambio de precio: si ningún precio cambia, se ignora (D-52).
+   * - Un campo con el mismo valor que ya tenía no cuenta como cambio. Si nada
+   *   cambia, `changed` es `false`, el resultado es esta misma instancia y no se
+   *   toca `updatedAt` (D-31).
+   * - Si cambia algún precio hora, el resultado trae el registro de historial
+   *   (`priceChange`) firmado por `authorId`; si no, es `null`.
+   */
+  modify(changes: ProcessTypeChanges, now: Date, authorId: number): ProcessTypeModification {
+    const sent = (Object.keys(changes) as (keyof ProcessTypeChanges)[]).filter((key) => changes[key] !== undefined);
+    if (sent.length === 0) {
+      throw new ProcessTypeValidationError([], 'Enviá al menos un campo para modificar.');
+    }
+
+    const errors: FieldError[] = [];
+
+    let name = this.name;
+    if (changes.name !== undefined) {
+      name = (changes.name ?? '').trim();
+      if (name === '') errors.push({ field: 'name', message: 'Ingresá el nombre del tipo de proceso' });
+      else if (name.length > NAME_MAX_LENGTH)
+        errors.push({ field: 'name', message: `El nombre admite como máximo ${NAME_MAX_LENGTH} caracteres` });
+    }
+
+    let description = this.description;
+    if (changes.description !== undefined) {
+      const text = (changes.description ?? '').trim();
+      if (text.length > DESCRIPTION_MAX_LENGTH)
+        errors.push({
+          field: 'description',
+          message: `La descripción admite como máximo ${DESCRIPTION_MAX_LENGTH} caracteres`,
+        });
+      description = text === '' ? null : text;
+    }
+
+    const pricesSent = changes.hourlyRateArs !== undefined || changes.hourlyRateUsd !== undefined;
+    const amounts: Record<RateField, MoneyAmount> = {
+      hourlyRateArs: this.hourlyRateArs,
+      hourlyRateUsd: this.hourlyRateUsd,
+      exchangeRate: this.exchangeRate,
+    };
+    for (const field of Object.keys(RATE_LABELS) as RateField[]) {
+      // El tipo de cambio es obligatorio apenas llega un precio; solo se valida si llegó o hacía falta.
+      if (changes[field] === undefined && !(field === 'exchangeRate' && pricesSent)) continue;
+      const parsed = MoneyAmount.parse(changes[field]);
+      if (parsed.amount) amounts[field] = parsed.amount;
+      else errors.push({ field, message: ProcessType.amountMessage(field, parsed.problem) });
+    }
+
+    if (errors.length > 0) throw new ProcessTypeValidationError(errors);
+
+    const priceChanged =
+      amounts.hourlyRateArs.getValue() !== this.hourlyRateArs.getValue() ||
+      amounts.hourlyRateUsd.getValue() !== this.hourlyRateUsd.getValue();
+
+    if (name === this.name && description === this.description && !priceChanged) {
+      return { processType: this, priceChange: null, changed: false };
+    }
+
+    const next = new ProcessType(
+      this.id,
+      name,
+      TextKey.create(name).getValue(),
+      description,
+      amounts.hourlyRateArs,
+      amounts.hourlyRateUsd,
+      priceChanged ? amounts.exchangeRate : this.exchangeRate,
+      this.createdAt,
+      now,
+    );
+    const priceChange = priceChanged
+      ? ProcessTypePriceChange.create({
+          changedAt: now,
+          changedByUserId: authorId,
+          exchangeRate: next.exchangeRate.getValue(),
+          previousValueUsd: this.hourlyRateUsd.getValue(),
+          newValueUsd: next.hourlyRateUsd.getValue(),
+        })
+      : null;
+    return { processType: next, priceChange, changed: true };
   }
 
   /** Rehidrata desde la base; los datos ya pasaron la validación al guardarse. */
