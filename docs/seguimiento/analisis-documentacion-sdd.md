@@ -45,7 +45,7 @@ flowchart LR
     CT --> COD
     DIS --> COD
     COD --> TST
-    TST -.->|sin cita a CU ni CP| CU
+    TST -.->|plan de pruebas de la historia| CU
 ```
 
 La cadena se corta en cuatro lugares:
@@ -57,9 +57,7 @@ La cadena se corta en cuatro lugares:
    - Solo CU-13 y CU-14 tienen precondición, secuencia, alternativas y resultado ([casos de uso](../dominio/04-actores-y-casos-de-uso.md)).
    - Ningún caso de uso trae los mensajes de error.
 3. **El contrato cubre los Sprints 1 y 2.** Solicitudes, cotizaciones, ítems, archivos, órdenes de trabajo y reportes no tienen contrato.
-4. **Ningún test cita su caso de uso.**
-   - [`test-cases-structure.md`](../testing/test-cases-structure.md) define los identificadores `CP-NN` y etiquetas como `[CU-23][INV-1]`, pero ningún test las usa.
-   - El catálogo `.docx` de casos de prueba y `estrategia-qa.md` no existen ([DOC-06](inconsistencias-documentales.md#doc-06--organización-y-ejecución-de-las-pruebas), [DOC-09](inconsistencias-documentales.md#doc-09--archivos-citados-que-no-existen)).
+4. **Los tests no llevan referencia al caso de uso.** Es una decisión, no un hueco: desde la reorganización de [pruebas del backend](../testing/pruebas-backend.md) no se usan etiquetas `CU-xx` ni identificadores de caso de prueba. La relación escenario → test se registra en el plan de pruebas de cada historia.
 
 ---
 
@@ -78,7 +76,7 @@ La cadena se corta en cuatro lugares:
 | OpenAPI | [openapi.yaml](../openapi/openapi.yaml) | **Listo** | 39 operaciones, `Error` estándar con `code` y `x-roles`. Inconsistencias internas en §5 |
 | Arquitectura del backend | [backend.md](../arquitectura/backend.md), [ADR-013](../decisiones/013-arquitectura-interna-backend.md), [ADR-014](../decisiones/014-subsistemas.md) | **Parcial** | Creados en este relevamiento. Quedan 8 decisiones abiertas (DA-01 a DA-08) |
 | Base de datos | [DER](../database/der-sprint-1-2.md), [cambios del Sprint 2](../database/cambios-bdd-sprint2.md) | **Listo** | El DER coincide con `schema.prisma`. Los encabezados quedaron viejos (§4) |
-| Testing | [code-structure](../testing/code-structure.md), [test-cases-structure](../testing/test-cases-structure.md), [backend/test/README](../../backend/test/README.md) | **Parcial** | Describen una organización que el código no sigue ([DOC-06](inconsistencias-documentales.md#doc-06--organización-y-ejecución-de-las-pruebas)) |
+| Testing | [pruebas del backend](../testing/pruebas-backend.md), [backend/test/README](../../backend/test/README.md) | **Listo** | Reorganizado el 22/10/2026: dos niveles (unitario e integración), 70/30 por caso de uso y sin redundancia. Queda unificar los tests de proveedores ([A-06](pendientes-actuales.md#a-06--p2--unificar-los-tests-de-proveedores-y-quitar-el-nivel-de-api)) |
 | Plantillas | [plantillas/](../plantillas/) | **Parcial** | Son de redacción. Ninguna sirve para escribir una historia con criterios de aceptación, un endpoint o un caso de prueba |
 | Contexto del agente | [`.claude/CLAUDE.md`](../../.claude/CLAUDE.md), [regla del flujo HU](../../.claude/rules/flujo-hu-backend.md) | **Parcial** | Actualizados en este relevamiento. Quedan sin corregir los 7 roles y la tabla de ADR hasta el 009 |
 
@@ -105,14 +103,12 @@ La cadena se corta en cuatro lugares:
 | --- | --- |
 | Guía de seguridad y control de acceso (`conceptos-transversales/`) | Hoy está repartida en RNF08–RNF10, ADR-005 (desactualizado, [DOC-05](inconsistencias-documentales.md#doc-05--roles-y-accesos-de-adr-005-y-de-la-arquitectura)), el contrato §4 y los cambios de base §7. Debe consolidar sesión, refresco, bloqueo, guards, ocultamiento de campos para JT y qué se registra. También resuelve DA-04 de `backend.md` |
 | Guía de transacciones y concurrencia | Numeración correlativa (RN04, RN06), transiciones atómicas (C8, O6), escrituras condicionales y el uso de `TransactionManagerPort`. Hoy solo existe para el Sprint 2 ([cambios de base §7](../database/cambios-bdd-sprint2.md)) |
-| `docs/testing/estrategia-qa.md` | Los invariantes INV-1 a INV-5 que citan las guías de testing: precio inmutable, correlativo, el taller no ve importes, máquinas de estado cerradas y trazabilidad |
 | Convenciones generales de la API | Baja con `DELETE`, nombres de filtros, activos por defecto, orden, versionado, límite de página. Resuelve DA-03 |
 | Especificación de procesos programados | CU-22 (vencimiento de cotización) y CU-29 (demora de OT): horario, zona horaria, idempotencia y qué se registra |
 | Auditoría y registro de actividad | Alcance de `HistorialCambio` (RNF10) más allá de los precios de tipos de proceso, `created_by_user_id`, retención de sesiones (BD-04, BD-05) y formato de log (RNF13, backlog §7) |
 
 ### P3: mejoran la trazabilidad
 
-- **README por módulo de test** con la matriz escenario → test, como pide [test-cases-structure](../testing/test-cases-structure.md). No existe ninguno.
 - **Plantilla de especificación de endpoint**, para que los contratos de cada sprint tengan la misma forma.
 - **Renumerar el "ADR-011 — Despliegue continuo"** que pide el [backlog §3](engineering-backlog.md#3-despliegue-continuo-rama-propia-adr-propio). Choca con el ADR-011 existente; el próximo número libre es el 015.
 
@@ -128,8 +124,6 @@ La cadena se corta en cuatro lugares:
 | [database/Prisma/Migrations.md](../database/Prisma/Migrations.md) | Enlaces a los ADR con un nivel de menos (`../decisiones/` en lugar de `../../decisiones/`) |
 | [cambios-bdd-sprint2.md](../database/cambios-bdd-sprint2.md), [der-sprint-1-2.md](../database/der-sprint-1-2.md) | El encabezado dice "migraciones pendientes", pero `20261021181949_schema_sprint2` y `20261021182201_sprint2_manual_constraints` ya existen |
 | [dominio/00-indice](../dominio/00-indice-y-convenciones.md), [05](../dominio/05-modelo-de-dominio.md) | Remiten a `08-erd.md`, que no existe. El DER real es `database/der-sprint-1-2.md` |
-| [testing/code-structure.md](../testing/code-structure.md), [test-cases-structure.md](../testing/test-cases-structure.md) | Dicen Zod (el backend usa class-validator). Usan módulos en español y ejemplos que no coinciden con el dominio: "DNI" del encargado, CU-18 "Aplicar descuento", estados `Pendiente → Cotizada`. Atribuyen la CI al ADR-009 en lugar del 010 |
-| [backend/test/README.md](../../backend/test/README.md) | Dice que hay "un solo nivel", pero existen `test:api` y `modules/suppliers/{api,int}`. Faltan las etiquetas de CU. Hay factories duplicadas, y `shared/auth/login-as.ts` está comentado |
 | [funcionalidades/catalogos-tecnicos.md](../funcionalidades/catalogos-tecnicos.md) | El título empieza con `ad#` |
 | [rubros-desvios-contrato.md](../rubros-desvios-contrato.md) | Es temporal ("borrar este archivo") y sigue vigente: el 409 de rubros todavía no envía `code` ni `details` |
 | ADR-001 a ADR-012 | Los estados siguen sin aprobar ([DOC-01](inconsistencias-documentales.md#doc-01--estados-de-los-adr)). ADR-005 describe una tabla de tokens revocados; lo aplicado es sesión en el servidor con rotación del refresco |

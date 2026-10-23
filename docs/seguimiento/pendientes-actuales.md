@@ -11,6 +11,7 @@ Relevamiento del 15 de octubre de 2026 sobre `develop`. Reemplaza en la práctic
 | A-03 | Borrar ramas remotas ya mergeadas u obsoletas | P2 | Pendiente |
 | A-04 | Baja con `DELETE` en fábricas y encargados | P2 | Pendiente |
 | A-05 | Mover `supplier` a `technical-catalog` | P2 | Pendiente |
+| A-06 | Unificar los tests de proveedores y quitar el nivel de API | P2 | Pendiente |
 | H-01 | Contrato y documentación desactualizados | P1 | Pendiente |
 | H-02 | Backend: detalles menores | P2 | Pendiente |
 | H-03 | Frontend: deuda técnica | P2 | Pendiente |
@@ -126,6 +127,25 @@ Es un refactor **sin cambio funcional**. Conviene hacerlo cuando se cree `techni
 - actualizar los imports y `app.module.ts`.
 
 No se renombran los archivos existentes ([convención de nombres](../arquitectura/backend.md#nombres-e-idioma)).
+
+## A-06 · P2 · Unificar los tests de proveedores y quitar el nivel de API
+
+Las [pruebas del backend](../testing/pruebas-backend.md) tienen solo dos niveles: unitario e integración. El contrato HTTP se verifica dentro del test de integración, junto con la base.
+
+Proveedores es la excepción. Sus pruebas están repartidas en dos carpetas:
+
+- `backend/test/modules/suppliers/int/`: `cu33-register-supplier.int.spec.ts` y `cu35-list-suppliers.int.spec.ts`.
+- `backend/test/modules/suppliers/api/`: cuatro archivos `*.api.spec.ts`, que corren con otra configuración (`test/jest-api.config.ts`, script `test:api`) y que la CI no ejecuta.
+
+Varios escenarios están duplicados entre las dos carpetas. Por ejemplo, `cu35-list-suppliers` y `get-suppliers` prueban casi lo mismo.
+
+**Qué hay que hacer:**
+
+1. Unir los escenarios en `backend/test/modules/suppliers/suppliers.int.spec.ts`, sin repetir ninguno y respetando el 70/30 por caso de uso.
+2. Borrar `backend/test/modules/suppliers/api/`, `backend/test/jest-api.config.ts` y el script `test:api` de `backend/package.json`.
+3. Quitar la fila de `test:api` de `backend/README.md` y la excepción de `backend/test/README.md`.
+
+Mientras tanto, ningún módulo nuevo crea carpetas `api/` ni `int/`.
 
 ---
 

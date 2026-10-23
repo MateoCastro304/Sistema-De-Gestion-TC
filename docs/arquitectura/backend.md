@@ -6,8 +6,6 @@ Este documento es el contrato interno del equipo para el backend. Dice dónde vi
 - El mapa de subsistemas está en [ADR-014](../decisiones/014-subsistemas.md).
 - El paso a paso para implementar una historia está en la regla [`.claude/rules/flujo-hu-backend.md`](../../.claude/rules/flujo-hu-backend.md).
 
-**Estado:** Sprint 2 en curso. Están implementados `customers` (rubros, fábricas y encargados) y `supplier` (proveedores). El contrato del Sprint 2 (sesión, usuarios, empleados, tipos de proceso, tipo de cambio y materiales) todavía no tiene código.
-
 Este documento describe la arquitectura **objetivo**. Lo que el código actual no cumple figura como [desvío conocido](#desvíos-conocidos-del-código-actual), no como si existiera.
 
 ---
@@ -29,20 +27,21 @@ Depende de cinco sistemas:
 ```mermaid
 flowchart LR
     FE["Frontend<br/>SPA React"]
-    NG["Nginx<br/>/api/"]
+    NG["Nginx"]
     BE["Backend<br/>NestJS"]
-    DB[(PostgreSQL)]
+    DB["PostgreSQL"]
     PDF["Servicio PDF<br/>Python"]
-    S3[(Amazon S3)]
-    MAIL[/Correo/]
-    WA[/WhatsApp/]
+    S3["Amazon S3"]
+    MAIL[/Servidor de Correo/]
+    WA[/Servidor de Mensajería/]
 
-    FE --> NG --> BE
+    FE --> NG
+    NG --> BE
     BE --> DB
     BE -->|HTTP interno| PDF
     BE --> S3
-    BE -->|informe de cotización| MAIL
-    BE -->|informe de cotización| WA
+    BE -->|Informe de cotización| MAIL
+    BE -->|Informe de cotización| WA
 ```
 
 | Dentro del alcance | Fuera del alcance |
@@ -129,6 +128,14 @@ Representan un concepto que se define por su valor y tiene reglas propias.
 - **Los tipos auxiliares** (parámetros, resultados) pueden vivir en el mismo archivo.
 
 #### `core/application/use-cases`: casos de uso
+
+Su función principal es **orquestar**: es la **clase de control** del Diseño de Sistemas. La correspondencia con las tres clases de análisis es:
+
+| Clase de análisis | En este backend |
+| --- | --- |
+| Interfaz (*boundary*) | Adaptadores de entrada: controller HTTP o tarea programada |
+| Control | Caso de uso |
+| Entidad | Entidades y objetos de valor del dominio |
 
 - Una clase por caso de uso, con **un único método público, `execute`**. Puede tener métodos privados.
 - **Coordina, no decide:**
@@ -384,7 +391,8 @@ El dominio **nunca** llama a `new Date()`. Usa un `ClockPort` de `shared/clock/`
 - Hay un único `backend/prisma/schema.prisma`.
 - Las tablas y columnas van en `snake_case`, con `@@map` y `@map`; los modelos, en `PascalCase`.
 - **Baja lógica:** las entidades principales tienen `isActive`, y ningún repositorio hace borrado físico. **La API expone la baja con `DELETE`**, aunque sea lógica.
-- Los índices únicos parciales, los CHECK, las secuencias y los triggers se escriben a mano con `make migrate-create`. Nunca se edita una migración ya aplicada ([migraciones](../database/Prisma/Migrations.md)).
+- **Cambios de esquema:** se modifica `schema.prisma` y después se genera la migración con `make migrate-create name=<nombre>`, que la crea sin aplicarla. El SQL a mano se agrega a esa migración solo para lo que Prisma no puede expresar: índices únicos parciales, CHECK, secuencias, triggers, funciones y `ALTER TYPE … ADD VALUE`. Nunca se edita una migración ya aplicada ([migraciones](../database/Prisma/Migrations.md)).
+- **La IA nunca ejecuta migraciones** (`make migrate-*`, `prisma migrate`, `prisma db push`): edita `schema.prisma` y el SQL, y las migraciones las genera y aplica una persona. Además de estar escrito acá, lo bloquea `.claude/settings.local.json`.
 - `$queryRaw` se usa solo para reportes o para SQL específico de PostgreSQL ([ADR-003](../decisiones/003-orm.md)).
 
 ### Configuración y registro de actividad
@@ -515,6 +523,6 @@ Lo que el código implementado no cumple de esta arquitectura. **No se corrige a
 - **Contrato:** [contrato de la API del Sprint 2](../api-contract/API_CONTRACT_SPRINT_2.md) y [OpenAPI](../openapi/openapi.yaml).
 - **Base de datos:** [DER](../database/der-sprint-1-2.md), [cambios del Sprint 2](../database/cambios-bdd-sprint2.md) y [migraciones](../database/Prisma/Migrations.md).
 - **Dominio:** [reglas de negocio](../dominio/02-reglas-de-negocio.md), [casos de uso](../dominio/04-actores-y-casos-de-uso.md), [modelo](../dominio/05-modelo-de-dominio.md), [máquinas de estado](../dominio/06-maquinas-de-estado.md) y [matriz RBAC](../dominio/07-matriz-rbac.md).
-- **Pruebas:** [organización](../testing/code-structure.md) y [suite de integración](../../backend/test/README.md).
+- **Pruebas:** [pruebas del backend](../testing/pruebas-backend.md) y [suite de integración](../../backend/test/README.md).
 - **Desarrollo:** [`backend/README.md`](../../backend/README.md) y la regla [flujo HU backend](../../.claude/rules/flujo-hu-backend.md).
 - **Estado de la documentación:** [análisis SDD](../seguimiento/analisis-documentacion-sdd.md).
