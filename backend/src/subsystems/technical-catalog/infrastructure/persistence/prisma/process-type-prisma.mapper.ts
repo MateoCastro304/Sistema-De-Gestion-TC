@@ -28,6 +28,21 @@ export class ProcessTypePrismaMapper {
     return new Prisma.Decimal(amount.toFixed2());
   }
 
+  /** Datos del INSERT en el historial. Los valores ya vienen validados con dos decimales. */
+  static toPriceChangeCreateData(
+    processTypeId: number,
+    priceChange: ProcessTypePriceChange,
+  ): Prisma.ProcessTypePriceHistoryUncheckedCreateInput {
+    return {
+      processTypeId,
+      changedByUserId: priceChange.getChangedBy().id,
+      changedAt: priceChange.getChangedAt(),
+      exchangeRate: new Prisma.Decimal(priceChange.getExchangeRate().toFixed(2)),
+      previousValueUsd: new Prisma.Decimal(priceChange.getPreviousValueUsd().toFixed(2)),
+      newValueUsd: new Prisma.Decimal(priceChange.getNewValueUsd().toFixed(2)),
+    };
+  }
+
   /** Datos del UPDATE: todo lo que puede cambiar en una modificación. */
   static toUpdateData(processType: ProcessType): Prisma.ProcessTypeUpdateManyMutationInput {
     return {

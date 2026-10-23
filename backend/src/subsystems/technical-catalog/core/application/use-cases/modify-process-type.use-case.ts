@@ -36,26 +36,21 @@ export class ModifyProcessType {
       const current = await this.repository.findById(input.id);
       if (!current) throw new ProcessTypeNotFound();
 
-      const modification = current.modify(input.changes, this.clock.now());
-      if (!modification.changed) return current;
+      const {
+        processType: next,
+        priceChange,
+        changed,
+      } = current.modify(input.changes, this.clock.now(), input.authorId);
+      if (!changed) return current;
 
-      if (
-        modification.nameKeyChanged() &&
-        (await this.repository.existsByNameKey(modification.next.getNameKey(), input.id))
-      ) {
+      // Excluye al propio tipo: renombrarlo a su mismo nombre (otras mayúsculas o acentos) no es un duplicado.
+      if (await this.repository.existsByNameKey(next.getNameKey(), input.id)) {
         throw new ProcessTypeNameTaken();
       }
 
       const saved = await this.transactions.runInTransaction(async () => {
-        if (!(await this.repository.updateIfUnchanged(modification))) return false;
-        if (modification.priceChange) {
-          await this.repository.addPriceChange(
-            input.id,
-            modification.priceChange,
-            input.authorId,
-            modification.next.getUpdatedAt()!,
-          );
-        }
+        if (!(await this.repository.updateIfUnchanged(current, next))) return false;
+        if (priceChange) await this.repository.addPriceChange(input.id, priceChange);
         return true;
       });
       if (saved) return (await this.repository.findById(input.id))!;

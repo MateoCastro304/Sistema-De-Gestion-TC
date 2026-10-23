@@ -3,7 +3,6 @@ import { Prisma } from '../../../../../generated/prisma/client';
 import { PrismaClientProvider } from '../../../../../shared/infrastructure/prisma/prisma-client.provider';
 import { PrismaService } from '../../../../../shared/infrastructure/prisma/prisma.service';
 import { TextKey } from '../../../../../shared/domain/text-key';
-import { PriceChangeDraft, ProcessTypeModification } from '../../../core/domain/entities/process-type-modification';
 import { ChangeAuthorUnknown } from '../../../core/domain/errors/change-author-unknown.error';
 import { ProcessTypePriceChange } from '../../../core/domain/entities/process-type-price-change.entity';
 import { ProcessType } from '../../../core/domain/entities/process-type.entity';
@@ -82,12 +81,12 @@ export class PrismaProcessTypeRepository extends ProcessTypeRepository {
     }
   }
 
-  async updateIfUnchanged(modification: ProcessTypeModification): Promise<boolean> {
+  async updateIfUnchanged(previous: ProcessType, next: ProcessType): Promise<boolean> {
     try {
       // Una sola escritura condicional: si otro cambio se adelantó, no coincide ninguna fila.
       const result = await this.clients.current().processType.updateMany({
-        where: ProcessTypePrismaMapper.toUnchangedFilter(modification.previous),
-        data: ProcessTypePrismaMapper.toUpdateData(modification.next),
+        where: ProcessTypePrismaMapper.toUnchangedFilter(previous),
+        data: ProcessTypePrismaMapper.toUpdateData(next),
       });
       return result.count === 1;
     } catch (error) {
@@ -98,22 +97,10 @@ export class PrismaProcessTypeRepository extends ProcessTypeRepository {
     }
   }
 
-  async addPriceChange(
-    processTypeId: number,
-    priceChange: PriceChangeDraft,
-    authorId: number,
-    changedAt: Date,
-  ): Promise<void> {
+  async addPriceChange(processTypeId: number, priceChange: ProcessTypePriceChange): Promise<void> {
     try {
       await this.clients.current().processTypePriceHistory.create({
-        data: {
-          processTypeId,
-          changedByUserId: authorId,
-          changedAt,
-          exchangeRate: ProcessTypePrismaMapper.toDecimal(priceChange.exchangeRate),
-          previousValueUsd: ProcessTypePrismaMapper.toDecimal(priceChange.previousValueUsd),
-          newValueUsd: ProcessTypePrismaMapper.toDecimal(priceChange.newValueUsd),
-        },
+        data: ProcessTypePrismaMapper.toPriceChangeCreateData(processTypeId, priceChange),
       });
     } catch (error) {
       // El usuario que firma el cambio no existe (FK a app_user).

@@ -1,4 +1,3 @@
-import { PriceChangeDraft, ProcessTypeModification } from '../../../core/domain/entities/process-type-modification';
 import { ProcessTypePriceChange } from '../../../core/domain/entities/process-type-price-change.entity';
 import { ProcessType } from '../../../core/domain/entities/process-type.entity';
 import {
@@ -13,8 +12,7 @@ export class InMemoryProcessTypeRepository extends ProcessTypeRepository {
   saved: ProcessType[] = [];
   readonly history = new Map<number, ProcessTypePriceChange[]>();
   /** Registros agregados por addPriceChange, para que los specs los inspeccionen. */
-  readonly priceChanges: { processTypeId: number; priceChange: PriceChangeDraft; authorId: number; changedAt: Date }[] =
-    [];
+  readonly priceChanges: { processTypeId: number; priceChange: ProcessTypePriceChange }[] = [];
   /** Cuántos próximos updateIfUnchanged deben fallar como si otro cambio se hubiera adelantado. */
   lostRaces = 0;
   updateAttempts = 0;
@@ -56,24 +54,19 @@ export class InMemoryProcessTypeRepository extends ProcessTypeRepository {
     return stored;
   }
 
-  async updateIfUnchanged(modification: ProcessTypeModification): Promise<boolean> {
+  async updateIfUnchanged(previous: ProcessType, next: ProcessType): Promise<boolean> {
     this.updateAttempts++;
     if (this.lostRaces > 0) {
       this.lostRaces--;
       return false;
     }
-    const index = this.saved.findIndex((p) => p.getId() === modification.previous.getId());
+    const index = this.saved.findIndex((p) => p.getId() === previous.getId());
     if (index === -1) return false;
-    this.saved[index] = modification.next;
+    this.saved[index] = next;
     return true;
   }
 
-  async addPriceChange(
-    processTypeId: number,
-    priceChange: PriceChangeDraft,
-    authorId: number,
-    changedAt: Date,
-  ): Promise<void> {
-    this.priceChanges.push({ processTypeId, priceChange, authorId, changedAt });
+  async addPriceChange(processTypeId: number, priceChange: ProcessTypePriceChange): Promise<void> {
+    this.priceChanges.push({ processTypeId, priceChange });
   }
 }

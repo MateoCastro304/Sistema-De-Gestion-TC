@@ -1,7 +1,7 @@
 import { TextKey } from '../../../../../shared/domain/text-key';
 import { FieldError, ProcessTypeValidationError } from '../errors/process-type-validation.error';
 import { AmountProblem, MoneyAmount } from '../value-objects/money-amount.vo';
-import { ProcessTypeModification } from './process-type-modification';
+import { ProcessTypePriceChange } from './process-type-price-change.entity';
 
 export const NAME_MAX_LENGTH = 100;
 export const DESCRIPTION_MAX_LENGTH = 500;
@@ -25,6 +25,16 @@ export type ProcessTypeChanges = {
   hourlyRateArs?: number | null;
   hourlyRateUsd?: number | null;
   exchangeRate?: number | null;
+};
+
+/**
+ * Resultado de {@link ProcessType.modify}: el tipo de proceso como queda, el
+ * registro de historial si cambió algún precio, y si hubo algún cambio que guardar.
+ */
+export type ProcessTypeModification = {
+  processType: ProcessType;
+  priceChange: ProcessTypePriceChange | null;
+  changed: boolean;
 };
 
 /** Una fila de la base, para {@link ProcessType.reconstruct}. */
@@ -116,10 +126,12 @@ export class ProcessType {
    * - El tipo de cambio es obligatorio si llega algún precio, y solo se guarda
    *   junto con un cambio de precio: si ningún precio cambia, se ignora (D-52).
    * - Un campo con el mismo valor que ya tenía no cuenta como cambio. Si nada
-   *   cambia, el resultado es esta misma instancia, sin tocar `updatedAt` (D-31).
-   * - Si cambia algún precio hora, el resultado trae el registro de historial.
+   *   cambia, `changed` es `false`, el resultado es esta misma instancia y no se
+   *   toca `updatedAt` (D-31).
+   * - Si cambia algún precio hora, el resultado trae el registro de historial
+   *   (`priceChange`) firmado por `authorId`; si no, es `null`.
    */
-  modify(changes: ProcessTypeChanges, now: Date): ProcessTypeModification {
+  modify(changes: ProcessTypeChanges, now: Date, authorId: number): ProcessTypeModification {
     const sent = (Object.keys(changes) as (keyof ProcessTypeChanges)[]).filter((key) => changes[key] !== undefined);
     if (sent.length === 0) {
       throw new ProcessTypeValidationError([], 'Enviá al menos un campo para modificar.');
@@ -167,7 +179,7 @@ export class ProcessType {
       amounts.hourlyRateUsd.getValue() !== this.hourlyRateUsd.getValue();
 
     if (name === this.name && description === this.description && !priceChanged) {
-      return new ProcessTypeModification(this, this, null);
+      return { processType: this, priceChange: null, changed: false };
     }
 
     const next = new ProcessType(
@@ -182,9 +194,15 @@ export class ProcessType {
       now,
     );
     const priceChange = priceChanged
-      ? { previousValueUsd: this.hourlyRateUsd, newValueUsd: next.hourlyRateUsd, exchangeRate: next.exchangeRate }
+      ? ProcessTypePriceChange.create({
+          changedAt: now,
+          changedByUserId: authorId,
+          exchangeRate: next.exchangeRate.getValue(),
+          previousValueUsd: this.hourlyRateUsd.getValue(),
+          newValueUsd: next.hourlyRateUsd.getValue(),
+        })
       : null;
-    return new ProcessTypeModification(this, next, priceChange);
+    return { processType: next, priceChange, changed: true };
   }
 
   /** Rehidrata desde la base; los datos ya pasaron la validación al guardarse. */

@@ -1,4 +1,3 @@
-import { PriceChangeDraft, ProcessTypeModification } from '../entities/process-type-modification';
 import { ProcessTypePriceChange } from '../entities/process-type-price-change.entity';
 import { ProcessType } from '../entities/process-type.entity';
 
@@ -33,22 +32,16 @@ export abstract class ProcessTypeRepository {
   abstract save(processType: ProcessType): Promise<ProcessType>;
 
   /**
-   * Guarda `modification.next` solo si el tipo de proceso sigue como estaba en
-   * `modification.previous` (condición sobre los valores previos, en una sola
-   * escritura). Devuelve `false` si otro cambio se adelantó y no se escribió nada.
+   * Guarda `next` solo si el tipo de proceso sigue como estaba en `previous`
+   * (condición sobre los valores previos, en una sola escritura). Devuelve `false` si otro cambio se adelantó y no se escribió nada.
    * Lanza ProcessTypeNameTaken si el nombre nuevo ya es de otro tipo.
    */
-  abstract updateIfUnchanged(modification: ProcessTypeModification): Promise<boolean>;
+  abstract updateIfUnchanged(previous: ProcessType, next: ProcessType): Promise<boolean>;
 
   /**
    * Agrega un registro al historial de precios (RNF10: es la única operación de
    * escritura sobre él; no se modifica ni se borra). Lanza ChangeAuthorUnknown si
    * el usuario no existe.
    */
-  abstract addPriceChange(
-    processTypeId: number,
-    priceChange: PriceChangeDraft,
-    authorId: number,
-    changedAt: Date,
-  ): Promise<void>;
+  abstract addPriceChange(processTypeId: number, priceChange: ProcessTypePriceChange): Promise<void>;
 }

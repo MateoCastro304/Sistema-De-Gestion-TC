@@ -76,7 +76,12 @@ describe('ModifyProcessType', () => {
     expect(result.getHourlyRateUsd().getValue()).toBe(1.12);
     expect(transactions.runs).toBe(1);
     expect(repository.priceChanges).toHaveLength(1);
-    expect(repository.priceChanges[0]).toMatchObject({ processTypeId: 1, authorId: 7, changedAt: NOW });
+    const { processTypeId, priceChange } = repository.priceChanges[0];
+    expect(processTypeId).toBe(1);
+    expect(priceChange.getChangedBy().id).toBe(7);
+    expect(priceChange.getChangedAt()).toEqual(NOW);
+    expect(priceChange.getPreviousValueUsd()).toBe(1.13);
+    expect(priceChange.getNewValueUsd()).toBe(1.12);
   });
 
   it('no agrega historial cuando solo cambia el nombre', async () => {

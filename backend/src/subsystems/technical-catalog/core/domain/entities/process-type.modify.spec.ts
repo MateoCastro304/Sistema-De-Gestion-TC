@@ -4,6 +4,7 @@ import { ProcessType, ProcessTypeChanges } from './process-type.entity';
 const CREATED = new Date('2026-03-12T12:10:00.000Z');
 const BEFORE = new Date('2026-10-01T13:22:00.000Z');
 const NOW = new Date('2026-10-15T13:30:00.000Z');
+const AUTHOR = 7;
 
 function aProcessType(): ProcessType {
   return ProcessType.reconstruct({
@@ -21,7 +22,7 @@ function aProcessType(): ProcessType {
 
 function detailsOf(changes: ProcessTypeChanges): { field: string; message: string }[] {
   try {
-    aProcessType().modify(changes, NOW);
+    aProcessType().modify(changes, NOW, AUTHOR);
   } catch (error) {
     if (error instanceof ProcessTypeValidationError) return error.details;
     throw error;
@@ -32,31 +33,38 @@ function detailsOf(changes: ProcessTypeChanges): { field: string; message: strin
 describe('ProcessType.modify', () => {
   describe('cambio de precio', () => {
     it('al cambiar dólares y tipo de cambio mantiene los pesos y trae un registro de historial', () => {
-      const result = aProcessType().modify({ hourlyRateUsd: 1.12, exchangeRate: 1390 }, NOW);
+      const result = aProcessType().modify({ hourlyRateUsd: 1.12, exchangeRate: 1390 }, NOW, AUTHOR);
 
       expect(result.changed).toBe(true);
-      expect(result.next.getHourlyRateArs().getValue()).toBe(1557);
-      expect(result.next.getHourlyRateUsd().getValue()).toBe(1.12);
-      expect(result.next.getExchangeRate().getValue()).toBe(1390);
-      expect(result.next.getUpdatedAt()).toEqual(NOW);
-      expect(result.next.getCreatedAt()).toEqual(CREATED);
-      expect(result.priceChange?.previousValueUsd.getValue()).toBe(1.13);
-      expect(result.priceChange?.newValueUsd.getValue()).toBe(1.12);
-      expect(result.priceChange?.exchangeRate.getValue()).toBe(1390);
+      expect(result.processType.getHourlyRateArs().getValue()).toBe(1557);
+      expect(result.processType.getHourlyRateUsd().getValue()).toBe(1.12);
+      expect(result.processType.getExchangeRate().getValue()).toBe(1390);
+      expect(result.processType.getUpdatedAt()).toEqual(NOW);
+      expect(result.processType.getCreatedAt()).toEqual(CREATED);
+      expect(result.priceChange?.getPreviousValueUsd()).toBe(1.13);
+      expect(result.priceChange?.getNewValueUsd()).toBe(1.12);
+      expect(result.priceChange?.getExchangeRate()).toBe(1390);
+      expect(result.priceChange?.getChangedBy()).toEqual({ id: AUTHOR, username: null });
+      expect(result.priceChange?.getChangedAt()).toEqual(NOW);
+      expect(result.priceChange?.getId()).toBeNull();
     });
 
     it('genera un solo registro aunque cambien los dos precios', () => {
-      const result = aProcessType().modify({ hourlyRateArs: 1700, hourlyRateUsd: 1.22, exchangeRate: 1393.44 }, NOW);
+      const result = aProcessType().modify(
+        { hourlyRateArs: 1700, hourlyRateUsd: 1.22, exchangeRate: 1393.44 },
+        NOW,
+        AUTHOR,
+      );
 
-      expect(result.priceChange?.previousValueUsd.getValue()).toBe(1.13);
-      expect(result.priceChange?.newValueUsd.getValue()).toBe(1.22);
+      expect(result.priceChange?.getPreviousValueUsd()).toBe(1.13);
+      expect(result.priceChange?.getNewValueUsd()).toBe(1.22);
     });
 
     it('ignora el tipo de cambio si ningún precio cambia (D-52)', () => {
-      const result = aProcessType().modify({ hourlyRateArs: 1557, exchangeRate: 1500 }, NOW);
+      const result = aProcessType().modify({ hourlyRateArs: 1557, exchangeRate: 1500 }, NOW, AUTHOR);
 
       expect(result.changed).toBe(false);
-      expect(result.next.getExchangeRate().getValue()).toBe(1377.88);
+      expect(result.processType.getExchangeRate().getValue()).toBe(1377.88);
     });
 
     it('exige el tipo de cambio cuando llega un precio', () => {
@@ -75,28 +83,27 @@ describe('ProcessType.modify', () => {
 
   describe('cambio de nombre o descripción', () => {
     it('actualiza updatedAt y no genera registro de historial', () => {
-      const result = aProcessType().modify({ name: '  Torno Manual  ' }, NOW);
+      const result = aProcessType().modify({ name: '  Torno Manual  ' }, NOW, AUTHOR);
 
       expect(result.changed).toBe(true);
-      expect(result.next.getName()).toBe('Torno Manual');
-      expect(result.next.getNameKey()).toBe('torno manual');
-      expect(result.next.getUpdatedAt()).toEqual(NOW);
+      expect(result.processType.getName()).toBe('Torno Manual');
+      expect(result.processType.getNameKey()).toBe('torno manual');
+      expect(result.processType.getUpdatedAt()).toEqual(NOW);
       expect(result.priceChange).toBeNull();
-      expect(result.nameKeyChanged()).toBe(true);
     });
 
-    it('cambiar solo mayúsculas o acentos del nombre es un cambio que no requiere volver a comprobar la unicidad', () => {
-      const result = aProcessType().modify({ name: 'Mecanizado Tórno Manual' }, NOW);
+    it('cambiar solo mayúsculas o acentos del nombre es un cambio y conserva la misma clave de nombre', () => {
+      const result = aProcessType().modify({ name: 'Mecanizado Tórno Manual' }, NOW, AUTHOR);
 
       expect(result.changed).toBe(true);
-      expect(result.nameKeyChanged()).toBe(false);
+      expect(result.processType.getNameKey()).toBe('mecanizado torno manual');
     });
 
     it.each([null, '', '   '])('borra la descripción cuando llega %p', (description) => {
-      const result = aProcessType().modify({ description }, NOW);
+      const result = aProcessType().modify({ description }, NOW, AUTHOR);
 
       expect(result.changed).toBe(true);
-      expect(result.next.getDescription()).toBeNull();
+      expect(result.processType.getDescription()).toBeNull();
       expect(result.priceChange).toBeNull();
     });
 
@@ -121,18 +128,19 @@ describe('ProcessType.modify', () => {
           exchangeRate: 1377.88,
         },
         NOW,
+        AUTHOR,
       );
 
       expect(result.changed).toBe(false);
-      expect(result.next).toBe(original);
-      expect(result.next.getUpdatedAt()).toEqual(BEFORE);
+      expect(result.processType).toBe(original);
+      expect(result.processType.getUpdatedAt()).toEqual(BEFORE);
       expect(result.priceChange).toBeNull();
     });
 
     it('rechaza un cuerpo sin ningún campo con el mensaje del contrato', () => {
       let error: ProcessTypeValidationError | undefined;
       try {
-        aProcessType().modify({}, NOW);
+        aProcessType().modify({}, NOW, AUTHOR);
       } catch (e) {
         error = e as ProcessTypeValidationError;
       }
