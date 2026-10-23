@@ -8,12 +8,7 @@ export class TextKey {
   private constructor(private readonly value: string) {}
 
   static create(text: string): TextKey {
-    const normalized = text
-      .normalize('NFD')
-      .replace(/[̀-ͯ]/g, '')
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, ' ');
+    const normalized = text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim().replace(/\s+/g, ' ');
     return new TextKey(normalized);
   }
 
