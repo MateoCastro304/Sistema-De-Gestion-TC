@@ -74,7 +74,7 @@ Los mocks copian el comportamiento real: los del Sprint 1, lo que hace hoy el ba
 
 Las pruebas E2E están en `frontend/e2e/` y usan Playwright: un navegador real recorre la aplicación contra los mocks, buscando los elementos por su rol y su rótulo, como lo haría un usuario. Se separan por sprint y cada test se identifica con su caso de uso y su historia de Jira. Detalle en [TESTING.md](../../frontend/frontend-Documents/TESTING.md).
 
-Esta suite prueba el frontend y no reemplaza a la suite E2E de QA contra el backend real ([ADR-012](../decisiones/012-frontend-e2e-tests.md)). Las [guías de testing](../testing/code-structure.md) todavía no la contemplan; ver [inconsistencias documentales](../seguimiento/inconsistencias-documentales.md#doc-06--organización-y-ejecución-de-las-pruebas).
+Esta suite prueba el frontend, no la integración con el backend real ([ADR-012](../decisiones/012-frontend-e2e-tests.md)). El backend se prueba con sus propias pruebas unitarias y de integración ([pruebas del backend](../testing/pruebas-backend.md)).
 
 ---
 

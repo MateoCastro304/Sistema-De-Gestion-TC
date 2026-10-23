@@ -10,7 +10,9 @@
 
 Hasta octubre de 2026 el frontend no tenía pruebas ([backlog de ingeniería](../seguimiento/engineering-backlog.md#4-frontend)). Cada historia de Jira define criterios de aceptación que se ven en pantalla: validaciones de formularios, mensajes de error, registros que no se pueden repetir, bajas bloqueadas y acceso según el rol. Hacía falta una forma de comprobarlos que no dependiera de probar a mano.
 
-Las [guías de testing](../testing/code-structure.md) reparten las pruebas así: unitarias junto al código, de integración y API en `backend/test/`, y E2E en `e2e/`, en la raíz del repositorio, a cargo de QA y contra los servicios de `docker-compose`. Para el frontend prevén Vitest + React Testing Library ([organización de casos de prueba](../testing/test-cases-structure.md)). Ninguna de esas suites existía para el frontend.
+Las guías de testing de ese momento repartían las pruebas así: unitarias junto al código, de integración y API en `backend/test/`, y E2E en `e2e/`, en la raíz del repositorio, a cargo de QA y contra los servicios de `docker-compose`. Para el frontend preveían Vitest + React Testing Library. Ninguna de esas suites existía para el frontend.
+
+> Desde octubre de 2026 esas guías fueron reemplazadas por [pruebas del backend](../testing/pruebas-backend.md): el backend tiene solo pruebas unitarias y de integración, y la suite E2E de QA en `e2e/` ya no está prevista.
 
 ## Alternativas consideradas
 
@@ -27,7 +29,7 @@ Probar el frontend con **Playwright**, en `frontend/e2e/`, contra la aplicación
 - Cada prueba arranca con los datos iniciales de los mocks, así que son independientes y corren en paralelo.
 - Las pruebas de una historia se escriben antes que su pantalla: primero fallan porque la pantalla no existe, y la historia está terminada cuando pasan.
 
-Esta suite **no reemplaza** a la E2E de QA: prueba el frontend (pantallas, navegación, validaciones y cómo se muestran las respuestas de la API), no la integración con el backend real. El detalle está en [TESTING.md](../../frontend/frontend-Documents/TESTING.md).
+Esta suite **no reemplaza** a las pruebas de integración del backend: prueba el frontend (pantallas, navegación, validaciones y cómo se muestran las respuestas de la API), no la integración con el backend real. El detalle está en [TESTING.md](../../frontend/frontend-Documents/TESTING.md).
 
 ## Consecuencias
 

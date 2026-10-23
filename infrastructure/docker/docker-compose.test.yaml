@@ -31,10 +31,17 @@ services:
     build:
       context: ../../backend
       dockerfile: Dockerfile
-      target: production
+      # No production: el seed corre con ts-node (devDependency) sobre prisma/seed.ts,
+      # y esa imagen no tiene ni las devDependencies ni el codigo fuente.
+      target: build
     restart: 'no'
     env_file:
       - ./.env.test
+    # seed no esta en el compose base: sin esto no recibe DATABASE_URL ni ve a postgres.
+    environment:
+      <<: *database-url
+    networks:
+      - torneria-network
     depends_on:
       migrate:
         condition: service_completed_successfully

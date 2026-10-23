@@ -1,0 +1,10 @@
+{
+  "Rules": [
+    {
+      "ID": "expirar-subidas-sin-confirmar",
+      "Status": "Enabled",
+      "Filter": { "Prefix": "" },
+      "Expiration": { "Days": 1 }
+    }
+  ]
+}

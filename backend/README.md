@@ -27,7 +27,7 @@ La API queda disponible en `http://localhost:3000` (o en `http://localhost/api` 
 | `npm test` | Pruebas unitarias (`src/**/*.spec.ts`) |
 | `npm run test:cov` | Pruebas unitarias con cobertura |
 | `npm run test:int` | Pruebas de integración contra PostgreSQL real (Testcontainers) |
-| `npm run test:api` | Pruebas de API |
+| `npm run test:api` | Heredado: solo `test/modules/supplier/api/`, pendiente de unificar en `test:int` (A-06) |
 | `npm run prisma:generate` | Genera Prisma Client |
 | `npm run prisma:migrate-dev` / `npm run prisma:migrate-deploy` | Migraciones de desarrollo / despliegue |
 
@@ -36,5 +36,5 @@ Las migraciones se ejecutan normalmente con `make migrate-dev` y `make migrate-d
 ## Más información
 
 - [Arquitectura del sistema](../docs/arquitectura/overview.md) y decisiones [ADR-001](../docs/decisiones/001-backend-framework.md) (NestJS), [ADR-003](../docs/decisiones/003-orm.md) (Prisma) y [ADR-005](../docs/decisiones/005-autentication.md) (autenticación).
-- [Suite de pruebas de integración](test/README.md) y [organización de las pruebas](../docs/testing/code-structure.md).
+- [Suite de pruebas de integración](test/README.md) y [pruebas del backend](../docs/testing/pruebas-backend.md).
 - [Contrato OpenAPI](../docs/openapi/openapi.yaml) y [verificaciones de CI](../docs/decisiones/010-continuous-integration.md).
