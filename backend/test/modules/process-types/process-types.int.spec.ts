@@ -29,7 +29,16 @@ describe('Process types', () => {
 
       const created = expectData(res, 201);
       expect(Object.keys(created).sort()).toEqual(
-        ['createdAt', 'description', 'exchangeRate', 'hourlyRateArs', 'hourlyRateUsd', 'id', 'name', 'updatedAt'].sort(),
+        [
+          'createdAt',
+          'description',
+          'exchangeRate',
+          'hourlyRateArs',
+          'hourlyRateUsd',
+          'id',
+          'name',
+          'updatedAt',
+        ].sort(),
       );
       expect(created).toEqual({
         id: expect.any(Number),

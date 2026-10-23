@@ -1,4 +1,9 @@
-import { Prisma, ProcessType as ProcessTypeRow } from '../../../../../generated/prisma/client';
+import {
+  Prisma,
+  ProcessType as ProcessTypeRow,
+  ProcessTypePriceHistory as ProcessTypePriceHistoryRow,
+} from '../../../../../generated/prisma/client';
+import { ProcessTypePriceChange } from '../../../core/domain/entities/process-type-price-change.entity';
 import { ProcessType } from '../../../core/domain/entities/process-type.entity';
 
 /** Convierte entre la fila de Prisma y la entidad; el modelo de Prisma no sale de esta carpeta. */
@@ -14,6 +19,19 @@ export class ProcessTypePrismaMapper {
       exchangeRate: row.exchangeRate.toNumber(),
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
+    });
+  }
+
+  static toPriceChange(
+    row: ProcessTypePriceHistoryRow & { changedBy: { id: number; username: string } },
+  ): ProcessTypePriceChange {
+    return ProcessTypePriceChange.reconstruct({
+      id: row.id,
+      changedAt: row.changedAt,
+      changedBy: { id: row.changedBy.id, username: row.changedBy.username },
+      exchangeRate: row.exchangeRate.toNumber(),
+      previousValueUsd: row.previousValueUsd.toNumber(),
+      newValueUsd: row.newValueUsd.toNumber(),
     });
   }
 

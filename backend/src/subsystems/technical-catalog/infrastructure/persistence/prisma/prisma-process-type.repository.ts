@@ -1,9 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../../../../generated/prisma/client';
 import { PrismaService } from '../../../../../shared/infrastructure/prisma/prisma.service';
+import { TextKey } from '../../../../../shared/domain/text-key';
+import { ProcessTypePriceChange } from '../../../core/domain/entities/process-type-price-change.entity';
 import { ProcessType } from '../../../core/domain/entities/process-type.entity';
 import { ProcessTypeNameTaken } from '../../../core/domain/errors/process-type-name-taken.error';
-import { ProcessTypeRepository } from '../../../core/domain/ports/process-type.repository';
+import {
+  ProcessTypeListParams,
+  ProcessTypeListResult,
+  ProcessTypeRepository,
+} from '../../../core/domain/ports/process-type.repository';
 import { ProcessTypePrismaMapper } from './process-type-prisma.mapper';
 
 @Injectable()
@@ -14,6 +20,41 @@ export class PrismaProcessTypeRepository extends ProcessTypeRepository {
 
   async existsByNameKey(nameKey: string): Promise<boolean> {
     return (await this.prisma.processType.count({ where: { nameKey } })) > 0;
+  }
+
+  async findById(id: number): Promise<ProcessType | null> {
+    const row = await this.prisma.processType.findUnique({ where: { id } });
+    return row ? ProcessTypePrismaMapper.toDomain(row) : null;
+  }
+
+  async list({ page, limit, search }: ProcessTypeListParams): Promise<ProcessTypeListResult> {
+    // El texto buscado se normaliza igual que name_key al guardar (sin mayúsculas, acentos ni espacios repetidos).
+    const where: Prisma.ProcessTypeWhereInput = search
+      ? { nameKey: { contains: TextKey.create(search).getValue() } }
+      : {};
+
+    // Una sola transacción: la página y el total salen del mismo estado de la base.
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.processType.findMany({
+        where,
+        orderBy: [{ nameKey: 'asc' }, { id: 'asc' }],
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.processType.count({ where }),
+    ]);
+
+    return { items: rows.map((row) => ProcessTypePrismaMapper.toDomain(row)), total };
+  }
+
+  async findPriceHistory(processTypeId: number): Promise<ProcessTypePriceChange[]> {
+    const rows = await this.prisma.processTypePriceHistory.findMany({
+      where: { processTypeId },
+      // Lectura del autor en app_user (tabla de identity): solo lectura, la escritura sigue siendo de su dueño.
+      include: { changedBy: { select: { id: true, username: true } } },
+      orderBy: [{ changedAt: 'desc' }, { id: 'desc' }],
+    });
+    return rows.map((row) => ProcessTypePrismaMapper.toPriceChange(row));
   }
 
   async save(processType: ProcessType): Promise<ProcessType> {
