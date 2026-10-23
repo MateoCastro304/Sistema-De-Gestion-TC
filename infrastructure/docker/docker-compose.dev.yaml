@@ -111,16 +111,19 @@ services:
       - '127.0.0.1:8333:8333'
     networks:
       - torneria-network
-    # Credenciales de backup y admin. Van aparte de .env.dev porque el
-    # backend carga ese archivo entero.
-    env_file:
-      - ./.env.storage.dev
+    # Valida las tres credenciales, asi que es el unico servicio que las ve
+    # todas. Las de backup y admin vienen de .env.storage.dev (el Makefile lo
+    # pasa con --env-file): el backend carga .env.dev entero y no tiene que verlas.
     environment:
       - S3_BUCKET=${S3_BUCKET}
       - S3_BUCKET_UPLOADS=${S3_BUCKET_UPLOADS}
       - S3_BUCKET_BACKUPS=${S3_BUCKET_BACKUPS}
       - S3_BACKEND_ACCESS_KEY=${S3_BACKEND_ACCESS_KEY}
       - S3_BACKEND_SECRET_KEY=${S3_BACKEND_SECRET_KEY}
+      - S3_BACKUP_ACCESS_KEY=${S3_BACKUP_ACCESS_KEY}
+      - S3_BACKUP_SECRET_KEY=${S3_BACKUP_SECRET_KEY}
+      - S3_ADMIN_ACCESS_KEY=${S3_ADMIN_ACCESS_KEY}
+      - S3_ADMIN_SECRET_KEY=${S3_ADMIN_SECRET_KEY}
       - S3_CORS_ORIGINS=${S3_CORS_ORIGINS}
     volumes:
       - ./seaweed:/etc/config:ro
@@ -143,14 +146,43 @@ services:
     depends_on:
       seaweed:
         condition: service_healthy
-    env_file:
-      - ./.env.storage.dev
     environment:
       - S3_BUCKET_UPLOADS=${S3_BUCKET_UPLOADS}
+      - S3_ADMIN_ACCESS_KEY=${S3_ADMIN_ACCESS_KEY}
+      - S3_ADMIN_SECRET_KEY=${S3_ADMIN_SECRET_KEY}
       - AWS_ENDPOINT_URL=http://seaweed:8333
       - AWS_DEFAULT_REGION=us-east-1
     volumes:
       - ./seaweed:/etc/config:ro
+
+  # Dump diario de la DB al bucket de backups (03:00 UTC). Misma imagen base
+  # que postgres, asi pg_dump siempre es de la version del servidor.
+  backup:
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+      target: backup
+    container_name: torneria-backup-dev
+    restart: unless-stopped
+    # crond no reenvia el SIGTERM de "docker compose down": un init lo hace.
+    init: true
+    networks:
+      - torneria-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      storage-init:
+        condition: service_completed_successfully
+    environment:
+      - PGHOST=postgres
+      - PGUSER=${POSTGRES_USER}
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+      - PGDATABASE=${POSTGRES_DB}
+      - S3_BUCKET_BACKUPS=${S3_BUCKET_BACKUPS}
+      - S3_BACKUP_ACCESS_KEY=${S3_BACKUP_ACCESS_KEY}
+      - S3_BACKUP_SECRET_KEY=${S3_BACKUP_SECRET_KEY}
+      - AWS_ENDPOINT_URL=http://seaweed:8333
+      - AWS_DEFAULT_REGION=us-east-1
 
 volumes:
   postgres_dev_data:
