@@ -81,5 +81,5 @@ El recorrido completo, con lo que se registra en cada ítem, está en [01-introd
 
 - **Dominio:** [índice y convenciones](dominio/00-indice-y-convenciones.md), [reglas de negocio](dominio/02-reglas-de-negocio.md), [requisitos](dominio/03-requerimientos.md), [casos de uso](dominio/04-actores-y-casos-de-uso.md), [modelo](dominio/05-modelo-de-dominio.md), [máquinas de estado](dominio/06-maquinas-de-estado.md) y [matriz de permisos](dominio/Matriz%20de%20permisos.md).
 - **Arquitectura y decisiones:** [visión general de arquitectura](arquitectura/overview.md) y [ADR](decisiones/).
-- **Referencias técnicas:** [contrato OpenAPI](openapi/openapi.yaml), [referencia de API del Sprint 2](api-contract/API_CONTRACT_SPRINT_2.md), [migraciones](uso-ORM-DB/Migrations.md) y [pruebas](testing/code-structure.md).
+- **Referencias técnicas:** [contrato OpenAPI](openapi/openapi.yaml), [referencia de API del Sprint 2](api-contract/API_CONTRACT_SPRINT_2.md), [migraciones](uso-ORM-DB/Migrations.md) y [pruebas del backend](testing/pruebas-backend.md).
 - **Trabajo en el proyecto:** [SETUP](SETUP.md), [CONTRIBUTING](CONTRIBUTING.MD) y [seguimiento](seguimiento/pendientes-actuales.md).

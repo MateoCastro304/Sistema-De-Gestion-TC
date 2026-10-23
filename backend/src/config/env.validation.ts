@@ -63,6 +63,14 @@ class EnvironmentVariables {
   ALLOWED_ORIGINS?: string;
 
   @IsOptional()
+  @IsString()
+  EXCHANGE_RATE_API_URL?: string;
+
+  @IsOptional()
+  @IsString()
+  APP_TIMEZONE?: string;
+
+  @IsOptional()
   @IsEnum(StorageDriver)
   STORAGE_DRIVER?: StorageDriver;
 

@@ -5,9 +5,9 @@ Corren contra la app real (Vite en modo dev) con los **mocks de MSW** prendidos:
 no hace falta backend, base de datos ni Docker.
 
 > Esta suite prueba **el frontend**: pantallas, navegación, validaciones y cómo
-> se muestran las respuestas de la API. Los recorridos de punta a punta contra
-> el backend real (`docker compose`) son otra suite, la de `e2e/` en la raíz del
-> repo que describe [`docs/testing/code-structure.md`](../../docs/testing/code-structure.md).
+> se muestran las respuestas de la API. La integración con el backend real la
+> cubren las pruebas de integración del backend, descriptas en
+> [`docs/testing/pruebas-backend.md`](../../docs/testing/pruebas-backend.md).
 
 ## Cómo se corre
 

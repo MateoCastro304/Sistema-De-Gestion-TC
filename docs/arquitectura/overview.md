@@ -70,6 +70,8 @@ La SPA se organiza en las siguientes secciones principales:
 
 ### Backend
 
+El backend es un monolito modular con un hexágono por subsistema: ver la [arquitectura del backend](backend.md), [ADR-013](../decisiones/013-arquitectura-interna-backend.md) y [ADR-014](../decisiones/014-subsistemas.md), que propone los subsistemas. La tabla siguiente no está alineada con esa propuesta.
+
 El backend está organizado en módulos funcionales alineados con el dominio. En este sprint 2 tenemos hasta:
 
 | Módulo | Responsabilidad |
