@@ -21,7 +21,15 @@ describe('toListEmployeesParams', () => {
       limit: 20,
       search: undefined,
       includeInactive: false,
+      hasUser: undefined,
     });
+  });
+
+  it.each([
+    ['true', true],
+    ['false', false],
+  ])('parses hasUser "%s"', (raw, expected) => {
+    expect(toListEmployeesParams(query({ hasUser: raw })).hasUser).toBe(expected);
   });
 
   it('parses every param', () => {
@@ -63,6 +71,12 @@ describe('toListEmployeesParams', () => {
       const error = validationErrorOf({ includeInactive: 'yes' });
 
       expect(error.details).toEqual([{ field: 'includeInactive', message: 'Debe ser true o false.' }]);
+    });
+
+    it('rejects hasUser other than true or false', () => {
+      const error = validationErrorOf({ hasUser: '1' });
+
+      expect(error.details).toEqual([{ field: 'hasUser', message: 'Debe ser true o false.' }]);
     });
 
     it('rejects a search longer than 120 characters', () => {

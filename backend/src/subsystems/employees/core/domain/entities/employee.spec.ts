@@ -54,6 +54,10 @@ describe('Employee (domain)', () => {
       expect(Employee.create(validInput()).isActive()).toBe(true);
     });
 
+    it('starts without a user', () => {
+      expect(Employee.create(validInput()).getUser()).toBeNull();
+    });
+
     it('trims the texts', () => {
       const e = Employee.create({
         firstName: '  Julián ',
@@ -206,6 +210,28 @@ describe('Employee (domain)', () => {
       expect(e.isActive()).toBe(false);
       expect(e.getCreatedAt()).toBe(createdAt);
       expect(e.getUpdatedAt()).toBe(updatedAt);
+      expect(e.getUser()).toBeNull();
+    });
+
+    it('rebuilds an employee with its user summary', () => {
+      const user = { id: 6, username: 'gtorres', roles: ['ER' as const], status: 'ACTIVE' as const };
+
+      const e = Employee.reconstruct({
+        id: 6,
+        firstName: 'Gabriela',
+        lastName: 'Torres',
+        dni: '28789012',
+        position: 'ADMINISTRATION',
+        address: null,
+        email: null,
+        phone: null,
+        active: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        user,
+      });
+
+      expect(e.getUser()).toEqual(user);
     });
   });
 });

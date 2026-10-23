@@ -5,6 +5,7 @@ export type EmployeeListParams = {
   limit: number;
   search?: string;
   includeInactive: boolean;
+  hasUser?: boolean;
 };
 
 export type EmployeeListResult = {

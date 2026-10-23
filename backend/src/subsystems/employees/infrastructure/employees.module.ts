@@ -17,5 +17,7 @@ import { EmployeePrismaRepository } from './persistence/prisma/employee-prisma.r
       useClass: EmployeePrismaRepository,
     },
   ],
+
+  exports: [EmployeeRepository],
 })
 export class EmployeesModule {}

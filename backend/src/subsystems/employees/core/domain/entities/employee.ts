@@ -1,5 +1,6 @@
 import { EmployeeFieldError, EmployeeValidationError } from '../errors/employee-validation.error';
 import { EmployeePosition, isEmployeePosition } from '../value-objects/employee-position';
+import { EmployeeUser } from '../value-objects/employee-user';
 
 // Van tipados `unknown` a propósito, ya que llegan del cuerpo de la petición SIN validar, y la entidad es quien los valida todos juntos
 
@@ -27,6 +28,7 @@ export type EmployeeSnapshot = {
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
+  user?: EmployeeUser | null;
 };
 
 type Fail = (field: string, message: string) => void;
@@ -76,6 +78,7 @@ export class Employee {
     private readonly _active: boolean,
     private readonly _createdAt: Date,
     private readonly _updatedAt: Date,
+    private readonly _user: EmployeeUser | null,
   ) {}
 
   static create(input: EmployeeInput): Employee {
@@ -138,7 +141,7 @@ export class Employee {
     }
 
     const now = new Date();
-    return new Employee(null, firstName, lastName, dni, position, address, email, phone, true, now, now);
+    return new Employee(null, firstName, lastName, dni, position, address, email, phone, true, now, now, null);
   }
 
   static reconstruct(row: EmployeeSnapshot): Employee {
@@ -154,6 +157,7 @@ export class Employee {
       row.active,
       row.createdAt,
       row.updatedAt,
+      row.user ?? null,
     );
   }
 
@@ -212,5 +216,9 @@ export class Employee {
 
   getUpdatedAt() {
     return this._updatedAt;
+  }
+
+  getUser() {
+    return this._user;
   }
 }

@@ -197,4 +197,58 @@ describe('ListEmployees (use case)', () => {
       expect(all.total).toBe(2);
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // hasUser
+  // ---------------------------------------------------------------------------
+  describe('hasUser', () => {
+    beforeEach(async () => {
+      const withUser = await seed('Gabriela', 'Torres', '28789012', 'ADMINISTRATION');
+      repo.attachUser(withUser.getId()!, { id: 6, username: 'gtorres', roles: ['ER'], status: 'ACTIVE' });
+      await seed('Carla', 'Videla', '41234567');
+    });
+
+    it('returns everyone when hasUser is absent', async () => {
+      const result = await useCase.execute(defaults);
+
+      expect(lastNames(result.items)).toEqual(['Torres', 'Videla']);
+    });
+
+    it('returns only the employees with a user when hasUser is true', async () => {
+      const result = await useCase.execute({ ...defaults, hasUser: true });
+
+      expect(lastNames(result.items)).toEqual(['Torres']);
+      expect(result.total).toBe(1);
+    });
+
+    it('returns only the employees without a user when hasUser is false', async () => {
+      const result = await useCase.execute({ ...defaults, hasUser: false });
+
+      expect(lastNames(result.items)).toEqual(['Videla']);
+      expect(result.total).toBe(1);
+    });
+
+    // D-20: a user dado de baja still counts: the employee "tiene usuario".
+    it('counts an inactive user as having a user', async () => {
+      const other = await seed('Hugo', 'Funes', '30111222');
+      repo.attachUser(other.getId()!, { id: 8, username: 'hfunes', roles: ['AT'], status: 'INACTIVE' });
+
+      const result = await useCase.execute({ ...defaults, hasUser: true });
+
+      expect(lastNames(result.items)).toEqual(['Funes', 'Torres']);
+    });
+
+    it('returns the user summary of each employee', async () => {
+      const result = await useCase.execute(defaults);
+
+      expect(result.items.map((e) => e.getUser()?.username ?? null)).toEqual(['gtorres', null]);
+    });
+
+    it('combines hasUser with search', async () => {
+      const result = await useCase.execute({ ...defaults, hasUser: false, search: 'torres' });
+
+      expect(result.items).toEqual([]);
+      expect(result.total).toBe(0);
+    });
+  });
 });

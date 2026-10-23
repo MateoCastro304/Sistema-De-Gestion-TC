@@ -18,6 +18,17 @@ export class ListEmployeesQueryDto {
 
   @Allow()
   includeInactive?: unknown;
+
+  @Allow()
+  hasUser?: unknown;
+}
+
+
+function parseBoolean(raw: unknown, fallback: boolean | undefined): boolean | undefined | null {
+  if (raw === undefined) return fallback;
+  if (raw === 'true') return true;
+  if (raw === 'false') return false;
+  return null;
 }
 
 function parseInteger(raw: unknown, fallback: number, min: number, max: number): number | null {
@@ -40,13 +51,14 @@ export function toListEmployeesParams(query: ListEmployeesQueryDto): EmployeeLis
     details.push({ field: 'limit', message: `Debe ser un número entero entre 1 y ${MAX_PAGE_LIMIT}.` });
   }
 
-  let includeInactive = false;
-  if (query.includeInactive !== undefined) {
-    if (query.includeInactive === 'true' || query.includeInactive === 'false') {
-      includeInactive = query.includeInactive === 'true';
-    } else {
-      details.push({ field: 'includeInactive', message: 'Debe ser true o false.' });
-    }
+  const includeInactive = parseBoolean(query.includeInactive, false);
+  if (includeInactive === null) {
+    details.push({ field: 'includeInactive', message: 'Debe ser true o false.' });
+  }
+
+  const hasUser = parseBoolean(query.hasUser, undefined);
+  if (hasUser === null) {
+    details.push({ field: 'hasUser', message: 'Debe ser true o false.' });
   }
 
   let search: string | undefined;
@@ -60,9 +72,9 @@ export function toListEmployeesParams(query: ListEmployeesQueryDto): EmployeeLis
     }
   }
 
-  if (details.length > 0 || page === null || limit === null) {
+  if (details.length > 0 || page === null || limit === null || includeInactive == null || hasUser === null) {
     throw new EmployeeValidationError('Los parámetros de consulta no son válidos.', details);
   }
 
-  return { page, limit, search, includeInactive };
+  return { page, limit, search, includeInactive, hasUser };
 }

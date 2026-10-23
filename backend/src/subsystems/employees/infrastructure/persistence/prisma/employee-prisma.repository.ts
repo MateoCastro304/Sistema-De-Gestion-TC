@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, Employee as EmployeeRow } from '../../../../../generated/prisma/client';
+import { Prisma } from '../../../../../generated/prisma/client';
 import { matchesSearch } from '../../../../../shared/domain/search-text';
+import { computeUserStatus } from '../../../../../shared/domain/user-status';
 import { PrismaService } from '../../../../../shared/infrastructure/prisma/prisma.service';
 import { Employee } from '../../../core/domain/entities/employee';
 import { EmployeeDniTaken } from '../../../core/domain/errors/employee-dni-taken.error';
@@ -13,13 +14,19 @@ import { EMPLOYEE_POSITION_LABELS } from '../../../core/domain/value-objects/emp
 
 const collator = new Intl.Collator('es', { sensitivity: 'base' });
 
+// Solo los datos del usuario que forman el resumen `user`. Nunca el hash de la contraseña.
+const USER_SUMMARY = {
+  user: { select: { id: true, username: true, roles: true, isActive: true, isBlocked: true } },
+} satisfies Prisma.EmployeeInclude;
+
+type EmployeeRow = Prisma.EmployeeGetPayload<{ include: typeof USER_SUMMARY }>;
 
 @Injectable()
 export class EmployeePrismaRepository implements EmployeeRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findById(id: number): Promise<Employee | null> {
-    const row = await this.prisma.employee.findUnique({ where: { id } });
+    const row = await this.prisma.employee.findUnique({ where: { id }, include: USER_SUMMARY });
     return row ? this.toDomain(row) : null;
   }
 
@@ -30,7 +37,11 @@ export class EmployeePrismaRepository implements EmployeeRepository {
 
   async list(params: EmployeeListParams): Promise<EmployeeListResult> {
     const rows = await this.prisma.employee.findMany({
-      where: params.includeInactive ? {} : { isActive: true },
+      where: {
+        ...(params.includeInactive ? {} : { isActive: true }),
+        ...(params.hasUser === undefined ? {} : { user: params.hasUser ? { isNot: null } : { is: null } }),
+      },
+      include: USER_SUMMARY,
     });
 
     const matching = rows.filter((row) =>
@@ -61,10 +72,10 @@ export class EmployeePrismaRepository implements EmployeeRepository {
           phone: employee.getPhone(),
           isActive: employee.isActive(),
         },
+        include: USER_SUMMARY,
       });
       return this.toDomain(row);
     } catch (error) {
-
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         throw new EmployeeDniTaken(employee.getDni());
       }
@@ -85,6 +96,14 @@ export class EmployeePrismaRepository implements EmployeeRepository {
       active: row.isActive,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
+      user: row.user
+        ? {
+            id: row.user.id,
+            username: row.user.username,
+            roles: row.user.roles,
+            status: computeUserStatus({ active: row.user.isActive, blocked: row.user.isBlocked }),
+          }
+        : null,
     });
   }
 }
