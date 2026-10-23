@@ -1,3 +1,4 @@
+import { PriceChangeDraft, ProcessTypeModification } from '../../../core/domain/entities/process-type-modification';
 import { ProcessTypePriceChange } from '../../../core/domain/entities/process-type-price-change.entity';
 import { ProcessType } from '../../../core/domain/entities/process-type.entity';
 import {
@@ -9,11 +10,17 @@ import { TextKey } from '../../../../../shared/domain/text-key';
 
 /** Fake para los specs de los casos de uso; no se usa en runtime. */
 export class InMemoryProcessTypeRepository extends ProcessTypeRepository {
-  readonly saved: ProcessType[] = [];
+  saved: ProcessType[] = [];
   readonly history = new Map<number, ProcessTypePriceChange[]>();
+  /** Registros agregados por addPriceChange, para que los specs los inspeccionen. */
+  readonly priceChanges: { processTypeId: number; priceChange: PriceChangeDraft; authorId: number; changedAt: Date }[] =
+    [];
+  /** Cuántos próximos updateIfUnchanged deben fallar como si otro cambio se hubiera adelantado. */
+  lostRaces = 0;
+  updateAttempts = 0;
 
-  async existsByNameKey(nameKey: string): Promise<boolean> {
-    return this.saved.some((p) => p.getNameKey() === nameKey);
+  async existsByNameKey(nameKey: string, excludeId?: number): Promise<boolean> {
+    return this.saved.some((p) => p.getNameKey() === nameKey && p.getId() !== excludeId);
   }
 
   async findById(id: number): Promise<ProcessType | null> {
@@ -47,5 +54,26 @@ export class InMemoryProcessTypeRepository extends ProcessTypeRepository {
     });
     this.saved.push(stored);
     return stored;
+  }
+
+  async updateIfUnchanged(modification: ProcessTypeModification): Promise<boolean> {
+    this.updateAttempts++;
+    if (this.lostRaces > 0) {
+      this.lostRaces--;
+      return false;
+    }
+    const index = this.saved.findIndex((p) => p.getId() === modification.previous.getId());
+    if (index === -1) return false;
+    this.saved[index] = modification.next;
+    return true;
+  }
+
+  async addPriceChange(
+    processTypeId: number,
+    priceChange: PriceChangeDraft,
+    authorId: number,
+    changedAt: Date,
+  ): Promise<void> {
+    this.priceChanges.push({ processTypeId, priceChange, authorId, changedAt });
   }
 }

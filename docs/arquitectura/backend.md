@@ -513,6 +513,7 @@ Lo que el código implementado no cumple de esta arquitectura. **No se corrige a
 | Proveedores fuera de `technical-catalog`, en una carpeta en singular | `subsystems/supplier` | [ADR-014](../decisiones/014-subsistemas.md) ([A-05](../seguimiento/pendientes-actuales.md#a-05--p2--mover-supplier-a-technical-catalog)) |
 | Archivos sin la convención de nombres (`category.ts`, `create-category.dto.ts`) | `customers`, `supplier` | Nombres; no se renombran |
 | Sin autenticación ni guards | Todo el backend | [Contrato, §4](../api-contract/API_CONTRACT_SPRINT_2.md) |
+| Autor del cambio de precio por header provisorio `X-User-Id` (guard `ProvisionalAuthorGuard`), hasta que exista la sesión | `technical-catalog/infrastructure/http/guards/` | [Contrato, §4](../api-contract/API_CONTRACT_SPRINT_2.md) y DA-04 |
 | El id de correlación no existe todavía | `shared/` | Registro de actividad |
 
 ---

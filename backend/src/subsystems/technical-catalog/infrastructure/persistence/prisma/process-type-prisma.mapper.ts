@@ -3,6 +3,7 @@ import {
   ProcessType as ProcessTypeRow,
   ProcessTypePriceHistory as ProcessTypePriceHistoryRow,
 } from '../../../../../generated/prisma/client';
+import { MoneyAmount } from '../../../core/domain/value-objects/money-amount.vo';
 import { ProcessTypePriceChange } from '../../../core/domain/entities/process-type-price-change.entity';
 import { ProcessType } from '../../../core/domain/entities/process-type.entity';
 
@@ -20,6 +21,36 @@ export class ProcessTypePrismaMapper {
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     });
+  }
+
+  /** Importe como decimal exacto de dos posiciones. */
+  static toDecimal(amount: MoneyAmount): Prisma.Decimal {
+    return new Prisma.Decimal(amount.toFixed2());
+  }
+
+  /** Datos del UPDATE: todo lo que puede cambiar en una modificación. */
+  static toUpdateData(processType: ProcessType): Prisma.ProcessTypeUpdateManyMutationInput {
+    return {
+      name: processType.getName(),
+      nameKey: processType.getNameKey(),
+      description: processType.getDescription(),
+      hourlyRateArs: ProcessTypePrismaMapper.toDecimal(processType.getHourlyRateArs()),
+      hourlyRateUsd: ProcessTypePrismaMapper.toDecimal(processType.getHourlyRateUsd()),
+      exchangeRate: ProcessTypePrismaMapper.toDecimal(processType.getExchangeRate()),
+      updatedAt: processType.getUpdatedAt()!,
+    };
+  }
+
+  /** Condición del UPDATE: la fila sigue con los valores que se leyeron. */
+  static toUnchangedFilter(previous: ProcessType): Prisma.ProcessTypeWhereInput {
+    return {
+      id: previous.getId()!,
+      name: previous.getName(),
+      description: previous.getDescription(),
+      hourlyRateArs: ProcessTypePrismaMapper.toDecimal(previous.getHourlyRateArs()),
+      hourlyRateUsd: ProcessTypePrismaMapper.toDecimal(previous.getHourlyRateUsd()),
+      exchangeRate: ProcessTypePrismaMapper.toDecimal(previous.getExchangeRate()),
+    };
   }
 
   static toPriceChange(

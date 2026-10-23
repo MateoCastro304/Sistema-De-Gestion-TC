@@ -6,7 +6,10 @@ export type FieldError = { field: string; message: string };
 export class ProcessTypeValidationError extends DomainValidationError {
   readonly code = 'VALIDATION_ERROR';
 
-  constructor(readonly details: FieldError[]) {
-    super('Los datos enviados no son válidos.');
+  constructor(
+    readonly details: FieldError[],
+    message = 'Los datos enviados no son válidos.',
+  ) {
+    super(message);
   }
 }
