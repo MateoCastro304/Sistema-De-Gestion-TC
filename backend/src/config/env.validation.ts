@@ -1,10 +1,12 @@
 ﻿import { plainToInstance } from 'class-transformer';
 import {
   IsEnum,
+  IsIn,
   IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUrl,
   Matches,
   Max,
   Min,
@@ -74,6 +76,33 @@ class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   S3_REGION?: string;
+
+  @ValidateIf((env: EnvironmentVariables) => env.STORAGE_DRIVER === StorageDriver.S3)
+  @IsString()
+  @IsNotEmpty()
+  S3_BUCKET_UPLOADS?: string;
+
+  @IsOptional()
+  @IsUrl({ require_tld: false, require_protocol: true, protocols: ['http', 'https'] })
+  S3_ENDPOINT?: string;
+
+  @IsOptional()
+  @IsUrl({ require_tld: false, require_protocol: true, protocols: ['http', 'https'] })
+  S3_PUBLIC_ENDPOINT?: string;
+
+  @IsOptional()
+  @IsIn(['true', 'false'])
+  S3_FORCE_PATH_STYLE?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  S3_BACKEND_ACCESS_KEY?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  S3_BACKEND_SECRET_KEY?: string;
 }
 
 export function validate(config: Record<string, unknown>) {
@@ -88,6 +117,11 @@ export function validate(config: Record<string, unknown>) {
   // Con el mismo secreto, un refresh token pasaria como access token (y al reves).
   if (validatedConfig.JWT_SECRET && validatedConfig.JWT_SECRET === validatedConfig.JWT_REFRESH_SECRET) {
     errors.push('JWT_REFRESH_SECRET: tiene que ser distinto de JWT_SECRET');
+  }
+
+  // Las dos (dev) o ninguna (prod, IAM Role). Con una sola el SDK no puede firmar.
+  if (!validatedConfig.S3_BACKEND_ACCESS_KEY !== !validatedConfig.S3_BACKEND_SECRET_KEY) {
+    errors.push('S3_BACKEND_ACCESS_KEY, S3_BACKEND_SECRET_KEY: van las dos o ninguna');
   }
 
   if (errors.length > 0) {

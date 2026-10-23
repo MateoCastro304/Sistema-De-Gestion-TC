@@ -92,7 +92,7 @@ ALLOWED_ORIGINS=http://localhost:8081
   ```
 
 - **`ALLOWED_ORIGINS`** es opcional y recibe una lista separada por comas. En desarrollo debe incluir `http://localhost:8081` para que Swagger UI pueda enviar solicitudes al backend. Dejalo sin definir en producción: el frontend accede al backend mediante Nginx desde el mismo origen, por lo que CORS permanece deshabilitado.
-- **Opcionales** (comentadas en `.env.example`): `JWT_EXPIRATION` (por defecto `15m`), `JWT_REFRESH_EXPIRATION` (por defecto `7d`), `STORAGE_DRIVER` (`local` o `s3`) y, solo si es `s3`, `S3_BUCKET` y `S3_REGION`.
+- **Opcionales** (comentadas en `.env.example`): `JWT_EXPIRATION` (por defecto `15m`), `JWT_REFRESH_EXPIRATION` (por defecto `7d`), `STORAGE_DRIVER` (`local` o `s3`; en dev viene en `s3`, contra SeaweedFS) y, solo si es `s3`, `S3_REGION`, `S3_BUCKET` y `S3_BUCKET_UPLOADS`. Del storage también son opcionales `S3_ENDPOINT`, `S3_PUBLIC_ENDPOINT` y `S3_FORCE_PATH_STYLE`, y las keys `S3_BACKEND_ACCESS_KEY`/`S3_BACKEND_SECRET_KEY` van las dos o ninguna (en prod, ninguna: se usa el IAM Role). Ver la tabla de [infrastructure/docker/README.md](../infrastructure/docker/README.md).
 
 La lista completa, con qué usa cada variable, está en el [README de Docker](../infrastructure/docker/README.md#variables).
 

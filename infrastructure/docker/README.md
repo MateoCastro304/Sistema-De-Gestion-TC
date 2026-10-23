@@ -139,10 +139,13 @@ The backend validates its variables on startup (`backend/src/config/env.validati
 | `JWT_EXPIRATION` | No | Backend | Access token lifetime (`15m`, `1h`…). Default `15m` |
 | `JWT_REFRESH_EXPIRATION` | No | Backend | Refresh token lifetime (`7d`…). Default `7d` |
 | `ALLOWED_ORIGINS` | No | Backend | Comma-separated CORS origins. Dev: `http://localhost:8081` (Swagger UI). Leave it unset in prod |
-| `STORAGE_DRIVER` | No | Backend | `local` (default) or `s3` |
-| `S3_BUCKET`, `S3_REGION` | If `s3` | Backend | Required only when `STORAGE_DRIVER=s3`. `S3_BUCKET` is the business files bucket |
+| `STORAGE_DRIVER` | No | Backend | `local` (default) or `s3`. Dev: `s3` (SeaweedFS) |
+| `S3_REGION`, `S3_BUCKET`, `S3_BUCKET_UPLOADS` | If `s3` | Backend | Region (SeaweedFS ignores it, but the AWS SDK requires it), business files bucket and unconfirmed uploads bucket |
+| `S3_ENDPOINT` | No | Backend | Where the backend connects. Dev: `http://seaweed:8333`. Unset: the AWS endpoint for the region |
+| `S3_PUBLIC_ENDPOINT` | No | Backend | Host signed into presigned URLs; the browser opens them. Dev: `http://localhost:8333`. Defaults to `S3_ENDPOINT` |
+| `S3_FORCE_PATH_STYLE` | No | Backend | `true` puts the bucket in the URL path. Dev: `true` (SeaweedFS needs it). Default `false`, the style AWS expects |
 | `S3_BUCKET`, `S3_BUCKET_UPLOADS`, `S3_BUCKET_BACKUPS` | Dev | Compose (SeaweedFS) | Buckets created on startup: business files, unconfirmed uploads and DB backups. Lowercase letters, digits and hyphens |
-| `S3_BACKEND_ACCESS_KEY`, `S3_BACKEND_SECRET_KEY` | Dev | Compose (SeaweedFS) | Backend credential, limited to the files and uploads buckets. Letters and digits only, at least 16 characters |
+| `S3_BACKEND_ACCESS_KEY`, `S3_BACKEND_SECRET_KEY` | Both or neither | Backend, Compose (SeaweedFS) | Backend credential, limited to the files and uploads buckets. Letters and digits only, at least 16 characters. Leave both unset in prod: the AWS SDK uses the EC2 IAM Role |
 | `S3_BACKUP_ACCESS_KEY`, `S3_BACKUP_SECRET_KEY` | Dev | Compose (SeaweedFS) | **In `.env.storage.dev`**, not `.env.dev`: the backend loads `.env.dev` whole. Backup service credential, limited to the backups bucket. Same format |
 | `S3_ADMIN_ACCESS_KEY`, `S3_ADMIN_SECRET_KEY` | Dev | Compose (SeaweedFS) | **In `.env.storage.dev`**. Admin credential, used only by `storage-init` to configure the buckets. Same format |
 | `S3_CORS_ORIGINS` | Dev | Compose (SeaweedFS) | Comma-separated origins allowed to call the storage directly (presigned URLs). Separate from `ALLOWED_ORIGINS` |
