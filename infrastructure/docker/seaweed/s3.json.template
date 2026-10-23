@@ -1,0 +1,35 @@
+{
+  "identities": [
+    {
+      "name": "backend",
+      "credentials": [
+        {
+          "accessKey": "${S3_BACKEND_ACCESS_KEY}",
+          "secretKey": "${S3_BACKEND_SECRET_KEY}"
+        }
+      ],
+      "actions": [
+        "Read:${S3_BUCKET}",
+        "Write:${S3_BUCKET}",
+        "List:${S3_BUCKET}",
+        "Read:${S3_BUCKET_UPLOADS}",
+        "Write:${S3_BUCKET_UPLOADS}",
+        "List:${S3_BUCKET_UPLOADS}"
+      ]
+    },
+    {
+      "name": "backup",
+      "credentials": [
+        {
+          "accessKey": "${S3_BACKUP_ACCESS_KEY}",
+          "secretKey": "${S3_BACKUP_SECRET_KEY}"
+        }
+      ],
+      "actions": [
+        "Read:${S3_BUCKET_BACKUPS}",
+        "Write:${S3_BUCKET_BACKUPS}",
+        "List:${S3_BUCKET_BACKUPS}"
+      ]
+    }
+  ]
+}
