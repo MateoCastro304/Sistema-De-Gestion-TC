@@ -28,6 +28,10 @@ class EnvironmentVariables {
   @IsOptional()
   @IsString()
   ALLOWED_ORIGINS?: string;
+
+  @IsOptional()
+  @IsString()
+  EXCHANGE_RATE_API_URL?: string;
 }
 
 export function validate(config: Record<string, unknown>) {
