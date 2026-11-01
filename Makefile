@@ -14,10 +14,13 @@ COMPOSE_PROD  := infrastructure/docker/docker-compose.prod.yaml
 COMPOSE_TEST := infrastructure/docker/docker-compose.test.yaml
 
 ENV_DEV       := infrastructure/docker/.env.dev
+ENV_STORAGE_DEV := infrastructure/docker/.env.storage.dev
 ENV_PROD      := infrastructure/docker/.env.prod
 ENV_TEST			:= infrastructure/docker/.env.test
 
-DC_DEV  := docker compose -f $(COMPOSE_BASE) -f $(COMPOSE_DEV)  --env-file $(ENV_DEV)
+# .env.storage.dev va aparte: solo para interpolar en el compose. El backend
+# carga .env.dev con env_file y no tiene que ver esas credenciales.
+DC_DEV  := docker compose -f $(COMPOSE_BASE) -f $(COMPOSE_DEV)  --env-file $(ENV_DEV) --env-file $(ENV_STORAGE_DEV)
 DC_PROD := docker compose -f $(COMPOSE_BASE) -f $(COMPOSE_PROD) --env-file $(ENV_PROD)
 DC_TEST := docker compose -f $(COMPOSE_BASE) -f $(COMPOSE_TEST) --env-file $(ENV_TEST)
 
@@ -30,7 +33,7 @@ DC_TEST := docker compose -f $(COMPOSE_BASE) -f $(COMPOSE_TEST) --env-file $(ENV
         backend-restart backend-logs backend-shell backend-build \
         migrate seed test-int test-module \
         frontend-restart frontend-logs frontend-shell frontend-build \
-        shell-db \
+        shell-db backup backup-logs \
 				openapi-docs-build openapi-docs-logs \
         prod-up prod-build prod-down prod-logs
 
@@ -122,6 +125,12 @@ frontend-build: ## Rebuild the frontend image only
 
 shell-db: ## Opens psql inside the postgres container (dev)
 	$(DC_DEV) exec postgres psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
+
+backup: ## Runs a manual DB backup to the backups bucket (dev)
+	$(DC_DEV) exec backup backup.sh manual
+
+backup-logs: ## Shows only the backup logs (dev)
+	$(DC_DEV) logs -f backup
 
 # ---- Dev Web Scoped (Nginx) -----------------------------------------------
 

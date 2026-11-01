@@ -6,8 +6,15 @@ import { PrismaService } from '../../../src/shared/infrastructure/prisma/prisma.
 
 let app: INestApplication;
 
-export async function startTestApp(): Promise<INestApplication> {
-  const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+/** Reemplazo de un proveedor del módulo, p. ej. un servicio externo por un fake. */
+export type ProviderOverride = { provide: unknown; useValue: unknown };
+
+export async function startTestApp(overrides: ProviderOverride[] = []): Promise<INestApplication> {
+  let builder = Test.createTestingModule({ imports: [AppModule] });
+  for (const { provide, useValue } of overrides) {
+    builder = builder.overrideProvider(provide as never).useValue(useValue);
+  }
+  const moduleRef = await builder.compile();
 
   app = moduleRef.createNestApplication();
   configureApp(app);
