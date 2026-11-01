@@ -44,6 +44,8 @@ interface SessionChanges {
   refreshRevoked?: boolean
   /** Pasaron los 7 días desde el ingreso: la sesión vence aunque se use el sistema (D-44). */
   maxDurationReached?: boolean
+  /** Pasaron los 30 minutos sin actividad: la próxima petición responde `SESSION_EXPIRED`. */
+  expiredByInactivity?: boolean
 }
 
 /**
@@ -59,6 +61,7 @@ export async function changeSession(page: Page, changes: SessionChanges) {
       const session = JSON.parse(raw) as Record<string, unknown>
       if (changes.accessTokenExpired) session.accessTokenExpired = true
       if (changes.refreshRevoked) session.refreshRevoked = true
+      if (changes.expiredByInactivity) session.expiredByInactivity = true
       if (changes.maxDurationReached) session.expiresAt = new Date(Date.now() - 1000).toISOString()
       localStorage.setItem(key, JSON.stringify(session))
     },

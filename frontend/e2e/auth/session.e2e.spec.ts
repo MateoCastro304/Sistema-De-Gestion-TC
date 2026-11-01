@@ -135,6 +135,19 @@ test.describe('[DTC-33][CU-53] Sesión abierta', { tag: '@sprint2' }, () => {
     await expect(page.getByText('Tu sesión expiró. Volvé a ingresar.')).toBeVisible()
   })
 
+  test('si la sesión se cierra por inactividad, al reingresar vuelve a la pantalla en la que estaba', async ({ page }) => {
+    await page.goto(ROUTES.customersPanel)
+    await expect(encargados(page)).toBeVisible()
+    await changeSession(page, { expiredByInactivity: true })
+
+    await encargados(page).click()
+    await expect(loginHeading(page)).toBeVisible()
+    await expect(page.getByText('Tu sesión expiró por inactividad')).toBeVisible()
+
+    await login(page, 'mrios', DEMO_PASSWORD)
+    await expect(page).toHaveURL(ROUTES.customers)
+  })
+
   test('si el refresh token ya fue reemplazado, cierra la sesión sin mensaje', async ({ page }) => {
     await page.goto(ROUTES.customersPanel)
     await expect(encargados(page)).toBeVisible()
@@ -147,6 +160,21 @@ test.describe('[DTC-33][CU-53] Sesión abierta', { tag: '@sprint2' }, () => {
     // La sesión quedó cerrada en el servidor: recargar no la recupera.
     await page.reload()
     await expect(loginHeading(page)).toBeVisible()
+  })
+})
+
+test.describe('[DTC-33][CU-53] Volver a la pantalla pedida', { tag: '@sprint2' }, () => {
+  test('sin sesión, al ingresar llega a la pantalla pedida si el rol la permite', async ({ page }) => {
+    await page.goto(ROUTES.suppliers)
+    await expect(loginHeading(page)).toBeVisible()
+    await login(page, 'lbenitez', DEMO_PASSWORD)
+    await expect(page).toHaveURL(ROUTES.suppliers)
+  })
+
+  test('si el rol no permite la pantalla pedida, va al inicio de su rol', async ({ page }) => {
+    await page.goto(ROUTES.suppliers)
+    await login(page, 'mrios', DEMO_PASSWORD)
+    await expect(page).toHaveURL(ROUTES.customersPanel)
   })
 })
 

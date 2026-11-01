@@ -18,6 +18,10 @@ interface LoginLocationState {
   from?: string
 }
 
+// Íconos del ojo, los del prototipo.
+const EYE = 'M1.8 10S5 4.5 10 4.5 18.2 10 18.2 10 15 15.5 10 15.5 1.8 10 1.8 10zM12.5 10a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0'
+const EYE_OFF = `${EYE}M3 3l14 14`
+
 /**
  * Pantalla de ingreso (CU-53). Textos y estructura del prototipo: el panel
  * con la marca a la izquierda y el formulario "Ingresar" a la derecha.
@@ -29,6 +33,8 @@ export function LoginPage() {
   const login = useLogin()
   // El error del último intento. Tiene prioridad sobre el aviso de sesión expirada.
   const [failure, setFailure] = useState<string | null>(null)
+  // Muestra u oculta la contraseña (el ojito del campo).
+  const [showPassword, setShowPassword] = useState(false)
 
   const {
     register,
@@ -93,7 +99,10 @@ export function LoginPage() {
 
           {notice && (
             <div className={cn('login__alert', failure && 'login__alert--error')} role="alert">
-              {notice}
+              <span className="login__alert-icon" aria-hidden="true">
+                <span>{failure ? '!' : 'i'}</span>
+              </span>
+              <span>{notice}</span>
             </div>
           )}
 
@@ -104,13 +113,33 @@ export function LoginPage() {
             error={errors.username?.message}
             {...register('username')}
           />
-          <Input
-            label="Contraseña"
-            type="password"
-            autoComplete="current-password"
-            error={errors.password?.message}
-            {...register('password')}
-          />
+          {/* La contraseña lleva un botón adentro, así que no usa el Input compartido. */}
+          <div className={cn('form-field', errors.password && 'form-field--error')}>
+            <label className="form-field__label" htmlFor="login-password">
+              Contraseña
+            </label>
+            <span className="form-field__affix login__password">
+              <input
+                id="login-password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                aria-invalid={errors.password ? true : undefined}
+                {...register('password')}
+              />
+              <button
+                type="button"
+                className="login__eye"
+                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                aria-pressed={showPassword}
+                onClick={() => setShowPassword((visible) => !visible)}
+              >
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d={showPassword ? EYE_OFF : EYE} />
+                </svg>
+              </button>
+            </span>
+            {errors.password && <span className="form-field__error">{errors.password.message}</span>}
+          </div>
 
           <Button type="submit" block disabled={login.isPending}>
             Ingresar

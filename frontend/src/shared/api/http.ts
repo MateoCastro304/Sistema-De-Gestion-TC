@@ -18,7 +18,7 @@ interface NestErrorBody {
 const FALLBACK_MESSAGES: Record<number, string> = {
     400: 'Los datos enviados no son válidos.',
     401: 'Tu sesión expiró. Volvé a iniciar sesión.',
-    403: 'No tenés permiso para realizar esta acción.',
+    403: 'No tenés permisos para realizar esta operación.',
     404: 'No encontramos lo que buscabas.',
     409: 'Ese registro ya existe o está siendo utilizado.',
     422: 'Los datos enviados no son válidos.',
@@ -107,6 +107,7 @@ function isSessionEndpoint(url: string | undefined): boolean {
 export const http = axios.create({
     baseURL: import.meta.env.VITE_API_URL ?? '/api',
     timeout: 15000,
+    withCredentials: true,
     headers: { 'Content-Type': 'application/json' },
 })
 

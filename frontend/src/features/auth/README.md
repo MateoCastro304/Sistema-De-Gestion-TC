@@ -22,6 +22,24 @@ Cerrar sesión (DTC-32, CU-52) es otra historia y todavía no está hecha.
 
 Con el login hecho, los mocks del Sprint 1 piden sesión y rol (`SPRINT_1_REQUIRES_SESSION = true` en `app/mocks/handlers.ts`, contrato §7.2).
 
+## Tamaño de la pantalla de ingreso
+
+El resto de la app se ve al 80% (`html { zoom: var(--rp-zoom) }` en escritorio, ver `styles/styles.css`), pero el prototipo se diseñó al 100%. Para que el ingreso mida lo mismo, `.login` cancela ese zoom con `zoom: calc(1 / var(--rp-zoom))`. Con eso la tarjeta mide 440 px, los campos 372 × 49 y el botón 372 × 50, como en el prototipo. En celular `--rp-zoom` vale 1 y no cambia nada; si se cambia el zoom global, el ingreso se ajusta solo. El corte de celular es el del prototipo (760 px).
+
+## Volver a la pantalla pedida
+
+`RequireSession` manda al ingreso con `state.from` (la ruta y los parámetros que se querían abrir). Al ingresar, `LoginPage` va a esa ruta si `canOpen()` dice que los roles la permiten; si no, va al inicio del rol. Funciona igual cuando la sesión se cierra mientras se usa el sistema (escenarios 6 y 11): el usuario vuelve a la pantalla en la que estaba.
+
+## Errores `403` y cookie
+
+Los roles se verifican en cada petición en el servidor (RNF09). Una URL de otro rol muestra "Acceso denegado" sin pedir datos. Si el backend responde `403 FORBIDDEN`, el mensaje es el del contrato, "No tenés permisos para realizar esta operación." (`http.ts` lo usa de respaldo si el servidor no manda texto).
+
+`http` usa `withCredentials: true` para enviar la cookie `refresh_token` también cuando la API está en otro dominio (en ese caso el backend tiene que permitir CORS con credenciales). Con el proxy `/api`, lo habitual, no hace falta.
+
+## Problemas conocidos al desarrollar
+
+- **"Error del servidor. Intentá de nuevo en unos minutos." al ingresar:** la app le está pegando al backend real y no hay ninguno en `localhost:3000`. Para trabajar con mocks, `.env.local` tiene que tener `VITE_USE_MOCKS=true` guardado en UTF-8 o ASCII. En PowerShell, `echo ... > archivo` lo guarda en UTF-16 y Vite lo ignora; usá `Set-Content -Path .env.local -Value "VITE_USE_MOCKS=true" -Encoding ascii` y reiniciá `npm run dev`. En la consola del navegador tiene que aparecer `[MSW] Mocking enabled`.
+
 ## Tests
 
 Los tests son **E2E con Playwright** ([ADR-012](../../../../docs/decisiones/012-frontend-e2e-tests.md), [TESTING.md](../../../frontend-Documents/TESTING.md)): abren un navegador, usan la app como un usuario y la API la responden los mocks. Están en `e2e/auth/session.e2e.spec.ts`.
@@ -35,6 +53,8 @@ Para cubrirlos, primero se les enseñó a los mocks esos estados y después se e
 - **Mocks** (`shared/mocks/session.ts`, `api/auth.mocks.ts`): la sesión simulada suma `accessTokenExpired` y `refreshRevoked`, y `authorize()` ahora también revisa los 7 días, como el backend.
 - **Soporte de los tests** (`e2e/support/session.ts`): `changeSession(page, cambios)` deja la sesión en ese estado en medio del test. Los tiempos (15 minutos, 7 días) no se esperan.
 - **Tests:** un `describe` nuevo, `[DTC-33][CU-53] Sesión abierta`, con tres tests.
+
+Después se sumaron tres tests más para el "vuelve a donde estaba" de los escenarios 6 y 7, que estaba programado pero sin comprobar. Para el primero, `changeSession` aprendió `expiredByInactivity`.
 
 ### Escenarios que antes no se cubrían
 
@@ -53,8 +73,8 @@ Para cubrirlos, primero se les enseñó a los mocks esos estados y después se e
 | 3. Bloqueo por intentos fallidos | "bloquea al usuario al quinto intento fallido" y "un usuario bloqueado no ingresa" |
 | 4. Usuario dado de baja | "un usuario dado de baja recibe el mismo mensaje que una contraseña mala" |
 | 5. Renovación transparente del token | **nuevo** (ver arriba) |
-| 6. Cierre por inactividad | "avisa cuando la sesión expiró por inactividad" |
-| 7. Acceso a una pantalla sin sesión | "sin sesión, cualquier pantalla lleva al ingreso" |
+| 6. Cierre por inactividad | "avisa cuando la sesión expiró por inactividad" y "…al reingresar vuelve a la pantalla en la que estaba" |
+| 7. Acceso a una pantalla sin sesión | "sin sesión, cualquier pantalla lleva al ingreso" y los dos de `[DTC-33][CU-53] Volver a la pantalla pedida` (rol que la permite / rol que no) |
 | 8. Acceso fuera de su rol | "una pantalla de otro rol muestra acceso denegado" |
 | 9. Datos incompletos | "marca los campos vacíos sin contarlos como intento" |
 | 10. Recargar mantiene la sesión | "ingresa a la primera pantalla… y la sesión sobrevive a una recarga" |
@@ -75,6 +95,8 @@ Los dos tests de `[CU-52] Cerrar sesión` fallan hasta que se haga DTC-32: neces
 
 - **Escenario 12 en el servidor:** la regla de los 30 segundos de tolerancia después de la rotación (D-47) es del backend y se prueba allá. Del lado del frontend se prueba lo que le toca: un solo refresh a la vez y volver al ingreso si el servidor lo rechaza.
 - **Los tests valen lo que valen los mocks** ([ADR-011](../../../../docs/decisiones/011-frontend-api-mocks.md)): no reemplazan una prueba contra el backend real.
-- **Mostrar u ocultar la contraseña:** el prototipo tiene ese botón en el campo, pero el `Input` compartido no admite un botón adentro. Quedó afuera.
+- **Mostrar u ocultar la contraseña:** el `Input` compartido no admite un botón adentro, así que el campo de contraseña de `LoginPage` se arma con las mismas clases (`form-field`, `form-field__affix`) y lleva el ojito del prototipo.
+- **Sin test:** el cambio de roles entre recargas (escenario 10, el mock no puede hacerlo) y el mensaje de respaldo del `403` de `http.ts`.
+- **Contador de inactividad en pantalla:** el contrato describe que el prototipo lo lleva por su cuenta con `inactivityTimeoutSeconds`, pero la historia no lo exige: el cierre llega con el `401 SESSION_EXPIRED` de la siguiente acción.
 - **Administrador del Sistema:** hasta que exista el panel Administración (DTC-28), ve el inicio sin módulos.
 - **Paralelismo:** en algunas máquinas, con la cantidad de workers por defecto el dev server no da abasto y los tests se cortan por tiempo al abrir la página. Con `--workers=2` pasan.
