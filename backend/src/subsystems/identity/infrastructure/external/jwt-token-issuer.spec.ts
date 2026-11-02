@@ -66,6 +66,32 @@ describe('JwtTokenIssuer', () => {
     expect(() => issuer.verify(hs512)).toThrow(Unauthenticated);
   });
 
+  describe('verifyIgnoringExpiration', () => {
+    it('returns the claims of a token that already expired, so its session can still be closed', () => {
+      const expired = jwt.sign({ sub: '42', sid: SID, exp: nowSeconds() - 10 });
+
+      expect(issuer.verifyIgnoringExpiration(expired)).toEqual({ sub: 42, sid: SID });
+    });
+
+    it('still requires a valid signature', () => {
+      const forged = new JwtService({ secret: 'another-secret-that-is-also-long-enough-99' }).sign({
+        sub: '1',
+        sid: SID,
+        exp: nowSeconds() - 10,
+      });
+
+      expect(() => issuer.verifyIgnoringExpiration(forged)).toThrow(Unauthenticated);
+    });
+
+    it('still rejects an unsigned token and garbage', () => {
+      const header = Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url');
+      const payload = Buffer.from(JSON.stringify({ sub: '1', sid: SID })).toString('base64url');
+
+      expect(() => issuer.verifyIgnoringExpiration(`${header}.${payload}.`)).toThrow(Unauthenticated);
+      expect(() => issuer.verifyIgnoringExpiration('not.a.jwt')).toThrow(Unauthenticated);
+    });
+  });
+
   it.each([
     ['without sid', { sub: '1' }],
     ['without sub', { sid: SID }],

@@ -1,5 +1,6 @@
 import { ClockPort } from '../../../../../../shared/clock/clock.port';
 import { AuthUser } from '../../../domain/entities/auth-user.entity';
+import { Unauthenticated } from '../../../domain/errors/unauthenticated.error';
 import { PasswordHasher } from '../../../domain/ports/password-hasher.port';
 import { SessionPolicy } from '../../../domain/ports/session-policy.port';
 import { AccessTokenClaims, IssuedAccessToken, TokenIssuer } from '../../../domain/ports/token-issuer.port';
@@ -50,8 +51,13 @@ export class FakeTokenIssuer extends TokenIssuer {
   }
 
   verify(token: string): AccessTokenClaims {
-    const [, sub, sid] = token.split(':');
-    return { sub: Number(sub), sid };
+    const match = /^access:(\d+):(.+)$/.exec(token);
+    if (!match) throw new Unauthenticated();
+    return { sub: Number(match[1]), sid: match[2] };
+  }
+
+  verifyIgnoringExpiration(token: string): AccessTokenClaims {
+    return this.verify(token);
   }
 }
 

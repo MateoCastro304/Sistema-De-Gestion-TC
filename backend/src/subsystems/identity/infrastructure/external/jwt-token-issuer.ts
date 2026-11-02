@@ -32,9 +32,20 @@ export class JwtTokenIssuer extends TokenIssuer {
   }
 
   verify(token: string): AccessTokenClaims {
+    return this.read(token, false);
+  }
+
+  verifyIgnoringExpiration(token: string): AccessTokenClaims {
+    return this.read(token, true);
+  }
+
+  private read(token: string, ignoreExpiration: boolean): AccessTokenClaims {
     let payload: { sub?: unknown; sid?: unknown };
     try {
-      payload = this.jwt.verify<{ sub?: unknown; sid?: unknown }>(token, { algorithms: [ALGORITHM] });
+      payload = this.jwt.verify<{ sub?: unknown; sid?: unknown }>(token, {
+        algorithms: [ALGORITHM],
+        ignoreExpiration,
+      });
     } catch (error) {
       throw error instanceof TokenExpiredError ? new AccessTokenExpired() : new Unauthenticated();
     }

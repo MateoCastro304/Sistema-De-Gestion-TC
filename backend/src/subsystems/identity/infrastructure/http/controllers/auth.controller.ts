@@ -2,6 +2,7 @@ import { Body, Controller, HttpCode, HttpStatus, Post, Req, Res, UseFilters } fr
 import type { Request, Response } from 'express';
 import { AuthenticatedSession } from '../../../core/application/authenticated-session';
 import { AuthenticateUser } from '../../../core/application/use-cases/authenticate-user.use-case';
+import { Logout } from '../../../core/application/use-cases/logout.use-case';
 import { RefreshSession } from '../../../core/application/use-cases/refresh-session.use-case';
 import { SessionExpired } from '../../../core/domain/errors/session-expired.error';
 import { Unauthenticated } from '../../../core/domain/errors/unauthenticated.error';
@@ -10,13 +11,14 @@ import { IdentityDomainErrorFilter } from '../filters/identity-domain-error.filt
 import { RefreshCookieOptions } from '../refresh-cookie.options';
 import { SessionResponse, SessionResponseBody } from '../session.response';
 
-/** Sesión (contrato §3.1). `login` y `refresh` son públicos; `logout` se suma en T5. */
+/** Sesión (contrato §3.1). Los tres endpoints son públicos: no exigen access token. */
 @Controller('auth')
 @UseFilters(IdentityDomainErrorFilter)
 export class AuthController {
   constructor(
     private readonly authenticate: AuthenticateUser,
     private readonly refreshSession: RefreshSession,
+    private readonly logoutSession: Logout,
     private readonly cookies: RefreshCookieOptions,
   ) {}
 
@@ -55,6 +57,29 @@ export class AuthController {
       }
       throw error;
     }
+  }
+
+  /**
+   * Siempre `204`, nunca `401` (D-09): con la sesión vencida, ya cerrada o sin
+   * ningún token, quien se va igual queda sin sesión. Identifica la sesión por la
+   * cookie o, si no llega, por el access token.
+   */
+  @Post('logout')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async logout(@Req() request: Request, @Res({ passthrough: true }) response: Response): Promise<void> {
+    const cookies = request.cookies as Record<string, string | undefined> | undefined;
+
+    await this.logoutSession.execute({
+      refreshToken: cookies?.[this.cookies.name],
+      accessToken: AuthController.bearerTokenOf(request),
+    });
+
+    response.clearCookie(this.cookies.name, this.cookies.forClear());
+  }
+
+  private static bearerTokenOf(request: Request): string | undefined {
+    const [scheme, token] = (request.headers.authorization ?? '').split(' ');
+    return scheme?.toLowerCase() === 'bearer' && token ? token : undefined;
   }
 
   private respondWith(session: AuthenticatedSession, response: Response): SessionResponseBody {

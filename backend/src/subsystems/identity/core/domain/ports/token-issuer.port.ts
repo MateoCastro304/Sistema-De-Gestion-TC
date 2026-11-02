@@ -15,4 +15,13 @@ export abstract class TokenIssuer {
    * @throws `Unauthenticated` si no es un token nuestro, está adulterado o no trae los claims.
    */
   abstract verify(token: string): AccessTokenClaims;
+
+  /**
+   * Igual que `verify`, pero acepta un token vencido: la firma y los claims se
+   * exigen igual. Sirve para el logout, que tiene que poder cerrar la sesión
+   * aunque el access token ya haya cumplido sus 15 minutos.
+   *
+   * @throws `Unauthenticated` si no es un token nuestro, está adulterado o no trae los claims.
+   */
+  abstract verifyIgnoringExpiration(token: string): AccessTokenClaims;
 }
