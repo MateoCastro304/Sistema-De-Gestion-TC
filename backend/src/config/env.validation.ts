@@ -29,6 +29,9 @@ enum StorageDriver {
 // Formato corto de la libreria ms (la que usa jsonwebtoken): 900, 30s, 15m, 12h, 7d.
 const DURACION = /^\d+(ms|s|m|h|d|w|y)?$/;
 
+// Lista separada por comas de duraciones, para la escala de bloqueo (ej. 1m,5m,15m,1h).
+const LISTA_DURACIONES = /^\d+(ms|s|m|h|d|w|y)?(,\d+(ms|s|m|h|d|w|y)?)*$/;
+
 class EnvironmentVariables {
   @IsEnum(Entorno)
   NODE_ENV!: Entorno;
@@ -57,6 +60,69 @@ class EnvironmentVariables {
   @IsOptional()
   @Matches(DURACION, { message: 'JWT_REFRESH_EXPIRATION tiene que ser una duracion como 7d' })
   JWT_REFRESH_EXPIRATION?: string;
+
+  // Inactividad maxima de una sesion (por defecto 30m).
+  @IsOptional()
+  @Matches(DURACION, { message: 'SESSION_INACTIVITY_TTL tiene que ser una duracion como 30m' })
+  SESSION_INACTIVITY_TTL?: string;
+
+  // Costo de bcrypt (por defecto 12).
+  @IsOptional()
+  @IsInt()
+  @Min(4)
+  @Max(15)
+  BCRYPT_COST?: number;
+
+  // Cookie del refresh token. Por defecto: refresh_token, /api/auth, Strict, Secure.
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  COOKIE_REFRESH_NAME?: string;
+
+  @IsOptional()
+  @Matches(/^\//, { message: 'COOKIE_REFRESH_PATH tiene que empezar con /' })
+  COOKIE_REFRESH_PATH?: string;
+
+  @IsOptional()
+  @IsIn(['Strict', 'Lax', 'None'])
+  COOKIE_REFRESH_SAMESITE?: string;
+
+  @IsOptional()
+  @IsIn(['true', 'false'])
+  COOKIE_SECURE?: string;
+
+  // true cuando hay un proxy delante (nginx): req.ip pasa a ser la IP del cliente.
+  @IsOptional()
+  @IsIn(['true', 'false'])
+  TRUST_PROXY?: string;
+
+  // Bloqueo progresivo de ingreso, nivel usuario+IP (por defecto 5, 15m, 1m,5m,15m,1h).
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  LOGIN_LOCK_THRESHOLD?: number;
+
+  @IsOptional()
+  @Matches(DURACION, { message: 'LOGIN_LOCK_WINDOW tiene que ser una duracion como 15m' })
+  LOGIN_LOCK_WINDOW?: string;
+
+  @IsOptional()
+  @Matches(LISTA_DURACIONES, { message: 'LOGIN_LOCK_LADDER tiene que ser una lista de duraciones como 1m,5m,1h' })
+  LOGIN_LOCK_LADDER?: string;
+
+  // Nivel solo-usuario, contiene los ataques distribuidos (por defecto 25, 1h, 15m).
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  LOGIN_LOCK_USER_THRESHOLD?: number;
+
+  @IsOptional()
+  @Matches(DURACION, { message: 'LOGIN_LOCK_USER_WINDOW tiene que ser una duracion como 1h' })
+  LOGIN_LOCK_USER_WINDOW?: string;
+
+  @IsOptional()
+  @Matches(LISTA_DURACIONES, { message: 'LOGIN_LOCK_USER_LADDER tiene que ser una lista de duraciones como 15m' })
+  LOGIN_LOCK_USER_LADDER?: string;
 
   @IsOptional()
   @IsString()
@@ -125,6 +191,12 @@ export function validate(config: Record<string, unknown>) {
   // Con el mismo secreto, un refresh token pasaria como access token (y al reves).
   if (validatedConfig.JWT_SECRET && validatedConfig.JWT_SECRET === validatedConfig.JWT_REFRESH_SECRET) {
     errors.push('JWT_REFRESH_SECRET: tiene que ser distinto de JWT_SECRET');
+  }
+
+  // Los navegadores descartan una cookie SameSite=None que no sea Secure. Como
+  // Secure es true por defecto, solo falla si se apaga a proposito.
+  if (validatedConfig.COOKIE_REFRESH_SAMESITE === 'None' && validatedConfig.COOKIE_SECURE === 'false') {
+    errors.push('COOKIE_SECURE: SameSite=None exige COOKIE_SECURE=true');
   }
 
   // Las dos (dev) o ninguna (prod, IAM Role). Con una sola el SDK no puede firmar.
