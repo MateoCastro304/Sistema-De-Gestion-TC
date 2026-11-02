@@ -127,18 +127,43 @@ erDiagram
         int         employee_id           FK, UK "maximo un usuario por empleado"
         varchar     username              UK "30, en minusculas"
         varchar     password_hash            "255, bcrypt"
-        int         failed_login_attempts    "default 0, CHECK >= 0"
-        timestamptz blocked_at               "nullable"
         bool        is_active                "default true"
         int         created_by_user_id    FK "nullable"
         timestamptz created_at
         timestamptz updated_at
     }
 
+    role {
+        int         id          PK
+        varchar     code        UK "10, JT, ERP, EC, ER, AT, AS"
+        varchar     name           "60"
+        int         sort_order     "orden del prototipo"
+        timestamptz created_at
+    }
+
+    permission {
+        int         id          PK
+        varchar     code        UK "60, recurso:accion"
+        varchar     description    "200, nullable"
+        timestamptz created_at
+    }
+
+    role_permission {
+        int role_id       PK, FK
+        int permission_id PK, FK
+    }
+
     user_role {
         int         user_id     PK, FK
-        role_enum   role        PK "JT, ERP, EC, ER, AT, AS"
+        int         role_id     PK, FK
         timestamptz assigned_at
+    }
+
+    login_attempt {
+        varchar     identifier           PK "120, u:username o u:username|ip:ip"
+        int         consecutive_failures    "default 0"
+        timestamptz last_failed_at
+        timestamptz locked_until            "nullable, bloqueo temporal"
     }
 
     user_session {
@@ -214,6 +239,9 @@ erDiagram
 
     employee         ||--o| app_user                   : "tiene usuario"
     app_user         ||--|{ user_role                  : "roles"
+    role             ||--o{ user_role                  : "asignado a"
+    role             ||--o{ role_permission            : "permisos"
+    permission       ||--o{ role_permission            : "otorgado a"
     app_user         ||--o{ user_session               : "sesiones"
     user_session     ||--|{ refresh_token              : "rotacion"
     refresh_token    |o--o| refresh_token              : "replaced_by"
@@ -237,6 +265,8 @@ erDiagram
 - **`user_role` es `||--|{`** (al menos un rol por usuario, RN44). La base no
   impone ese mínimo: lo garantiza el caso de uso (ver §7 de
   [cambios-bdd-sprint2.md](cambios-bdd-sprint2.md)).
+- **`login_attempt` no se relaciona con `app_user`**: cuenta también usernames
+  inexistentes para que la respuesta de ingreso no revele si el usuario existe.
 - **`category.name` y `factory_customer.category_id`** aparecen con las
   correcciones del Sprint 1 (`NOT NULL`, unicidad, renombre de `categorie_id`).
   Ya están en `schema.prisma`; hasta que se apliquen las migraciones, la base

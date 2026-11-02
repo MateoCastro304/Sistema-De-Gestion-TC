@@ -49,7 +49,7 @@ Cada subsistema escribe solo en sus tablas. Las claves foráneas entre tablas de
 | --- | --- |
 | `customers` | `category`, `factory_customer`, `manager_customer` |
 | `technical-catalog` | `supplier`, `material`, `process_type`, `process_type_price_history`, `exchange_rate` |
-| `identity` | `employee`, `app_user`, `user_role`, `user_session`, `refresh_token` |
+| `identity` | `employee`, `app_user`, `role`, `permission`, `role_permission`, `user_role`, `user_session`, `refresh_token`, `login_attempt` |
 | `quoting` | `quote_request` y las tablas de cotización, ítem, descuento e historial que se creen |
 | `work-orders` | Las tablas de orden de trabajo, ejecución, remito y factura que se creen |
 | `files` | `file` |
