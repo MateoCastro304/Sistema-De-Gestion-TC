@@ -5,6 +5,7 @@ import {
   applyFailure,
   remainingLockSeconds,
 } from '../../../core/domain/login-lock-policy';
+import { loginAttemptKey } from '../../../core/domain/login-attempt-key';
 import { LoginAttemptContext, LoginThrottle } from '../../../core/domain/ports/login-throttle.port';
 
 /**
@@ -47,10 +48,10 @@ export class InMemoryLoginThrottle extends LoginThrottle {
 
   /** Para los asserts de los tests: cuántos fallos seguidos lleva el nivel usuario+IP. */
   failuresOf(context: LoginAttemptContext): number {
-    return this.records.get(`u:${context.username}|ip:${context.ip}`)?.failures ?? 0;
+    return this.records.get(loginAttemptKey('username+ip', context))?.failures ?? 0;
   }
 
-  private static keyOf(tier: LoginLockTier, { username, ip }: LoginAttemptContext): string {
-    return tier.scope === 'username+ip' ? `u:${username}|ip:${ip}` : `u:${username}`;
+  private static keyOf(tier: LoginLockTier, context: LoginAttemptContext): string {
+    return loginAttemptKey(tier.scope, context);
   }
 }

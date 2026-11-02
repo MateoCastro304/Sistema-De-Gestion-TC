@@ -1,5 +1,7 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, Req, Res, UseFilters } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { Public } from '../../../../../shared/http/auth/auth.decorators';
+import { bearerTokenOf } from '../../../../../shared/http/auth/bearer-token';
 import { AuthenticatedSession } from '../../../core/application/authenticated-session';
 import { AuthenticateUser } from '../../../core/application/use-cases/authenticate-user.use-case';
 import { Logout } from '../../../core/application/use-cases/logout.use-case';
@@ -11,7 +13,12 @@ import { IdentityDomainErrorFilter } from '../filters/identity-domain-error.filt
 import { RefreshCookieOptions } from '../refresh-cookie.options';
 import { SessionResponse, SessionResponseBody } from '../session.response';
 
-/** Sesión (contrato §3.1). Los tres endpoints son públicos: no exigen access token. */
+/**
+ * Sesión (contrato §3.1). Los tres endpoints son públicos: no exigen access
+ * token, porque son los que lo obtienen, lo renuevan y lo cierran. Sus errores
+ * los traduce `IdentityDomainErrorFilter`.
+ */
+@Public()
 @Controller('auth')
 @UseFilters(IdentityDomainErrorFilter)
 export class AuthController {
@@ -71,15 +78,10 @@ export class AuthController {
 
     await this.logoutSession.execute({
       refreshToken: cookies?.[this.cookies.name],
-      accessToken: AuthController.bearerTokenOf(request),
+      accessToken: bearerTokenOf(request),
     });
 
     response.clearCookie(this.cookies.name, this.cookies.forClear());
-  }
-
-  private static bearerTokenOf(request: Request): string | undefined {
-    const [scheme, token] = (request.headers.authorization ?? '').split(' ');
-    return scheme?.toLowerCase() === 'bearer' && token ? token : undefined;
   }
 
   private respondWith(session: AuthenticatedSession, response: Response): SessionResponseBody {

@@ -156,6 +156,36 @@ describe('POST /auth/login', () => {
     });
   });
 
+  describe('with usernames that cannot exist (the endpoint is public)', () => {
+    it('401, not 500, for a username far longer than the column of the failed-attempt key', async () => {
+      const res = await login('a'.repeat(5000), 'x');
+
+      expectError(res, 401, 'Unauthorized');
+      expect(res.body.code).toBe('INVALID_CREDENTIALS');
+    });
+
+    it('401, not 500, for a username with a NUL character, which PostgreSQL rejects in text', async () => {
+      const res = await login('abc\u0000def', 'x');
+
+      expectError(res, 401, 'Unauthorized');
+      expect(res.body.code).toBe('INVALID_CREDENTIALS');
+    });
+
+    it('still counts those failures, so they can be locked like any other', async () => {
+      const long = 'b'.repeat(200);
+      for (let i = 0; i < 4; i += 1) await login(long, 'x');
+
+      expectError(await login(long, 'x'), 423, 'Locked');
+    });
+
+    it('does not let a long username that starts like a real one lock the real one', async () => {
+      await createUser('dcastro', ['AS']);
+      for (let i = 0; i < 6; i += 1) await login(`dcastro${'x'.repeat(100)}`, 'x');
+
+      expectData(await login('dcastro', PASSWORD), 200);
+    });
+  });
+
   describe('with incomplete data', () => {
     it('400 VALIDATION_ERROR names each missing field and does not count as an attempt', async () => {
       const res = await login('', '');

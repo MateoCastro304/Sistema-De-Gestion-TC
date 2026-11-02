@@ -5,6 +5,7 @@ import { DomainValidationError } from '../../../../../shared/domain/errors/domai
 const STATUS_NAMES: Record<number, string> = {
   400: 'Bad Request',
   401: 'Unauthorized',
+  403: 'Forbidden',
   404: 'Not Found',
   409: 'Conflict',
   500: 'Internal Server Error',
@@ -22,6 +23,8 @@ export class ManagerExceptionFilter implements ExceptionFilter {
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Unexpected error.';
     let details: { field: string; message: string }[] | undefined;
+    // Los errores de sesión y permisos (401/403) traen su `code`; se conserva (D-41).
+    let code: string | undefined;
 
     if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
@@ -31,6 +34,7 @@ export class ManagerExceptionFilter implements ExceptionFilter {
       } else if (typeof body === 'object' && body !== null) {
         const bodyObj = body as Record<string, unknown>;
         const rawMessage = bodyObj.message;
+        if (typeof bodyObj.code === 'string') code = bodyObj.code;
         if (Array.isArray(rawMessage)) {
           // ValidationPipe por defecto: ["mail must be an email", ...].
           const messages = rawMessage.map(String);
@@ -63,6 +67,7 @@ export class ManagerExceptionFilter implements ExceptionFilter {
     response.status(statusCode).json({
       statusCode,
       error: STATUS_NAMES[statusCode] ?? 'Error',
+      ...(code ? { code } : {}),
       message,
       path: request.url,
       timestamp: new Date().toISOString(),

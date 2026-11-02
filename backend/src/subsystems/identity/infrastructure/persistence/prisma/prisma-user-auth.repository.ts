@@ -20,8 +20,13 @@ export class PrismaUserAuthRepository extends UserAuthRepository {
 
   async findByUsername(username: string): Promise<AuthUser | null> {
     // El username se guarda en minúsculas (CHECK), así que la búsqueda es insensible a mayúsculas.
+    const normalized = username.trim().toLowerCase();
+    // PostgreSQL no acepta un carácter nulo en un texto y la consulta fallaría con un 500.
+    // Un username así no puede existir: el login es público y lo manda un desconocido.
+    if (normalized.includes('\u0000')) return null;
+
     const row = await this.clients.current().user.findUnique({
-      where: { username: username.trim().toLowerCase() },
+      where: { username: normalized },
       include: AUTH_USER_INCLUDE,
     });
     return row ? PrismaUserAuthRepository.toDomain(row) : null;

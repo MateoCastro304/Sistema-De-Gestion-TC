@@ -1,4 +1,6 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseFilters, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseFilters } from '@nestjs/common';
+import type { AuthenticatedUser } from '../../../../../shared/domain/authenticated-user';
+import { CurrentUser, RequirePermissions } from '../../../../../shared/http/auth/auth.decorators';
 import { ModifyProcessType } from '../../../core/application/use-cases/modify-process-type.use-case';
 import { GetProcessTypeById } from '../../../core/application/use-cases/get-process-type-by-id.use-case';
 import { GetProcessTypeHistory } from '../../../core/application/use-cases/get-process-type-history.use-case';
@@ -9,20 +11,15 @@ import { ListProcessTypesRequestDto } from '../dto/list-process-types.request.dt
 import { RegisterProcessTypeRequestDto } from '../dto/register-process-type.request.dto';
 import { UpdateProcessTypeRequestDto } from '../dto/update-process-type.request.dto';
 import { TechnicalCatalogDomainErrorFilter } from '../filters/technical-catalog-domain-error.filter';
-import { AuthorId } from '../guards/author-id.decorator';
-import { ProvisionalAuthorGuard } from '../guards/provisional-author.guard';
 import { ProcessTypeHistoryResponse, ProcessTypeHistoryResponseBody } from '../process-type-history.response';
 import { ProcessTypeListResponse, ProcessTypeListResponseBody } from '../process-type-list.response';
 import { ProcessTypeResponse, ProcessTypeResponseBody } from '../process-type.response';
 
 const PROCESS_TYPE_ID = new ParseIntegerPathPipe('processTypeId', 'El identificador del tipo de proceso no es válido.');
 
-/**
- * Tipos de proceso (contrato §3.4). Rol requerido: AT o EC. Todavía no hay
- * autenticación ni guards (identity sin implementar, DA-04): cuando existan,
- * el guard de roles se aplica acá.
- */
+/** Tipos de proceso (contrato §3.4). Rol requerido: AT o EC, que comparten el permiso `process-type:manage`. */
 @Controller('process-types')
+@RequirePermissions('process-type:manage')
 @UseFilters(TechnicalCatalogDomainErrorFilter)
 export class ProcessTypesController {
   constructor(
@@ -33,18 +30,14 @@ export class ProcessTypesController {
     private readonly modifyProcessType: ModifyProcessType,
   ) {}
 
-  /**
-   * El autor del cambio sale del guard provisorio (header X-User-Id) hasta que
-   * exista la sesión; en ese momento se reemplaza por el guard de autenticación.
-   */
+  /** El autor del cambio, para el historial de precios (RNF10), es el usuario de la sesión. */
   @Patch(':processTypeId')
-  @UseGuards(ProvisionalAuthorGuard)
   async modify(
     @Param('processTypeId', PROCESS_TYPE_ID) id: number,
     @Body() body: UpdateProcessTypeRequestDto,
-    @AuthorId() authorId: number,
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<ProcessTypeResponseBody> {
-    return ProcessTypeResponse.from(await this.modifyProcessType.execute({ id, changes: body, authorId }));
+    return ProcessTypeResponse.from(await this.modifyProcessType.execute({ id, changes: body, authorId: user.userId }));
   }
 
   @Post()

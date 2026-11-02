@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { ClockPort } from '../../../../../shared/clock/clock.port';
 import { AuthUser } from '../../domain/entities/auth-user.entity';
 import { InvalidCredentials } from '../../domain/errors/invalid-credentials.error';
@@ -20,13 +21,6 @@ export type AuthenticateUserCommand = {
 };
 
 /**
- * Hash de bcrypt de una contraseña que nadie usa. Cuando el usuario no existe se
- * verifica contra este hash para gastar el mismo tiempo que con un usuario real:
- * si no, la demora de la respuesta revelaría qué usernames existen.
- */
-const TIMING_EQUALIZER_HASH = '$2b$12$dvvRn4405w1XizkZ75IXmOJcRh3QT4oXSe1KZyVzR8JGjn7yLjhBK';
-
-/**
  * Inicio de sesión (CU-53). Un usuario inexistente, una contraseña incorrecta y un
  * usuario dado de baja dan el mismo `InvalidCredentials`, y los tres cuentan como
  * intento fallido: si solo contaran los usuarios que existen, el bloqueo
@@ -41,7 +35,16 @@ const TIMING_EQUALIZER_HASH = '$2b$12$dvvRn4405w1XizkZ75IXmOJcRh3QT4oXSe1KZyVzR8
  * accionable, y evita que parezcan dos problemas distintos.
  */
 @Injectable()
-export class AuthenticateUser {
+export class AuthenticateUser implements OnModuleInit {
+  /**
+   * Hash de una contraseña que nadie usa. Cuando el usuario no existe se verifica
+   * contra este hash para gastar el mismo tiempo que con un usuario real: si no, la
+   * demora de la respuesta revelaría qué usernames existen. Lo genera el mismo
+   * hasher que guarda las contraseñas, así su costo (`BCRYPT_COST`) coincide siempre
+   * con el de los usuarios reales; un hash fijo solo serviría con un costo.
+   */
+  private timingEqualizerHash: Promise<string> | undefined;
+
   constructor(
     private readonly users: UserAuthRepository,
     private readonly sessions: SessionRepository,
@@ -51,6 +54,11 @@ export class AuthenticateUser {
     private readonly policy: SessionPolicy,
     private readonly clock: ClockPort,
   ) {}
+
+  /** Lo prepara al arrancar la aplicación, para que ningún ingreso pague ese hash de más. */
+  async onModuleInit(): Promise<void> {
+    await this.equalizerHash();
+  }
 
   async execute(command: AuthenticateUserCommand): Promise<AuthenticatedSession> {
     const attempt: LoginAttemptContext = { username: command.username.trim().toLowerCase(), ip: command.ip };
@@ -90,8 +98,13 @@ export class AuthenticateUser {
 
   /** Verifica contra un hash descartable y devuelve siempre `false`. */
   private async equalizeTiming(password: string): Promise<false> {
-    await this.hasher.verify(password, TIMING_EQUALIZER_HASH);
+    await this.hasher.verify(password, await this.equalizerHash());
     return false;
+  }
+
+  private equalizerHash(): Promise<string> {
+    this.timingEqualizerHash ??= this.hasher.hash(randomUUID());
+    return this.timingEqualizerHash;
   }
 
   /**

@@ -9,6 +9,7 @@ import {
   assertUsableTier,
   remainingLockSeconds,
 } from '../../../core/domain/login-lock-policy';
+import { loginAttemptKey } from '../../../core/domain/login-attempt-key';
 import { LoginAttemptContext, LoginThrottle } from '../../../core/domain/ports/login-throttle.port';
 
 /** Reintentos de la escritura optimista antes de rendirse. Cada uno implica que otro intento ganó la carrera. */
@@ -94,8 +95,8 @@ export class PrismaLoginThrottle extends LoginThrottle {
     throw new Error(`No se pudo registrar el intento fallido de ${identifier}: demasiada contención.`);
   }
 
-  private static keyOf(tier: LoginLockTier, { username, ip }: LoginAttemptContext): string {
-    return tier.scope === 'username+ip' ? `u:${username}|ip:${ip}` : `u:${username}`;
+  private static keyOf(tier: LoginLockTier, context: LoginAttemptContext): string {
+    return loginAttemptKey(tier.scope, context);
   }
 
   private static toRecord(row: {

@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { ClockPort } from '../../../../../shared/clock/clock.port';
 import { RefreshToken } from '../../domain/entities/refresh-token.entity';
-import { Session } from '../../domain/entities/session.entity';
-import { SessionExpired } from '../../domain/errors/session-expired.error';
 import { Unauthenticated } from '../../domain/errors/unauthenticated.error';
 import { SessionPolicy } from '../../domain/ports/session-policy.port';
 import { SessionRepository } from '../../domain/ports/session.repository';
 import { TokenIssuer } from '../../domain/ports/token-issuer.port';
 import { UserAuthRepository } from '../../domain/ports/user-auth.repository';
 import { generateRefreshToken, hashRefreshToken } from '../../domain/refresh-token-secret';
+import { assertSessionUsable } from '../assert-session-usable';
 import { AuthenticatedSession, toAuthenticatedSession } from '../authenticated-session';
 
 export type RefreshSessionCommand = {
@@ -56,7 +55,7 @@ export class RefreshSession {
     if (!session) throw new Unauthenticated();
 
     const now = this.clock.now();
-    await this.assertSessionUsable(session, now);
+    await assertSessionUsable(this.sessions, this.policy, session, now);
 
     const use = presented.classifyUse(now, this.policy.refreshGraceSeconds);
     if (use === 'REUSED') {
@@ -77,21 +76,6 @@ export class RefreshSession {
 
     const access = this.tokens.issue({ sub: user.getId(), sid: session.getId() });
     return toAuthenticatedSession({ user, session, access, refreshToken: next.token, policy: this.policy });
-  }
-
-  /** Una sesión cerrada, vencida o inactiva no se renueva. Si recién se detecta el vencimiento, se la cierra con su motivo. */
-  private async assertSessionUsable(session: Session, now: Date): Promise<void> {
-    const state = session.check(now, this.policy.inactivitySeconds);
-
-    if (state === 'ENDED') throw new Unauthenticated();
-    if (state === 'EXPIRED') {
-      await this.sessions.end(session.getId(), 'EXPIRED', now);
-      throw new SessionExpired('EXPIRED');
-    }
-    if (state === 'INACTIVE') {
-      await this.sessions.end(session.getId(), 'INACTIVITY', now);
-      throw new SessionExpired('INACTIVITY');
-    }
   }
 
   /**

@@ -2,6 +2,8 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 
 import { startTestApp, stopTestApp, getPrisma } from '../../../shared/harness/test-app';
+import { Api, signInAs } from '../../../shared/harness/auth';
+import { clearIdentityTables } from '../../../shared/factories/identity-cleanup';
 import { expectData } from '../../../shared/contract/envelopes';
 import {
   aProcessTypeBody,
@@ -29,6 +31,7 @@ const RESOURCE_KEYS = [
  */
 describe('Process types', () => {
   let app: INestApplication;
+  let api: Api;
 
   beforeAll(async () => {
     app = await startTestApp();
@@ -41,15 +44,16 @@ describe('Process types', () => {
   beforeEach(async () => {
     await getPrisma().processTypePriceHistory.deleteMany(); // hijas primero
     await getPrisma().processType.deleteMany();
-    await getPrisma().user.deleteMany();
-    await getPrisma().employee.deleteMany();
+    await clearIdentityTables(getPrisma());
+    // Después de limpiar: la sesión es del caso. Rol AT (o EC): permiso de tipos de proceso.
+    api = await signInAs(app, 'AT');
   });
 
   describe('POST /process-types', () => {
     it('registra el tipo de proceso con los precios tal como llegan y sin historial', async () => {
       const body = aProcessTypeBody();
 
-      const res = await request(app.getHttpServer()).post('/process-types').send(body);
+      const res = await api.post('/process-types').send(body);
 
       const created = expectData(res, 201);
       expect(Object.keys(created).sort()).toEqual(RESOURCE_KEYS);
@@ -74,7 +78,7 @@ describe('Process types', () => {
       async (name) => {
         await createProcessType('Mecanizado Torno Manual');
 
-        const res = await request(app.getHttpServer()).post('/process-types').send(aProcessTypeBody({ name }));
+        const res = await api.post('/process-types').send(aProcessTypeBody({ name }));
 
         expect(res.status).toBe(409);
         expect(res.body).toMatchObject({
@@ -89,7 +93,7 @@ describe('Process types', () => {
     );
 
     it('informa un error por campo cuando los precios son inválidos y no guarda nada', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api
         .post('/process-types')
         .send(aProcessTypeBody({ hourlyRateArs: 0, hourlyRateUsd: 1.234 }));
 
@@ -103,7 +107,7 @@ describe('Process types', () => {
     });
 
     it('rechaza un campo que el endpoint no declara', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api
         .post('/process-types')
         .send(aProcessTypeBody({ isActive: true }));
 
@@ -120,7 +124,7 @@ describe('Process types', () => {
       await createProcessType('Mecanizado Torno CNC');
       await createProcessType('Árbol de levas');
 
-      const all = expectData(await request(app.getHttpServer()).get('/process-types'), 200);
+      const all = expectData(await api.get('/process-types'), 200);
       expect(Object.keys(all).sort()).toEqual(['items', 'limit', 'page', 'total']);
       expect(all).toMatchObject({ total: 3, page: 1, limit: 20 });
       expect(all.items.map((i: { name: string }) => i.name)).toEqual([
@@ -130,7 +134,7 @@ describe('Process types', () => {
       ]);
       expect(Object.keys(all.items[0]).sort()).toEqual(RESOURCE_KEYS);
 
-      const second = expectData(await request(app.getHttpServer()).get('/process-types?page=2&limit=1'), 200);
+      const second = expectData(await api.get('/process-types?page=2&limit=1'), 200);
       expect(second).toMatchObject({ total: 3, page: 2, limit: 1 });
       expect(second.items.map((i: { name: string }) => i.name)).toEqual(['Mecanizado Torno CNC']);
     });
@@ -139,7 +143,7 @@ describe('Process types', () => {
       await createProcessType('Mecanizado Torno CNC');
       await createProcessType('Soldadura');
 
-      const res = await request(app.getHttpServer()).get(`/process-types?search=${encodeURIComponent('TÓRNO')}`);
+      const res = await api.get(`/process-types?search=${encodeURIComponent('TÓRNO')}`);
 
       const body = expectData(res, 200);
       expect(body.total).toBe(1);
@@ -147,7 +151,7 @@ describe('Process types', () => {
     });
 
     it('rechaza una consulta inválida con VALIDATION_ERROR sobre el parámetro', async () => {
-      const res = await request(app.getHttpServer()).get('/process-types?limit=101');
+      const res = await api.get('/process-types?limit=101');
 
       expect(res.status).toBe(400);
       expect(res.body).toMatchObject({ statusCode: 400, error: 'Bad Request', code: 'VALIDATION_ERROR' });
@@ -162,7 +166,7 @@ describe('Process types', () => {
         updatedAt: new Date('2026-10-01T13:22:00.000Z'),
       });
 
-      const res = await request(app.getHttpServer()).get(`/process-types/${created.id}`);
+      const res = await api.get(`/process-types/${created.id}`);
 
       const body = expectData(res, 200);
       expect(Object.keys(body).sort()).toEqual(RESOURCE_KEYS);
@@ -179,7 +183,7 @@ describe('Process types', () => {
     });
 
     it('responde 404 PROCESS_TYPE_NOT_FOUND si no existe', async () => {
-      const res = await request(app.getHttpServer()).get('/process-types/99');
+      const res = await api.get('/process-types/99');
 
       expect(res.status).toBe(404);
       expect(res.body).toMatchObject({
@@ -192,7 +196,7 @@ describe('Process types', () => {
     });
 
     it('responde 400 INVALID_PATH_PARAMETER si el identificador no es un entero', async () => {
-      const res = await request(app.getHttpServer()).get('/process-types/abc');
+      const res = await api.get('/process-types/abc');
 
       expect(res.status).toBe(400);
       expect(res.body).toMatchObject({ statusCode: 400, error: 'Bad Request', code: 'INVALID_PATH_PARAMETER' });
@@ -216,7 +220,7 @@ describe('Process types', () => {
         newValueUsd: '1.13',
       });
 
-      const res = await request(app.getHttpServer()).get(`/process-types/${processType.id}/history`);
+      const res = await api.get(`/process-types/${processType.id}/history`);
 
       const body = expectData(res, 200);
       expect(Object.keys(body)).toEqual(['items']);
@@ -246,13 +250,17 @@ describe('Process types', () => {
     let authorId: number;
     let processTypeId: number;
 
+    let authorUsername: string;
+
     const patch = (body: object, id: number | string = processTypeId) =>
-      request(app.getHttpServer()).patch(`/process-types/${id}`).set('X-User-Id', String(authorId)).send(body);
+      api.patch(`/process-types/${id}`).send(body);
 
     const stored = () => getPrisma().processType.findUniqueOrThrow({ where: { id: processTypeId } });
 
     beforeEach(async () => {
-      authorId = (await createAuthor('fpaz', '30111222')).id;
+      // El autor del cambio es el usuario de la sesión (la del beforeEach de arriba).
+      authorId = api.userId;
+      authorUsername = (await getPrisma().user.findUniqueOrThrow({ where: { id: authorId } })).username;
       processTypeId = (
         await createProcessType('Mecanizado Torno Manual', { description: 'Torneado convencional.', updatedAt: BEFORE })
       ).id;
@@ -272,12 +280,12 @@ describe('Process types', () => {
         expect(row.hourlyRateUsd.toString()).toBe('1.12');
         expect(row.exchangeRate.toString()).toBe('1390');
 
-        const history = await request(app.getHttpServer()).get(`/process-types/${processTypeId}/history`);
+        const history = await api.get(`/process-types/${processTypeId}/history`);
         expect(expectData(history, 200).items).toEqual([
           {
             id: expect.any(Number),
             changedAt: body.updatedAt,
-            changedBy: { id: authorId, username: 'fpaz' },
+            changedBy: { id: authorId, username: authorUsername },
             exchangeRate: 1390,
             previousValueUsd: 1.13,
             newValueUsd: 1.12,
@@ -348,20 +356,21 @@ describe('Process types', () => {
       });
     });
 
-    describe('autor del cambio (provisorio hasta tener sesión)', () => {
-      it('responde 401 UNAUTHENTICATED sin el header X-User-Id y no modifica nada', async () => {
-        const res = await request(app.getHttpServer()).patch(`/process-types/${processTypeId}`).send({ name: 'Otro' });
+    describe('autor del cambio (el usuario de la sesión)', () => {
+      it('responde 401 UNAUTHENTICATED sin sesión y no modifica nada', async () => {
+        const server = app.getHttpServer();
+
+        const res = await request(server).patch(`/process-types/${processTypeId}`).send({ name: 'Otro' });
 
         expect(res.status).toBe(401);
         expect(res.body).toMatchObject({ statusCode: 401, error: 'Unauthorized', code: 'UNAUTHENTICATED' });
         expect((await stored()).name).toBe('Mecanizado Torno Manual');
       });
 
-      it('revierte el cambio de precio si el autor no existe: ni el tipo ni el historial cambian', async () => {
-        const res = await request(app.getHttpServer())
-          .patch(`/process-types/${processTypeId}`)
-          .set('X-User-Id', '999999')
-          .send({ hourlyRateUsd: 1.12, exchangeRate: 1390 });
+      it('responde 401 y no cambia ni el tipo ni el historial si el usuario de la sesión fue dado de baja', async () => {
+        await getPrisma().user.update({ where: { id: authorId }, data: { isActive: false } });
+
+        const res = await patch({ hourlyRateUsd: 1.12, exchangeRate: 1390 });
 
         expect(res.status).toBe(401);
         expect(res.body.code).toBe('UNAUTHENTICATED');

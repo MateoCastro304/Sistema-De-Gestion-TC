@@ -122,6 +122,23 @@ describe('AuthenticateUser', () => {
       expect(hasher.verifications).toHaveLength(1);
     });
 
+    it('verifies against a hash made by the configured hasher, so the cost always matches the real users', async () => {
+      // Un hash fijo tendría un costo que puede no ser el de BCRYPT_COST: la demora
+      // de un usuario inexistente sería distinta de la de uno real y lo delataría.
+      await expect(login('nadie', 'Castro1977')).rejects.toBeInstanceOf(InvalidCredentials);
+
+      expect(hasher.verifications[0].hash).toMatch(/^hashed:/);
+    });
+
+    it('makes that hash once and reuses it, instead of paying a hash on every unknown username', async () => {
+      const hashSpy = jest.spyOn(hasher, 'hash');
+
+      await login('nadie', 'x').catch(() => undefined);
+      await login('tampoco', 'x').catch(() => undefined);
+
+      expect(hashSpy).toHaveBeenCalledTimes(1);
+    });
+
     it('counts the failure for a wrong password, an unknown username and a deactivated user alike', async () => {
       users.add(anAuthUser({ id: 2, username: 'baja', active: false }));
 

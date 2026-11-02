@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { parseDurationSeconds } from '../../../shared/config/parse-duration';
 import { ClockPort } from '../../../shared/clock/clock.port';
 import { SystemClock } from '../../../shared/clock/system-clock';
 import { PrismaClientProvider } from '../../../shared/infrastructure/prisma/prisma-client.provider';
+import { AuthenticateRequest } from '../core/application/use-cases/authenticate-request.use-case';
 import { AuthenticateUser } from '../core/application/use-cases/authenticate-user.use-case';
 import { Logout } from '../core/application/use-cases/logout.use-case';
 import { RefreshSession } from '../core/application/use-cases/refresh-session.use-case';
@@ -19,6 +21,8 @@ import { loginLockTiers } from './config/login-lock-tiers';
 import { BcryptPasswordHasher, DEFAULT_BCRYPT_COST } from './external/bcrypt-password-hasher';
 import { JwtTokenIssuer } from './external/jwt-token-issuer';
 import { AuthController } from './http/controllers/auth.controller';
+import { PermissionsGuard } from './http/guards/permissions.guard';
+import { SessionAuthGuard } from './http/guards/session-auth.guard';
 import { RefreshCookieOptions } from './http/refresh-cookie.options';
 import { PrismaLoginThrottle } from './persistence/prisma/prisma-login-throttle';
 import { PrismaSessionRepository } from './persistence/prisma/prisma-session.repository';
@@ -44,8 +48,13 @@ const readerOf = (config: ConfigService) => (key: string) => {
   controllers: [AuthController],
   providers: [
     AuthenticateUser,
+    AuthenticateRequest,
     RefreshSession,
     Logout,
+    // Guards globales (D-40): primero la sesión, después los permisos. El orden de
+    // registro es el orden de ejecución.
+    { provide: APP_GUARD, useClass: SessionAuthGuard },
+    { provide: APP_GUARD, useClass: PermissionsGuard },
     { provide: UserAuthRepository, useClass: PrismaUserAuthRepository },
     { provide: SessionRepository, useClass: PrismaSessionRepository },
     {
