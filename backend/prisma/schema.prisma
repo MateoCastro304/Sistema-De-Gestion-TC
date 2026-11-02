@@ -62,20 +62,6 @@ enum SupplierType {
   @@map("supplier_type_enum")
 }
 
-/// Roles del sistema (RN44). Catalogo cerrado.
-/// El orden de declaracion es el del prototipo: PostgreSQL ordena los enums
-/// asi, y la API devuelve los roles en ese orden.
-enum Role {
-  JT
-  ERP
-  EC
-  ER
-  AT
-  AS
-
-  @@map("role_enum")
-}
-
 /// Puesto del empleado. No es un rol: no da permisos.
 enum EmployeePosition {
   ADMINISTRATION
@@ -284,24 +270,22 @@ model Employee {
 /// Usuario del sistema (tabla `app_user`: `user` es palabra reservada).
 ///
 /// El estado no se guarda, se calcula (D-26): INACTIVE si el usuario o su
-/// empleado estan dados de baja; si no, BLOCKED si `blocked_at` no es NULL;
-/// si no, ACTIVE. `lastAccessAt` es MAX(user_session.started_at) (D-27).
+/// empleado estan dados de baja; si no, BLOCKED si su fila de `login_attempt`
+/// tiene `locked_until` en el futuro; si no, ACTIVE.
+/// `lastAccessAt` es MAX(user_session.started_at) (D-27).
 model User {
-  id                  Int       @id @default(autoincrement())
+  id              Int      @id @default(autoincrement())
   /// Maximo un usuario por empleado, incluidos los dados de baja (D-20).
-  employeeId          Int       @unique @map("employee_id")
+  employeeId      Int      @unique @map("employee_id")
   /// Se guarda en minusculas (CHECK): unico sin distinguir mayusculas,
   /// incluidos los dados de baja (D-22).
-  username            String    @unique @db.VarChar(30)
+  username        String   @unique @db.VarChar(30)
   /// bcrypt (RNF08). Nunca se devuelve.
-  passwordHash        String    @map("password_hash") @db.VarChar(255)
-  failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
-  /// NULL = no bloqueado. Se desbloquea en CU-06 (D-49).
-  blockedAt           DateTime? @map("blocked_at") @db.Timestamptz(6)
-  isActive            Boolean   @default(true) @map("is_active")
-  createdByUserId     Int?      @map("created_by_user_id")
-  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt           DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  passwordHash    String   @map("password_hash") @db.VarChar(255)
+  isActive        Boolean  @default(true) @map("is_active")
+  createdByUserId Int?     @map("created_by_user_id")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   employee  Employee      @relation("UserEmployee", fields: [employeeId], references: [id], onDelete: Restrict)
   createdBy User?         @relation("UserCreatedBy", fields: [createdByUserId], references: [id], onDelete: Restrict)
@@ -317,19 +301,77 @@ model User {
   @@map("app_user")
 }
 
+/// Rol del sistema (RN44). Catalogo cerrado, sembrado en la migracion.
+/// `sortOrder` es el orden del prototipo: la API devuelve los roles asi.
+model Role {
+  id        Int      @id @default(autoincrement())
+  /// Codigo que viaja en la API: JT, ERP, EC, ER, AT, AS.
+  code      String   @unique @db.VarChar(10)
+  name      String   @db.VarChar(60)
+  sortOrder Int      @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@map("role")
+}
+
+/// Permiso sobre una operacion, con formato `recurso:accion` (ej. `supplier:manage`).
+/// Los permisos de un usuario son la union de los de sus roles (docs/dominio/07-matriz-rbac.md).
+model Permission {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(60)
+  description String?  @db.VarChar(200)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  roles RolePermission[]
+
+  @@map("permission")
+}
+
+model RolePermission {
+  roleId       Int @map("role_id")
+  permissionId Int @map("permission_id")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+  @@map("role_permission")
+}
+
 /// Roles de un usuario. "Al menos uno" lo garantiza el caso de uso (RN44).
 model UserRole {
   userId     Int      @map("user_id")
-  role       Role
+  roleId     Int      @map("role_id")
   assignedAt DateTime @default(now()) @map("assigned_at") @db.Timestamptz(6)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
 
   /// La PK compuesta impide repetir un rol.
-  @@id([userId, role])
+  @@id([userId, roleId])
   /// Filtro GET /users?role=
-  @@index([role])
+  @@index([roleId])
   @@map("user_role")
+}
+
+/// Contador de intentos fallidos de ingreso, con bloqueo temporal y progresivo.
+/// No tiene FK a `app_user`: tambien cuenta usernames inexistentes, para que
+/// la respuesta no revele si el usuario existe. `identifier` es `u:<username>`
+/// o `u:<username>|ip:<ip>`.
+model LoginAttempt {
+  identifier          String    @id @db.VarChar(120)
+  consecutiveFailures Int       @default(0) @map("consecutive_failures")
+  lastFailedAt        DateTime  @map("last_failed_at") @db.Timestamptz(6)
+  /// NULL = sin bloqueo vigente.
+  lockedUntil         DateTime? @map("locked_until") @db.Timestamptz(6)
+
+  /// Limpieza periodica de contadores viejos.
+  @@index([lastFailedAt])
+  @@map("login_attempt")
 }
 
 /// Sesion del servidor (D-04): una fila por ingreso.
