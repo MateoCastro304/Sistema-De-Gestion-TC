@@ -4,19 +4,15 @@ import { GetUserById } from '../core/application/use-cases/get-user-by-id.use-ca
 import { ListUsers } from '../core/application/use-cases/list-users.use-case';
 import { UsersRepository } from '../core/domain/ports/users.repository';
 import { PasswordHasher } from '../core/domain/ports/password-hasher.port';
+import { EmployeeQuery } from '../core/domain/ports/employee-query.port';
 import { UsersController } from './http/controllers/users.controller';
 import { UsersPrismaRepository } from './persistence/prisma/users-prisma.repository';
 import { BcryptPasswordHasher } from './bcrypt-password-hasher';
+import { EmployeeQueryAdapter } from './employee-query.adapter';
+import { EmployeesModule } from '../../employees/infrastructure/employees.module';
 
-/**
- * EmployeeQuery NO se provee acá: no existe ningún adaptador real todavía
- * (employees no existe como subsystem). Hasta que algún módulo lo
- * registre y UsersModule lo importe, Nest no puede resolver CreateUser ni
- * UsersController — es el estado esperado, no un bug. Mismo camino que
- * categories/factory al principio (FactoryQuery). Por el mismo motivo,
- * este módulo todavía no está registrado en AppModule.
- */
 @Module({
+  imports: [EmployeesModule],
   controllers: [UsersController],
   providers: [
     CreateUser,
@@ -24,6 +20,7 @@ import { BcryptPasswordHasher } from './bcrypt-password-hasher';
     ListUsers,
     { provide: UsersRepository, useClass: UsersPrismaRepository },
     { provide: PasswordHasher, useClass: BcryptPasswordHasher },
+    { provide: EmployeeQuery, useClass: EmployeeQueryAdapter },
   ],
 })
 export class UsersModule {}

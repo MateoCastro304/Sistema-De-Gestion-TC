@@ -10,7 +10,8 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { ROLES, Role } from '../../../core/domain/value-objects/role';
+import { ROLES } from '../../../../../shared/domain/role';
+import type { Role } from '../../../../../shared/domain/role';
 
 /**
  * Body de POST /users (CU-05). Los mensajes de los campos obligatorios

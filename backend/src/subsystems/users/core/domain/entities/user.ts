@@ -1,7 +1,6 @@
 import { UserValidationError } from '../errors/user-validation.error';
-import { Role } from '../value-objects/role';
-
-export type UserStatus = 'ACTIVE' | 'BLOCKED' | 'INACTIVE';
+import { ROLES, Role } from '../../../../../shared/domain/role';
+import { UserStatus, computeUserStatus } from '../../../../../shared/domain/user-status';
 
 type CreateData = {
   employeeId: number;
@@ -97,9 +96,10 @@ export class User {
     return this._passwordHash;
   }
 
-  // Copia, para que quien la lea no pueda mutar la lista interna.
+  // Copia, en el orden canónico de ROLES (User.yaml: "en el orden del
+  // enumerado Role"), no el orden en que se guardaron.
   getRoles(): Role[] {
-    return [...this._roles];
+    return [...this._roles].sort((a, b) => ROLES.indexOf(a) - ROLES.indexOf(b));
   }
 
   getActive(): boolean {
@@ -131,9 +131,7 @@ export class User {
    * INACTIVE (la baja gana). No se persiste; se calcula en cada lectura.
    */
   getStatus(): UserStatus {
-    if (!this._active) return 'INACTIVE';
-    if (this._blocked) return 'BLOCKED';
-    return 'ACTIVE';
+    return computeUserStatus({ active: this._active, blocked: this._blocked });
   }
 
   private validate() {

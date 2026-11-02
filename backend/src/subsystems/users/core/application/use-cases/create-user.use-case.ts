@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { User } from '../../domain/entities/user';
 import { Password } from '../../domain/value-objects/password';
-import { Role } from '../../domain/value-objects/role';
+import { Role } from '../../../../../shared/domain/role';
 import { UsersRepository } from '../../domain/ports/users.repository';
 import { EmployeeQuery } from '../../domain/ports/employee-query.port';
 import { PasswordHasher } from '../../domain/ports/password-hasher.port';

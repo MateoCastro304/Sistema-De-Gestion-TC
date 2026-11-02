@@ -1,5 +1,5 @@
 import { User } from '../entities/user';
-import { Role } from '../value-objects/role';
+import { Role } from '../../../../../shared/domain/role';
 
 export type UserListParams = {
   page: number;

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma, User as UserRow, UserRole as UserRoleRow } from '../../../../../generated/prisma/client';
 import { PrismaService } from '../../../../../shared/infrastructure/prisma/prisma.service';
 import { User } from '../../../core/domain/entities/user';
-import { Role } from '../../../core/domain/value-objects/role';
+import { Role } from '../../../../../shared/domain/role';
 import { UserListParams, UserListResult, UsersRepository } from '../../../core/domain/ports/users.repository';
 
 type UserRowWithRoles = UserRow & { roles: UserRoleRow[] };

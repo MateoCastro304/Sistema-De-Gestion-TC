@@ -1,7 +1,7 @@
 import { ListUsers } from './list-users.use-case';
 import { InMemoryUsersRepository } from '../../../infrastructure/persistence/in-memory/in-memory-users.repository';
 import { User } from '../../domain/entities/user';
-import { Role } from '../../domain/value-objects/role';
+import { Role } from '../../../../../shared/domain/role';
 
 describe('ListUsers (use case)', () => {
   let repo: InMemoryUsersRepository;

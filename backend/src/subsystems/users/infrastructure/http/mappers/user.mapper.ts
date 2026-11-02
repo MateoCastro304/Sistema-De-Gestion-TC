@@ -1,6 +1,6 @@
 import { User } from '../../../core/domain/entities/user';
-import { Role } from '../../../core/domain/value-objects/role';
-import { UserStatus } from '../../../core/domain/entities/user';
+import { Role } from '../../../../../shared/domain/role';
+import { UserStatus } from '../../../../../shared/domain/user-status';
 import { EmployeeSummary } from '../../../core/domain/ports/employee-query.port';
 
 export type UserResponse = {
