@@ -54,7 +54,7 @@ Source of truth: Jira DTC-32/33/214 + `docs/api-contract/API_CONTRACT_SPRINT_2.m
 |---|---|---|---|---|
 | T1 Deps and config: `cookie-parser`, `helmet`, env vars (`COOKIE_*`, `SESSION_INACTIVITY_TTL`, `BCRYPT_COST`, `LOGIN_LOCK_*`), `main.ts`/`app.setup.ts` wiring | S1 S2 | inline | DONE (RED: 16/19 new tests failed; GREEN: 19/19; unit 314/314, int 88/88, lint+tsc clean) | pending (user commits; staged) |
 | T2a Ported `login-lock-policy` (+ spec, 20 tests) | S6 | inline | DONE (RED: module not found; GREEN 20/20) | pending (user commits) |
-| T2b `identity` domain: errors, ports (abstract classes, Torneria style), entities | S1 S2 S6 | inline | pending | |
+| T2b `identity` domain: errors, ports (abstract classes, Torneria style), entities | S1 S2 S6 | inline | DONE (RED: 2 suites "Cannot find module"; GREEN: Session 7 + RefreshToken 4 new tests; ports/errors/AuthUser have no tests of their own, covered by T3+). Rotation ports are added in T4 | pending (user commits) |
 | T2c Prisma + in-memory adapters (user, role/permissions, session + refresh token store, login throttle) with integration tests | S1 S2 S6 | inline | pending | |
 | T3 Login: `authenticate-user`, bcrypt hasher, JWT issuer (`sub`+`sid`), cookie options, `AuthController.login`, DTOs, errors → HTTP | S1 | inline | pending | |
 | T4 Refresh: `refresh-session`, rotation + 30 s grace, reuse → REVOKED, inactivity/expiry, `AuthController.refresh` | S2 | inline | pending | |
