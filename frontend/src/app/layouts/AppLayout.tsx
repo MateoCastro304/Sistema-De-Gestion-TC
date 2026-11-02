@@ -1,6 +1,8 @@
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { Outlet, Link, useLocation } from 'react-router'
+import { UserMenu } from '@/app/layouts/UserMenu'
 import { BreadcrumbContext } from '@/app/providers/BreadcrumbContext'
+import { UnsavedChangesContext } from '@/app/providers/UnsavedChangesContext'
 import { useSession } from '@/app/providers/SessionContext'
 import { PANELS, canOpen, panelOf, visibleItems } from '@/features/catalogs/panels'
 import { cn } from '@/shared/lib/cn'
@@ -87,6 +89,10 @@ export function AppLayout() {
   /** Nombre del registro abierto, para la miga de pan (ver BreadcrumbContext). */
   const [crumbTitle, setCrumbTitle] = useState<string | null>(null)
   const crumbs = breadcrumb(pathname, crumbTitle, canOpen(pathname, roles))
+
+  /** ¿La pantalla abierta tiene datos sin guardar? La publica useUnsavedChanges(). */
+  const [dirty, setDirty] = useState(false)
+  const unsaved = useMemo(() => ({ setDirty }), [])
 
   /** Escritorio: barra ancha o riel de íconos. */
   const [collapsed, setCollapsed] = useState(false)
@@ -220,6 +226,8 @@ export function AppLayout() {
             })}
           </nav>
           <img className="topbar__logo" src={logoMarino} alt="Castro Tornería S.R.L." />
+          {/* Menú de usuario: el único lugar del sistema con "Cerrar sesión" (CU-52). */}
+          <UserMenu dirty={dirty} />
           {/* Este botón sólo se ve en celular (display:none arriba de
               900px). El de escritorio vive dentro de la barra lateral. */}
           <button
@@ -236,7 +244,9 @@ export function AppLayout() {
 
         <div className="content">
           <BreadcrumbContext.Provider value={setCrumbTitle}>
-            <Outlet />
+            <UnsavedChangesContext.Provider value={unsaved}>
+              <Outlet />
+            </UnsavedChangesContext.Provider>
           </BreadcrumbContext.Provider>
         </div>
       </div>

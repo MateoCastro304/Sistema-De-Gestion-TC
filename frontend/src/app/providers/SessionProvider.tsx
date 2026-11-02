@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { refresh } from '@/features/auth'
+import { refresh, logout as requestLogout } from '@/features/auth'
 import type { SessionResponse, SessionUser } from '@/features/auth'
 import { configureSession, setAccessToken } from '@/shared/api/http'
+import { queryClient } from '@/shared/api/queryClient'
 import { isApiError } from '@/shared/api/ApiError'
 import type { ApiError } from '@/shared/api/ApiError'
 import { SessionContext } from './SessionContext'
@@ -27,6 +28,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         setAccessToken(null)
         setUser(null)
         setEndMessage(error.code === 'SESSION_EXPIRED' ? error.message : null)
+        queryClient.clear()
+    }, [])
+
+    // Cierre manual: primero el servidor (D-04), después el cliente.
+    const logout = useCallback(async () => {
+        await requestLogout() // si falla, la sesión sigue abierta
+        setAccessToken(null)
+        setUser(null)
+        setEndMessage('Cerraste sesión correctamente')
+        queryClient.clear() // nada de la sesión anterior queda en la caché
     }, [])
 
     useEffect(() => {
@@ -53,8 +64,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     }, [startSession, endSession])
 
     const value = useMemo<Session>(
-        () => ({ user, endMessage, startSession }),
-        [user, endMessage, startSession],
+        () => ({ user, endMessage, startSession, logout }),
+        [user, endMessage, startSession, logout],
     )
 
     if (checking) return null

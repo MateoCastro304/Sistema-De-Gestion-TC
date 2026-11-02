@@ -1,8 +1,6 @@
-# Sesión: iniciar sesión (DTC-33, CU-53)
+# Sesión: iniciar y cerrar sesión (DTC-33 CU-53, DTC-32 CU-52)
 
-Este módulo resuelve el ingreso al sistema con nombre de usuario y contraseña, y todo lo que necesita una sesión abierta: guardar el token, renovarlo cuando vence, volver al ingreso cuando la sesión termina y mostrar sólo lo que permiten los roles. La fuente de verdad es el contrato del Sprint 2 ([`API_CONTRACT_SPRINT_2.md`](../../../../docs/api-contract/API_CONTRACT_SPRINT_2.md), §3.1 y §4 "Sesión" y "Autorización").
-
-Cerrar sesión (DTC-32, CU-52) es otra historia y todavía no está hecha.
+Este módulo resuelve el ingreso al sistema con nombre de usuario y contraseña, y todo lo que necesita una sesión abierta: guardar el token, renovarlo cuando vence, volver al ingreso cuando la sesión termina, cerrarla a mano y mostrar sólo lo que permiten los roles. La fuente de verdad es el contrato del Sprint 2 ([`API_CONTRACT_SPRINT_2.md`](../../../../docs/api-contract/API_CONTRACT_SPRINT_2.md), §3.1 y §4 "Sesión" y "Autorización").
 
 ## Cómo funciona
 
@@ -16,6 +14,8 @@ Cerrar sesión (DTC-32, CU-52) es otra historia y todavía no está hecha.
 | Sin sesión | Cualquier pantalla lleva al ingreso y guarda la URL pedida, para volver a ella si los roles la permiten | `app/router/guards.tsx` (`RequireSession`) |
 | Sin permiso | Una pantalla de otro rol muestra "Acceso denegado" sin montarse (no pide sus datos) | `guards.tsx` (`RequireAccess`), `app/router/AccessDeniedPage.tsx` |
 | Inicio | Lleva a la primera pantalla del rol; Jefe de Taller y Encargado de Reportes ven "Todavía no hay módulos disponibles para tu rol." | `app/router/HomePage.tsx` |
+| Cierre manual | "Cerrar sesión" está **una sola vez**, en el menú de usuario de la topbar, que es parte del marco (`AppLayout`) y se ve en todas las pantallas. Llama a `POST /auth/logout` (responde `204` siempre), descarta el token, vacía la caché de datos y deja "Cerraste sesión correctamente"; al quedar sin usuario, `RequireSession` lleva al ingreso. Si la llamada falla (sin red), la sesión sigue abierta y se avisa con un toast | `app/layouts/UserMenu.tsx`, `SessionProvider.tsx` (`logout`), `api/auth.api.ts` |
+| Datos sin guardar | Un formulario con cambios avisa con `useUnsavedChanges(isDirty)`. Si el menú ve el aviso, "Cerrar sesión" pide confirmar ("Se van a perder los datos que no guardaste."); si el usuario cancela, no se llama a la API | `app/providers/UnsavedChangesContext.ts`, `UserMenu.tsx` |
 | Menú y paneles | Sólo muestran los módulos que permiten los roles (`canAccess()` de `domain/roles.ts`) | `app/layouts/AppLayout.tsx`, `catalogs/panels/` |
 
 `shared/` no puede importar features, así que `http.ts` no conoce `auth/`: `SessionProvider` le pasa con `configureSession()` cómo renovar el token y qué hacer cuando la sesión termina.
@@ -89,7 +89,20 @@ Desde `frontend/`:
 npx playwright test e2e/auth --project=sprint-2 --workers=2
 ```
 
-Los dos tests de `[CU-52] Cerrar sesión` fallan hasta que se haga DTC-32: necesitan el botón "Cerrar sesión" y la pantalla de alta de empleado.
+Los tests de cerrar sesión están en dos `describe`:
+
+- `[DTC-32][CU-52] Cerrar sesión desde el menú de usuario`: corre sobre una pantalla que ya existe (Clientes) y cubre el cierre, el aviso, "Atrás", la sesión ya vencida y el cierre sin confirmación.
+- `[CU-52] Cerrar sesión` (los originales, más "Seguir acá"): usan el panel Administración y el alta de empleado, que son de DTC-28. Fallan hasta que se haga esa historia.
+
+### Cobertura de DTC-32
+
+| Escenario | Test |
+| --- | --- |
+| 1. Cierre exitoso | "cierra la sesión, avisa y no vuelve al recargar" |
+| 2. Volver atrás después de cerrar | '"Atrás" después de cerrar no muestra la pantalla anterior' |
+| 3. Token reutilizado | Sin test del lado del navegador: el `accessToken` vive en memoria y no se puede reenviar. Lo prueba el backend |
+| 4. Cierre con datos sin guardar | "pide confirmación si hay datos sin guardar" y '"Seguir acá" mantiene la pantalla y los datos' (esperan a DTC-28) |
+| 5. Sesión ya expirada | "con la sesión ya vencida cierra sin mostrar errores" |
 
 ## Límites
 

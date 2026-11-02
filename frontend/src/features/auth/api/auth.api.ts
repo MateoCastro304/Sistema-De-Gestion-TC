@@ -14,3 +14,8 @@ export async function refresh(): Promise<SessionResponse> {
   const { data } = await http.post<SessionResponse>(`${AUTH}/refresh`)
   return data
 }
+
+/** Cierra la sesión en el servidor. Responde 204 siempre y borra la cookie. */
+export async function logout(): Promise<void> {
+  await http.post(`${AUTH}/logout`)
+}

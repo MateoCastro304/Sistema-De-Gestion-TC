@@ -21,6 +21,12 @@ async function login(page: Page, username: string, password: string) {
 
 const loginHeading = (page: Page) => page.getByRole('heading', { name: 'Ingresar' })
 
+/** Abre el menú de usuario y toca "Cerrar sesión". */
+async function openLogout(page: Page) {
+  await page.getByRole('button', { name: 'Menú de usuario' }).click()
+  await page.getByRole('button', { name: 'Cerrar sesión' }).click()
+}
+
 test.describe('[CU-53] Iniciar sesión', { tag: '@sprint2' }, () => {
   test('sin sesión, cualquier pantalla lleva al ingreso', async ({ page }) => {
     await page.goto(ROUTES.suppliers)
@@ -195,7 +201,7 @@ test.describe('[CU-52] Cerrar sesión', { tag: '@sprint2' }, () => {
     await page.goto(ROUTES.administrationPanel)
     await expect(page.getByRole('heading', { name: 'Administración' })).toBeVisible()
 
-    await page.getByRole('button', { name: 'Cerrar sesión' }).click()
+    await openLogout(page)
     await expect(loginHeading(page)).toBeVisible()
     await expect(page.getByText('Cerraste sesión correctamente')).toBeVisible()
 
@@ -207,10 +213,65 @@ test.describe('[CU-52] Cerrar sesión', { tag: '@sprint2' }, () => {
     await page.goto(ROUTES.newEmployee)
     await page.getByLabel('Nombre').fill('Julián')
 
-    await page.getByRole('button', { name: 'Cerrar sesión' }).click()
+    await openLogout(page)
     const dialog = page.getByRole('dialog', { name: 'Cerrar sesión' })
     await expect(dialog.getByText('Se van a perder los datos que no guardaste.')).toBeVisible()
     await dialog.getByRole('button', { name: 'Cerrar sesión' }).click()
+    await expect(loginHeading(page)).toBeVisible()
+  })
+
+  test('"Seguir acá" mantiene la pantalla y los datos', async ({ page }) => {
+    await page.goto(ROUTES.newEmployee)
+    await page.getByLabel('Nombre').fill('Julián')
+
+    await openLogout(page)
+    await page
+      .getByRole('dialog', { name: 'Cerrar sesión' })
+      .getByRole('button', { name: 'Seguir acá' })
+      .click()
+    await expect(page.getByLabel('Nombre')).toHaveValue('Julián')
+  })
+})
+
+/** Los mismos escenarios en una pantalla que ya existe (Clientes), sin depender de otras historias. */
+test.describe('[DTC-32][CU-52] Cerrar sesión desde el menú de usuario', { tag: '@sprint2' }, () => {
+  test.use({ sessionUser: 'mrios' })
+
+  test('cierra la sesión, avisa y no vuelve al recargar', async ({ page }) => {
+    await page.goto(ROUTES.customersPanel)
+    await openLogout(page)
+    await expect(loginHeading(page)).toBeVisible()
+    await expect(page.getByText('Cerraste sesión correctamente')).toBeVisible()
+
+    await page.goto(ROUTES.customersPanel)
+    await expect(loginHeading(page)).toBeVisible()
+  })
+
+  test('"Atrás" después de cerrar no muestra la pantalla anterior', async ({ page }) => {
+    // Dos pantallas en el historial: al cerrar, la segunda se reemplaza por el ingreso.
+    await page.goto(ROUTES.customersPanel)
+    await page.goto(ROUTES.customers)
+    await openLogout(page)
+    await expect(loginHeading(page)).toBeVisible()
+
+    await page.goBack()
+    await expect(loginHeading(page)).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Menú de usuario' })).toHaveCount(0)
+  })
+
+  test('con la sesión ya vencida cierra sin mostrar errores', async ({ page }) => {
+    await page.goto(ROUTES.customersPanel)
+    await changeSession(page, { accessTokenExpired: true })
+
+    await openLogout(page)
+    await expect(loginHeading(page)).toBeVisible()
+    await expect(page.getByRole('alert').filter({ hasText: 'incorrectos' })).toHaveCount(0)
+  })
+
+  test('sin datos sin guardar no pide confirmación', async ({ page }) => {
+    await page.goto(ROUTES.customersPanel)
+    await openLogout(page)
+    await expect(page.getByRole('dialog')).toHaveCount(0)
     await expect(loginHeading(page)).toBeVisible()
   })
 })

@@ -9,6 +9,8 @@ export interface Session {
     endMessage: string | null
     /** Guarda la sesión que devolvió el login. */
     startSession: (response: SessionResponse) => void
+    /** Cierra la sesión en el servidor y después en el cliente (CU-52). */
+    logout: () => Promise<void>
 }
 
 export const SessionContext = createContext<Session | null>(null)

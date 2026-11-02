@@ -1755,3 +1755,36 @@ form .card__grid--2, form .card__grid--3 { row-gap: 20px; column-gap: 24px; }
   .table-card--cards .table__row, .toast, .state, .system-page__body { animation: none; }
   .btn:hover, .table-card--cards .table__row:hover { transform: none; }
 }
+
+/* Menú de usuario de la topbar (CU-52) */
+.user-menu { position: relative; display: flex; align-items: center; }
+.user-menu__trigger {
+  display: flex; padding: 0; border-radius: 50%;
+  transition: box-shadow .2s ease;
+}
+.user-menu__trigger:hover { box-shadow: 0 0 0 6px #e3e8f3; }
+/* Fondo transparente: tocar afuera cierra el menú. */
+.user-menu__scrim { position: fixed; inset: 0; z-index: 30; background: transparent; }
+.user-menu__panel {
+  position: absolute; right: 0; top: calc(100% + 10px); z-index: 31; width: 330px;
+  display: flex; flex-direction: column; gap: 18px; padding: 20px;
+  background: #fff; border-radius: 8px; box-shadow: 0 18px 44px rgba(23, 38, 69, .2);
+}
+.user-menu__who { display: flex; align-items: center; gap: 12px; }
+.user-menu__text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.user-menu__text b { font-size: 16px; font-weight: 800; color: var(--rp-navy); }
+.user-menu__text span { font-size: 13px; color: var(--rp-texto-sec); }
+.user-menu__roles { display: flex; flex-wrap: wrap; gap: 6px; }
+.user-menu__action {
+  padding: 11px 8px; border-radius: 6px; text-align: left;
+  font-size: 14px; font-weight: 700; color: var(--rp-navy);
+  border-top: 1px solid #eef0f3;
+}
+.user-menu__action:hover { background: #fbe9e7; color: #b3261e; }
+
+@media (max-width: 900px) {
+  /* En celular el menú se pega al botón del cajón. */
+  .user-menu { margin-left: auto; margin-right: 12px; }
+  /* Fijo al borde de la pantalla, bajo la topbar (74px): anclado al avatar se salía por la izquierda. */
+  .user-menu__panel { position: fixed; top: 82px; right: 16px; width: min(330px, calc(100vw - 32px)); }
+}
