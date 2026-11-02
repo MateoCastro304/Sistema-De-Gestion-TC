@@ -51,6 +51,7 @@ export class PrismaUserAuthRepository extends UserAuthRepository {
       employee: { id: row.employee.id, firstName: row.employee.firstName, lastName: row.employee.lastName },
       roles,
       permissions,
+      createdAt: row.createdAt,
     });
   }
 }

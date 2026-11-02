@@ -19,6 +19,7 @@ export class AuthUser {
     private readonly employee: AuthEmployee,
     private readonly roles: readonly string[],
     private readonly permissions: readonly string[],
+    private readonly createdAt: Date,
   ) {}
 
   static reconstruct(data: {
@@ -29,6 +30,7 @@ export class AuthUser {
     employee: AuthEmployee;
     roles: readonly string[];
     permissions: readonly string[];
+    createdAt: Date;
   }): AuthUser {
     return new AuthUser(
       data.id,
@@ -38,6 +40,7 @@ export class AuthUser {
       data.employee,
       data.roles,
       data.permissions,
+      data.createdAt,
     );
   }
 
@@ -66,5 +69,8 @@ export class AuthUser {
   }
   getPermissions(): readonly string[] {
     return this.permissions;
+  }
+  getCreatedAt(): Date {
+    return this.createdAt;
   }
 }
