@@ -127,3 +127,6 @@ Desktop.ini
 #  (ej: frontend/.claude/launch.json) siguen versionados.
 # -----------------------------------------------------------------------------
 .claude/
+.atl
+
+/tema-login
