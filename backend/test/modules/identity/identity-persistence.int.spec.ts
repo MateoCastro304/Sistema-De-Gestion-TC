@@ -1,5 +1,6 @@
 import { Test } from '@nestjs/testing';
 
+import { clearIdentityTables } from '../../shared/factories/identity-cleanup';
 import { ClockPort } from '../../../src/shared/clock/clock.port';
 import { PrismaModule } from '../../../src/shared/infrastructure/prisma/prisma.module';
 import { PrismaClientProvider } from '../../../src/shared/infrastructure/prisma/prisma-client.provider';
@@ -49,17 +50,13 @@ describe('identity persistence', () => {
   });
 
   afterAll(async () => {
+    await clearIdentityTables(prisma);
     await prisma.$disconnect();
   });
 
   beforeEach(async () => {
     now = T0;
-    await prisma.loginAttempt.deleteMany();
-    await prisma.refreshToken.deleteMany();
-    await prisma.userSession.deleteMany();
-    await prisma.userRole.deleteMany();
-    await prisma.user.deleteMany();
-    await prisma.employee.deleteMany();
+    await clearIdentityTables(prisma);
   });
 
   let dni = 10000000;

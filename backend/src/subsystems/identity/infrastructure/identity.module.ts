@@ -6,6 +6,7 @@ import { ClockPort } from '../../../shared/clock/clock.port';
 import { SystemClock } from '../../../shared/clock/system-clock';
 import { PrismaClientProvider } from '../../../shared/infrastructure/prisma/prisma-client.provider';
 import { AuthenticateUser } from '../core/application/use-cases/authenticate-user.use-case';
+import { RefreshSession } from '../core/application/use-cases/refresh-session.use-case';
 import { LoginThrottle } from '../core/domain/ports/login-throttle.port';
 import { PasswordHasher } from '../core/domain/ports/password-hasher.port';
 import { SessionPolicy } from '../core/domain/ports/session-policy.port';
@@ -42,6 +43,7 @@ const readerOf = (config: ConfigService) => (key: string) => {
   controllers: [AuthController],
   providers: [
     AuthenticateUser,
+    RefreshSession,
     { provide: UserAuthRepository, useClass: PrismaUserAuthRepository },
     { provide: SessionRepository, useClass: PrismaSessionRepository },
     {

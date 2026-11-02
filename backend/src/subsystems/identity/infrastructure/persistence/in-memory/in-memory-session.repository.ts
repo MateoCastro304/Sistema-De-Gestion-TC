@@ -1,6 +1,10 @@
 import { RefreshToken } from '../../../core/domain/entities/refresh-token.entity';
 import { Session } from '../../../core/domain/entities/session.entity';
-import { OpenSessionParams, SessionRepository } from '../../../core/domain/ports/session.repository';
+import {
+  OpenSessionParams,
+  RotateRefreshTokenParams,
+  SessionRepository,
+} from '../../../core/domain/ports/session.repository';
 import { SessionEndReason } from '../../../core/domain/value-objects/session-end-reason';
 
 type StoredSession = {
@@ -59,6 +63,30 @@ export class InMemorySessionRepository extends SessionRepository {
   findRefreshTokenByHash(tokenHash: string): Promise<RefreshToken | null> {
     const stored = this.tokens.find((token) => token.tokenHash === tokenHash);
     return Promise.resolve(stored ? RefreshToken.reconstruct(stored) : null);
+  }
+
+  findLiveRefreshToken(sessionId: string): Promise<RefreshToken | null> {
+    const live = this.tokens.find((token) => token.sessionId === sessionId && token.revokedAt === null);
+    return Promise.resolve(live ? RefreshToken.reconstruct(live) : null);
+  }
+
+  rotateRefreshToken(params: RotateRefreshTokenParams): Promise<boolean> {
+    const from = this.tokens.find((token) => token.id === params.fromTokenId && token.revokedAt === null);
+    if (!from) return Promise.resolve(false);
+
+    this.sequence += 1;
+    const next: StoredToken = {
+      id: `token-${this.sequence}`,
+      tokenHash: params.newTokenHash,
+      sessionId: params.sessionId,
+      replacedBy: null,
+      createdAt: params.now,
+      revokedAt: null,
+    };
+    from.revokedAt = params.now;
+    from.replacedBy = next.id;
+    this.tokens.push(next);
+    return Promise.resolve(true);
   }
 
   touchActivity(sessionId: string, now: Date): Promise<void> {

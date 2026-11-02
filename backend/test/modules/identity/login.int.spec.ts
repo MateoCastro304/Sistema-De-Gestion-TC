@@ -4,6 +4,7 @@ import request from 'supertest';
 import { hashRefreshToken } from '../../../src/subsystems/identity/core/domain/refresh-token-secret';
 import { BcryptPasswordHasher } from '../../../src/subsystems/identity/infrastructure/external/bcrypt-password-hasher';
 import { expectData, expectError } from '../../shared/contract/envelopes';
+import { clearIdentityTables } from '../../shared/factories/identity-cleanup';
 import { getPrisma, startTestApp, stopTestApp } from '../../shared/harness/test-app';
 
 const PASSWORD = 'Castro1977';
@@ -19,17 +20,12 @@ describe('POST /auth/login', () => {
   });
 
   afterAll(async () => {
+    await clearIdentityTables(getPrisma());
     await stopTestApp();
   });
 
   beforeEach(async () => {
-    const prisma = getPrisma();
-    await prisma.loginAttempt.deleteMany();
-    await prisma.refreshToken.deleteMany();
-    await prisma.userSession.deleteMany();
-    await prisma.userRole.deleteMany();
-    await prisma.user.deleteMany();
-    await prisma.employee.deleteMany();
+    await clearIdentityTables(getPrisma());
   });
 
   async function createUser(username: string, roleCodes: string[], state: { active?: boolean } = {}) {

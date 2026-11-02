@@ -1,4 +1,4 @@
-import { AuthenticatedSession } from '../../core/application/use-cases/authenticate-user.use-case';
+import { AuthenticatedSession } from '../../core/application/authenticated-session';
 
 /** Cuerpo de `POST /auth/login` y `POST /auth/refresh` (Session). El refresh token no viaja acá: va en la cookie. */
 export type SessionResponseBody = {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ClockPort } from '../../../../../shared/clock/clock.port';
-import { AuthEmployee, AuthUser } from '../../domain/entities/auth-user.entity';
+import { AuthUser } from '../../domain/entities/auth-user.entity';
 import { InvalidCredentials } from '../../domain/errors/invalid-credentials.error';
 import { UserBlocked } from '../../domain/errors/user-blocked.error';
 import { PasswordHasher } from '../../domain/ports/password-hasher.port';
@@ -10,33 +10,13 @@ import { SessionRepository } from '../../domain/ports/session.repository';
 import { TokenIssuer } from '../../domain/ports/token-issuer.port';
 import { UserAuthRepository } from '../../domain/ports/user-auth.repository';
 import { generateRefreshToken } from '../../domain/refresh-token-secret';
+import { AuthenticatedSession, toAuthenticatedSession } from '../authenticated-session';
 
 export type AuthenticateUserCommand = {
   username: string;
   password: string;
   /** IP de quien llama. Solo sirve de clave del bloqueo por usuario+IP. */
   ip: string;
-};
-
-/** Usuario de la respuesta de sesión (contrato §3.1): la misma forma que `GET /users/{id}`. */
-export type SessionUser = {
-  id: number;
-  username: string;
-  employee: AuthEmployee;
-  roles: readonly string[];
-  status: 'ACTIVE';
-  lastAccessAt: Date;
-  createdAt: Date;
-};
-
-export type AuthenticatedSession = {
-  accessToken: string;
-  expiresIn: number;
-  inactivityTimeoutSeconds: number;
-  sessionExpiresAt: Date;
-  /** En claro, para la cookie. En la base queda solo su hash. */
-  refreshToken: string;
-  user: SessionUser;
 };
 
 /**
@@ -105,23 +85,7 @@ export class AuthenticateUser {
     });
     const access = this.tokens.issue({ sub: user.getId(), sid: session.getId() });
 
-    return {
-      accessToken: access.token,
-      expiresIn: access.expiresIn,
-      inactivityTimeoutSeconds: this.policy.inactivitySeconds,
-      sessionExpiresAt: session.getExpiresAt(),
-      refreshToken: refresh.token,
-      user: {
-        id: user.getId(),
-        username: user.getUsername(),
-        employee: user.getEmployee(),
-        roles: user.getRoles(),
-        status: 'ACTIVE',
-        // El último acceso es el inicio de la sesión en curso (D-27).
-        lastAccessAt: session.getStartedAt(),
-        createdAt: user.getCreatedAt(),
-      },
-    };
+    return toAuthenticatedSession({ user, session, access, refreshToken: refresh.token, policy: this.policy });
   }
 
   /** Verifica contra un hash descartable y devuelve siempre `false`. */
