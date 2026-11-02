@@ -96,7 +96,7 @@ class EnvironmentVariables {
   @IsIn(['true', 'false'])
   TRUST_PROXY?: string;
 
-  // Bloqueo progresivo de ingreso, nivel usuario+IP (por defecto 5, 15m, 1m,5m,15m,1h).
+  // Bloqueo progresivo de ingreso, nivel usuario+IP (por defecto 5, 15m, 90s,5m,15m,30m,1h).
   @IsOptional()
   @IsInt()
   @Min(1)
