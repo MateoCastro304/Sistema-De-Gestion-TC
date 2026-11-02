@@ -55,7 +55,7 @@ test.describe('[CU-45][CU-47] Empleados', { tag: '@sprint2' }, () => {
 
     await page.getByLabel('Nombre').fill('Otro')
     await page.getByLabel('Apellido').fill('Castro')
-    await chooseOption(page.getByRole('combobox', { name: 'Puesto' }), 'Jefe')
+    await chooseOption(page.getByRole('combobox', { name: 'Puesto' }), /^Jefe$/)
     // El DNI de Walter Castro.
     await page.getByLabel('DNI').fill('20112233')
     await page.getByRole('button', { name: 'Registrar empleado' }).click()
@@ -65,7 +65,7 @@ test.describe('[CU-45][CU-47] Empleados', { tag: '@sprint2' }, () => {
   test('el detalle muestra su usuario o el acceso para crearlo', async ({ page }) => {
     await page.goto(detail.employee(1))
     await expect(page.getByRole('heading', { name: /Walter Castro/ })).toBeVisible()
-    await expect(page.getByText('wcastro')).toBeVisible()
+    await expect(page.getByText('wcastro', { exact: true })).toBeVisible()
 
     await page.goto(detail.employee(9))
     await expect(page.getByRole('heading', { name: /Matías Castro/ })).toBeVisible()
@@ -73,5 +73,41 @@ test.describe('[CU-45][CU-47] Empleados', { tag: '@sprint2' }, () => {
     await page.getByRole('link', { name: 'Crear usuario' }).click()
     await expect(page).toHaveURL(new RegExp(`${ROUTES.newUser}`))
     await expect(page.getByText('Matías Castro')).toBeVisible()
+  })
+
+  test('[DTC-28] un homónimo con otro DNI se registra sin pedir confirmación', async ({ page }) => {
+    await page.goto(ROUTES.newEmployee)
+    await page.getByLabel('Nombre').fill('Walter')
+    await page.getByLabel('Apellido').fill('Castro')
+    await page.getByLabel('DNI').fill('31999888')
+    await chooseOption(page.getByRole('combobox', { name: 'Puesto' }), 'Empleado')
+    await page.getByRole('button', { name: 'Registrar empleado' }).click()
+
+    await expect(toast(page, 'Empleado registrado correctamente')).toBeVisible()
+    await expect(page.getByRole('heading', { name: /Walter Castro/ })).toBeVisible()
+  })
+
+  test('[DTC-28] marca los formatos inválidos y no registra', async ({ page }) => {
+    await page.goto(ROUTES.newEmployee)
+    await page.getByLabel('Nombre').fill('Ana')
+    await page.getByLabel('Apellido').fill('Paz')
+    await chooseOption(page.getByRole('combobox', { name: 'Puesto' }), 'Empleado')
+    await page.getByLabel('DNI').fill('123')
+    await page.getByLabel('Email').fill('sin-arroba')
+    await page.getByRole('button', { name: 'Registrar empleado' }).click()
+
+    await expect(page.getByText('El DNI tiene que tener 7 u 8 números')).toBeVisible()
+    await expect(page.getByText('Revisá el formato del email')).toBeVisible()
+    await expect(page).toHaveURL(ROUTES.newEmployee)
+  })
+
+  test.describe('sin rol de Administrador del Sistema', () => {
+    test.use({ sessionUser: 'mrios' })
+
+    test('[DTC-28] deniega el acceso al alta', async ({ page }) => {
+      await page.goto(ROUTES.newEmployee)
+      await expect(page.getByText('No tenés permisos para realizar esta operación.')).toBeVisible()
+      await expect(page.getByRole('button', { name: 'Registrar empleado' })).toHaveCount(0)
+    })
   })
 })

@@ -68,7 +68,8 @@ Las carpetas vacías se mantienen con un `.gitkeep` para que la estructura exist
 
 - **Con pantallas (Sprint 1):** `catalogs/panels`, `categories`, `customers` y `suppliers`.
 - **Con pantallas (Sprint 2):** `auth` (el ingreso; falta cerrar sesión) y `process-types`.
-- **Con tipos y mocks, sin pantallas todavía (Sprint 2):** `catalogs/employees`, `users` y `materials`. Sus tipos (`types/`) siguen el contrato del Sprint 2 y sus mocks (`api/*.mocks.ts`) ya responden todos los endpoints, así que las pantallas se pueden hacer sin backend.
+- **Con pantallas del Sprint 2:** `auth` (ingreso y cierre) y `catalogs/employees` (alta y detalle; el listado completo es DTC-201).
+- **Con tipos y mocks, sin pantallas todavía (Sprint 2):** `users` y `materials`. Sus tipos (`types/`) siguen el contrato del Sprint 2 y sus mocks (`api/*.mocks.ts`) ya responden todos los endpoints, así que las pantallas se pueden hacer sin backend.
 - **Solo el esqueleto:** `requests`, `quotations`, `parts`, `work-orders` y `reports`.
 
 ### 1.1 Roles y permisos (`domain/roles.ts`)
@@ -120,7 +121,7 @@ El menú lateral no lleva directo a los listados, sino a **paneles de tarjetas**
 | Clientes   | `/catalogos/clientes` | Encargados, Fábricas, Rubros                 |
 | Gestión    | `/catalogos/gestion`  | Proveedores (Materiales y Tipos de proceso se suman en el sprint 2) |
 
-En el Sprint 2 se suma el panel **Administración** (Empleados y Usuarios), como en el prototipo. El menú solo muestra los paneles y tarjetas que permiten los roles del usuario (`canAccess()`).
+El panel **Administración** (`/administracion`, Empleados y Usuarios, como en el prototipo) ya existe con la tarjeta Empleados; Usuarios se suma con su pantalla. El menú solo muestra los paneles y tarjetas que permiten los roles del usuario (`canAccess()`).
 
 `features/catalogs/panels/panels.ts` es la fuente de verdad de esta agrupación. De ahí salen tres cosas:
 
@@ -140,6 +141,8 @@ Para sumar un catálogo nuevo a un panel, alcanza con agregar una entrada en `it
 | `/catalogos/encargados`                | `CustomersPage`, `nuevo`, `:factoryId/:id` |
 | `/catalogos/fabricas`                  | `FactoriesPage`, `nuevo`, `:id` |
 | `/catalogos/rubros`                    | `CategoriesPage`        |
+| `/administracion`                      | `PanelPage` (Administración) |
+| `/administracion/empleados`            | `EmployeesPage`, `nuevo`, `:id` |
 | `/catalogos/proveedores`               | `SuppliersPage`, `nuevo`, `:id` |
 | `/catalogos/tipos-de-proceso`          | `ProcessTypesPage`, `nuevo`, `:id` |
 | `*`                                    | `NotFoundPage`          |

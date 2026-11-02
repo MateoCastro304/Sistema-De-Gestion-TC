@@ -373,7 +373,7 @@ Muestra las iniciales del `name` (máximo 2) o, si se pasa `icon`, el ícono de 
 
 ### `EntityIcon`
 
-Íconos fijos por tipo de registro: `encargado`, `fabrica`, `rubro`, `proveedor`, `material`, `repuesto`, `pintura` y `tercerizado`. Toma tamaño y color del contenedor. Para agregar uno nuevo (empleado, usuario, tipo de proceso), se suma su trazo a `PATHS`; los trazos están en el `IC` del prototipo.
+Íconos fijos por tipo de registro: `encargado`, `fabrica`, `rubro`, `proveedor`, `material`, `repuesto`, `pintura`, `tercerizado`, `proceso` y `empleado`. Toma tamaño y color del contenedor. Para agregar uno nuevo (usuario, por ejemplo), se suma su trazo a `PATHS`; los trazos están en el `IC` del prototipo.
 
 ---
 

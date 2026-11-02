@@ -23,6 +23,7 @@ import {
   NewProcessTypePage,
   ProcessTypeDetailPage,
 } from '@/features/catalogs/process-types'
+import { EmployeesPage, NewEmployeePage, EmployeeDetailPage } from '@/features/catalogs/employees'
 import { CategoriesPage } from '@/features/catalogs/categories'
 import { PanelPage } from '@/features/catalogs/panels'
 
@@ -57,6 +58,15 @@ export const router = createBrowserRouter([
                   // Paneles de tarjetas: la puerta a los listados de cada grupo.
                   { path: '/catalogos/clientes', element: <PanelPage panel="clientes" /> },
                   { path: '/catalogos/gestion', element: <PanelPage panel="gestion" /> },
+                  { path: '/administracion', element: <PanelPage panel="administracion" /> },
+                  {
+                    path: '/administracion/empleados',
+                    children: [
+                      { index: true, element: <EmployeesPage /> },
+                      { path: 'nuevo', element: <NewEmployeePage /> },
+                      { path: ':id', element: <EmployeeDetailPage /> },
+                    ],
+                  },
                   {
                     path: '/catalogos/proveedores',
                     children: [

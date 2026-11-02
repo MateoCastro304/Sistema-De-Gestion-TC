@@ -103,6 +103,26 @@ export const PANELS = {
       },
     ],
   },
+  administracion: {
+    to: '/administracion',
+    label: 'Administración',
+    eyebrow: 'Personal y',
+    accent: 'accesos',
+    description: 'Empleados de la empresa y sus usuarios del sistema.',
+    photo: fotoPrensa,
+    photoPosition: 'center 40%',
+    // Usuarios se suma con su pantalla (DTC-129).
+    items: [
+      {
+        to: '/administracion/empleados',
+        label: 'Empleados',
+        description: 'Personal de la empresa con su puesto, DNI y datos de contacto.',
+        icon: 'empleado',
+        photo: fotoPrensa,
+        photoPosition: 'center 40%',
+      },
+    ],
+  },
 } satisfies Record<string, Panel>
 
 export type PanelKey = keyof typeof PANELS

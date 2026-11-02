@@ -44,6 +44,10 @@ const NAV_GROUPS = [
       { panel: PANELS.gestion, icon: IconEngranaje },
     ],
   },
+  {
+    label: 'Administración',
+    items: [{ panel: PANELS.administracion, icon: IconEscudo }],
+  },
 ]
 
 /** Un tramo de la miga de pan. Con `to` es un enlace. */
@@ -51,7 +55,7 @@ type Crumb = { label: string; to?: string }
 
 /**
  * La miga de pan sale de la URL, como en el prototipo:
- *   panel    → CATÁLOGOS / CLIENTES
+ *   panel    → CATÁLOGOS / CLIENTES (o ADMINISTRACIÓN / ADMINISTRACIÓN)
  *   listado  → CLIENTES / ENCARGADOS
  *   alta     → CLIENTES / ENCARGADOS / NUEVO
  *   detalle  → CLIENTES / ENCARGADOS / Laura Gómez
@@ -62,7 +66,11 @@ function breadcrumb(pathname: string, title: string | null, allowed: boolean): C
   if (!allowed) return [{ label: 'Sistema' }, { label: 'Acceso denegado' }]
   const panel = panelOf(pathname)
   if (!panel) return [{ label: 'Sistema' }, { label: 'Página no encontrada' }]
-  if (pathname === panel.to) return [{ label: 'Catálogos' }, { label: panel.label }]
+  if (pathname === panel.to) {
+    // El primer tramo es el grupo del menú: Catálogos o Administración.
+    const group = NAV_GROUPS.find((g) => g.items.some((i) => i.panel === panel))
+    return [{ label: group?.label ?? 'Catálogos' }, { label: panel.label }]
+  }
 
   const item = panel.items.find((i) => pathname === i.to || pathname.startsWith(i.to + '/'))
   if (!item || pathname === item.to) return [{ label: panel.label }, { label: item?.label ?? '' }]
@@ -266,6 +274,14 @@ function IconFabrica() {
   return (
     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M3 17V8.5l4.5 3V8.5l4.5 3V5h5v12z" />
+    </svg>
+  )
+}
+
+function IconEscudo() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M10 2.5l6 2.5v4.5c0 3.6-2.6 6.3-6 7.5-3.4-1.2-6-3.9-6-7.5V5z" />
     </svg>
   )
 }
