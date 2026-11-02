@@ -9,7 +9,7 @@ import { isApiError } from '@/shared/api/ApiError'
 import { ROL_LABEL } from '@/domain/roles'
 import { useCrumbTitle } from '@/app/providers/BreadcrumbContext'
 import fotoPrensa from '@/assets/foto-prensa.webp'
-import { EMPLOYEE_POSITION_LABELS } from '../types/employee'
+import { EMPLOYEE_POSITION_LABELS, USER_STATUS_LABELS } from '../types/employee'
 import { useEmployee } from '../api/employees.queries'
 
 const LIST_PATH = '/administracion/empleados'
@@ -30,11 +30,14 @@ function Field({ label, value, empty }: { label: string; value: string | null | 
  */
 export function EmployeeDetailPage() {
   const { id = '' } = useParams<{ id: string }>()
-  const { data: employee, isLoading, isError, error } = useEmployee(Number(id))
+  const employeeId = Number(id)
+  const { data: employee, isLoading, isError, error } = useEmployee(employeeId)
+  // Un identificador que no es un número no llega a la API: es "no encontrado".
+  const invalidId = !Number.isInteger(employeeId) || employeeId <= 0
 
   useCrumbTitle(employee ? `${employee.firstName} ${employee.lastName}` : undefined)
 
-  if (isLoading) {
+  if (isLoading && !invalidId) {
     return (
       <div className="empty-state">
         <p className="empty-state__text">Cargando empleado…</p>
@@ -43,12 +46,12 @@ export function EmployeeDetailPage() {
   }
 
   if (isError || !employee) {
-    const notFound = isApiError(error) && error.isNotFound
+    const notFound = invalidId || (isApiError(error) && (error.isNotFound || error.code === 'INVALID_PATH_PARAMETER'))
     return (
       <EmptyState
         card
         kind={notFound ? 'no-results' : 'error'}
-        title={notFound ? 'No encontramos el empleado que buscabas.' : 'No se pudo cargar el empleado.'}
+        title={notFound ? 'No se encontró el empleado.' : 'No se pudo cargar el empleado.'}
         action={
           <Link className="btn btn--secondary" to={LIST_PATH}>
             Volver a Empleados
@@ -91,6 +94,11 @@ export function EmployeeDetailPage() {
 
       <div className="detail-layout">
         <div className="detail-main">
+          {!employee.active && (
+            <section className="card">
+              <p className="field__value">Este empleado está dado de baja.</p>
+            </section>
+          )}
           <section className="card">
             <h2 className="card__title">Datos personales</h2>
             <div className="card__grid card__grid--2">
@@ -123,6 +131,10 @@ export function EmployeeDetailPage() {
                   <div className="field">
                     <span className="field__label">Roles</span>
                     <span className="field__value">{user.roles.map((role) => ROL_LABEL[role]).join(', ')}</span>
+                  </div>
+                  <div className="field">
+                    <span className="field__label">Estado</span>
+                    <span className="field__value">{USER_STATUS_LABELS[user.status]}</span>
                   </div>
                 </>
               ) : (

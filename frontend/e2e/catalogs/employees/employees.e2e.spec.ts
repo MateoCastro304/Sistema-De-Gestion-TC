@@ -101,8 +101,70 @@ test.describe('[CU-45][CU-47] Empleados', { tag: '@sprint2' }, () => {
     await expect(page).toHaveURL(ROUTES.newEmployee)
   })
 
+  test('[DTC-201] el listado muestra puesto, usuario y roles, ordenado por apellido y nombre', async ({ page }) => {
+    await page.goto(ROUTES.employees)
+    await expect(page.getByText('11 empleados activos')).toBeVisible()
+    await expect(rows(page)).toHaveCount(11)
+    // Benítez abre la lista; entre los Castro, Daniel va antes que Matías y Walter.
+    await expect(rows(page).first()).toContainText('Benítez, Lucía')
+    await expect(rows(page).nth(1)).toContainText('Castro, Daniel')
+    await expect(rows(page).nth(2)).toContainText('Castro, Matías')
+    await expect(rows(page).nth(3)).toContainText('Castro, Walter')
+    await expect(row(page, 'Walter')).toContainText('wcastro')
+    await expect(row(page, 'Walter')).toContainText('Administrador del Sistema')
+  })
+
+  test('[DTC-201] busca sin distinguir mayúsculas ni acentos y avisa si no hay resultados', async ({ page }) => {
+    await page.goto(ROUTES.employees)
+    const search = page.getByRole('searchbox', { name: 'Buscar por nombre, apellido, DNI o puesto' })
+
+    await search.fill('GIMENEZ')
+    await expect(page.getByText('No hay empleados que coincidan con la búsqueda.')).toBeVisible()
+
+    await search.fill('MONICA')
+    await expect(rows(page)).toHaveCount(1)
+    await expect(row(page, 'Ríos')).toBeVisible()
+
+    await search.fill('zzzz')
+    await expect(page.getByText('No hay empleados que coincidan con la búsqueda.')).toBeVisible()
+  })
+
+  test('[DTC-201] abre el detalle desde el listado', async ({ page }) => {
+    await page.goto(ROUTES.employees)
+    await row(page, 'Walter').getByRole('link', { name: 'Ver' }).click()
+    await expect(page).toHaveURL(detail.employee(1))
+    await expect(page.getByRole('heading', { name: /Walter Castro/ })).toBeVisible()
+  })
+
+  test('[DTC-201] el detalle de un empleado dado de baja lo avisa', async ({ page }) => {
+    await page.goto(detail.employee(12))
+    await expect(page.getByRole('heading', { name: /Omar Giménez/ })).toBeVisible()
+    await expect(page.getByText('Este empleado está dado de baja.')).toBeVisible()
+    await expect(page.getByText('ogimenez', { exact: true })).toBeVisible()
+    await expect(page.getByText('Inactivo').first()).toBeVisible()
+  })
+
+  test('[DTC-201] el recuadro de usuario muestra el estado', async ({ page }) => {
+    await page.goto(detail.employee(1))
+    await expect(page.getByText('Estado')).toBeVisible()
+    await expect(page.getByText('Activo', { exact: true })).toBeVisible()
+  })
+
+  test('[DTC-201] informa si el empleado no existe o el identificador no es un número', async ({ page }) => {
+    await page.goto(detail.employee(99))
+    await expect(page.getByText('No se encontró el empleado.')).toBeVisible()
+
+    await page.goto(`${ROUTES.employees}/abc`)
+    await expect(page.getByText('No se encontró el empleado.')).toBeVisible()
+  })
+
   test.describe('sin rol de Administrador del Sistema', () => {
     test.use({ sessionUser: 'mrios' })
+
+    test('[DTC-201] deniega el acceso al listado', async ({ page }) => {
+      await page.goto(ROUTES.employees)
+      await expect(page.getByText('No tenés permisos para realizar esta operación.')).toBeVisible()
+    })
 
     test('[DTC-28] deniega el acceso al alta', async ({ page }) => {
       await page.goto(ROUTES.newEmployee)

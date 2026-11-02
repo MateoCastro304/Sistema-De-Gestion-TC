@@ -1,6 +1,24 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { EmployeeListParams } from '../types/employee'
 import { employeeKeys } from './employees.keys'
-import { createEmployee, getEmployee } from './employees.api'
+import { countEmployees, createEmployee, getEmployee, listEmployees } from './employees.api'
+
+/** CU-47 Listado de empleados con búsqueda, dados de baja y página. */
+export function useEmployees(params: EmployeeListParams) {
+  return useQuery({
+    queryKey: employeeKeys.list(params),
+    queryFn: () => listEmployees(params),
+    placeholderData: keepPreviousData,
+  })
+}
+
+/** Cantidad de empleados activos del encabezado. */
+export function useEmployeesCount() {
+  return useQuery({
+    queryKey: employeeKeys.count(),
+    queryFn: countEmployees,
+  })
+}
 
 /** Un empleado por id. */
 export function useEmployee(id: number) {
