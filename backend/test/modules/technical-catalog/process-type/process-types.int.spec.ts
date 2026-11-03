@@ -70,6 +70,7 @@ describe('Process types', () => {
       expect(saved.exchangeRate.toString()).toBe('1385.5');
       expect(saved.nameKey).toBe('mecanizado torno cnc 5 ejes');
       expect(saved.createdAt).toEqual(saved.updatedAt);
+      expect(saved.createdByUserId).toBe(api.userId); // el creador es el usuario de la sesión
       expect(await getPrisma().processTypePriceHistory.count()).toBe(0);
     });
 
@@ -93,9 +94,7 @@ describe('Process types', () => {
     );
 
     it('informa un error por campo cuando los precios son inválidos y no guarda nada', async () => {
-      const res = await api
-        .post('/process-types')
-        .send(aProcessTypeBody({ hourlyRateArs: 0, hourlyRateUsd: 1.234 }));
+      const res = await api.post('/process-types').send(aProcessTypeBody({ hourlyRateArs: 0, hourlyRateUsd: 1.234 }));
 
       expect(res.status).toBe(400);
       expect(res.body).toMatchObject({ statusCode: 400, error: 'Bad Request', code: 'VALIDATION_ERROR' });
@@ -107,9 +106,7 @@ describe('Process types', () => {
     });
 
     it('rechaza un campo que el endpoint no declara', async () => {
-      const res = await api
-        .post('/process-types')
-        .send(aProcessTypeBody({ isActive: true }));
+      const res = await api.post('/process-types').send(aProcessTypeBody({ isActive: true }));
 
       expect(res.status).toBe(400);
       expect(res.body.code).toBe('VALIDATION_ERROR');
@@ -252,8 +249,7 @@ describe('Process types', () => {
 
     let authorUsername: string;
 
-    const patch = (body: object, id: number | string = processTypeId) =>
-      api.patch(`/process-types/${id}`).send(body);
+    const patch = (body: object, id: number | string = processTypeId) => api.patch(`/process-types/${id}`).send(body);
 
     const stored = () => getPrisma().processType.findUniqueOrThrow({ where: { id: processTypeId } });
 

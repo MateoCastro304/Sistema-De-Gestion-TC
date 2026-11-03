@@ -40,8 +40,8 @@ export abstract class ProcessTypeRepository {
 
   /**
    * Agrega un registro al historial de precios (RNF10: es la única operación de
-   * escritura sobre él; no se modifica ni se borra). Lanza ChangeAuthorUnknown si
-   * el usuario no existe.
+   * escritura sobre él; no se modifica ni se borra). El autor ya viene incluido en
+   * el registro: es el usuario de la sesión.
    */
   abstract addPriceChange(processTypeId: number, priceChange: ProcessTypePriceChange): Promise<void>;
 }

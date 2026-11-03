@@ -3,7 +3,10 @@ import { NewProcessTypeData, ProcessType } from '../../domain/entities/process-t
 import { ProcessTypeNameTaken } from '../../domain/errors/process-type-name-taken.error';
 import { ProcessTypeRepository } from '../../domain/ports/process-type.repository';
 
-export type RegisterProcessTypeInput = NewProcessTypeData;
+export type RegisterProcessTypeInput = NewProcessTypeData & {
+  /** Usuario de la sesión que registra el tipo de proceso. */
+  authorId: number;
+};
 
 /**
  * Da de alta un tipo de proceso (CU-09). La entidad valida los datos; acá solo
@@ -15,8 +18,8 @@ export type RegisterProcessTypeInput = NewProcessTypeData;
 export class RegisterProcessType {
   constructor(private readonly repository: ProcessTypeRepository) {}
 
-  async execute(input: RegisterProcessTypeInput): Promise<ProcessType> {
-    const processType = ProcessType.create(input);
+  async execute({ authorId, ...data }: RegisterProcessTypeInput): Promise<ProcessType> {
+    const processType = ProcessType.create(data, authorId);
 
     if (await this.repository.existsByNameKey(processType.getNameKey())) {
       throw new ProcessTypeNameTaken();

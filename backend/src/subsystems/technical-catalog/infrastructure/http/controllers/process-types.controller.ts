@@ -40,9 +40,13 @@ export class ProcessTypesController {
     return ProcessTypeResponse.from(await this.modifyProcessType.execute({ id, changes: body, authorId: user.userId }));
   }
 
+  /** Quien registra el tipo de proceso queda como su creador: es el usuario de la sesión. */
   @Post()
-  async register(@Body() body: RegisterProcessTypeRequestDto): Promise<ProcessTypeResponseBody> {
-    return ProcessTypeResponse.from(await this.registerProcessType.execute(body));
+  async register(
+    @Body() body: RegisterProcessTypeRequestDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<ProcessTypeResponseBody> {
+    return ProcessTypeResponse.from(await this.registerProcessType.execute({ ...body, authorId: user.userId }));
   }
 
   @Get()

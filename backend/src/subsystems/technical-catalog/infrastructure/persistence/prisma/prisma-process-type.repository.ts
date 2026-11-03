@@ -3,7 +3,6 @@ import { Prisma } from '../../../../../generated/prisma/client';
 import { PrismaClientProvider } from '../../../../../shared/infrastructure/prisma/prisma-client.provider';
 import { PrismaService } from '../../../../../shared/infrastructure/prisma/prisma.service';
 import { TextKey } from '../../../../../shared/domain/text-key';
-import { ChangeAuthorUnknown } from '../../../core/domain/errors/change-author-unknown.error';
 import { ProcessTypePriceChange } from '../../../core/domain/entities/process-type-price-change.entity';
 import { ProcessType } from '../../../core/domain/entities/process-type.entity';
 import { ProcessTypeNameTaken } from '../../../core/domain/errors/process-type-name-taken.error';
@@ -98,16 +97,9 @@ export class PrismaProcessTypeRepository extends ProcessTypeRepository {
   }
 
   async addPriceChange(processTypeId: number, priceChange: ProcessTypePriceChange): Promise<void> {
-    try {
-      await this.clients.current().processTypePriceHistory.create({
-        data: ProcessTypePrismaMapper.toPriceChangeCreateData(processTypeId, priceChange),
-      });
-    } catch (error) {
-      // El usuario que firma el cambio no existe (FK a app_user).
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
-        throw new ChangeAuthorUnknown();
-      }
-      throw error;
-    }
+    // El autor es el usuario de la sesión: el guard ya comprobó que existe y está activo.
+    await this.clients.current().processTypePriceHistory.create({
+      data: ProcessTypePrismaMapper.toPriceChangeCreateData(processTypeId, priceChange),
+    });
   }
 }
