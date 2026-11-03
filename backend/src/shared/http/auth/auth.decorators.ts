@@ -6,8 +6,11 @@ import type { AuthenticatedUser } from '../../domain/authenticated-user';
 /** Propiedad de la request donde el guard de sesión deja al usuario verificado. */
 export const AUTH_REQUEST_KEY = 'auth';
 
+/** Clave de metadata que marca una ruta como pública (`@Public()`). */
 export const IS_PUBLIC_KEY = 'auth:isPublic';
+/** Clave de metadata con los permisos que exige la ruta (`@RequirePermissions()`). */
 export const PERMISSIONS_KEY = 'auth:permissions';
+/** Clave de metadata que marca una ruta abierta a cualquier usuario con sesión (`@AnyAuthenticatedUser()`). */
 export const ANY_AUTHENTICATED_KEY = 'auth:anyAuthenticated';
 
 /**

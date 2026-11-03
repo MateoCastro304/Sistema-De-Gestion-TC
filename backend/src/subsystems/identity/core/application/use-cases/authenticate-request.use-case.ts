@@ -8,6 +8,7 @@ import { TokenIssuer } from '../../domain/ports/token-issuer.port';
 import { UserAuthRepository } from '../../domain/ports/user-auth.repository';
 import { assertSessionUsable } from '../assert-session-usable';
 
+/** Entrada de {@link AuthenticateRequest}: lo que el guard saca de la petición. */
 export type AuthenticateRequestCommand = {
   /** El access token del encabezado `Authorization: Bearer`; `undefined` si no llegó. */
   accessToken: string | undefined;
