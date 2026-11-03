@@ -1447,6 +1447,8 @@ form .card__grid--2, form .card__grid--3 { row-gap: 20px; column-gap: 24px; }
   box-shadow: 0 12px 28px rgba(16,24,40,.10);
 }
 .inline-list .select__option { white-space: normal; }
+/* Lista corta y fija (los seis roles): se ve entera, sin scroll. */
+.inline-list--full { max-height: none; }
 .inline-list__empty { padding: 11px 12px; font-size: 14px; font-weight: 500; color: var(--rp-texto-sec); }
 
 /* Opción con un título y una línea chica abajo (usuario del empleado,

@@ -13,6 +13,16 @@ export async function listUsers(params?: UserListParams): Promise<Page<User>> {
   return data
 }
 
+/**
+ * Los nombres de usuario que empiezan parecido a `base`, incluidos los dados
+ * de baja (no se reutilizan, D-22). Alcanza para proponer uno libre: si
+ * existen "mcastro" y "mcastro2", se propone "mcastro3".
+ */
+export async function findSimilarUsernames(base: string): Promise<string[]> {
+  const { items } = await listUsers({ search: base, includeInactive: true, limit: 100 })
+  return items.map((user) => user.username)
+}
+
 export async function getUser(id: number): Promise<User> {
   const { data } = await http.get<User>(`${USERS}/${id}`)
   return data

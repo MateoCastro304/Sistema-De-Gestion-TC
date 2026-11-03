@@ -119,7 +119,7 @@ export function RolesSelect({ id, value, onChange, onBlur, invalid = false, ref 
           role="listbox"
           aria-multiselectable="true"
           aria-label="Roles"
-          className="inline-list"
+          className="inline-list inline-list--full"
           // El foco se queda en el botón: si no, el click lo sacaba y el
           // onBlur cerraba la lista antes de marcar la opción.
           onMouseDown={(event) => event.preventDefault()}

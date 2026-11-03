@@ -39,7 +39,10 @@ export function useCreateUser() {
     onSuccess: (user) => {
       queryClient.setQueryData(userKeys.detail(user.id), user)
       void queryClient.invalidateQueries({ queryKey: userKeys.lists() })
-      void queryClient.invalidateQueries({ queryKey: employeeOptionKeys.all })
+      // Se borran, no se invalidan: invalidar deja ver la búsqueda vieja (el
+      // empleado "Sin usuario") hasta que llega la nueva, y en ese instante
+      // se lo podía volver a elegir. Son búsquedas chicas: se piden de nuevo.
+      queryClient.removeQueries({ queryKey: employeeOptionKeys.all })
     },
   })
 }
