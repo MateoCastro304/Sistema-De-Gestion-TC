@@ -1432,6 +1432,70 @@ form .card__grid--2, form .card__grid--3 { row-gap: 20px; column-gap: 24px; }
   .btn-trash:hover { transform: none; }
   .btn-trash svg .lid, .btn svg .lid { transition: none; }
 }
+
+
+/* ============================================================
+   10e. ALTA DE USUARIO (features/catalogs/users/components)
+   El buscador de empleado y los permisos despliegan su lista debajo
+   del campo, dentro del formulario (como en el prototipo), no
+   flotando: reusan la piel de las opciones de .select__option.
+   ============================================================ */
+.inline-list {
+  margin: 6px 0 0; padding: 6px; list-style: none;
+  max-height: 340px; overflow-y: auto; overscroll-behavior: contain;
+  background: #fff; border: 1px solid var(--rp-linea); border-radius: var(--rp-r-control);
+  box-shadow: 0 12px 28px rgba(16,24,40,.10);
+}
+.inline-list .select__option { white-space: normal; }
+/* Lista corta y fija (los seis roles): se ve entera, sin scroll. */
+.inline-list--full { max-height: none; }
+.inline-list__empty { padding: 11px 12px; font-size: 14px; font-weight: 500; color: var(--rp-texto-sec); }
+
+/* Opción con un título y una línea chica abajo (usuario del empleado,
+   descripción del rol). */
+.option-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.option-text__sub { font-size: 13px; font-weight: 500; line-height: 1.45; color: var(--rp-texto-sec); }
+
+/* El empleado elegido: tarjeta con "Cambiar". */
+.picked-card {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 14px 16px; border: 1.5px solid var(--rp-linea); border-radius: var(--rp-r-tarjeta);
+  background: var(--rp-suave);
+}
+.picked-card__text { display: flex; flex-direction: column; gap: 3px; min-width: 0; color: var(--rp-navy); }
+.picked-card__text span { font-size: 14px; font-weight: 500; color: var(--rp-texto-sec); }
+
+/* "Este empleado ya tiene el usuario «x»", con el enlace a su detalle. */
+.field-alert {
+  margin: 0; padding: 12px 14px; border-radius: var(--rp-r-control);
+  background: var(--rp-peligro-fondo); color: var(--rp-peligro);
+  font-size: 14px; font-weight: 600; line-height: 1.5;
+}
+.field-alert a { color: inherit; text-decoration: underline; }
+
+/* Contraseña: el campo con el ojo adentro y "Generar" al costado. */
+.password-field { display: flex; align-items: stretch; gap: 10px; }
+.password-field .form-field__affix { flex: 1; min-width: 0; padding-right: 6px; }
+.password-field__toggle {
+  flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; padding: 0; border: 0; border-radius: var(--rp-r-control);
+  background: none; color: var(--rp-texto-sec); cursor: pointer;
+}
+.password-field__toggle:hover { color: var(--rp-azul); background: var(--rp-suave); }
+.password-field__toggle svg { width: 20px; height: 20px; }
+
+/* Permisos: el campo crece para que entren las etiquetas de los roles. */
+.form-field__select.roles-select__trigger { height: auto; min-height: 54px; padding-top: 9px; padding-bottom: 9px; }
+.roles-select__chips { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; min-width: 0; }
+.role-option { justify-content: flex-start; align-items: flex-start; }
+.role-option--checked { background: #eef2fa; }
+.role-option__box {
+  flex-shrink: 0; width: 20px; height: 20px; margin-top: 1px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1.5px solid #c3cad6; border-radius: 4px; background: #fff; color: #fff;
+}
+.role-option--checked .role-option__box { border-color: var(--rp-azul); background: var(--rp-azul); }
+.role-option__box svg { width: 14px; height: 14px; }
 /* ------------------------------------------------------------
    Dónde deja de entrar la fila de seis columnas.
    Con la barra lateral de 282px, abajo de ~1200px de ancho útil (1080px

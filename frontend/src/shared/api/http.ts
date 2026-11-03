@@ -1,21 +1,24 @@
 import axios from 'axios'
-import { ApiError } from './ApiError'
+import { ApiError, type FieldError } from './ApiError'
 
-/** Forma del Cuerpo de error que devuelve Nest por Defecto,. 
- * Dejamos los campos opcionales 
- * para que no reviente en caso de que el back cambie */
+/** Cuerpo de error del backend. Campos opcionales por si el back cambia. */
 interface NestErrorBody {
     statusCode?: number
     message?: string | string[]
     error?: string
-    /** Los 409 de unicidad dicen qué campo chocó (ej: 'cuit'). */
+    /** Código del contrato (Sprint 2). */
+    code?: string
+    /** Errores por campo (400 y 409 del Sprint 2). */
+    details?: FieldError[]
+    /** Forma vieja del Sprint 1 (proveedores). */
     field?: string
 }
+
 /** Mensajes para cuando el backend no manda ninguno. */
 const FALLBACK_MESSAGES: Record<number, string> = {
     400: 'Los datos enviados no son válidos.',
     401: 'Tu sesión expiró. Volvé a iniciar sesión.',
-    403: 'No tenés permiso para realizar esta acción.',
+    403: 'No tenés permisos para realizar esta operación.',
     404: 'No encontramos lo que buscabas.',
     409: 'Ese registro ya existe o está siendo utilizado.',
     422: 'Los datos enviados no son válidos.',
@@ -28,29 +31,32 @@ function fallbackMessage(status: number): string {
 }
 
 function toApiError(error: unknown): ApiError {
-    // Un error que no sea de axios, un bug nuestro
+    // Un error que no sea de axios: un bug nuestro
     if (!axios.isAxiosError<NestErrorBody | undefined>(error)) {
-        return new ApiError(0, 'Ocurrió un error inesperado en la aplicación.');
+        return new ApiError(0, 'Ocurrió un error inesperado en la aplicación.')
     }
 
-    //Backend caido, sin red, timeout
-    if  (!error.response) {
-        const message = error.code === 'ECONNABORTED' ? 'El servidor tardó demasiado en responder. Intentá de nuevo en unos minutos.' : 'Error de red. Verificá tu conexión a internet.';
-        return new ApiError(0, message);
+    // Backend caído, sin red, timeout
+    if (!error.response) {
+        const message = error.code === 'ECONNABORTED' ? 'El servidor tardó demasiado en responder. Intentá de nuevo en unos minutos.' : 'Error de red. Verificá tu conexión a internet.'
+        return new ApiError(0, message)
     }
 
-    const {status, data} = error.response
-    const body = data
+    const { status, data: body } = error.response
+    const options = {
+        code: body?.code,
+        details: Array.isArray(body?.details) ? body.details : [],
+        field: body?.field,
+    }
+
     const rawMessage = body?.message
     if (Array.isArray(rawMessage) && rawMessage.length > 0) {
-    return new ApiError(status, rawMessage[0], rawMessage)
+        return new ApiError(status, rawMessage[0], options)
     }
-
     if (typeof rawMessage === 'string' && rawMessage.trim() !== '') {
-        return new ApiError(status, rawMessage, [], body?.field)
+        return new ApiError(status, rawMessage, options)
     }
-
-    return new ApiError(status, fallbackMessage(status))
+    return new ApiError(status, fallbackMessage(status), options)
 }
 export const http = axios.create({
     baseURL: import.meta.env.VITE_API_URL ?? '/api',
