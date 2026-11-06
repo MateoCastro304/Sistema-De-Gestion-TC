@@ -3,7 +3,7 @@ import { Navigate, useLocation } from 'react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input } from '@/shared/components/ui'
-import { isApiError } from '@/shared/api/ApiError'
+import { isApiError, type ApiError } from '@/shared/api/ApiError'
 import { heroPhoto } from '@/shared/lib/heroPhoto'
 import { cn } from '@/shared/lib/cn'
 import { useSession } from '@/app/providers/SessionContext'
@@ -21,6 +21,15 @@ interface LoginLocationState {
 // Íconos del ojo, los del prototipo.
 const EYE = 'M1.8 10S5 4.5 10 4.5 18.2 10 18.2 10 15 15.5 10 15.5 1.8 10 1.8 10zM12.5 10a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0'
 const EYE_OFF = `${EYE}M3 3l14 14`
+
+// Si el bloqueo informa Retry-After, agrega cuánto falta (sin hardcodear el valor)
+function failureMessage(error: ApiError): string {
+  const seconds = error.retryAfterSeconds
+  if (error.code !== 'USER_BLOCKED' || seconds === undefined) return error.message
+  if (seconds < 60) return `${error.message} Podés reintentar en ${seconds} segundos.`
+  const minutes = Math.ceil(seconds / 60)
+  return `${error.message} Podés reintentar en ${minutes} ${minutes === 1 ? 'minuto' : 'minutos'}.`
+}
 
 /**
  * Pantalla de ingreso (CU-53). Textos y estructura del prototipo: el panel
@@ -69,7 +78,7 @@ export function LoginPage() {
           return
         }
         // INVALID_CREDENTIALS y USER_BLOCKED traen el texto del contrato.
-        setFailure(isApiError(error) ? error.message : 'Ocurrió un error inesperado.')
+        setFailure(isApiError(error) ? failureMessage(error) : 'Ocurrió un error inesperado.')
       },
     })
   })
