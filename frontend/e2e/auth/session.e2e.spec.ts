@@ -65,7 +65,7 @@ test.describe('[CU-53] Iniciar sesión', { tag: '@sprint2' }, () => {
   test('un usuario bloqueado no ingresa', async ({ page }) => {
     await page.goto(ROUTES.login)
     await login(page, 'hfunes', DEMO_PASSWORD)
-    await expect(page.getByRole('alert').filter({ hasText: 'Esperá antes de volver a intentar' })).toBeVisible()
+    await expect(page.getByRole('alert').filter({ hasText: 'Podés reintentar en 15 minutos' })).toBeVisible()
   })
 
   test('ingresa a la primera pantalla que permite el rol y la sesión sobrevive a una recarga', async ({ page }) => {
