@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import { apiError, validationError, type FieldError } from '@/shared/mocks/errors'
-import { closeSession, currentSession, issueAccessToken, openSession, type MockSession } from '@/shared/mocks/session'
+import { closeSession, currentSession, issueAccessToken, openSession, saveSession, type MockSession } from '@/shared/mocks/session'
 import { findUser, toUserResponse, usersDb, type UserRow } from '@/features/catalogs/users/api/users.db'
 import type { LoginRequest, SessionResponse } from '../types/session'
 
@@ -18,7 +18,16 @@ import type { LoginRequest, SessionResponse } from '../types/session'
 /** Al quinto intento fallido consecutivo el usuario queda bloqueado (RNF08). */
 const MAX_FAILED_ATTEMPTS = 5
 
-const BLOCKED_MESSAGE = 'Tu usuario fue bloqueado por intentos fallidos. Contactá al Administrador del Sistema.'
+const BLOCKED_MESSAGE = 'Demasiados intentos fallidos. Esperá antes de volver a intentar.'
+
+/** Segundos de espera que informa el `Retry-After` del bloqueo temporal. */
+const BLOCKED_RETRY_AFTER_SECONDS = 900
+
+function userBlocked(request: Request) {
+  const response = apiError(request, 423, BLOCKED_MESSAGE, { code: 'USER_BLOCKED' })
+  response.headers.set('Retry-After', String(BLOCKED_RETRY_AFTER_SECONDS))
+  return response
+}
 
 function sessionResponse(session: MockSession, user: UserRow): SessionResponse {
   return {
@@ -51,13 +60,13 @@ export const authHandlers = [
     // Inexistente o dado de baja: el mismo mensaje que una contraseña mala, y no suma intentos.
     if (!user || !user.active) return invalidCredentials(request)
     // Bloqueado: se rechaza aunque la contraseña sea la correcta.
-    if (user.blocked) return apiError(request, 423, BLOCKED_MESSAGE, { code: 'USER_BLOCKED' })
+    if (user.blocked) return userBlocked(request)
 
     if (user.password !== password) {
       user.failedAttempts += 1
       if (user.failedAttempts >= MAX_FAILED_ATTEMPTS) {
         user.blocked = true
-        return apiError(request, 423, BLOCKED_MESSAGE, { code: 'USER_BLOCKED' })
+        return userBlocked(request)
       }
       return invalidCredentials(request)
     }
@@ -74,6 +83,11 @@ export const authHandlers = [
     if (!session) {
       return apiError(request, 401, 'La autenticación es requerida.', { code: 'UNAUTHENTICATED' })
     }
+    // Refresh token ya reemplazado: se toma como robado y se cierra la sesión (D-47).
+    if (session.refreshRevoked) {
+      closeSession()
+      return apiError(request, 401, 'La autenticación es requerida.', { code: 'UNAUTHENTICATED' })
+    }
     if (session.expiredByInactivity) {
       closeSession()
       return apiError(request, 401, 'Tu sesión expiró por inactividad', { code: 'SESSION_EXPIRED' })
@@ -87,7 +101,9 @@ export const authHandlers = [
       closeSession()
       return apiError(request, 401, 'La autenticación es requerida.', { code: 'UNAUTHENTICATED' })
     }
-    // Rota el token pero no estira la sesión: mismo `sessionExpiresAt`.
+    // Rota el token pero no estira la sesión: mismo `sessionExpiresAt`. El
+    // token nuevo ya no está vencido.
+    if (session.accessTokenExpired) saveSession({ ...session, accessTokenExpired: false })
     return HttpResponse.json(sessionResponse(session, user))
   }),
 

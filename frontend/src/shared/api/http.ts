@@ -1,5 +1,5 @@
-import axios from 'axios'
-import { ApiError, type FieldError } from './ApiError'
+import axios, { type InternalAxiosRequestConfig } from 'axios'
+import { ApiError, isApiError, type FieldError } from './ApiError'
 
 /** Cuerpo de error del backend. Campos opcionales por si el back cambia. */
 interface NestErrorBody {
@@ -30,6 +30,12 @@ function fallbackMessage(status: number): string {
     )
 }
 
+/** Segundos del header `Retry-After` (423 USER_BLOCKED); undefined si no vino o no es un número. */
+function parseRetryAfter(value: unknown): number | undefined {
+    const seconds = Number(value)
+    return typeof value === 'string' && Number.isFinite(seconds) && seconds >= 0 ? seconds : undefined
+}
+
 function toApiError(error: unknown): ApiError {
     // Un error que no sea de axios: un bug nuestro
     if (!axios.isAxiosError<NestErrorBody | undefined>(error)) {
@@ -47,6 +53,7 @@ function toApiError(error: unknown): ApiError {
         code: body?.code,
         details: Array.isArray(body?.details) ? body.details : [],
         field: body?.field,
+        retryAfterSeconds: parseRetryAfter(error.response.headers['retry-after']),
     }
 
     const rawMessage = body?.message
@@ -58,27 +65,93 @@ function toApiError(error: unknown): ApiError {
     }
     return new ApiError(status, fallbackMessage(status), options)
 }
+
+// ── Sesión (contrato §4 "Sesión" y §8.4) ─────────────────────────────────
+
+/** El accessToken vive solo en memoria, nunca en localStorage. */
+let accessToken: string | null = null
+
+export function setAccessToken(token: string | null): void {
+    accessToken = token
+}
+
+/** Lo que la app le enseña a http para manejar la sesión. */
+interface SessionHandlers {
+    /** Pide un accessToken nuevo y lo devuelve. */
+    refresh: () => Promise<string>
+    /** La sesión terminó (SESSION_EXPIRED o UNAUTHENTICATED): ir al ingreso. */
+    onSessionEnd: (error: ApiError) => void
+}
+
+let sessionHandlers: SessionHandlers | null = null
+
+export function configureSession(handlers: SessionHandlers): void {
+    sessionHandlers = handlers
+}
+
+/** Refresh en curso: si varias peticiones vencen a la vez, comparten uno solo. */
+let refreshing: Promise<string> | null = null
+
+function refreshOnce(refresh: () => Promise<string>): Promise<string> {
+    refreshing ??= refresh().finally(() => {
+        refreshing = null
+    })
+    return refreshing
+}
+
+/** Marca para no reintentar dos veces la misma petición. */
+interface RetriableConfig extends InternalAxiosRequestConfig {
+    retried?: boolean
+}
+
+/** Los errores de /auth los maneja quien llama (el ingreso, el arranque). */
+function isSessionEndpoint(url: string | undefined): boolean {
+    return url?.startsWith('/auth/') ?? false
+}
+
+// ── Cliente ──────────────────────────────────────────────────────────────
+
 export const http = axios.create({
     baseURL: import.meta.env.VITE_API_URL ?? '/api',
-    timeout:15000,
-    headers: {'Content-Type': 'application/json'}
+    timeout: 15000,
+    withCredentials: true,
+    headers: { 'Content-Type': 'application/json' },
 })
+
+http.interceptors.request.use(config => {
+    // El refresh se identifica con la cookie: va sin Authorization (contrato)
+    if (accessToken && config.url !== '/auth/refresh') {
+        config.headers.Authorization = `Bearer ${accessToken}`
+    }
+    return config
+})
+
 http.interceptors.response.use(
     response => response,
-    (error:unknown) => Promise.reject(toApiError(error)) 
-);
-http.interceptors.request.use(
-    config => {
-        const token = getToken()
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+    async (error: unknown) => {
+        const apiError = toApiError(error)
+        const config = axios.isAxiosError(error) ? (error.config as RetriableConfig | undefined) : undefined
+
+        if (!config || !sessionHandlers || isSessionEndpoint(config.url)) {
+            throw apiError
         }
-        return config;
-    }
-);
 
+        // Token vencido: un solo refresh y se repite la petición
+        if (apiError.code === 'ACCESS_TOKEN_EXPIRED' && !config.retried) {
+            config.retried = true
+            try {
+                await refreshOnce(sessionHandlers.refresh)
+            } catch (refreshError) {
+                if (isApiError(refreshError)) sessionHandlers.onSessionEnd(refreshError)
+                throw refreshError
+            }
+            return http(config)
+        }
 
-/**Hasta que este creada la funcion del token pongo uno falso */
-function getToken(): string | null {
-    return localStorage.getItem("dev-token")
-}
+        // Sesión terminada: al ingreso
+        if (apiError.code === 'SESSION_EXPIRED' || apiError.code === 'UNAUTHENTICATED') {
+            sessionHandlers.onSessionEnd(apiError)
+        }
+        throw apiError
+    },
+)

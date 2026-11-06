@@ -1,7 +1,10 @@
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { Outlet, Link, useLocation } from 'react-router'
+import { UserMenu } from '@/app/layouts/UserMenu'
 import { BreadcrumbContext } from '@/app/providers/BreadcrumbContext'
-import { PANELS, panelOf } from '@/features/catalogs/panels'
+import { UnsavedChangesContext } from '@/app/providers/UnsavedChangesContext'
+import { useSession } from '@/app/providers/SessionContext'
+import { PANELS, canOpen, panelOf, visibleItems } from '@/features/catalogs/panels'
 import { cn } from '@/shared/lib/cn'
 import logoBlanco from '@/assets/logo-castro-white.png'
 import logoMarino from '@/assets/logo-castro-navy.png'
@@ -41,6 +44,10 @@ const NAV_GROUPS = [
       { panel: PANELS.gestion, icon: IconEngranaje },
     ],
   },
+  {
+    label: 'Administración',
+    items: [{ panel: PANELS.administracion, icon: IconEscudo }],
+  },
 ]
 
 /** Un tramo de la miga de pan. Con `to` es un enlace. */
@@ -48,16 +55,22 @@ type Crumb = { label: string; to?: string }
 
 /**
  * La miga de pan sale de la URL, como en el prototipo:
- *   panel    → CATÁLOGOS / CLIENTES
+ *   panel    → CATÁLOGOS / CLIENTES (o ADMINISTRACIÓN / ADMINISTRACIÓN)
  *   listado  → CLIENTES / ENCARGADOS
  *   alta     → CLIENTES / ENCARGADOS / NUEVO
  *   detalle  → CLIENTES / ENCARGADOS / Laura Gómez
  * El nombre del detalle lo publica la pantalla (useCrumbTitle).
  */
-function breadcrumb(pathname: string, title: string | null): Crumb[] {
+function breadcrumb(pathname: string, title: string | null, allowed: boolean): Crumb[] {
+  if (pathname === '/') return [{ label: 'Sistema' }, { label: 'Inicio' }]
+  if (!allowed) return [{ label: 'Sistema' }, { label: 'Acceso denegado' }]
   const panel = panelOf(pathname)
   if (!panel) return [{ label: 'Sistema' }, { label: 'Página no encontrada' }]
-  if (pathname === panel.to) return [{ label: 'Catálogos' }, { label: panel.label }]
+  if (pathname === panel.to) {
+    // El primer tramo es el grupo del menú: Catálogos o Administración.
+    const group = NAV_GROUPS.find((g) => g.items.some((i) => i.panel === panel))
+    return [{ label: group?.label ?? 'Catálogos' }, { label: panel.label }]
+  }
 
   const item = panel.items.find((i) => pathname === i.to || pathname.startsWith(i.to + '/'))
   if (!item || pathname === item.to) return [{ label: panel.label }, { label: item?.label ?? '' }]
@@ -74,9 +87,20 @@ export function AppLayout() {
   const { pathname } = useLocation()
   const activePanel = panelOf(pathname)
 
+  /** El menú sólo muestra los paneles con alguna tarjeta para los roles (CU-53). */
+  const roles = useSession().user?.roles ?? []
+  const navGroups = NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter(({ panel }) => visibleItems(panel, roles).length > 0),
+  })).filter((group) => group.items.length > 0)
+
   /** Nombre del registro abierto, para la miga de pan (ver BreadcrumbContext). */
   const [crumbTitle, setCrumbTitle] = useState<string | null>(null)
-  const crumbs = breadcrumb(pathname, crumbTitle)
+  const crumbs = breadcrumb(pathname, crumbTitle, canOpen(pathname, roles))
+
+  /** ¿La pantalla abierta tiene datos sin guardar? La publica useUnsavedChanges(). */
+  const [dirty, setDirty] = useState(false)
+  const unsaved = useMemo(() => ({ setDirty }), [])
 
   /** Escritorio: barra ancha o riel de íconos. */
   const [collapsed, setCollapsed] = useState(false)
@@ -141,7 +165,7 @@ export function AppLayout() {
         </div>
 
         <nav className="sidebar__nav">
-          {NAV_GROUPS.map((group) => (
+          {navGroups.map((group) => (
             <div key={group.label} className="sidebar__section">
               <span className="sidebar__section-label">{group.label}</span>
               <ul className="sidebar__list">
@@ -210,6 +234,8 @@ export function AppLayout() {
             })}
           </nav>
           <img className="topbar__logo" src={logoMarino} alt="Castro Tornería S.R.L." />
+          {/* Menú de usuario: el único lugar del sistema con "Cerrar sesión" (CU-52). */}
+          <UserMenu dirty={dirty} />
           {/* Este botón sólo se ve en celular (display:none arriba de
               900px). El de escritorio vive dentro de la barra lateral. */}
           <button
@@ -226,7 +252,9 @@ export function AppLayout() {
 
         <div className="content">
           <BreadcrumbContext.Provider value={setCrumbTitle}>
-            <Outlet />
+            <UnsavedChangesContext.Provider value={unsaved}>
+              <Outlet />
+            </UnsavedChangesContext.Provider>
           </BreadcrumbContext.Provider>
         </div>
       </div>
@@ -246,6 +274,14 @@ function IconFabrica() {
   return (
     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M3 17V8.5l4.5 3V8.5l4.5 3V5h5v12z" />
+    </svg>
+  )
+}
+
+function IconEscudo() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M10 2.5l6 2.5v4.5c0 3.6-2.6 6.3-6 7.5-3.4-1.2-6-3.9-6-7.5V5z" />
     </svg>
   )
 }

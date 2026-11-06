@@ -12,6 +12,8 @@ interface ApiErrorOptions {
     details?: FieldError[];
     /** Forma vieja del Sprint 1 (proveedores). */
     field?: string;
+    /** Segundos de espera del header `Retry-After` (423 USER_BLOCKED). */
+    retryAfterSeconds?: number;
 }
 
 /**
@@ -25,14 +27,17 @@ export class ApiError extends Error {
     readonly details: FieldError[];
     /** Campo que causó el error, si el backend lo informa (ej: un 409). */
     readonly field?: string;
+    /** Cuánto esperar antes de reintentar, si la API lo informa. */
+    readonly retryAfterSeconds?: number;
 
-    constructor(status: number, message: string, { code, details = [], field }: ApiErrorOptions = {}) {
+    constructor(status: number, message: string, { code, details = [], field, retryAfterSeconds }: ApiErrorOptions = {}) {
         super(message);
         this.name = 'ApiError';
         this.status = status;
         this.code = code;
         this.details = details;
         this.field = field;
+        this.retryAfterSeconds = retryAfterSeconds;
     }
 
     /** Choque con una regla de negocio. Ej: el CUIT ya está registrado. */
