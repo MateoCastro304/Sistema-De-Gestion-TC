@@ -55,17 +55,17 @@ test.describe('[CU-53] Iniciar sesión', { tag: '@sprint2' }, () => {
       await expect(page.getByRole('alert').filter({ hasText: 'Usuario o contraseña incorrectos' })).toBeVisible()
     }
     await login(page, 'mrios', 'mala-5')
-    await expect(page.getByRole('alert').filter({ hasText: 'Tu usuario fue bloqueado por intentos fallidos' })).toBeVisible()
+    await expect(page.getByRole('alert').filter({ hasText: 'Demasiados intentos fallidos' })).toBeVisible()
 
     // Bloqueado, ni con la contraseña correcta.
     await login(page, 'mrios', DEMO_PASSWORD)
-    await expect(page.getByRole('alert').filter({ hasText: 'Tu usuario fue bloqueado por intentos fallidos' })).toBeVisible()
+    await expect(page.getByRole('alert').filter({ hasText: 'Demasiados intentos fallidos' })).toBeVisible()
   })
 
   test('un usuario bloqueado no ingresa', async ({ page }) => {
     await page.goto(ROUTES.login)
     await login(page, 'hfunes', DEMO_PASSWORD)
-    await expect(page.getByRole('alert').filter({ hasText: 'Contactá al Administrador del Sistema' })).toBeVisible()
+    await expect(page.getByRole('alert').filter({ hasText: 'Esperá antes de volver a intentar' })).toBeVisible()
   })
 
   test('ingresa a la primera pantalla que permite el rol y la sesión sobrevive a una recarga', async ({ page }) => {

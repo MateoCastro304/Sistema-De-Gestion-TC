@@ -30,6 +30,12 @@ function fallbackMessage(status: number): string {
     )
 }
 
+/** Segundos del header `Retry-After` (423 USER_BLOCKED); undefined si no vino o no es un número. */
+function parseRetryAfter(value: unknown): number | undefined {
+    const seconds = Number(value)
+    return typeof value === 'string' && Number.isFinite(seconds) && seconds >= 0 ? seconds : undefined
+}
+
 function toApiError(error: unknown): ApiError {
     // Un error que no sea de axios: un bug nuestro
     if (!axios.isAxiosError<NestErrorBody | undefined>(error)) {
@@ -47,6 +53,7 @@ function toApiError(error: unknown): ApiError {
         code: body?.code,
         details: Array.isArray(body?.details) ? body.details : [],
         field: body?.field,
+        retryAfterSeconds: parseRetryAfter(error.response.headers['retry-after']),
     }
 
     const rawMessage = body?.message
@@ -112,7 +119,8 @@ export const http = axios.create({
 })
 
 http.interceptors.request.use(config => {
-    if (accessToken) {
+    // El refresh se identifica con la cookie: va sin Authorization (contrato)
+    if (accessToken && config.url !== '/auth/refresh') {
         config.headers.Authorization = `Bearer ${accessToken}`
     }
     return config

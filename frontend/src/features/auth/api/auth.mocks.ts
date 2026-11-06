@@ -18,7 +18,16 @@ import type { LoginRequest, SessionResponse } from '../types/session'
 /** Al quinto intento fallido consecutivo el usuario queda bloqueado (RNF08). */
 const MAX_FAILED_ATTEMPTS = 5
 
-const BLOCKED_MESSAGE = 'Tu usuario fue bloqueado por intentos fallidos. Contactá al Administrador del Sistema.'
+const BLOCKED_MESSAGE = 'Demasiados intentos fallidos. Esperá antes de volver a intentar.'
+
+/** Segundos de espera que informa el `Retry-After` del bloqueo temporal. */
+const BLOCKED_RETRY_AFTER_SECONDS = 900
+
+function userBlocked(request: Request) {
+  const response = apiError(request, 423, BLOCKED_MESSAGE, { code: 'USER_BLOCKED' })
+  response.headers.set('Retry-After', String(BLOCKED_RETRY_AFTER_SECONDS))
+  return response
+}
 
 function sessionResponse(session: MockSession, user: UserRow): SessionResponse {
   return {
@@ -51,13 +60,13 @@ export const authHandlers = [
     // Inexistente o dado de baja: el mismo mensaje que una contraseña mala, y no suma intentos.
     if (!user || !user.active) return invalidCredentials(request)
     // Bloqueado: se rechaza aunque la contraseña sea la correcta.
-    if (user.blocked) return apiError(request, 423, BLOCKED_MESSAGE, { code: 'USER_BLOCKED' })
+    if (user.blocked) return userBlocked(request)
 
     if (user.password !== password) {
       user.failedAttempts += 1
       if (user.failedAttempts >= MAX_FAILED_ATTEMPTS) {
         user.blocked = true
-        return apiError(request, 423, BLOCKED_MESSAGE, { code: 'USER_BLOCKED' })
+        return userBlocked(request)
       }
       return invalidCredentials(request)
     }
