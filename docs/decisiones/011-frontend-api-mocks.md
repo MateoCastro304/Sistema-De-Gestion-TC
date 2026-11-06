@@ -30,7 +30,7 @@ El detalle de uso está en [MOCKS.md](../../frontend/frontend-Documents/MOCKS.md
 - Las pantallas del Sprint 2 se pueden construir y probar antes que su backend.
 - Las pruebas E2E del frontend corren sin backend, base de datos ni Docker, y cada prueba arranca con los mismos datos.
 - **Hay que mantener los mocks al día.** Un mock que no sigue al backend hace que las pruebas pasen aunque la pantalla falle contra el backend real. Pasó con la reorganización del backend del 16/10/2026: la ruta de encargados pasó a `/managers` y cambió el mensaje de la baja de fábricas; las pruebas detectaron el error de la pantalla recién cuando se actualizó el mock.
-- Los mocks no prueban el backend ni la integración con él. Eso queda para las pruebas de integración y API del backend y la suite E2E de QA ([estructura de pruebas](../testing/code-structure.md)).
+- Los mocks no prueban el backend ni la integración con él. Eso queda para las pruebas de integración del backend ([pruebas del backend](../testing/pruebas-backend.md)).
 
 ## Referencias y pendientes
 

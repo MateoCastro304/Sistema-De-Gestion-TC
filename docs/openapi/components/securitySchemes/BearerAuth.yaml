@@ -10,5 +10,5 @@ description: |
   de la respuesta y pegalo en **Authorize** (sin el prefijo `Bearer`).
 
   Además del token, el backend verifica en cada petición que la sesión siga
-  abierta: un cierre de sesión, un bloqueo o una baja cortan el acceso desde la
+  abierta: un cierre de sesión o una baja cortan el acceso desde la
   petición siguiente, aunque el token no haya vencido.

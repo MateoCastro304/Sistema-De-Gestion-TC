@@ -39,7 +39,7 @@ content:
           path: /api/employees
           timestamp: '2026-10-22T12:31:00.000Z'
       unauthenticated:
-        summary: UNAUTHENTICATED — sin token, sesión cerrada o usuario bloqueado o inactivo
+        summary: UNAUTHENTICATED — sin token, sesión cerrada o usuario inactivo
         value:
           statusCode: 401
           error: Unauthorized

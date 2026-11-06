@@ -20,7 +20,7 @@ Detectado al preparar el despliegue en EC2. Hacerlos en orden: cada uno es chico
 | [x]  | P1  | **Health check.** `/health/db` devuelve al cliente el mensaje de error crudo de la base de datos: registrarlo en el log y devolver solo el estado. Agregar a `backend` un `healthcheck` de compose que lo llame, y hacer que `web` dependa de `backend` con `condition: service_healthy`. |       |
 | [ ]  | P1  | **Rotar los logs de Docker.** Agregar `logging` (`json-file`, `max-size`, `max-file`) a todos los servicios mediante un ancla `x-logging`. Un disco lleno detiene PostgreSQL. |       |
 | [ ]  | P2  | **Registrar `ValidationPipe` una sola vez.** `main.ts` lo registra de nuevo después de que `configureApp()` ya lo hizo. |       |
-| [ ]  | P2  | **Usar valores de ejemplo en `infrastructure/docker/.env.example`.** Tiene un secreto JWT con aspecto real, el mismo valor para ambos secretos, y no incluye `JWT_EXPIRATION` / `JWT_REFRESH_EXPIRATION`. |       |
+| [x]  | P2  | **Usar valores de ejemplo en `infrastructure/docker/.env.example`.** Tiene un secreto JWT con aspecto real, el mismo valor para ambos secretos, y no incluye `JWT_EXPIRATION` / `JWT_REFRESH_EXPIRATION`. Hecho: valores de ejemplo que pasan la validación, y `env.validation.ts` ahora exige que los dos secretos sean distintos. |       |
 | [ ]  | P1  | **Levantar el stack de producción localmente** (`make prod-build`) cuando estén hechos los ítems anteriores: todos los contenedores sanos, `migrate` terminado con código 0 y `http://localhost` sirviendo la aplicación. |       |
 
 ## 1. CI en verde y confiable

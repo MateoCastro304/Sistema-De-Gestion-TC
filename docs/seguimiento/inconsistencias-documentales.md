@@ -11,7 +11,7 @@ Diferencias entre documentos detectadas durante la reorganización de la documen
 | DOC-03 | Formato del informe de cotización: RN30 frente a ADR-004 | Abierta |
 | DOC-04 | Referencias a reglas en ADR-008 | Abierta |
 | DOC-05 | Roles y accesos de ADR-005 y de la arquitectura frente al dominio | Abierta |
-| DOC-06 | Organización y ejecución de las pruebas | Abierta |
+| DOC-06 | Organización y ejecución de las pruebas | Resuelta |
 | DOC-07 | Tipos por proveedor: modelo de dominio frente al prototipo | Abierta |
 | DOC-08 | Decisiones `D-xx` sin catálogo y con identificadores repetidos | Abierta |
 | DOC-09 | Archivos citados que no existen en el repositorio | Abierta |
@@ -57,10 +57,12 @@ Diferencias entre documentos detectadas durante la reorganización de la documen
 
 ### DOC-06 · Organización y ejecución de las pruebas
 
-- [Estructura de pruebas de QA](../testing/code-structure.md) separa las pruebas de integración (`int/`) y de API (`api/`); el [README de la suite](../../backend/test/README.md) documenta tests de integración que verifican contrato y base en el mismo test.
+> **Resuelta el 22/10/2026.** Las dos guías anteriores se reemplazaron por [pruebas del backend](../testing/pruebas-backend.md): el backend tiene solo pruebas unitarias e integración (sin nivel de API ni suite `e2e/` de QA), sin identificadores `CP-NN`, y la CI queda descripta según ADR-010. Los tests de proveedores repartidos en `int/` y `api/` quedan como pendiente ([A-06](pendientes-actuales.md#a-06--p2--unificar-los-tests-de-proveedores-y-quitar-el-nivel-de-api)). Lo que sigue es el registro original.
+
+- *Estructura de pruebas de QA* (guía eliminada) separa las pruebas de integración (`int/`) y de API (`api/`); el [README de la suite](../../backend/test/README.md) documenta tests de integración que verifican contrato y base en el mismo test.
 - La guía indica que CI ejecuta `test:int` y `test:api` en cada push; [ADR-010](../decisiones/010-continuous-integration.md) ubica las pruebas de integración en el nivel de validación previo a `main`.
 - La guía describe una suite `e2e/` en la raíz del repositorio, que todavía no existe.
-- Las pruebas del frontend (`frontend/e2e/`, [estructura de pruebas, §2.5](../testing/code-structure.md#25-pruebas-del-frontend)) se vinculan con la historia de Jira y los casos de uso (`[DTC-33][CU-53]`), mientras que la [guía de casos de prueba](../testing/test-cases-structure.md#3-trazabilidad--el-readmemd-del-módulo) pide vincular cada prueba con un id `CP-NN` del catálogo y una fila en el README del módulo. Ver [ADR-012](../decisiones/012-frontend-e2e-tests.md).
+- Las pruebas del frontend (`frontend/e2e/`, *estructura de pruebas, §2.5* (guía eliminada)) se vinculan con la historia de Jira y los casos de uso (`[DTC-33][CU-53]`), mientras que la *guía de casos de prueba* (guía eliminada) pide vincular cada prueba con un id `CP-NN` del catálogo y una fila en el README del módulo. Ver [ADR-012](../decisiones/012-frontend-e2e-tests.md).
 
 ## Modelo y prototipo
 
@@ -78,7 +80,7 @@ El dominio marca textos modificados con `🔁 D-01`, `🔁 D-02` y `🔁 D-03` (
 
 | Archivo citado | Dónde se cita |
 |---|---|
-| `docs/testing/estrategia-qa.md` | [Casos de prueba](../testing/test-cases-structure.md) |
+| `docs/testing/estrategia-qa.md` | La guía de casos de prueba, eliminada el 22/10/2026. Ya no se cita |
 | `docs/database/README.md`, `docs/prototipo/LEEME.md`, `docs/decisions/decisiones-clientes-fabricas.md`, `docs/seguimiento/pendientes-sprint-1.md`, `docs/seguimiento/inconsistencias-clientes-fabricas.md` | Índice anterior de [docs/README.md](../README.md) |
 | `docs/pendientes-sprint-1.md` | [Pendientes actuales](pendientes-actuales.md) y [backlog de ingeniería](engineering-backlog.md#6-documentación) |
 | `docs/decisiones-clientes-fabricas.md`, `docs/inconsistencias-clientes-fabricas.md` | [Backlog de ingeniería](engineering-backlog.md#6-documentación) |

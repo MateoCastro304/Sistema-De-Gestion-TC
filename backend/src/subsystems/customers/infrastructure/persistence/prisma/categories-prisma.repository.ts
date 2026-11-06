@@ -63,10 +63,7 @@ export class CategoriesPrismaRepository implements CategoriesRepository {
     return row ? this.toDomain(row) : null;
   }
 
-  // El "!" asume que la fila tiene name: si la DB tiene un name null (hoy la
-  // columna es nullable en el schema), esto falla hasta que se resuelva esa
-  // decisión (volver la columna NOT NULL).
   private toDomain(row: CategoryRow): Category {
-    return Category.reconstruct(row.id, row.name!, row.isActive, row.createdAt, row.updatedAt);
+    return Category.reconstruct(row.id, row.name, row.isActive, row.createdAt, row.updatedAt);
   }
 }

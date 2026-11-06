@@ -1,3 +1,4 @@
+import { RequirePermissions } from '../../../../../shared/http/auth/auth.decorators';
 import {
   Body,
   Controller,
@@ -26,6 +27,7 @@ import { DeactivateCategory } from '../../../core/application/use-cases/deactiva
 import { ActivateCategory } from '../../../core/application/use-cases/activate-category.use-case';
 
 @Controller('categories')
+@RequirePermissions('category:manage')
 @UseFilters(DomainErrorFilter)
 export class CategoriesController {
   constructor(

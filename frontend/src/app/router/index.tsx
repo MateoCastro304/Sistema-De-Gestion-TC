@@ -24,6 +24,7 @@ import {
   ProcessTypeDetailPage,
 } from '@/features/catalogs/process-types'
 import { EmployeesPage, NewEmployeePage, EmployeeDetailPage } from '@/features/catalogs/employees'
+import { NewUserPage, UserDetailPage } from '@/features/catalogs/users'
 import { CategoriesPage } from '@/features/catalogs/categories'
 import { PanelPage } from '@/features/catalogs/panels'
 
@@ -103,6 +104,15 @@ export const router = createBrowserRouter([
                       { index: true, element: <ProcessTypesPage /> },
                       { path: 'nuevo', element: <NewProcessTypePage /> },
                       { path: ':id', element: <ProcessTypeDetailPage /> },
+                    ],
+                  },
+                  {
+                    // Usuarios (DTC-129). El listado (CU-07) todavía no existe; la
+                    // tarjeta del panel Administración se suma cuando esté ese panel.
+                    path: '/administracion/usuarios',
+                    children: [
+                      { path: 'nuevo', element: <NewUserPage /> },
+                      { path: ':id', element: <UserDetailPage /> },
                     ],
                   },
                   // Cualquier otra URL.

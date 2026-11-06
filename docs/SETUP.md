@@ -22,9 +22,10 @@ Para un desarrollador que ya tiene Docker y `make` instalados, el camino más co
 
 ```bash
 cp infrastructure/docker/.env.example infrastructure/docker/.env.dev
+cp infrastructure/docker/.env.storage.example infrastructure/docker/.env.storage.dev
 ```
 
-Configurá los valores requeridos en `.env.dev` (ver [sección 3](#3-clonar-el-repositorio-y-configurar-variables-de-entorno)) y luego:
+Los valores de ejemplo de `.env.example` pasan la validación del backend, así que para desarrollo funcionan sin cambios (ver [sección 3](#3-clonar-el-repositorio-y-configurar-variables-de-entorno)). Luego:
 
 ```bash
 make dev-build
@@ -64,37 +65,38 @@ Completá los archivos de entorno de Docker (no están versionados; cada desarro
 
 ```bash
 cp infrastructure/docker/.env.example infrastructure/docker/.env.dev
+cp infrastructure/docker/.env.storage.example infrastructure/docker/.env.storage.dev
 ```
 
-Editá `infrastructure/docker/.env.dev` con los valores requeridos para desarrollo:
+El backend valida sus variables al arrancar (`backend/src/config/env.validation.ts`) y no levanta si falta alguna o tiene un formato inválido. Los valores de `.env.example` son de ejemplo y **pasan esa validación**, así que para desarrollo podés usarlos tal cual. `.env.storage.dev` tiene las credenciales de storage que el backend no tiene que ver (backup y admin): va aparte porque el backend carga `.env.dev` entero. Lo que contiene `.env.dev`:
 
 ```env
 POSTGRES_USER=torneria_dev
-POSTGRES_PASSWORD=<elegir uno>
-POSTGRES_DB=torneria_castro_dev
-POSTGRES_PORT=5432
+POSTGRES_PASSWORD=torneria_dev
+POSTGRES_DB=torneria_dev
 
-JWT_SECRET=<generar con el comando de abajo>
-JWT_REFRESH_SECRET=<generar con el comando de abajo>
-```
+NODE_ENV=development
+PORT=3000
 
-Los secretos JWT deben tener al menos 32 caracteres (lo exige `env.validation.ts` al iniciar). Generalos así:
+JWT_SECRET=dev-only-jwt-access-secret-replace-me-0001
+JWT_REFRESH_SECRET=dev-only-jwt-refresh-secret-replace-me-0002
 
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
-
-Ejecutá este comando dos veces: una para `JWT_SECRET` y otra para `JWT_REFRESH_SECRET`.
-
-**No reutilices el mismo valor para ambos secretos.**
-
-Agregá también los orígenes CORS que acepta el backend:
-
-```env
 ALLOWED_ORIGINS=http://localhost:8081
 ```
 
-`ALLOWED_ORIGINS` es opcional y recibe una lista separada por comas. En desarrollo debe incluir `http://localhost:8081` para que Swagger UI pueda enviar solicitudes al backend. Dejalo sin definir en producción: el frontend accede al backend mediante Nginx desde el mismo origen, por lo que CORS permanece deshabilitado.
+- **`DATABASE_URL` no va en este archivo**: `docker-compose.yaml` la arma con las `POSTGRES_*` y el host `postgres` (el nombre del servicio en la red Docker).
+- **Secretos JWT**: al menos 32 caracteres y **distintos entre sí** (la validación rechaza dos secretos iguales). Para producción, o si querés los tuyos, generalos así, una vez por secreto:
+
+  ```bash
+  node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+  ```
+
+- **`ALLOWED_ORIGINS`** es opcional y recibe una lista separada por comas. En desarrollo debe incluir `http://localhost:8081` para que Swagger UI pueda enviar solicitudes al backend. Dejalo sin definir en producción: el frontend accede al backend mediante Nginx desde el mismo origen, por lo que CORS permanece deshabilitado.
+- **Opcionales** (comentadas en `.env.example`): `JWT_EXPIRATION` (por defecto `15m`), `JWT_REFRESH_EXPIRATION` (por defecto `7d`), `STORAGE_DRIVER` (`local` o `s3`; en dev viene en `s3`, contra SeaweedFS) y, solo si es `s3`, `S3_REGION`, `S3_BUCKET` y `S3_BUCKET_UPLOADS`. Del storage también son opcionales `S3_ENDPOINT`, `S3_PUBLIC_ENDPOINT` y `S3_FORCE_PATH_STYLE`, y las keys `S3_BACKEND_ACCESS_KEY`/`S3_BACKEND_SECRET_KEY` van las dos o ninguna (en prod, ninguna: se usa el IAM Role). Ver la tabla de [infrastructure/docker/README.md](../infrastructure/docker/README.md).
+
+La lista completa, con qué usa cada variable, está en el [README de Docker](../infrastructure/docker/README.md#variables).
+
+Si corrés el backend fuera de Docker (`npm run start:dev` en `backend/`), usá `backend/.env.example` → `backend/.env`: es igual, pero incluye `DATABASE_URL` apuntando a `localhost:5432`, el puerto que expone el Postgres del compose de desarrollo.
 
 > Regla del proyecto: si agregás una variable de entorno nueva, actualizá `.env.example` en el mismo commit (ver [CONTRIBUTING.MD](CONTRIBUTING.MD)).
 
@@ -157,6 +159,19 @@ Ejecutá la carga inicial de datos de Prisma:
 ```bash
 make seed
 ```
+
+Además de los datos de demo (rubros, proveedores, fábricas y encargados), el seed crea **un usuario por rol** para probar el ingreso y los permisos:
+
+| Usuario | Contraseña | Rol | Qué puede usar hoy |
+| --- | --- | --- | --- |
+| `admin` | `admin123` | Administrador del Sistema (AS) | Nada del Sprint 1 (usuarios y empleados llegan en este sprint) |
+| `recepcion` | `recepcion123` | Encargado de Recepción (ERP) | Rubros, fábricas y encargados |
+| `cotizacion` | `cotizacion123` | Encargado de Cotización (EC) | Proveedores, tipos de proceso y cotización del dólar |
+| `tecnico` | `tecnico123` | Administrativo Técnico (AT) | Lo mismo que EC |
+| `taller` | `taller123` | Jefe de Taller (JT) | Nada todavía |
+| `reportes` | `reportes123` | Encargado de Reportes (ER) | Nada todavía |
+
+Las contraseñas están definidas en `DEV_USERS` (`backend/src/subsystems/identity/infrastructure/bootstrap/dev-users.seed.ts`) y en la base se guarda solo su hash. **Son públicas**: sirven únicamente en bases de desarrollo descartables; no siembres una base compartida. El seed no corre con `NODE_ENV=production`. Si los usuarios ya existen, el seed no los toca (ni cambia su contraseña); para empezar de cero, `make dev-down-v` y de nuevo los pasos de arriba.
 
 ### Verificar el backend
 
@@ -402,6 +417,8 @@ Los valores reales de producción van en:
 infrastructure/docker/.env.prod
 ```
 
+Se crea a partir de `.env.example`, pero con `NODE_ENV=production`, una contraseña de base de datos propia, secretos JWT generados para producción (nunca los de ejemplo ni los de `.env.dev`) y sin `ALLOWED_ORIGINS`.
+
 Nunca incluyas este archivo en un commit del repositorio.
 
 ---
@@ -410,9 +427,9 @@ Nunca incluyas este archivo en un commit del repositorio.
 
 | Síntoma | Causa probable / solución |
 | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `port is already allocated` | Otro proceso usa uno de los puertos requeridos por los servicios. Revisá la configuración Docker Compose y los valores correspondientes de `.env.dev`. |
-| El backend no puede conectarse a la base de datos | `DATABASE_URL` debe usar `postgres` como host (el nombre del servicio en la red Docker), no `localhost`. |
-| Falla la validación de entorno al iniciar | Comprobá que estén definidas **todas** las variables requeridas por `env.validation.ts` (`NODE_ENV`, `PORT`, `DATABASE_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`) y que los secretos tengan 32 caracteres o más. |
+| `port is already allocated` | Otro proceso usa uno de los puertos requeridos por los servicios. Cambiá el lado del host del mapeo en `docker-compose.dev.yaml` (por ejemplo `"5433:5432"`); no cambies `PORT` en `.env.dev`. |
+| El backend no puede conectarse a la base de datos | En Docker, no definas `DATABASE_URL` en `.env.dev`: la arma el compose con host `postgres`. Fuera de Docker (`backend/.env`), el host es `localhost`. |
+| Falla la validación de entorno al iniciar | El log del backend lista cada variable con su error. Comprobá que estén **todas** las de `.env.example` (`NODE_ENV`, `PORT`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, y `DATABASE_URL` fuera de Docker), que los secretos tengan 32 caracteres o más y que sean **distintos entre sí**. |
 | Error de Prisma porque no encuentra `schema.prisma` | Reconstruí la imagen del backend con `make backend-build` o `make dev-build` si la imagen Docker contiene una compilación desactualizada o incompleta. |
 | Los cambios de código no se reflejan en el backend | Confirmá que el montaje de enlace del backend esté activo en la configuración Compose de desarrollo. |
 | Los cambios de código no se reflejan en el frontend | Confirmá que el montaje de enlace del frontend y el servidor de desarrollo Vite se ejecuten correctamente dentro del contenedor del frontend. |
@@ -453,7 +470,7 @@ Nunca incluyas este archivo en un commit del repositorio.
 | `make backend-shell` | Consola dentro del contenedor del backend |
 | `make backend-build` | Reconstruye solo la imagen del backend |
 | `make migrate-dev` | Ejecuta migraciones Prisma |
-| `make seed` | Carga datos de prueba |
+| `make seed` | Carga datos de prueba y un usuario por rol (ver [Seed](#verificar-el-backend)) |
 
 ### Para la documentación OpenAPI
 

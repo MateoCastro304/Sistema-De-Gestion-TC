@@ -145,10 +145,14 @@ Estado de un usuario. Lo calcula el backend; no se envía en ningún cuerpo.
 | Código     | Rótulo    | Significado                                                            |
 | ---------- | --------- | ---------------------------------------------------------------------- |
 | `ACTIVE`   | Activo    | Puede iniciar sesión                                                   |
-| `BLOCKED`  | Bloqueado | Llegó a 5 intentos fallidos consecutivos. No puede iniciar sesión      |
+| `BLOCKED`  | Bloqueado | Tiene un bloqueo temporal vigente por intentos fallidos. Se levanta solo |
 | `INACTIVE` | Inactivo  | Dado de baja (o su empleado fue dado de baja). No puede iniciar sesión |
 
 Si un usuario está dado de baja y además bloqueado, su estado es `INACTIVE`.
+
+El bloqueo es **temporal y automático** (D-06, D-53): no es un dato del usuario sino
+un contador de intentos fallidos con vencimiento, así que se levanta solo al pasar
+el tiempo y no hay nada que desbloquear a mano.
 
 ---
 
@@ -209,13 +213,17 @@ No requiere parámetros de consulta.
 - **Ingreso correcto.** Se abre una sesión nueva, el contador de intentos
   fallidos vuelve a `0` y el inicio de la sesión pasa a ser el "Último acceso"
   del usuario (`lastAccessAt`).
-- **Contraseña incorrecta de un usuario activo.** Suma un intento fallido. Al
-  **quinto intento fallido consecutivo** el usuario queda bloqueado (RNF08) y la
-  respuesta ya es la del bloqueo.
-- **Usuario bloqueado.** Se rechaza **aunque la contraseña sea correcta**. No
-  suma intentos.
+- **Datos incorrectos.** Suma un intento fallido. Al **quinto intento fallido
+  consecutivo** desde el mismo usuario y la misma IP, el ingreso se bloquea
+  **temporalmente** (RNF08) y la respuesta ya es la del bloqueo. Cada bloqueo
+  nuevo dura más que el anterior: 90 segundos, 5, 15 y 30 minutos, y 1 hora.
+- **Bloqueo vigente.** Se rechaza con `423` **aunque la contraseña sea
+  correcta**. No suma intentos y no alarga el bloqueo. Termina solo.
 - **Usuario inexistente o dado de baja.** Se rechaza con el mismo mensaje que
-  una contraseña incorrecta. No suma intentos: no hay a quién sumárselos.
+  una contraseña incorrecta y **cuenta como intento fallido**, igual que una
+  contraseña incorrecta: así la respuesta no revela si el usuario existe.
+- **Las sesiones abiertas no se cortan.** El bloqueo frena nuevos ingresos; no
+  cierra las sesiones que el usuario ya tenía abiertas.
 - **Campo vacío.** Se rechaza con `400` antes de intentar autenticar y **no
   cuenta como intento** (CU-53, escenario 9).
 
@@ -327,16 +335,25 @@ dos datos falló.
 	"statusCode": 423,
 	"error": "Locked",
 	"code": "USER_BLOCKED",
-	"message": "Tu usuario fue bloqueado por intentos fallidos. Contactá al Administrador del Sistema.",
+	"message": "Demasiados intentos fallidos. Esperá antes de volver a intentar.",
 	"path": "/api/auth/login",
 	"timestamp": "2026-10-15T12:30:00.000Z"
 }
 ```
 
-Se responde en el quinto intento fallido consecutivo y en todo intento posterior,
-con la contraseña correcta o no. El usuario no se desbloquea solo: lo desbloquea
-el Administrador del Sistema desde "Modificar usuario" (CU-06), que no es de este
-sprint: llega en el próximo (D-49).
+Se responde en el quinto intento fallido consecutivo y en todo intento posterior
+mientras dure el bloqueo, con la contraseña correcta o no. **El bloqueo es
+temporal**: la respuesta trae el encabezado `Retry-After` con los segundos que
+faltan para poder volver a intentar, y pasado ese tiempo el ingreso vuelve a
+funcionar sin que nadie intervenga (D-06, D-53).
+
+```
+Retry-After: 90
+```
+
+Además del bloqueo por usuario e IP hay uno por **solo el usuario** (25 fallos en
+una hora, 15 minutos de espera), para contener los ataques repartidos entre
+varias IP. La respuesta es la misma.
 
 ---
 
@@ -447,7 +464,7 @@ O se cumplieron los 7 días desde el ingreso:
 
 O no hay una sesión válida por cualquier otro motivo: no hay cookie, el refresh
 token no existe, la sesión se cerró con `POST /auth/logout`, se detectó el reuso
-de un refresh revocado, o el usuario quedó bloqueado o inactivo:
+de un refresh revocado, o el usuario quedó inactivo:
 
 ```json
 {
@@ -1253,7 +1270,7 @@ prototipo muestra el aviso que corresponde a cada estado:
 | `status`   | Aviso del prototipo                                                                             |
 | ---------- | ----------------------------------------------------------------------------------------------- |
 | `INACTIVE` | "Este usuario está inactivo: no puede ingresar al sistema."                                     |
-| `BLOCKED`  | "Este usuario está bloqueado por 5 intentos fallidos de ingreso: no puede ingresar al sistema." |
+| `BLOCKED`  | "Este usuario tiene el ingreso bloqueado por intentos fallidos. Se habilita solo pasado un tiempo." |
 
 **`400 Bad Request`**
 
@@ -2205,7 +2222,7 @@ respuesta del login y del refresh, y los códigos de error.
   varias abiertas (en distintos equipos).
 - **La sesión se verifica en cada petición.** El `accessToken` no alcanza por sí
   solo: el backend comprueba además que su sesión siga abierta. Por eso un cierre
-  de sesión, un bloqueo o una baja cortan el acceso desde la petición siguiente,
+  de sesión o una baja cortan el acceso desde la petición siguiente,
   sin esperar a que el `accessToken` venza (CU-52, escenario 3).
 - **Qué es actividad.** Cada petición a la API con el `accessToken` renueva la
   última actividad de la sesión. **`POST /auth/refresh` no la renueva** (D-46).
@@ -2215,10 +2232,11 @@ respuesta del login y del refresh, y los códigos de error.
   token por uno nuevo con el mismo vencimiento. Presentar uno ya reemplazado,
   pasados 30 segundos de la rotación, cierra la sesión (motivo `REVOKED`).
 - **Cierre manual.** `POST /auth/logout` cierra la sesión con motivo `MANUAL`.
-- **Bloqueo.** Cinco intentos fallidos consecutivos bloquean al usuario
-  (`423 USER_BLOCKED`). El contador vuelve a `0` con cada ingreso correcto. Si
-  el usuario tenía sesiones abiertas (alguien probó contraseñas desde otro
-  equipo), se cierran desde la petición siguiente con `401 UNAUTHENTICATED`.
+- **Bloqueo.** Cinco intentos fallidos consecutivos bloquean el ingreso
+  **temporalmente** (`423 USER_BLOCKED` con `Retry-After`). El contador vuelve a
+  `0` con cada ingreso correcto. El bloqueo no cierra las sesiones que el usuario
+  ya tenía abiertas: si alguien prueba contraseñas desde otro equipo, el usuario
+  no pierde su trabajo (D-53).
 - **Roles en cada petición.** Los permisos se verifican en el backend en cada
   operación con los roles vigentes del usuario (RNF09), no con los que tenía al
   ingresar.
@@ -2493,7 +2511,7 @@ descripción), nunca al cliente.
 | `INVALID_CREDENTIALS`       | 401  | Usuario o contraseña incorrectos, o usuario dado de baja. Exclusivo de `POST /auth/login`                  |
 | `ACCESS_TOKEN_EXPIRED`      | 401  | El `accessToken` pasó sus 15 minutos y la sesión sigue abierta: hay que renovarlo con `POST /auth/refresh` |
 | `SESSION_EXPIRED`           | 401  | La sesión se cerró por 30 minutos de inactividad o por cumplir sus 7 días                                  |
-| `UNAUTHENTICATED`           | 401  | Sin token, token desconocido o adulterado, sesión cerrada o revocada, o usuario bloqueado o inactivo       |
+| `UNAUTHENTICATED`           | 401  | Sin token, token desconocido o adulterado, sesión cerrada o revocada, o usuario inactivo                   |
 | `FORBIDDEN`                 | 403  | Usuario autenticado sin ninguno de los roles que pide el endpoint                                          |
 | `EMPLOYEE_NOT_FOUND`        | 404  | Empleado inexistente                                                                                       |
 | `USER_NOT_FOUND`            | 404  | Usuario inexistente                                                                                        |
@@ -2505,7 +2523,7 @@ descripción), nunca al cliente.
 | `PROCESS_TYPE_NAME_TAKEN`   | 409  | Nombre de tipo de proceso ya registrado                                                                    |
 | `MATERIAL_ALREADY_EXISTS`   | 409  | Combinación de nombre y calidad ya registrada                                                              |
 | `EMPLOYEE_INACTIVE`         | 422  | Alta de usuario para un empleado dado de baja                                                              |
-| `USER_BLOCKED`              | 423  | Usuario bloqueado por intentos fallidos. Exclusivo de `POST /auth/login`                                   |
+| `USER_BLOCKED`              | 423  | Ingreso bloqueado temporalmente por intentos fallidos; trae `Retry-After`. Exclusivo de `POST /auth/login` |
 | `INTERNAL_SERVER_ERROR`     | 500  | Error interno inesperado                                                                                   |
 | `EXCHANGE_RATE_UNAVAILABLE` | 502  | El backend no pudo obtener ninguna cotización del dólar                                                    |
 
@@ -2548,7 +2566,7 @@ backend; lo único nuevo es el `code` (y `details` en los `409` de unicidad).
 | `404`  | `Not Found`             | Recurso inexistente                                                   |
 | `409`  | `Conflict`              | Unicidad: el dato ya está registrado                                  |
 | `422`  | `Unprocessable Content` | Datos válidos que una regla de negocio no admite (nuevo)              |
-| `423`  | `Locked`                | Usuario bloqueado (nuevo)                                             |
+| `423`  | `Locked`                | Ingreso bloqueado temporalmente (nuevo)                               |
 | `500`  | `Internal Server Error` | Error interno inesperado                                              |
 | `502`  | `Bad Gateway`           | Un servicio externo del que depende la operación no respondió (nuevo) |
 
@@ -2557,8 +2575,8 @@ formulario; `422` dice que los datos están bien pero la operación no procede, 
 se informa como aviso.
 
 `423` se usa solo para el bloqueo del ingreso: el usuario existe y la petición
-está bien formada, pero la cuenta está trabada hasta que la destrabe el
-Administrador.
+está bien formada, pero el ingreso está frenado por un tiempo. El encabezado
+`Retry-After` dice cuántos segundos faltan.
 
 `502` separa una falla ajena (la fuente de la cotización del dólar) de un error
 propio (`500`): para el cliente es "seguí sin ese dato", no "algo se rompió".
@@ -2652,7 +2670,7 @@ Decisiones de diseño de este contrato y puntos que quedan abiertos.
 | D-03 | Se mantienen las convenciones ya implementadas en el Sprint 1: recurso sin sobre, listas `{ items, total, page, limit }`, límite máximo de `100`, cuerpo de error con `statusCode`, `error`, `message`, `path`, `timestamp` y `details`, nombres de campos en inglés y fechas en UTC                                                                                                                                    | El backend, los tests de contrato (`test/shared/contract/envelopes.ts`) y el frontend (`shared/api/pagination.ts`) ya las usan. Cambiarlas obligaría a tocar todo el Sprint 1                                                                                                                                                      |
 | D-04 | La sesión vive en el servidor y cada petición la verifica, además de validar el `accessToken`                                                                                                                                                                                                                                                                                                                            | CU-52 pide que cerrar sesión la invalide en el servidor ("borrar el token sólo en el navegador no alcanza") y que un token reutilizado se rechace. Con un `accessToken` de 15 minutos y sin esa verificación, un token seguiría sirviendo hasta 15 minutos después del cierre. CU-53 guarda inicio, última actividad, fin y motivo |
 | D-05 | Hay tres `401` de sesión: `ACCESS_TOKEN_EXPIRED` (renovar y seguir), `SESSION_EXPIRED` (volver a ingresar, con mensaje) y `UNAUTHENTICATED` (volver a ingresar, sin mensaje)                                                                                                                                                                                                                                             | El cliente reacciona distinto a cada uno. El prototipo muestra "Tu sesión expiró por inactividad" solo cuando la sesión venció                                                                                                                                                                                                     |
-| D-06 | Al quinto fallo consecutivo el usuario queda bloqueado y responde `423 USER_BLOCKED` con el mensaje del prototipo, también con la contraseña correcta. Cuentan solo los fallos de usuarios existentes y activos                                                                                                                                                                                                          | RNF08, CU-53 escenario 3 y el prototipo. El mensaje revela que la cuenta existe; se acepta porque el caso de uso y el prototipo lo piden explícitamente                                                                                                                                                                            |
+| D-06 | Al quinto fallo consecutivo el ingreso queda **bloqueado temporalmente** y responde `423 USER_BLOCKED` con `Retry-After`, también con la contraseña correcta. Cuentan también los usuarios inexistentes o dados de baja. Detalle en D-53 | RNF08, CU-53 escenario 3. Reemplaza el bloqueo permanente original; el bloqueo temporal y progresivo se decidió el 02/11/2026 |
 | D-07 | Un usuario dado de baja que intenta ingresar recibe el mismo `401 INVALID_CREDENTIALS` que una contraseña incorrecta                                                                                                                                                                                                                                                                                                     | CU-53, escenario 4                                                                                                                                                                                                                                                                                                                 |
 | D-08 | Usuario o contraseña vacíos responden `400` y no cuentan como intento                                                                                                                                                                                                                                                                                                                                                    | CU-53, escenario 9, y el prototipo                                                                                                                                                                                                                                                                                                 |
 | D-09 | `POST /auth/logout` identifica la sesión por la cookie (o por el `accessToken`) y responde siempre `204`, también si la sesión ya había expirado                                                                                                                                                                                                                                                                         | CU-52, escenario 5: "sin mostrar ningún error". Con la cookie se puede cerrar sesión aunque el `accessToken` esté vencido                                                                                                                                                                                                          |
@@ -2695,10 +2713,11 @@ Decisiones de diseño de este contrato y puntos que quedan abiertos.
 | D-46 | `POST /auth/refresh` no cuenta como actividad: los 30 minutos de inactividad se miden sobre las peticiones con `accessToken`                                                                                                                                                                                                                                                                                             | Si renovar contara, una pestaña abierta que renueva sola cada 15 minutos mantendría la sesión viva hasta los 7 días, y no se cumpliría RNF08                                                                                                                                                                                       |
 | D-47 | El refresh token rota en cada uso. Presentar uno ya reemplazado cierra la sesión, salvo en los 30 segundos siguientes a la rotación                                                                                                                                                                                                                                                                                      | La rotación limita el daño de un refresh robado. El margen evita que dos pestañas que renuevan a la vez se cierren la sesión entre ellas (CU-52: la sesión es una sola para todas las pestañas del navegador)                                                                                                                      |
 | D-48 | El tipo de cambio sale de una API externa gratuita, que el backend consulta y cuyo último valor conserva                                                                                                                                                                                                                                                                                                                 | Definido por el equipo (15/10/2026). Cuál API se usa es un detalle de implementación: el contrato fija solo `rate` y `updatedAt`, así que cambiar de proveedor no cambia el endpoint                                                                                                                                               |
-| D-49 | Desbloquear un usuario no se implementa en este sprint: llega con "Modificar usuario" (CU-06), en el próximo                                                                                                                                                                                                                                                                                                             | Definido por el equipo (15/10/2026). Mientras tanto, un usuario bloqueado queda bloqueado; en desarrollo se puede destrabar desde la base de datos                                                                                                                                                                                 |
+| D-49 | Desbloquear un usuario a mano no hace falta: el bloqueo es temporal y se levanta solo (D-53). "Modificar usuario" (CU-06) llega en el próximo sprint por otros motivos | Reemplaza la decisión original (15/10/2026), que dejaba al usuario bloqueado hasta que interviniera el Administrador |
 | D-50 | Modificar y dar de baja empleados (CU-46 y CU-48) van al próximo sprint, aunque el prototipo ya muestre "Editar" y "Dar de baja"                                                                                                                                                                                                                                                                                         | Definido por el equipo (15/10/2026). El recurso empleado ya trae `active` para cuando lleguen                                                                                                                                                                                                                                      |
 | D-51 | Los errores propios del Sprint 1 tienen su `code` en el catálogo (§5.3), derivado de cómo responde hoy el backend                                                                                                                                                                                                                                                                                                        | §7.2 pide `code` en todas las respuestas de error; sin códigos para el Sprint 1, el cliente seguiría distinguiendo esos errores por el texto. Definido por el equipo (16/10/2026)                                                                                                                                                  |
 | D-52 | En `PATCH /process-types/{processTypeId}`, `exchangeRate` solo se guarda si cambia alguno de los dos precios; si no, se ignora                                                                                                                                                                                                                                                                                           | El tipo de cambio guardado es el que vincula los precios y el historial es solo de precios: guardarlo sin un cambio de precio dejaría al tipo de proceso con un tipo de cambio que no figura en ningún registro del historial                                                                                                      |
+| D-53 | **Bloqueo temporal y progresivo del ingreso.** Se cuenta por usuario e IP: 5 fallos en 15 minutos bloquean 90 s; los bloqueos siguientes duran 5, 15 y 30 minutos y 1 hora, y el contador baja tras un período sin fallos. Hay un segundo bloqueo solo por usuario (25 fallos en una hora, 15 minutos). Los usuarios inexistentes cuentan igual que los reales. **El bloqueo no cierra sesiones abiertas.** El tiempo restante va en `Retry-After` | Definido por el equipo (02/11/2026). Un bloqueo permanente permite a cualquiera dejar fuera a un usuario probando contraseñas y obligaba al Administrador a intervenir; contar los inexistentes evita revelar qué usuarios existen. Los tiempos son configuración del servidor |
 
 ### 8.2 Puntos abiertos
 
@@ -2736,7 +2755,8 @@ incorporar la autenticación a la vez.
   proceso (con su historial), tipo de cambio y materiales.
 - **Esquema:** tablas de empleados, usuarios con sus roles, sesiones, tipos de
   proceso, historial de tipos de proceso y materiales. El usuario guarda el hash
-  de la contraseña, los intentos fallidos y si está bloqueado. La sesión guarda
+  de la contraseña; los intentos fallidos y su bloqueo temporal van en una tabla
+  aparte (`login_attempt`). La sesión guarda
   su vencimiento a 7 días, la última actividad y el hash del refresh token
   vigente (y del anterior, para el margen de 30 segundos de D-47).
 - **Autenticación global:** un guard que valide el `accessToken` (firma y
@@ -2792,7 +2812,7 @@ incorporar la autenticación a la vez.
 
 | Jira    | CU  | Qué entra al contrato                                                                                                                                                                      |
 | ------- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| DTC-33  | 53  | `POST /auth/login` con bloqueo al quinto fallo y `POST /auth/refresh`: `accessToken` de 15 minutos, refresh token de 7 días, 30 minutos de inactividad y control de roles en cada petición |
+| DTC-33  | 53  | `POST /auth/login` con bloqueo temporal al quinto fallo y `POST /auth/refresh`: `accessToken` de 15 minutos, refresh token de 7 días, 30 minutos de inactividad y control de roles en cada petición |
 | DTC-32  | 52  | `POST /auth/logout`, que invalida la sesión en el servidor                                                                                                                                 |
 | DTC-28  | 45  | `POST /employees`, con puesto y DNI único                                                                                                                                                  |
 | DTC-201 | 47  | `GET /employees` con búsqueda, inactivos y "tiene usuario"; `GET /employees/{employeeId}`                                                                                                  |
