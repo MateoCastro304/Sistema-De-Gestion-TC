@@ -26,16 +26,29 @@ describe('seedDevUsers', () => {
   const login = (username: string, password: string) =>
     request(app.getHttpServer()).post('/auth/login').send({ username, password });
 
-  it('creates one user per role, each with its own employee', async () => {
+  it('creates one user per role plus a superadmin, each with its own employee', async () => {
     const result = await seedDevUsers(getPrisma(), hasher);
 
-    expect(result.created).toHaveLength(6);
+    expect(result.created).toHaveLength(7);
     expect(result.existing).toEqual([]);
 
     const users = await getPrisma().user.findMany({ include: { roles: { include: { role: true } }, employee: true } });
-    expect(users).toHaveLength(6);
-    expect(users.map((u) => u.roles.map((r) => r.role.code)).flat().sort()).toEqual(['AS', 'AT', 'EC', 'ER', 'ERP', 'JT']);
-    expect(new Set(users.map((u) => u.employeeId)).size).toBe(6);
+    expect(users).toHaveLength(7);
+    expect(users.map((u) => u.roles.map((r) => r.role.code)).flat().sort()).toEqual([
+      'AS', 'AS', 'AT', 'AT', 'EC', 'EC', 'ER', 'ER', 'ERP', 'ERP', 'JT', 'JT',
+    ]);
+    expect(new Set(users.map((u) => u.employeeId)).size).toBe(7);
+  });
+
+  it('gives the superadmin all six roles', async () => {
+    await seedDevUsers(getPrisma(), hasher);
+
+    const superadmin = await getPrisma().user.findUniqueOrThrow({
+      where: { username: 'superadmin' },
+      include: { roles: { include: { role: true } } },
+    });
+
+    expect(superadmin.roles.map((r) => r.role.code).sort()).toEqual(['AS', 'AT', 'EC', 'ER', 'ERP', 'JT']);
   });
 
   it('gives the system administrator the administration position and no creator, as the first employee of the system', async () => {
@@ -70,7 +83,7 @@ describe('seedDevUsers', () => {
       const res = await login(dev.username, dev.password);
 
       expect(res.status).toBe(200);
-      expect(res.body.user.roles).toEqual([dev.role]);
+      expect([...res.body.user.roles].sort()).toEqual([...dev.roles].sort());
     }
   });
 
@@ -81,9 +94,9 @@ describe('seedDevUsers', () => {
     const second = await seedDevUsers(getPrisma(), hasher, changed);
 
     expect(second.created).toEqual([]);
-    expect(second.existing).toHaveLength(6);
-    expect(await getPrisma().user.count()).toBe(6);
-    expect(await getPrisma().employee.count()).toBe(6);
+    expect(second.existing).toHaveLength(7);
+    expect(await getPrisma().user.count()).toBe(7);
+    expect(await getPrisma().employee.count()).toBe(7);
     expect((await login('admin', DEV_USERS[0].password)).status).toBe(200);
     expect((await login('admin', 'Otra-clave-9999')).status).toBe(401);
   });
@@ -97,7 +110,7 @@ describe('seedDevUsers', () => {
     const result = await seedDevUsers(getPrisma(), hasher);
 
     expect(result.created).toEqual(['taller']);
-    expect(result.existing).toHaveLength(5);
+    expect(result.existing).toHaveLength(6);
   });
 
   it('does not touch the users and employees that were not created by the seed', async () => {
@@ -108,7 +121,7 @@ describe('seedDevUsers', () => {
     await seedDevUsers(getPrisma(), hasher);
 
     expect(await getPrisma().employee.findUnique({ where: { id: employee.id } })).not.toBeNull();
-    expect(await getPrisma().employee.count()).toBe(7);
+    expect(await getPrisma().employee.count()).toBe(8);
   });
 
   it.each(['', 'corta', 'sieteee'])('rejects the password %p: the minimum is 8 characters (RNF08)', async (password) => {

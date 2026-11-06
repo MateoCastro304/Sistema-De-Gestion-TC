@@ -170,6 +170,7 @@ Además de los datos de demo (rubros, proveedores, fábricas y encargados), el s
 | `tecnico` | `tecnico123` | Administrativo Técnico (AT) | Lo mismo que EC |
 | `taller` | `taller123` | Jefe de Taller (JT) | Nada todavía |
 | `reportes` | `reportes123` | Encargado de Reportes (ER) | Nada todavía |
+| `superadmin` | `superadmin123` | Todos los roles (JT, ERP, EC, ER, AT, AS) | La unión de los permisos de todos los roles |
 
 Las contraseñas están definidas en `DEV_USERS` (`backend/src/subsystems/identity/infrastructure/bootstrap/dev-users.seed.ts`) y en la base se guarda solo su hash. **Son públicas**: sirven únicamente en bases de desarrollo descartables; no siembres una base compartida. El seed no corre con `NODE_ENV=production`. Si los usuarios ya existen, el seed no los toca (ni cambia su contraseña); para empezar de cero, `make dev-down-v` y de nuevo los pasos de arriba.
 

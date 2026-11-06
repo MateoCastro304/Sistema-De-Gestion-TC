@@ -1,6 +1,7 @@
 // Seed de datos de demo para desarrollo: 5 rubros, 5 proveedores y 8 fabricas
 // con 1 a 3 encargados cada una, y un usuario por rol (admin, recepcion,
-// cotizacion, tecnico, taller, reportes) para probar la sesion y los permisos.
+// cotizacion, tecnico, taller, reportes) y un superadmin con todos los roles,
+// para probar la sesion y los permisos.
 // Idempotente: se puede ejecutar varias veces.
 //
 //   npx prisma db seed        (o `make seed`)

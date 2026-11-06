@@ -9,8 +9,8 @@ export type DevUser = {
   username: string;
   /** Contraseña de desarrollo, conocida a propósito: ver la advertencia de `DEV_USERS`. */
   password: string;
-  /** Código del rol: JT, ERP, EC, ER, AT o AS. */
-  role: string;
+  /** Códigos de los roles: JT, ERP, EC, ER, AT y/o AS. */
+  roles: string[];
   firstName: string;
   lastName: string;
   /** Único entre todos los empleados; 8 dígitos, con prefijo propio para no chocar con datos reales. */
@@ -19,8 +19,9 @@ export type DevUser = {
 };
 
 /**
- * Un usuario de desarrollo por rol, para poder probar a mano la sesión y la matriz
- * de permisos (en Swagger o en la pantalla de ingreso) sin armar usuarios antes.
+ * Un usuario de desarrollo por rol, más `superadmin` con todos los roles, para poder
+ * probar a mano la sesión y la matriz de permisos (en Swagger o en la pantalla de
+ * ingreso) sin armar usuarios antes.
  * `admin` es el primer empleado del sistema, el que después da de alta a los demás.
  *
  * ADVERTENCIA: las contraseñas están en el repositorio, así que son públicas.
@@ -28,12 +29,13 @@ export type DevUser = {
  * `NODE_ENV=production`, pero nunca se debe sembrar una base compartida.
  */
 export const DEV_USERS: readonly DevUser[] = [
-  { username: 'admin', password: 'admin123', role: 'AS', firstName: 'Administrador', lastName: 'del Sistema', dni: '10000001', position: 'ADMINISTRATION' },
-  { username: 'recepcion', password: 'recepcion123', role: 'ERP', firstName: 'Encargado', lastName: 'de Recepción', dni: '10000002', position: 'EMPLOYEE' },
-  { username: 'cotizacion', password: 'cotizacion123', role: 'EC', firstName: 'Encargado', lastName: 'de Cotización', dni: '10000003', position: 'EMPLOYEE' },
-  { username: 'tecnico', password: 'tecnico123', role: 'AT', firstName: 'Administrativo', lastName: 'Técnico', dni: '10000004', position: 'EMPLOYEE' },
-  { username: 'taller', password: 'taller123', role: 'JT', firstName: 'Jefe', lastName: 'de Taller', dni: '10000005', position: 'WORKSHOP_HEAD' },
-  { username: 'reportes', password: 'reportes123', role: 'ER', firstName: 'Encargado', lastName: 'de Reportes', dni: '10000006', position: 'EMPLOYEE' },
+  { username: 'admin', password: 'admin123', roles: ['AS'], firstName: 'Administrador', lastName: 'del Sistema', dni: '10000001', position: 'ADMINISTRATION' },
+  { username: 'recepcion', password: 'recepcion123', roles: ['ERP'], firstName: 'Encargado', lastName: 'de Recepción', dni: '10000002', position: 'EMPLOYEE' },
+  { username: 'cotizacion', password: 'cotizacion123', roles: ['EC'], firstName: 'Encargado', lastName: 'de Cotización', dni: '10000003', position: 'EMPLOYEE' },
+  { username: 'tecnico', password: 'tecnico123', roles: ['AT'], firstName: 'Administrativo', lastName: 'Técnico', dni: '10000004', position: 'EMPLOYEE' },
+  { username: 'taller', password: 'taller123', roles: ['JT'], firstName: 'Jefe', lastName: 'de Taller', dni: '10000005', position: 'WORKSHOP_HEAD' },
+  { username: 'reportes', password: 'reportes123', roles: ['ER'], firstName: 'Encargado', lastName: 'de Reportes', dni: '10000006', position: 'EMPLOYEE' },
+  { username: 'superadmin', password: 'superadmin123', roles: ['JT', 'ERP', 'EC', 'ER', 'AT', 'AS'], firstName: 'Super', lastName: 'Administrador', dni: '10000007', position: 'ADMINISTRATION' },
 ];
 
 export type SeedDevUsersResult = {
@@ -89,7 +91,7 @@ export async function seedDevUsers(
         employeeId: employee.id,
         username: dev.username,
         passwordHash: await hasher.hash(dev.password),
-        roles: { create: [{ role: { connect: { code: dev.role } } }] },
+        roles: { create: dev.roles.map((code) => ({ role: { connect: { code } } })) },
       },
     });
     result.created.push(dev.username);
