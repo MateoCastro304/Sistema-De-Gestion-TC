@@ -4,7 +4,6 @@ import { EmployeeUser } from '../value-objects/employee-user.vo';
 
 // Van tipados `unknown` a propósito, ya que llegan del cuerpo de la petición SIN validar, y la entidad es quien los valida todos juntos
 
- 
 export type EmployeeInput = {
   firstName?: unknown;
   lastName?: unknown;

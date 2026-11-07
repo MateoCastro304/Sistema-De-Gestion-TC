@@ -3,7 +3,6 @@ import { Employee } from '../../domain/entities/employee.entity';
 import { EmployeeNotFound } from '../../domain/errors/employee-not-found.error';
 import { EmployeeRepository } from '../../domain/ports/employee.repository';
 
-
 @Injectable()
 export class GetEmployeeById {
   constructor(private readonly repo: EmployeeRepository) {}

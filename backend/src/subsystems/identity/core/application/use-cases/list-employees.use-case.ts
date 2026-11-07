@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EmployeeListParams, EmployeeListResult, EmployeeRepository } from '../../domain/ports/employee.repository';
 
-
 @Injectable()
 export class ListEmployees {
   constructor(private readonly repo: EmployeeRepository) {}

@@ -5,7 +5,6 @@ import { EmployeeListParams } from '../../../core/domain/ports/employee.reposito
 
 const MAX_SEARCH_LENGTH = 120;
 
-
 export class ListEmployeesRequestDto {
   @Allow()
   page?: unknown;
@@ -22,7 +21,6 @@ export class ListEmployeesRequestDto {
   @Allow()
   hasUser?: unknown;
 }
-
 
 function parseBoolean(raw: unknown, fallback: boolean | undefined): boolean | undefined | null {
   if (raw === undefined) return fallback;

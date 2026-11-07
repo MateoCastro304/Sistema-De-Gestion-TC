@@ -7,7 +7,6 @@ import { EmployeeValidationError } from '../../../core/domain/errors/employee-va
 
 type FieldError = { field: string; message: string };
 
-
 @Catch(DomainError)
 export class EmployeesExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(EmployeesExceptionFilter.name);

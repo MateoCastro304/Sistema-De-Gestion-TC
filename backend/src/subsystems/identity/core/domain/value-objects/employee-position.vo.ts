@@ -2,7 +2,6 @@ export const EMPLOYEE_POSITIONS = ['ADMINISTRATION', 'WORKSHOP_HEAD', 'HEAD', 'E
 
 export type EmployeePosition = (typeof EMPLOYEE_POSITIONS)[number];
 
-
 export const EMPLOYEE_POSITION_LABELS: Record<EmployeePosition, string> = {
   ADMINISTRATION: 'Administración',
   WORKSHOP_HEAD: 'Jefe de taller',

@@ -8,7 +8,6 @@ const validInput = (): EmployeeInput => ({
   position: 'EMPLOYEE',
 });
 
-
 function validationErrorOf(input: EmployeeInput): EmployeeValidationError {
   try {
     Employee.create(input);

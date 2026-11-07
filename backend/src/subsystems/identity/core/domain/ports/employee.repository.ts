@@ -13,15 +13,12 @@ export type EmployeeListResult = {
   total: number;
 };
 
-
 export abstract class EmployeeRepository {
-
   abstract findById(id: number): Promise<Employee | null>;
 
   abstract findByIds(ids: number[]): Promise<Employee[]>;
 
   abstract existsByDni(dni: string): Promise<boolean>;
-
 
   abstract list(params: EmployeeListParams): Promise<EmployeeListResult>;
 
