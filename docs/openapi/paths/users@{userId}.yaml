@@ -11,8 +11,8 @@ get:
     aviso de cada estado:
 
     - `INACTIVE`: "Este usuario está inactivo: no puede ingresar al sistema."
-    - `BLOCKED`: "Este usuario está bloqueado por 5 intentos fallidos de
-      ingreso: no puede ingresar al sistema."
+    - `BLOCKED`: "Este usuario tiene el ingreso bloqueado por intentos
+      fallidos. Se habilita solo pasado un tiempo."
   operationId: getUserById
   tags:
     - Usuarios

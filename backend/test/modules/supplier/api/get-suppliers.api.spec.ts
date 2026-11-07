@@ -1,15 +1,17 @@
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
 
 import { startTestApp, stopTestApp, getPrisma } from '../../../shared/harness/test-app';
+import { Api, signInAs } from '../../../shared/harness/auth';
 import { createSupplier } from '../../../shared/factories/supplier-factory';
 import { SupplierType } from '../../../../src/generated/prisma/enums';
 
 describe('GET /suppliers', () => {
   let app: INestApplication;
+  let api: Api;
 
   beforeAll(async () => {
     app = await startTestApp();
+    api = await signInAs(app, 'AT');
   });
 
   afterAll(async () => {
@@ -26,7 +28,7 @@ describe('GET /suppliers', () => {
     await createSupplier();
     await createSupplier();
 
-    const response = await request(app.getHttpServer()).get('/suppliers');
+    const response = await api.get('/suppliers');
 
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({ total: 4, page: 1, limit: 20 });
@@ -39,7 +41,7 @@ describe('GET /suppliers', () => {
     await createSupplier({ supplierType: SupplierType.MATERIAL });
     await createSupplier({ supplierType: SupplierType.PROCESS });
 
-    const response = await request(app.getHttpServer()).get('/suppliers?type=PAINT');
+    const response = await api.get('/suppliers?type=PAINT');
 
     expect(response.status).toBe(200);
     expect(response.body.total).toBe(2);
@@ -47,7 +49,7 @@ describe('GET /suppliers', () => {
   });
 
   it('400 filter by an unknown type', async () => {
-    const response = await request(app.getHttpServer()).get('/suppliers?type=PAI');
+    const response = await api.get('/suppliers?type=PAI');
 
     expect(response.status).toBe(400);
     expect(response.body.message.join(' ')).toContain('type');
@@ -59,7 +61,7 @@ describe('GET /suppliers', () => {
     await createSupplier({ legalName: 'Coca Cola Andina SA' });
     await createSupplier({ legalName: 'CorBlock' });
 
-    const response = await request(app.getHttpServer()).get('/suppliers?search=co');
+    const response = await api.get('/suppliers?search=co');
 
     expect(response.status).toBe(200);
     expect(response.body.total).toBe(2);
@@ -69,21 +71,21 @@ describe('GET /suppliers', () => {
     await createSupplier();
     await createSupplier();
 
-    const response = await request(app.getHttpServer()).get('/suppliers?search=%20%20');
+    const response = await api.get('/suppliers?search=%20%20');
 
     expect(response.status).toBe(200);
     expect(response.body.total).toBe(2);
   });
 
   it('400 limit over the cap', async () => {
-    const response = await request(app.getHttpServer()).get('/suppliers?limit=1000');
+    const response = await api.get('/suppliers?limit=1000');
 
     expect(response.status).toBe(400);
     expect(response.body.message.join(' ')).toContain('limit');
   });
 
   it('400 page below 1', async () => {
-    const response = await request(app.getHttpServer()).get('/suppliers?page=0');
+    const response = await api.get('/suppliers?page=0');
 
     expect(response.status).toBe(400);
     expect(response.body.message.join(' ')).toContain('page');
@@ -92,9 +94,11 @@ describe('GET /suppliers', () => {
 
 describe('GET /suppliers/:id', () => {
   let app: INestApplication;
+  let api: Api;
 
   beforeAll(async () => {
     app = await startTestApp();
+    api = await signInAs(app, 'AT');
   });
 
   afterAll(async () => {
@@ -108,7 +112,7 @@ describe('GET /suppliers/:id', () => {
   it('200 supplier found, returned flat and not wrapped', async () => {
     const supplier = await createSupplier({ legalName: 'CorBlock' });
 
-    const response = await request(app.getHttpServer()).get(`/suppliers/${supplier.id}`);
+    const response = await api.get(`/suppliers/${supplier.id}`);
 
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
@@ -119,7 +123,7 @@ describe('GET /suppliers/:id', () => {
   });
 
   it('404 supplier not found', async () => {
-    const response = await request(app.getHttpServer()).get('/suppliers/1235498654');
+    const response = await api.get('/suppliers/1235498654');
 
     expect(response.status).toBe(404);
     expect(response.body).toMatchObject({
@@ -132,13 +136,13 @@ describe('GET /suppliers/:id', () => {
   it('404 for an inactive supplier, never active:false', async () => {
     const supplier = await createSupplier({ legalName: 'Dado de baja', isActive: false });
 
-    const response = await request(app.getHttpServer()).get(`/suppliers/${supplier.id}`);
+    const response = await api.get(`/suppliers/${supplier.id}`);
 
     expect(response.status).toBe(404);
   });
 
   it('400 non-numeric id', async () => {
-    const response = await request(app.getHttpServer()).get('/suppliers/abc');
+    const response = await api.get('/suppliers/abc');
 
     expect(response.status).toBe(400);
   });

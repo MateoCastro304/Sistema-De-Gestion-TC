@@ -10,14 +10,17 @@ post:
       contador de intentos fallidos vuelve a `0` y el inicio de la sesión pasa
       a ser el `lastAccessAt` del usuario. La respuesta emite la cookie
       `refresh_token`.
-    - **Contraseña incorrecta de un usuario activo.** Suma un intento fallido.
-      Al **quinto intento fallido consecutivo** el usuario queda bloqueado
-      (RNF08) y la respuesta ya es `423`.
-    - **Usuario bloqueado.** Se rechaza con `423` **aunque la contraseña sea
-      correcta**. No suma intentos. Lo desbloquea el Administrador desde
-      "Modificar usuario" (CU-06), que llega en el próximo sprint (D-49).
+    - **Datos incorrectos.** Suma un intento fallido. Al **quinto intento
+      fallido consecutivo** desde el mismo usuario y la misma IP, el ingreso
+      se bloquea **temporalmente** (RNF08) y la respuesta ya es `423`. Cada
+      bloqueo nuevo dura más: 90 segundos, 5, 15 y 30 minutos, y 1 hora.
+    - **Bloqueo vigente.** Se rechaza con `423` **aunque la contraseña sea
+      correcta**. No suma intentos. Termina solo (D-53).
     - **Usuario inexistente o dado de baja.** Mismo `401` que una contraseña
-      incorrecta (no revela cuál de los dos datos falló). No suma intentos.
+      incorrecta (no revela cuál de los dos datos falló) y **cuenta como
+      intento fallido**, para no revelar si el usuario existe.
+    - **Las sesiones abiertas no se cortan.** El bloqueo frena nuevos
+      ingresos, no cierra las sesiones que el usuario ya tenía.
     - **Campo vacío.** `400` antes de intentar autenticar; **no cuenta como
       intento**.
 
@@ -90,7 +93,7 @@ post:
       description: |
         `INVALID_CREDENTIALS`: el usuario no existe, la contraseña es incorrecta
         o el usuario está dado de baja (CU-53, escenarios 2 y 4). El mensaje es
-        el mismo en los tres casos.
+        el mismo en los tres casos y los tres cuentan como intento fallido.
       content:
         application/json:
           schema:
@@ -105,7 +108,12 @@ post:
     '423':
       description: |
         `USER_BLOCKED`: se responde en el quinto intento fallido consecutivo y
-        en todo intento posterior, con la contraseña correcta o no (D-06).
+        en todo intento posterior mientras dure el bloqueo, con la contraseña
+        correcta o no (D-06). El bloqueo es temporal: `Retry-After` dice
+        cuántos segundos faltan.
+      headers:
+        Retry-After:
+          $ref: '../components/headers/RetryAfter.yaml'
       content:
         application/json:
           schema:
@@ -114,6 +122,6 @@ post:
             statusCode: 423
             error: Locked
             code: USER_BLOCKED
-            message: Tu usuario fue bloqueado por intentos fallidos. Contactá al Administrador del Sistema.
+            message: Demasiados intentos fallidos. Esperá antes de volver a intentar.
             path: /api/auth/login
             timestamp: '2026-10-15T12:30:00.000Z'

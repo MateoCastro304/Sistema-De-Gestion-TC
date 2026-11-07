@@ -127,3 +127,9 @@ Desktop.ini
 #  (ej: frontend/.claude/launch.json) siguen versionados.
 # -----------------------------------------------------------------------------
 .claude/
+.atl
+
+/tema-login
+
+# Documentos de seguimiento del trabajo asistido (ODD): locales de cada dev.
+/odd/

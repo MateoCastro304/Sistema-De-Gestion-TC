@@ -1,14 +1,16 @@
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
 
 import { startTestApp, stopTestApp, getPrisma } from '../../../shared/harness/test-app';
+import { Api, signInAs } from '../../../shared/harness/auth';
 import { aSupplier, aValidCuit, createSupplier } from '../../../shared/factories/supplier-factory';
 
 describe('[CU33] Register Supplier', () => {
   let app: INestApplication;
+  let api: Api;
 
   beforeAll(async () => {
     app = await startTestApp();
+    api = await signInAs(app, 'AT');
   });
 
   afterAll(async () => {
@@ -22,7 +24,7 @@ describe('[CU33] Register Supplier', () => {
   it('TC-01: Supplier registered successfully', async () => {
     const payload = aSupplier();
 
-    const response = await request(app.getHttpServer()).post('/suppliers').send(payload);
+    const response = await api.post('/suppliers').send(payload);
 
     expect(response.status).toBe(201);
 
@@ -46,7 +48,7 @@ describe('[CU33] Register Supplier', () => {
   it('TC-02: Supplier with no assigned type', async () => {
     const before = await getPrisma().supplier.count();
 
-    const response = await request(app.getHttpServer())
+    const response = await api
       .post('/suppliers')
       .send(aSupplier({ supplierType: undefined }));
 
@@ -60,7 +62,7 @@ describe('[CU33] Register Supplier', () => {
 
     // Distinta capitalizacion: la razon social es unica sin distinguir
     // mayusculas, igual que el indice supplier_legal_name_active_key.
-    const response = await request(app.getHttpServer())
+    const response = await api
       .post('/suppliers')
       .send(aSupplier({ legalName: 'corblock' }));
 
@@ -74,7 +76,7 @@ describe('[CU33] Register Supplier', () => {
     await createSupplier({ legalName: 'CorBlock', cuit: cuit.replace(/-/g, '') });
     const before = await getPrisma().supplier.count();
 
-    const response = await request(app.getHttpServer()).post('/suppliers').send(aSupplier({ cuit }));
+    const response = await api.post('/suppliers').send(aSupplier({ cuit }));
 
     expect(response.status).toBe(409);
     expect(response.body).toMatchObject({ statusCode: 409, field: 'cuit' });
@@ -91,7 +93,7 @@ describe('[CU33] Register Supplier', () => {
 
     // La baja es logica y no hay reactivacion, asi que la razon social y el
     // CUIT de un proveedor dado de baja quedan libres.
-    const response = await request(app.getHttpServer())
+    const response = await api
       .post('/suppliers')
       .send(aSupplier({ legalName: 'EDASA', cuit }));
 
@@ -102,7 +104,7 @@ describe('[CU33] Register Supplier', () => {
   });
 
   it('TC-06: Only legalName and supplierType are required', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await api
       .post('/suppliers')
       .send({ legalName: 'Minimo SA', supplierType: 'PROCESS' });
 

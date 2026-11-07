@@ -18,6 +18,7 @@ export class ProcessTypePrismaMapper {
       hourlyRateArs: row.hourlyRateArs.toNumber(),
       hourlyRateUsd: row.hourlyRateUsd.toNumber(),
       exchangeRate: row.exchangeRate.toNumber(),
+      createdByUserId: row.createdByUserId,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     });
@@ -82,7 +83,7 @@ export class ProcessTypePrismaMapper {
   }
 
   /** Datos del INSERT. Los importes viajan como texto con dos decimales: decimales exactos, no punto flotante. */
-  static toCreateData(processType: ProcessType, now: Date): Prisma.ProcessTypeCreateInput {
+  static toCreateData(processType: ProcessType, now: Date): Prisma.ProcessTypeUncheckedCreateInput {
     return {
       name: processType.getName(),
       nameKey: processType.getNameKey(),
@@ -90,6 +91,7 @@ export class ProcessTypePrismaMapper {
       hourlyRateArs: new Prisma.Decimal(processType.getHourlyRateArs().toFixed2()),
       hourlyRateUsd: new Prisma.Decimal(processType.getHourlyRateUsd().toFixed2()),
       exchangeRate: new Prisma.Decimal(processType.getExchangeRate().toFixed2()),
+      createdByUserId: processType.getCreatedByUserId(),
       createdAt: now,
       updatedAt: now,
     };

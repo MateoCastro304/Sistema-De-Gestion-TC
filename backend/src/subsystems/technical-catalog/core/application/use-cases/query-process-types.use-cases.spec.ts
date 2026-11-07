@@ -8,7 +8,7 @@ import { ListProcessTypes } from './list-process-types.use-case';
 
 async function seed(repository: InMemoryProcessTypeRepository, names: string[]): Promise<void> {
   for (const name of names) {
-    await repository.save(ProcessType.create({ name, hourlyRateArs: 1000, hourlyRateUsd: 1, exchangeRate: 1000 }));
+    await repository.save(ProcessType.create({ name, hourlyRateArs: 1000, hourlyRateUsd: 1, exchangeRate: 1000 }, 1));
   }
 }
 

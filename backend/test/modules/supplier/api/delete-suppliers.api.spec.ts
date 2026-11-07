@@ -1,14 +1,16 @@
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
 
 import { startTestApp, stopTestApp, getPrisma } from '../../../shared/harness/test-app';
+import { Api, signInAs } from '../../../shared/harness/auth';
 import { aValidCuit, aSupplier, createSupplier } from '../../../shared/factories/supplier-factory';
 
 describe('DELETE /suppliers/:id', () => {
   let app: INestApplication;
+  let api: Api;
 
   beforeAll(async () => {
     app = await startTestApp();
+    api = await signInAs(app, 'AT');
   });
 
   afterAll(async () => {
@@ -22,7 +24,7 @@ describe('DELETE /suppliers/:id', () => {
   it('204 Supplier deactivated, with no body', async () => {
     const supplier = await createSupplier({ legalName: 'CorBlock' });
 
-    const response = await request(app.getHttpServer()).delete(`/suppliers/${supplier.id}`);
+    const response = await api.delete(`/suppliers/${supplier.id}`);
 
     expect(response.status).toBe(204);
     expect(response.body).toEqual({});
@@ -31,7 +33,7 @@ describe('DELETE /suppliers/:id', () => {
   it('the row is kept and only the flag changes', async () => {
     const supplier = await createSupplier({ legalName: 'CorBlock' });
 
-    await request(app.getHttpServer()).delete(`/suppliers/${supplier.id}`);
+    await api.delete(`/suppliers/${supplier.id}`);
 
     // Baja logica: la fila se conserva para que los materiales y las ordenes
     // que la referencian sigan siendo validos.
@@ -44,9 +46,9 @@ describe('DELETE /suppliers/:id', () => {
     const supplier = await createSupplier({ legalName: 'CorBlock' });
     await createSupplier({ legalName: 'Sigue activo' });
 
-    await request(app.getHttpServer()).delete(`/suppliers/${supplier.id}`);
+    await api.delete(`/suppliers/${supplier.id}`);
 
-    const response = await request(app.getHttpServer()).get('/suppliers');
+    const response = await api.get('/suppliers');
     expect(response.body.total).toBe(1);
     expect(response.body.items[0].legalName).toBe('Sigue activo');
   });
@@ -54,9 +56,9 @@ describe('DELETE /suppliers/:id', () => {
   it('after the baja it is no longer readable by id', async () => {
     const supplier = await createSupplier({ legalName: 'CorBlock' });
 
-    await request(app.getHttpServer()).delete(`/suppliers/${supplier.id}`);
+    await api.delete(`/suppliers/${supplier.id}`);
 
-    const response = await request(app.getHttpServer()).get(`/suppliers/${supplier.id}`);
+    const response = await api.get(`/suppliers/${supplier.id}`);
     expect(response.status).toBe(404);
   });
 
@@ -64,9 +66,9 @@ describe('DELETE /suppliers/:id', () => {
     const cuit = aValidCuit();
     const supplier = await createSupplier({ legalName: 'EDASA', cuit: cuit.replace(/-/g, '') });
 
-    await request(app.getHttpServer()).delete(`/suppliers/${supplier.id}`);
+    await api.delete(`/suppliers/${supplier.id}`);
 
-    const response = await request(app.getHttpServer())
+    const response = await api
       .post('/suppliers')
       .send(aSupplier({ legalName: 'EDASA', cuit }));
 
@@ -75,7 +77,7 @@ describe('DELETE /suppliers/:id', () => {
   });
 
   it('404 supplier not found', async () => {
-    const response = await request(app.getHttpServer()).delete('/suppliers/1235498654');
+    const response = await api.delete('/suppliers/1235498654');
 
     expect(response.status).toBe(404);
     expect(response.body).toMatchObject({
@@ -87,16 +89,16 @@ describe('DELETE /suppliers/:id', () => {
 
   it('404 when the supplier is already inactive', async () => {
     const supplier = await createSupplier({ legalName: 'CorBlock' });
-    await request(app.getHttpServer()).delete(`/suppliers/${supplier.id}`);
+    await api.delete(`/suppliers/${supplier.id}`);
 
     // 404 y no 409: desde afuera ese proveedor ya no existe.
-    const response = await request(app.getHttpServer()).delete(`/suppliers/${supplier.id}`);
+    const response = await api.delete(`/suppliers/${supplier.id}`);
 
     expect(response.status).toBe(404);
   });
 
   it('400 non-numeric id', async () => {
-    const response = await request(app.getHttpServer()).delete('/suppliers/abc');
+    const response = await api.delete('/suppliers/abc');
 
     expect(response.status).toBe(400);
   });

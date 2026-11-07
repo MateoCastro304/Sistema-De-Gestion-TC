@@ -15,6 +15,7 @@ function aProcessType(): ProcessType {
     hourlyRateArs: 1557,
     hourlyRateUsd: 1.13,
     exchangeRate: 1377.88,
+    createdByUserId: 3,
     createdAt: CREATED,
     updatedAt: BEFORE,
   });
@@ -41,6 +42,7 @@ describe('ProcessType.modify', () => {
       expect(result.processType.getExchangeRate().getValue()).toBe(1390);
       expect(result.processType.getUpdatedAt()).toEqual(NOW);
       expect(result.processType.getCreatedAt()).toEqual(CREATED);
+      expect(result.processType.getCreatedByUserId()).toBe(3);
       expect(result.priceChange?.getPreviousValueUsd()).toBe(1.13);
       expect(result.priceChange?.getNewValueUsd()).toBe(1.12);
       expect(result.priceChange?.getExchangeRate()).toBe(1390);

@@ -1,7 +1,8 @@
 import type { CSSProperties } from 'react'
 import { Link } from 'react-router'
 import { EntityIcon, PageHero } from '@/shared/components/ui'
-import { PANELS, type PanelKey } from '../panels'
+import { useSession } from '@/app/providers/SessionContext'
+import { PANELS, visibleItems, type PanelKey } from '../panels'
 
 interface PanelPageProps {
   panel: PanelKey
@@ -10,10 +11,12 @@ interface PanelPageProps {
 /**
  * Panel de tarjetas ("Clientes", "Gestión"): la cabecera del catálogo y
  * una tarjeta con foto por cada listado que agrupa. Es sólo navegación:
- * no pide datos.
+ * no pide datos. Muestra sólo las tarjetas que permiten los roles.
  */
 export function PanelPage({ panel }: PanelPageProps) {
-  const { label, eyebrow, accent, description, photo, photoPosition, items } = PANELS[panel]
+  const { user } = useSession()
+  const { label, eyebrow, accent, description, photo, photoPosition } = PANELS[panel]
+  const items = visibleItems(PANELS[panel], user?.roles ?? [])
 
   return (
     <>

@@ -75,10 +75,10 @@ Lo que está bien resuelto y se mantiene:
 
 | Tabla en VZ | Decisión | Fundamento |
 | ----------- | -------- | ---------- |
-| `User` (`users`) | **Se adapta** como `app_user`. Se quitan `email`, `firstName`, `lastName`, `lawyerId`, `deletedAt` y `lastLoginAt`. Se agregan `employee_id`, `failed_login_attempts` y `blocked_at`. | D-19: nombre y apellido salen del empleado. D-27: el último acceso se calcula a partir de las sesiones. La baja es `is_active`, como en el resto del sistema. |
+| `User` (`users`) | **Se adapta** como `app_user`. Se quitan `email`, `firstName`, `lastName`, `lawyerId`, `deletedAt` y `lastLoginAt`. Se agrega `employee_id`. El bloqueo no se guarda en el usuario: vive en `login_attempt`. | D-19: nombre y apellido salen del empleado. D-27: el último acceso se calcula a partir de las sesiones. La baja es `is_active`, como en el resto del sistema. |
 | `RefreshToken` (`refresh_tokens`) | **Se reutiliza** como `refresh_token`. `family_id` pasa a ser `session_id`, una FK a `user_session`. Se quitan `user_id` y `expires_at`. | La "familia" de rotación es la sesión del servidor que pide el contrato (D-04). El vencimiento es de la sesión, porque la rotación no lo extiende (D-44): repetirlo en cada token rompe la tercera forma normal. Lo mismo `user_id`, que se obtiene de la sesión. |
-| `Role`, `Permission`, `UserRole`, `RolePermission` | **Solo se toma la idea de `UserRole`**, con el rol como enum. | RN44: los roles son un catálogo cerrado y no se administran. ADR-005: RBAC por rol, sin permisos granulares. Un enum impide guardar un rol que el código no conoce, y en PostgreSQL su orden es el de declaración, que da gratis "los roles en el orden del prototipo" (§2 del contrato). |
-| `LoginAttempt` | **No se reutiliza.** | En VZ se cuentan también usuarios inexistentes y el bloqueo dura un tiempo. En Tornería solo cuentan los fallos de usuarios existentes y activos, y el bloqueo es permanente hasta que lo levanta el Administrador (D-06, D-49): es estado del usuario. |
+| `Role`, `Permission`, `UserRole`, `RolePermission` | **Se reutilizan** como `role`, `permission`, `user_role` y `role_permission`. | Revisión posterior a la primera versión del schema, que usaba un enum. Los permisos se asignan a roles en tablas, y el usuario hereda la unión de los de sus roles (docs/dominio/07-matriz-rbac.md). El catálogo de roles sigue siendo cerrado (RN44) y se siembra en la migración. `role.sort_order` conserva el orden del prototipo (§2 del contrato). |
+| `LoginAttempt` | **Se reutiliza** como `login_attempt`, sin FK a `app_user`. | Revisión posterior a la primera versión del schema, que guardaba `failed_login_attempts` y `blocked_at` en el usuario. Como en VZ, se cuentan también los usernames inexistentes (así la respuesta no revela si el usuario existe) y el bloqueo es **temporal y progresivo**: `locked_until` vence solo. |
 
 ---
 
@@ -90,7 +90,11 @@ Lo que está bien resuelto y se mantiene:
 | ----- | -------- | --------------- |
 | `employee` | Personal de la empresa, con o sin usuario | CU-45, CU-47, D-14 a D-18 |
 | `app_user` | Cuenta de acceso de un empleado | CU-05, CU-07, CU-53, D-19 a D-28 |
+| `role` | Catálogo cerrado de roles | RN44, D-11 |
+| `permission` | Catálogo de permisos (`recurso:accion`) | RNF09 |
+| `role_permission` | Permisos de cada rol | RNF09, docs/dominio/07-matriz-rbac.md |
 | `user_role` | Roles de cada usuario (1..*) | RN44, D-11 |
+| `login_attempt` | Intentos fallidos de ingreso y bloqueo temporal | CU-53, RNF08, D-06 |
 | `user_session` | Sesión del servidor: inicio, actividad, vencimiento y cierre | CU-52, CU-53, RNF08, D-04, D-44, D-46 |
 | `refresh_token` | Cadena de rotación de refresh tokens de cada sesión | D-45, D-47 |
 | `process_type` | Catálogo de tipos de proceso con su precio hora | CU-09, CU-10, CU-11, RN16 a RN18, D-29, D-34 |
@@ -104,18 +108,6 @@ Lo que está bien resuelto y se mantiene:
 // ─────────────────────────────────────────────────────────────
 // Enums
 // ─────────────────────────────────────────────────────────────
-
-/// Orden de declaración = orden del prototipo (PostgreSQL ordena los enums así).
-enum Role {
-  JT
-  ERP
-  EC
-  ER
-  AT
-  AS
-
-  @@map("role_enum")
-}
 
 enum EmployeePosition {
   ADMINISTRATION
@@ -166,21 +158,18 @@ model Employee {
 }
 
 model User {
-  id                  Int       @id @default(autoincrement())
+  id              Int      @id @default(autoincrement())
   /// Máximo un usuario por empleado, incluidos los dados de baja (D-20).
-  employeeId          Int       @unique @map("employee_id")
+  employeeId      Int      @unique @map("employee_id")
   /// Se guarda en minúsculas (CHECK): único sin distinguir mayúsculas,
   /// incluidos los dados de baja (D-22).
-  username            String    @unique @db.VarChar(30)
+  username        String   @unique @db.VarChar(30)
   /// bcrypt (RNF08). Nunca se devuelve.
-  passwordHash        String    @map("password_hash") @db.VarChar(255)
-  failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
-  /// NULL = no bloqueado. Se desbloquea en CU-06 (D-49).
-  blockedAt           DateTime? @map("blocked_at") @db.Timestamptz(6)
-  isActive            Boolean   @default(true) @map("is_active")
-  createdByUserId     Int?      @map("created_by_user_id")
-  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt           DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  passwordHash    String   @map("password_hash") @db.VarChar(255)
+  isActive        Boolean  @default(true) @map("is_active")
+  createdByUserId Int?     @map("created_by_user_id")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   employee  Employee      @relation("UserEmployee", fields: [employeeId], references: [id], onDelete: Restrict)
   createdBy User?         @relation("UserCreatedBy", fields: [createdByUserId], references: [id], onDelete: Restrict)
@@ -196,18 +185,71 @@ model User {
   @@map("app_user")
 }
 
+/// Catálogo cerrado, sembrado en la migración. `sortOrder` = orden del prototipo.
+model Role {
+  id        Int      @id @default(autoincrement())
+  /// Código que viaja en la API: JT, ERP, EC, ER, AT, AS.
+  code      String   @unique @db.VarChar(10)
+  name      String   @db.VarChar(60)
+  sortOrder Int      @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@map("role")
+}
+
+/// Formato `recurso:accion` (ej. `supplier:manage`).
+model Permission {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(60)
+  description String?  @db.VarChar(200)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  roles RolePermission[]
+
+  @@map("permission")
+}
+
+model RolePermission {
+  roleId       Int @map("role_id")
+  permissionId Int @map("permission_id")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+  @@map("role_permission")
+}
+
 model UserRole {
   userId     Int      @map("user_id")
-  role       Role
+  roleId     Int      @map("role_id")
   assignedAt DateTime @default(now()) @map("assigned_at") @db.Timestamptz(6)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
 
   /// La PK compuesta impide repetir un rol.
-  @@id([userId, role])
+  @@id([userId, roleId])
   /// Filtro GET /users?role=
-  @@index([role])
+  @@index([roleId])
   @@map("user_role")
+}
+
+/// Sin FK a `app_user`: también cuenta usernames inexistentes.
+/// `identifier` es `u:<username>` o `u:<username>|ip:<ip>`.
+model LoginAttempt {
+  identifier          String    @id @db.VarChar(120)
+  consecutiveFailures Int       @default(0) @map("consecutive_failures")
+  lastFailedAt        DateTime  @map("last_failed_at") @db.Timestamptz(6)
+  /// NULL = sin bloqueo vigente.
+  lockedUntil         DateTime? @map("locked_until") @db.Timestamptz(6)
+
+  @@index([lastFailedAt])
+  @@map("login_attempt")
 }
 
 model UserSession {
@@ -359,10 +401,12 @@ model ExchangeRate {
   `lower(username)`: la unicidad queda visible para Prisma (sin deriva de schema
   y con `findUnique`). Es el criterio que VZ aplica a `email`.
 - **El estado (`UserStatus`) no se guarda: se calcula** (D-26): `INACTIVE` si
-  `is_active = false` (o el empleado está inactivo); si no, `BLOCKED` si
-  `blocked_at IS NOT NULL`; si no, `ACTIVE`. Guardarlo duplicaría información que
-  ya está en otras columnas y podría quedar inconsistente.
-- `blocked_at` y no un booleano: registra cuándo se bloqueó, sin costo extra.
+  `is_active = false` (o el empleado está inactivo); si no, `BLOCKED` si su fila
+  de `login_attempt` (`u:<username>`) tiene `locked_until > now()`; si no,
+  `ACTIVE`. Guardarlo duplicaría información que ya está en otras columnas y
+  podría quedar inconsistente.
+- El bloqueo es temporal: vence solo cuando pasa `locked_until`. No hay estado
+  que limpiar ni columna en el usuario.
 
 **`user_session` y `refresh_token`**
 
@@ -424,7 +468,10 @@ model ExchangeRate {
 | `employee` | `UNIQUE (dni)` | `schema.prisma` | D-15 |
 | `app_user` | `UNIQUE (employee_id)` | `schema.prisma` | D-20 |
 | `app_user` | `UNIQUE (username)` | `schema.prisma` | D-22 |
-| `user_role` | `PRIMARY KEY (user_id, role)` | `schema.prisma` | Sin roles repetidos |
+| `role` | `UNIQUE (code)` | `schema.prisma` | Un solo registro por rol |
+| `permission` | `UNIQUE (code)` | `schema.prisma` | Un solo registro por permiso |
+| `role_permission` | `PRIMARY KEY (role_id, permission_id)` | `schema.prisma` | Sin permisos repetidos en un rol |
+| `user_role` | `PRIMARY KEY (user_id, role_id)` | `schema.prisma` | Sin roles repetidos |
 | `refresh_token` | `UNIQUE (token_hash)`, `UNIQUE (replaced_by)` | `schema.prisma` | Búsqueda por hash; cadena lineal |
 | `refresh_token` | `UNIQUE (session_id) WHERE revoked_at IS NULL` | SQL manual | Un único token vigente por sesión |
 | `process_type` | `UNIQUE (name_key)` | `schema.prisma` | D-34 |
@@ -440,7 +487,6 @@ model ExchangeRate {
 | `employee` | `ck_employee_optional_trimmed` | `address IS NULL OR (address = btrim(address) AND address <> '')`, ídem `email` y `phone` (el contrato guarda `""` como `NULL`) |
 | `employee` | `ck_employee_email_format` | `email IS NULL OR email ~ '^[^@\s]+@[^@\s]+\.[^@\s]+$'` (control mínimo; la validación completa es del DTO) |
 | `app_user` | `ck_app_user_username_lower` | `username = lower(btrim(username)) AND username <> ''` |
-| `app_user` | `ck_app_user_failed_attempts` | `failed_login_attempts >= 0` |
 | `user_session` | `ck_user_session_expires_after_start` | `expires_at > started_at` |
 | `user_session` | `ck_user_session_activity_after_start` | `last_activity_at >= started_at` |
 | `user_session` | `ck_user_session_end_complete` | `(ended_at IS NULL) = (end_reason IS NULL)` |
@@ -467,6 +513,9 @@ parciales del Sprint 1.
 | ----- | ----- | ----------- | ------ |
 | `app_user.employee_id` | `employee` | `RESTRICT` | Baja lógica: un borrado físico no debería ocurrir |
 | `user_role.user_id` | `app_user` | `CASCADE` | El rol no existe sin su usuario |
+| `user_role.role_id` | `role` | `RESTRICT` | Un rol asignado no se borra |
+| `role_permission.role_id` | `role` | `CASCADE` | El permiso asignado no existe sin su rol |
+| `role_permission.permission_id` | `permission` | `CASCADE` | Idem, sin su permiso |
 | `user_session.user_id` | `app_user` | `RESTRICT` | Las sesiones son el registro de accesos del usuario |
 | `refresh_token.session_id` | `user_session` | `CASCADE` | La limpieza de sesiones viejas arrastra sus tokens |
 | `refresh_token.replaced_by` | `refresh_token` | `SET NULL` | Borrar un token no invalida al anterior |
@@ -479,7 +528,9 @@ parciales del Sprint 1.
 | Tabla | Índice | Consulta que sirve |
 | ----- | ------ | ------------------ |
 | `employee` | `(last_name, first_name)` | Orden de `GET /employees` |
-| `user_role` | `(role)` | `GET /users?role=` |
+| `user_role` | `(role_id)` | `GET /users?role=` |
+| `role_permission` | `(permission_id)` | Roles que tienen un permiso |
+| `login_attempt` | `(last_failed_at)` | Limpieza periódica de contadores viejos |
 | `user_session` | `(user_id, started_at DESC)` | `lastAccessAt` |
 | `user_session` | `(expires_at)` | Limpieza periódica |
 | `refresh_token` | `(session_id)` | Tokens de una sesión |
@@ -557,22 +608,28 @@ dónde se ejecuta y qué la protege de la concurrencia.
 
 ### 7.2 Inicio de sesión y bloqueo (RNF08, D-06)
 
-- El intento fallido se registra con **un solo `UPDATE`** que incrementa y
-  bloquea a la vez:
+- El intento fallido se registra con **un solo upsert** sobre `login_attempt`
+  que incrementa el contador y fija el bloqueo a la vez. La política que calcula
+  `locked_until` (umbral, ventana y escala de bloqueo) es configuración de la
+  aplicación y está **por definir**:
 
   ```sql
-  UPDATE app_user
-     SET failed_login_attempts = failed_login_attempts + 1,
-         blocked_at = CASE WHEN failed_login_attempts + 1 >= 5 THEN now() END
-   WHERE id = $1 AND blocked_at IS NULL AND is_active
-  RETURNING failed_login_attempts, blocked_at;
+  INSERT INTO login_attempt (identifier, consecutive_failures, last_failed_at)
+  VALUES ($1, 1, now())
+  ON CONFLICT (identifier) DO UPDATE
+     SET consecutive_failures = login_attempt.consecutive_failures + 1,
+         last_failed_at = now(),
+         locked_until = $2   -- calculado por la política de bloqueo
+  RETURNING consecutive_failures, locked_until;
   ```
 
   Leer el contador, calcular y escribir en pasos separados produce un *lost
-  update* en `READ COMMITTED`: dos intentos simultáneos leen 4 y ninguno
-  bloquea. El `UPDATE` toma el lock de la fila y serializa los intentos.
-- Ingreso correcto: en una transacción, `failed_login_attempts = 0` e
-  `INSERT` de la sesión con su primer refresh token.
+  update* en `READ COMMITTED`: dos intentos simultáneos leen el mismo valor y
+  cuentan uno solo. El upsert toma el lock de la fila y serializa los intentos.
+- Los intentos se cuentan también para usernames inexistentes, para que la
+  respuesta no revele si el usuario existe.
+- Ingreso correcto: en una transacción, se borra (o reinicia) la fila de
+  `login_attempt` e `INSERT` de la sesión con su primer refresh token.
 
 ### 7.3 Sesión en cada petición (D-04, D-46)
 
@@ -581,7 +638,7 @@ dónde se ejecuta y qué la protege de la concurrencia.
   - `ended_at IS NULL`;
   - `expires_at > now()`;
   - `last_activity_at > now() - 30 minutos`;
-  - usuario activo y no bloqueado.
+  - usuario activo y no bloqueado (`login_attempt.locked_until`).
 - **Bloqueos y bajas se evalúan al leer.** Si el usuario quedó bloqueado o
   inactivo, la petición siguiente responde `401` sin haber cerrado antes sus
   sesiones.

@@ -1,7 +1,13 @@
 // Seed de datos de demo para desarrollo: 5 rubros, 5 proveedores y 8 fabricas
-// con 1 a 3 encargados cada una. Idempotente: se puede ejecutar varias veces.
+// con 1 a 3 encargados cada una, y un usuario por rol (admin, recepcion,
+// cotizacion, tecnico, taller, reportes) y un superadmin con todos los roles,
+// para probar la sesion y los permisos.
+// Idempotente: se puede ejecutar varias veces.
 //
 //   npx prisma db seed        (o `make seed`)
+//
+// Cada usuario tiene su contrasenia fija en DEV_USERS (se guarda solo el hash).
+// Son publicas: sirven unicamente en bases de desarrollo descartables.
 import 'dotenv/config';
 import Module from 'node:module';
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -22,6 +28,11 @@ const resolveFilename = (Module as any)._resolveFilename;
 const { PrismaClient } = require('../src/generated/prisma/client') as typeof import('../src/generated/prisma/client');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { SupplierType } = require('../src/generated/prisma/enums') as typeof import('../src/generated/prisma/enums');
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { seedDevUsers } = require('../src/subsystems/identity/infrastructure/bootstrap/dev-users.seed') as typeof import('../src/subsystems/identity/infrastructure/bootstrap/dev-users.seed');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { BcryptPasswordHasher, DEFAULT_BCRYPT_COST } = require('../src/subsystems/identity/infrastructure/external/bcrypt-password-hasher') as typeof import('../src/subsystems/identity/infrastructure/external/bcrypt-password-hasher');
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }) });
 
@@ -228,6 +239,19 @@ async function main(): Promise<void> {
   console.log(
     `Seed OK -> rubros: ${categories}, proveedores: ${suppliers}, fabricas: ${factories}, ` +
       `encargados: ${customers} (nuevos en esta corrida: ${managersCreated})`,
+  );
+
+  await seedUsers();
+}
+
+/** Un usuario por rol. Ver `DEV_USERS` para los nombres de usuario. */
+async function seedUsers(): Promise<void> {
+  const hasher = new BcryptPasswordHasher(Number(process.env.BCRYPT_COST ?? DEFAULT_BCRYPT_COST));
+
+  const { created, existing } = await seedDevUsers(prisma, hasher);
+
+  console.log(
+    `Usuarios de desarrollo -> creados: ${created.join(', ') || '(ninguno)'}; ya existian: ${existing.join(', ') || '(ninguno)'}`,
   );
 }
 

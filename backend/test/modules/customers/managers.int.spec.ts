@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
 
 import { startTestApp, stopTestApp, getPrisma } from '../../shared/harness/test-app';
+import { Api, signInAs } from '../../shared/harness/auth';
 import { expectData, expectError, expectNoContent } from '../../shared/contract/envelopes';
 import { createFactory } from '../../shared/factories/factory.factory';
 import { aManagerBody, createManager } from '../../shared/factories/manager.factory';
@@ -9,9 +9,11 @@ import { aManagerBody, createManager } from '../../shared/factories/manager.fact
 // Contrato: docs/openapi/paths/factories@{factoryId}@managers*.yaml (CU-01..04).
 describe('Managers', () => {
   let app: INestApplication;
+  let api: Api;
 
   beforeAll(async () => {
     app = await startTestApp();
+    api = await signInAs(app, 'ERP');
   });
 
   afterAll(async () => {
@@ -29,7 +31,7 @@ describe('Managers', () => {
       const factory = await createFactory();
       const body = aManagerBody();
 
-      const res = await request(app.getHttpServer()).post(`/factories/${factory.id}/managers`).send(body);
+      const res = await api.post(`/factories/${factory.id}/managers`).send(body);
 
       const manager = expectData(res, 201);
       expect(manager).toMatchObject({
@@ -49,7 +51,7 @@ describe('Managers', () => {
     it('rechaza un mail con formato inválido y no guarda nada', async () => {
       const factory = await createFactory();
 
-      const res = await request(app.getHttpServer())
+      const res = await api
         .post(`/factories/${factory.id}/managers`)
         .send(aManagerBody({ mail: 'no-es-un-mail' }));
 
@@ -60,7 +62,7 @@ describe('Managers', () => {
     it('rechaza un encargado sin mail ni teléfono y no guarda nada', async () => {
       const factory = await createFactory();
 
-      const res = await request(app.getHttpServer())
+      const res = await api
         .post(`/factories/${factory.id}/managers`)
         .send(aManagerBody({ mail: null, phone: null }));
 
@@ -71,7 +73,7 @@ describe('Managers', () => {
     it('rechaza un encargado sin nombre y no guarda nada', async () => {
       const factory = await createFactory();
 
-      const res = await request(app.getHttpServer())
+      const res = await api
         .post(`/factories/${factory.id}/managers`)
         .send(aManagerBody({ firstName: '' }));
 
@@ -82,7 +84,7 @@ describe('Managers', () => {
     it('rechaza un mail ya registrado en la misma fábrica', async () => {
       const existing = await createManager();
 
-      const res = await request(app.getHttpServer())
+      const res = await api
         .post(`/factories/${existing.factoryId}/managers`)
         .send(aManagerBody({ mail: existing.mail! }));
 
@@ -91,7 +93,7 @@ describe('Managers', () => {
     });
 
     it('responde 404 si la fábrica no existe y no guarda nada', async () => {
-      const res = await request(app.getHttpServer()).post('/factories/999999/managers').send(aManagerBody());
+      const res = await api.post('/factories/999999/managers').send(aManagerBody());
 
       expectError(res, 404, 'Not Found');
       expect(await getPrisma().customer.count()).toBe(0);
@@ -103,7 +105,7 @@ describe('Managers', () => {
       await createManager();
       await createManager();
 
-      const res = await request(app.getHttpServer()).get('/managers');
+      const res = await api.get('/managers');
 
       expect(res.status).toBe(200);
       expect(res.body.items).toHaveLength(2);
@@ -121,7 +123,7 @@ describe('Managers', () => {
     it('devuelve el encargado', async () => {
       const existing = await createManager();
 
-      const res = await request(app.getHttpServer()).get(`/factories/${existing.factoryId}/managers/${existing.id}`);
+      const res = await api.get(`/factories/${existing.factoryId}/managers/${existing.id}`);
 
       expect(expectData(res, 200)).toMatchObject({
         id: String(existing.id),
@@ -133,7 +135,7 @@ describe('Managers', () => {
     it('responde 404 si no existe', async () => {
       const factory = await createFactory();
 
-      const res = await request(app.getHttpServer()).get(`/factories/${factory.id}/managers/999999`);
+      const res = await api.get(`/factories/${factory.id}/managers/999999`);
 
       expectError(res, 404, 'Not Found');
     });
@@ -143,7 +145,7 @@ describe('Managers', () => {
     it('actualiza el nombre del encargado', async () => {
       const existing = await createManager();
 
-      const res = await request(app.getHttpServer())
+      const res = await api
         .patch(`/factories/${existing.factoryId}/managers/${existing.id}`)
         .send({ firstName: 'Marcela' });
 
@@ -158,7 +160,7 @@ describe('Managers', () => {
       const other = await createManager();
       const existing = await createManager({ factoryId: other.factoryId });
 
-      const res = await request(app.getHttpServer())
+      const res = await api
         .patch(`/factories/${existing.factoryId}/managers/${existing.id}`)
         .send({ mail: other.mail });
 
@@ -172,7 +174,7 @@ describe('Managers', () => {
     it('responde 404 si no existe', async () => {
       const factory = await createFactory();
 
-      const res = await request(app.getHttpServer())
+      const res = await api
         .patch(`/factories/${factory.id}/managers/999999`)
         .send({ firstName: 'X' });
 
@@ -184,7 +186,7 @@ describe('Managers', () => {
     it('da de baja lógica al encargado (204, sin cuerpo)', async () => {
       const existing = await createManager();
 
-      const res = await request(app.getHttpServer()).patch(
+      const res = await api.patch(
         `/factories/${existing.factoryId}/managers/${existing.id}/deactivate`,
       );
 
@@ -199,7 +201,7 @@ describe('Managers', () => {
     it('responde 404 si no existe', async () => {
       const factory = await createFactory();
 
-      const res = await request(app.getHttpServer()).patch(`/factories/${factory.id}/managers/999999/deactivate`);
+      const res = await api.patch(`/factories/${factory.id}/managers/999999/deactivate`);
 
       expectError(res, 404, 'Not Found');
     });

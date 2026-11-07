@@ -1,16 +1,18 @@
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
 
 import { startTestApp, stopTestApp, getPrisma } from '../../shared/harness/test-app';
+import { Api, signInAs } from '../../shared/harness/auth';
 import { expectData, expectError, expectNoContent } from '../../shared/contract/envelopes';
 import { aCategoryBody, createCategory } from '../../shared/factories/category.factory';
 import { createFactory } from '../../shared/factories/factory.factory';
 
 describe('Categories', () => {
   let app: INestApplication;
+  let api: Api;
 
   beforeAll(async () => {
     app = await startTestApp();
+    api = await signInAs(app, 'ERP');
   });
 
   afterAll(async () => {
@@ -27,7 +29,7 @@ describe('Categories', () => {
     it('registra una categoría', async () => {
       const body = aCategoryBody();
 
-      const res = await request(app.getHttpServer()).post('/categories').send(body);
+      const res = await api.post('/categories').send(body);
 
       const category = expectData(res, 201);
       expect(category).toMatchObject({ id: expect.any(Number), name: body.name });
@@ -39,7 +41,7 @@ describe('Categories', () => {
     });
 
     it('rechaza un nombre vacío y no guarda nada', async () => {
-      const res = await request(app.getHttpServer()).post('/categories').send({ name: '' });
+      const res = await api.post('/categories').send({ name: '' });
 
       expectError(res, 400, 'Bad Request', ['name']);
       expect(await getPrisma().category.count()).toBe(0);
@@ -48,7 +50,7 @@ describe('Categories', () => {
     it('rechaza un nombre ya registrado', async () => {
       const existing = await createCategory();
 
-      const res = await request(app.getHttpServer()).post('/categories').send({ name: existing.name });
+      const res = await api.post('/categories').send({ name: existing.name });
 
       expectError(res, 409, 'Conflict');
       expect(await getPrisma().category.count()).toBe(1); // solo la que ya existía
@@ -57,7 +59,7 @@ describe('Categories', () => {
     it('reactiva el rubro dado de baja en vez de crear uno duplicado', async () => {
       const inactive = await createCategory({ isActive: false });
 
-      const res = await request(app.getHttpServer()).post('/categories').send({ name: inactive.name });
+      const res = await api.post('/categories').send({ name: inactive.name });
 
       const category = expectData(res, 201);
       expect(category).toMatchObject({ id: inactive.id, name: inactive.name, active: true });
@@ -73,13 +75,13 @@ describe('Categories', () => {
       await createCategory();
       await createCategory();
 
-      const all = await request(app.getHttpServer()).get('/categories');
+      const all = await api.get('/categories');
       expect(all.status).toBe(200);
       expect(all.body.items).toHaveLength(3);
       expect(all.body.total).toBe(3);
       expect(all.body.items[0]).toMatchObject({ id: expect.any(Number), name: expect.any(String) });
 
-      const page = await request(app.getHttpServer()).get('/categories?page=2&limit=2');
+      const page = await api.get('/categories?page=2&limit=2');
       expect(page.status).toBe(200);
       expect(page.body.items).toHaveLength(1);
       expect(page.body.total).toBe(3);
@@ -91,7 +93,7 @@ describe('Categories', () => {
       const inactive = await createCategory();
       await getPrisma().category.update({ where: { id: inactive.id }, data: { isActive: false } });
 
-      const res = await request(app.getHttpServer()).get('/categories');
+      const res = await api.get('/categories');
 
       expect(res.status).toBe(200);
       expect(res.body.items.map((c: { id: number }) => c.id)).toEqual([active.id]);
@@ -103,7 +105,7 @@ describe('Categories', () => {
       const inactive = await createCategory();
       await getPrisma().category.update({ where: { id: inactive.id }, data: { isActive: false } });
 
-      const res = await request(app.getHttpServer()).get('/categories?active=false');
+      const res = await api.get('/categories?active=false');
 
       expect(res.status).toBe(200);
       expect(res.body.items.map((c: { id: number }) => c.id)).toEqual([inactive.id]);
@@ -112,7 +114,7 @@ describe('Categories', () => {
     });
 
     it('rechaza un limit por encima del máximo', async () => {
-      const res = await request(app.getHttpServer()).get('/categories?limit=1001');
+      const res = await api.get('/categories?limit=1001');
 
       expectError(res, 400, 'Bad Request');
     });
@@ -122,13 +124,13 @@ describe('Categories', () => {
     it('devuelve la categoría', async () => {
       const existing = await createCategory();
 
-      const res = await request(app.getHttpServer()).get(`/categories/${existing.id}`);
+      const res = await api.get(`/categories/${existing.id}`);
 
       expect(expectData(res, 200)).toMatchObject({ id: existing.id, name: existing.name });
     });
 
     it('responde 404 si no existe', async () => {
-      const res = await request(app.getHttpServer()).get('/categories/999999');
+      const res = await api.get('/categories/999999');
 
       expectError(res, 404, 'Not Found');
     });
@@ -139,7 +141,7 @@ describe('Categories', () => {
       const existing = await createCategory();
       const { name } = aCategoryBody();
 
-      const res = await request(app.getHttpServer()).patch(`/categories/${existing.id}`).send({ name });
+      const res = await api.patch(`/categories/${existing.id}`).send({ name });
 
       expect(expectData(res, 200)).toMatchObject({ id: existing.id, name });
       const saved = await getPrisma().category.findUnique({ where: { id: existing.id } });
@@ -147,7 +149,7 @@ describe('Categories', () => {
     });
 
     it('responde 404 si no existe', async () => {
-      const res = await request(app.getHttpServer()).patch('/categories/999999').send(aCategoryBody());
+      const res = await api.patch('/categories/999999').send(aCategoryBody());
 
       expectError(res, 404, 'Not Found');
     });
@@ -158,7 +160,7 @@ describe('Categories', () => {
       const existing = await createCategory();
       await getPrisma().category.update({ where: { id: existing.id }, data: { isActive: false } });
 
-      const res = await request(app.getHttpServer()).post(`/categories/${existing.id}/restore`);
+      const res = await api.post(`/categories/${existing.id}/restore`);
 
       expect(expectData(res, 200)).toMatchObject({ id: existing.id, name: existing.name });
       const saved = await getPrisma().category.findUnique({ where: { id: existing.id } });
@@ -166,7 +168,7 @@ describe('Categories', () => {
     });
 
     it('responde 404 si no existe', async () => {
-      const res = await request(app.getHttpServer()).post('/categories/999999/restore');
+      const res = await api.post('/categories/999999/restore');
 
       expectError(res, 404, 'Not Found');
     });
@@ -176,7 +178,7 @@ describe('Categories', () => {
     it('da de baja lógica la categoría (el registro se conserva)', async () => {
       const existing = await createCategory();
 
-      const res = await request(app.getHttpServer()).delete(`/categories/${existing.id}`);
+      const res = await api.delete(`/categories/${existing.id}`);
 
       expectNoContent(res);
       const saved = await getPrisma().category.findUnique({ where: { id: existing.id } });
@@ -187,14 +189,14 @@ describe('Categories', () => {
     it('responde 409 si tiene fábricas asociadas y no la elimina', async () => {
       const factory = await createFactory();
 
-      const res = await request(app.getHttpServer()).delete(`/categories/${factory.categoryId}`);
+      const res = await api.delete(`/categories/${factory.categoryId}`);
 
       expectError(res, 409, 'Conflict');
       expect(await getPrisma().category.findUnique({ where: { id: factory.categoryId } })).not.toBeNull();
     });
 
     it('responde 404 si no existe', async () => {
-      const res = await request(app.getHttpServer()).delete('/categories/999999');
+      const res = await api.delete('/categories/999999');
 
       expectError(res, 404, 'Not Found');
     });

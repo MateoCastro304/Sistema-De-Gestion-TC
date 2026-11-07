@@ -189,7 +189,7 @@ Es el único lugar que dice qué implementación va en cada puerto, con `{ provi
 | Paginación | `shared/domain/pagination.ts` | Existe, como función suelta (deuda) |
 | Reloj (`ClockPort` y su implementación) | `shared/clock/` | Existe (`now`, `today`, `endOfDay`) |
 | Transacción (`TransactionManagerPort` y cliente de transacción) | `shared/` (dominio e infraestructura) | Existe (`PrismaTransactionManager` y `PrismaClientProvider`) |
-| `AuthenticatedUser` (usuario de la sesión) | `shared/domain/` | Pendiente ([DA-04](#decisiones-pendientes)) |
+| `AuthenticatedUser` (usuario de la sesión) | `shared/domain/` | Existe; lo deja el guard de sesión y se pide con `@CurrentUser()` (`shared/http/auth/`) |
 | `PrismaService`, `PrismaModule` (global) | `shared/infrastructure/prisma/` | Existen |
 | Filtro global de errores y *transforms* HTTP | `shared/http/` | Existen |
 
@@ -512,8 +512,6 @@ Lo que el código implementado no cumple de esta arquitectura. **No se corrige a
 | Baja con `PATCH …/deactivate` | Fábricas y encargados | Baja con `DELETE` ([A-04](../seguimiento/pendientes-actuales.md#a-04--p2--baja-con-delete-en-fábricas-y-encargados)) |
 | Proveedores fuera de `technical-catalog`, en una carpeta en singular | `subsystems/supplier` | [ADR-014](../decisiones/014-subsistemas.md) ([A-05](../seguimiento/pendientes-actuales.md#a-05--p2--mover-supplier-a-technical-catalog)) |
 | Archivos sin la convención de nombres (`category.ts`, `create-category.dto.ts`) | `customers`, `supplier` | Nombres; no se renombran |
-| Sin autenticación ni guards | Todo el backend | [Contrato, §4](../api-contract/API_CONTRACT_SPRINT_2.md) |
-| Autor del cambio de precio por header provisorio `X-User-Id` (guard `ProvisionalAuthorGuard`), hasta que exista la sesión | `technical-catalog/infrastructure/http/guards/` | [Contrato, §4](../api-contract/API_CONTRACT_SPRINT_2.md) y DA-04 |
 | El id de correlación no existe todavía | `shared/` | Registro de actividad |
 
 ---

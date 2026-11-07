@@ -1,0 +1,7 @@
+description: |
+  Segundos que faltan para que termine el bloqueo temporal del ingreso. El
+  cliente no debe volver a intentar antes.
+schema:
+  type: integer
+  minimum: 1
+example: 90

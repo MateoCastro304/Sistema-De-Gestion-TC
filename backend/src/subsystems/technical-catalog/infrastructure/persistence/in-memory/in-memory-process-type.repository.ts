@@ -47,6 +47,7 @@ export class InMemoryProcessTypeRepository extends ProcessTypeRepository {
       hourlyRateArs: processType.getHourlyRateArs().getValue(),
       hourlyRateUsd: processType.getHourlyRateUsd().getValue(),
       exchangeRate: processType.getExchangeRate().getValue(),
+      createdByUserId: processType.getCreatedByUserId(),
       createdAt: now,
       updatedAt: now,
     });

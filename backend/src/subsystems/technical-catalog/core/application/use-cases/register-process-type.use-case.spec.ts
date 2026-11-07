@@ -9,6 +9,7 @@ const input = {
   hourlyRateArs: 1557,
   hourlyRateUsd: 1.13,
   exchangeRate: 1377.88,
+  authorId: 7,
 };
 
 describe('RegisterProcessType', () => {
@@ -20,10 +21,11 @@ describe('RegisterProcessType', () => {
     useCase = new RegisterProcessType(repository);
   });
 
-  it('guarda el tipo de proceso y lo devuelve con su id', async () => {
+  it('guarda el tipo de proceso con su creador y lo devuelve con su id', async () => {
     const created = await useCase.execute(input);
 
     expect(created.getId()).toBe(1);
+    expect(created.getCreatedByUserId()).toBe(7);
     expect(repository.saved).toHaveLength(1);
   });
 
