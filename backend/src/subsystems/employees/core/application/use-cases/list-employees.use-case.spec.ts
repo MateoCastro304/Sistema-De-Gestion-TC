@@ -159,12 +159,21 @@ describe('ListEmployees (use case)', () => {
       expect(lastNames(withoutAccent.items)).toEqual(['Torres']);
     });
 
-    it('requires every word to match, in any field', async () => {
-      const both = await useCase.execute({ ...defaults, search: 'walter castro' });
+    // search_key es "nombre apellido": el texto buscado se compara entero, en ese orden.
+    it('matches the full text against first name followed by last name', async () => {
+      const inOrder = await useCase.execute({ ...defaults, search: 'walter castro' });
+      const reversed = await useCase.execute({ ...defaults, search: 'castro walter' });
       const mismatch = await useCase.execute({ ...defaults, search: 'walter torres' });
 
-      expect(lastNames(both.items)).toEqual(['Castro']);
+      expect(lastNames(inOrder.items)).toEqual(['Castro']);
+      expect(reversed.items).toEqual([]);
       expect(mismatch.items).toEqual([]);
+    });
+
+    it('ignores extra spaces in the search', async () => {
+      const result = await useCase.execute({ ...defaults, search: '  walter    castro ' });
+
+      expect(lastNames(result.items)).toEqual(['Castro']);
     });
 
     it('returns everything when the search is empty', async () => {

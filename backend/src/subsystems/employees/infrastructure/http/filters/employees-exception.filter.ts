@@ -4,7 +4,6 @@ import { DomainError } from '../../../../../shared/domain/errors/domain.error';
 import { EmployeeDniTaken } from '../../../core/domain/errors/employee-dni-taken.error';
 import { EmployeeNotFound } from '../../../core/domain/errors/employee-not-found.error';
 import { EmployeeValidationError } from '../../../core/domain/errors/employee-validation.error';
-import { InvalidEmployeeId } from '../../../core/domain/errors/invalid-employee-id.error';
 
 type FieldError = { field: string; message: string };
 
@@ -49,16 +48,6 @@ export class EmployeesExceptionFilter implements ExceptionFilter {
         code: 'VALIDATION_ERROR',
         message: exception.message,
         details: exception.details,
-      };
-    }
-
-    if (exception instanceof InvalidEmployeeId) {
-      return {
-        status: HttpStatus.BAD_REQUEST,
-        error: 'Bad Request',
-        code: 'INVALID_PATH_PARAMETER',
-        message: exception.message,
-        details: [{ field: 'employeeId', message: 'Debe ser un número entero válido.' }],
       };
     }
 

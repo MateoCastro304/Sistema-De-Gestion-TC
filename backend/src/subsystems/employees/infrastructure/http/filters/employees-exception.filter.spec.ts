@@ -3,7 +3,6 @@ import { DomainError } from '../../../../../shared/domain/errors/domain.error';
 import { EmployeeDniTaken } from '../../../core/domain/errors/employee-dni-taken.error';
 import { EmployeeNotFound } from '../../../core/domain/errors/employee-not-found.error';
 import { EmployeeValidationError } from '../../../core/domain/errors/employee-validation.error';
-import { InvalidEmployeeId } from '../../../core/domain/errors/invalid-employee-id.error';
 import { EmployeesExceptionFilter } from './employees-exception.filter';
 
 class UnmappedError extends DomainError {}
@@ -37,18 +36,6 @@ describe('EmployeesExceptionFilter', () => {
       message: 'Los datos enviados no son válidos.',
       path: '/api/employees',
       details,
-    });
-  });
-
-  it('maps InvalidEmployeeId to 400 INVALID_PATH_PARAMETER', () => {
-    const { status, body } = run(new InvalidEmployeeId(), '/api/employees/abc');
-
-    expect(status).toBe(400);
-    expect(body).toMatchObject({
-      code: 'INVALID_PATH_PARAMETER',
-      message: 'El identificador del empleado no es válido.',
-      path: '/api/employees/abc',
-      details: [{ field: 'employeeId', message: 'Debe ser un número entero válido.' }],
     });
   });
 
