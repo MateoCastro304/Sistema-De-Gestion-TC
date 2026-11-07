@@ -1,6 +1,6 @@
 import { CreateEmployee } from './create-employee.use-case';
 import { InMemoryEmployeeRepository } from '../../../infrastructure/persistence/in-memory/in-memory-employee.repository';
-import { Employee } from '../../domain/entities/employee';
+import { Employee } from '../../domain/entities/employee.entity';
 import { EmployeeDniTaken } from '../../domain/errors/employee-dni-taken.error';
 import { EmployeeValidationError } from '../../domain/errors/employee-validation.error';
 
@@ -11,9 +11,12 @@ const validInput = () => ({
   position: 'EMPLOYEE',
 });
 
+const AUTHOR_ID = 1;
+
 describe('CreateEmployee (use case)', () => {
   let repo: InMemoryEmployeeRepository;
   let useCase: CreateEmployee;
+  const create = (input: Parameters<CreateEmployee['execute']>[0]) => useCase.execute(input, AUTHOR_ID);
 
   beforeEach(() => {
     repo = new InMemoryEmployeeRepository();
@@ -25,7 +28,7 @@ describe('CreateEmployee (use case)', () => {
   // ---------------------------------------------------------------------------
   describe('happy path', () => {
     it('persists an employee with only the required fields', async () => {
-      const result = await useCase.execute(validInput());
+      const result = await create(validInput());
 
       expect(result.getId()).not.toBeNull();
       expect(result.getFirstName()).toBe('Julián');
@@ -38,7 +41,7 @@ describe('CreateEmployee (use case)', () => {
     });
 
     it('persists an employee with every optional field', async () => {
-      const result = await useCase.execute({
+      const result = await create({
         ...validInput(),
         address: 'Av. Colón 1820, Córdoba',
         email: 'jferreyra@castrotorneria.com.ar',
@@ -50,18 +53,24 @@ describe('CreateEmployee (use case)', () => {
       expect(result.getPhone()).toBe('+54 351 555-1013');
     });
 
+    it('records who registered the employee (D-43)', async () => {
+      const result = await create(validInput());
+
+      expect(result.getCreatedByUserId()).toBe(AUTHOR_ID);
+    });
+
     it('assigns a different id to each employee', async () => {
-      const first = await useCase.execute(validInput());
-      const second = await useCase.execute({ ...validInput(), dni: '41234567' });
+      const first = await create(validInput());
+      const second = await create({ ...validInput(), dni: '41234567' });
 
       expect(second.getId()).not.toBe(first.getId());
       expect(repo.count()).toBe(2);
     });
 
     it('does not warn about homonyms: same name with another dni is accepted (D-18)', async () => {
-      await useCase.execute(validInput());
+      await create(validInput());
 
-      const homonym = await useCase.execute({ ...validInput(), dni: '41234567' });
+      const homonym = await create({ ...validInput(), dni: '41234567' });
 
       expect(homonym.getId()).not.toBeNull();
       expect(repo.count()).toBe(2);
@@ -73,9 +82,9 @@ describe('CreateEmployee (use case)', () => {
   // ---------------------------------------------------------------------------
   describe('uniqueness', () => {
     it('rejects a duplicate dni with EmployeeDniTaken', async () => {
-      await useCase.execute(validInput());
+      await create(validInput());
 
-      const call = useCase.execute({ ...validInput(), firstName: 'Otro', lastName: 'Empleado' });
+      const call = create({ ...validInput(), firstName: 'Otro', lastName: 'Empleado' });
 
       await expect(call).rejects.toBeInstanceOf(EmployeeDniTaken);
       await expect(call).rejects.toMatchObject({ dni: '42345678' });
@@ -83,9 +92,9 @@ describe('CreateEmployee (use case)', () => {
     });
 
     it('detects a duplicate dni after trimming the incoming value', async () => {
-      await useCase.execute(validInput());
+      await create(validInput());
 
-      const call = useCase.execute({ ...validInput(), dni: ' 42345678 ' });
+      const call = create({ ...validInput(), dni: ' 42345678 ' });
 
       await expect(call).rejects.toBeInstanceOf(EmployeeDniTaken);
       expect(repo.count()).toBe(1);
@@ -95,7 +104,7 @@ describe('CreateEmployee (use case)', () => {
     it('rejects the dni of an inactive employee', async () => {
       repo.seedInactive(Employee.create(validInput()));
 
-      const call = useCase.execute(validInput());
+      const call = create(validInput());
 
       await expect(call).rejects.toBeInstanceOf(EmployeeDniTaken);
       expect(repo.count()).toBe(1);
@@ -107,7 +116,7 @@ describe('CreateEmployee (use case)', () => {
   // ---------------------------------------------------------------------------
   describe('domain validation propagates', () => {
     it('rejects missing required fields without touching the repository', async () => {
-      const call = useCase.execute({ firstName: '', lastName: '', dni: '', position: undefined });
+      const call = create({ firstName: '', lastName: '', dni: '', position: undefined });
 
       await expect(call).rejects.toBeInstanceOf(EmployeeValidationError);
       await expect(call).rejects.toMatchObject({
@@ -122,19 +131,19 @@ describe('CreateEmployee (use case)', () => {
     });
 
     it('rejects a malformed dni', async () => {
-      await expect(useCase.execute({ ...validInput(), dni: '123' })).rejects.toBeInstanceOf(EmployeeValidationError);
+      await expect(create({ ...validInput(), dni: '123' })).rejects.toBeInstanceOf(EmployeeValidationError);
       expect(repo.count()).toBe(0);
     });
 
     it('rejects an invalid email', async () => {
-      await expect(useCase.execute({ ...validInput(), email: 'nope' })).rejects.toBeInstanceOf(EmployeeValidationError);
+      await expect(create({ ...validInput(), email: 'nope' })).rejects.toBeInstanceOf(EmployeeValidationError);
       expect(repo.count()).toBe(0);
     });
 
     it('validates before checking uniqueness: an invalid dni is a 400, not a 409', async () => {
-      await useCase.execute(validInput());
+      await create(validInput());
 
-      const call = useCase.execute({ ...validInput(), dni: '4234567x' });
+      const call = create({ ...validInput(), dni: '4234567x' });
 
       await expect(call).rejects.toBeInstanceOf(EmployeeValidationError);
     });

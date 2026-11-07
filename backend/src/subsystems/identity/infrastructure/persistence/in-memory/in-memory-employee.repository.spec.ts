@@ -1,4 +1,4 @@
-import { Employee } from '../../../core/domain/entities/employee';
+import { Employee } from '../../../core/domain/entities/employee.entity';
 import { InMemoryEmployeeRepository } from './in-memory-employee.repository';
 
 describe('InMemoryEmployeeRepository.findByIds', () => {

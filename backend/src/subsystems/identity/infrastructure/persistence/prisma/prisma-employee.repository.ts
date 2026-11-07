@@ -1,27 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../../../../generated/prisma/client';
+import { ClockPort } from '../../../../../shared/clock/clock.port';
 import { TextKey } from '../../../../../shared/domain/text-key';
-import { computeUserStatus } from '../../../../../shared/domain/user-status';
+import { PrismaClientProvider } from '../../../../../shared/infrastructure/prisma/prisma-client.provider';
 import { PrismaService } from '../../../../../shared/infrastructure/prisma/prisma.service';
-import { Employee } from '../../../core/domain/entities/employee';
+import { Employee } from '../../../core/domain/entities/employee.entity';
 import { EmployeeDniTaken } from '../../../core/domain/errors/employee-dni-taken.error';
+import { loginAttemptKey } from '../../../core/domain/login-attempt-key';
 import {
   EmployeeListParams,
   EmployeeListResult,
   EmployeeRepository,
 } from '../../../core/domain/ports/employee.repository';
-import { EMPLOYEE_POSITIONS, EMPLOYEE_POSITION_LABELS } from '../../../core/domain/value-objects/employee-position';
+import { EMPLOYEE_POSITIONS, EMPLOYEE_POSITION_LABELS } from '../../../core/domain/value-objects/employee-position.vo';
+import { UserStatusResolver } from '../../../core/domain/value-objects/user-status.vo';
 
 // Solo los datos del usuario que forman el resumen `user`. Nunca el hash de la contraseña.
-// Los roles salen en el orden del enum (el de la tabla `Role` del contrato).
+// Los roles salen en el orden del prototipo (`role.sort_order`).
 const USER_SUMMARY = {
   user: {
     select: {
       id: true,
       username: true,
       isActive: true,
-      blockedAt: true,
-      roles: { select: { role: true }, orderBy: { role: 'asc' } },
+      roles: { select: { role: { select: { code: true } } }, orderBy: { role: { sortOrder: 'asc' } } },
     },
   },
 } satisfies Prisma.EmployeeInclude;
@@ -34,26 +36,37 @@ type EmployeeRow = Prisma.EmployeeGetPayload<{ include: typeof USER_SUMMARY }>;
  * La búsqueda sigue el diseño de la base (docs/database/cambios-bdd-sprint2.md §10):
  * `search_key` guarda nombre y apellido normalizados, la aplicación lo calcula al
  * escribir y normaliza el texto buscado con el mismo TextKey.
+ *
+ * El resumen `user` de cada empleado trae su estado. `BLOCKED` no está en la fila
+ * del usuario: sale de `login_attempt` (un bloqueo vigente sobre `u:<username>`),
+ * así que se consulta aparte, una vez por página y no una por empleado.
  */
 @Injectable()
-export class EmployeePrismaRepository implements EmployeeRepository {
-  constructor(private readonly prisma: PrismaService) {}
+export class PrismaEmployeeRepository implements EmployeeRepository {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly clients: PrismaClientProvider,
+    private readonly clock: ClockPort,
+  ) {}
 
   async findById(id: number): Promise<Employee | null> {
-    const row = await this.prisma.employee.findUnique({ where: { id }, include: USER_SUMMARY });
-    return row ? this.toDomain(row) : null;
+    const row = await this.clients.current().employee.findUnique({ where: { id }, include: USER_SUMMARY });
+    return row ? (await this.toDomain([row]))[0] : null;
   }
 
   async findByIds(ids: number[]): Promise<Employee[]> {
     const unique = [...new Set(ids)];
     if (unique.length === 0) return [];
 
-    const rows = await this.prisma.employee.findMany({ where: { id: { in: unique } }, include: USER_SUMMARY });
-    return rows.map((row) => this.toDomain(row));
+    const rows = await this.clients.current().employee.findMany({
+      where: { id: { in: unique } },
+      include: USER_SUMMARY,
+    });
+    return this.toDomain(rows);
   }
 
   async existsByDni(dni: string): Promise<boolean> {
-    const count = await this.prisma.employee.count({ where: { dni } });
+    const count = await this.clients.current().employee.count({ where: { dni } });
     return count > 0;
   }
 
@@ -61,10 +74,11 @@ export class EmployeePrismaRepository implements EmployeeRepository {
     const where: Prisma.EmployeeWhereInput = {
       ...(params.includeInactive ? {} : { isActive: true }),
       ...(params.hasUser === undefined ? {} : { user: params.hasUser ? { isNot: null } : { is: null } }),
-      ...EmployeePrismaRepository.searchFilter(params.search),
+      ...PrismaEmployeeRepository.searchFilter(params.search),
     };
 
-    // Una sola transacción: la página y el total salen del mismo estado de la base.
+    // La forma por lotes de $transaction no existe en el cliente transaccional: es una lectura
+    // de consulta, así que usa el cliente base. La página y el total salen del mismo estado.
     const [rows, total] = await this.prisma.$transaction([
       this.prisma.employee.findMany({
         where,
@@ -76,12 +90,12 @@ export class EmployeePrismaRepository implements EmployeeRepository {
       this.prisma.employee.count({ where }),
     ]);
 
-    return { items: rows.map((row) => this.toDomain(row)), total };
+    return { items: await this.toDomain(rows), total };
   }
 
   async save(employee: Employee): Promise<Employee> {
     try {
-      const row = await this.prisma.employee.create({
+      const row = await this.clients.current().employee.create({
         data: {
           firstName: employee.getFirstName(),
           lastName: employee.getLastName(),
@@ -93,10 +107,11 @@ export class EmployeePrismaRepository implements EmployeeRepository {
           // Columna normalizada que calcula la aplicación (la base no puede quitar acentos).
           searchKey: TextKey.create(`${employee.getFirstName()} ${employee.getLastName()}`).getValue(),
           isActive: employee.isActive(),
+          createdByUserId: employee.getCreatedByUserId(),
         },
         include: USER_SUMMARY,
       });
-      return this.toDomain(row);
+      return (await this.toDomain([row]))[0];
     } catch (error) {
       // Entre existsByDni y este INSERT hay una ventana: dos altas simultáneas con el
       // mismo DNI pasan el chequeo y una la rechaza la base. La única restricción
@@ -130,31 +145,49 @@ export class EmployeePrismaRepository implements EmployeeRepository {
     };
   }
 
-  private toDomain(row: EmployeeRow): Employee {
-    return Employee.reconstruct({
-      id: row.id,
-      firstName: row.firstName,
-      lastName: row.lastName,
-      dni: row.dni,
-      position: row.position,
-      address: row.address,
-      email: row.email,
-      phone: row.phone,
-      active: row.isActive,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-      user: row.user
-        ? {
-            id: row.user.id,
-            username: row.user.username,
-            roles: row.user.roles.map((r) => r.role),
-            // D-26: un usuario cuyo empleado está dado de baja también es INACTIVE.
-            status: computeUserStatus({
-              active: row.user.isActive && row.isActive,
-              blocked: row.user.blockedAt !== null,
-            }),
-          }
-        : null,
+  /** Usernames con un bloqueo de ingreso vigente, de todos los que se pidan en una sola consulta. */
+  private async lockedUsernames(usernames: string[]): Promise<Set<string>> {
+    if (usernames.length === 0) return new Set();
+
+    const keyOf = (username: string) => loginAttemptKey('username', { username, ip: '' });
+    const locked = await this.clients.current().loginAttempt.findMany({
+      where: { identifier: { in: usernames.map(keyOf) }, lockedUntil: { gt: this.clock.now() } },
+      select: { identifier: true },
     });
+    const lockedKeys = new Set(locked.map((attempt) => attempt.identifier));
+    return new Set(usernames.filter((username) => lockedKeys.has(keyOf(username))));
+  }
+
+  private async toDomain(rows: EmployeeRow[]): Promise<Employee[]> {
+    const locked = await this.lockedUsernames(rows.flatMap((row) => (row.user ? [row.user.username] : [])));
+
+    return rows.map((row) =>
+      Employee.reconstruct({
+        id: row.id,
+        firstName: row.firstName,
+        lastName: row.lastName,
+        dni: row.dni,
+        position: row.position,
+        address: row.address,
+        email: row.email,
+        phone: row.phone,
+        active: row.isActive,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        createdByUserId: row.createdByUserId,
+        user: row.user
+          ? {
+              id: row.user.id,
+              username: row.user.username,
+              roles: row.user.roles.map((userRole) => userRole.role.code),
+              status: UserStatusResolver.resolve({
+                userActive: row.user.isActive,
+                employeeActive: row.isActive,
+                locked: locked.has(row.user.username),
+              }),
+            }
+          : null,
+      }),
+    );
   }
 }

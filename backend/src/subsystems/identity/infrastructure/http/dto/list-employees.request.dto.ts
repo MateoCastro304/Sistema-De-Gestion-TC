@@ -6,7 +6,7 @@ import { EmployeeListParams } from '../../../core/domain/ports/employee.reposito
 const MAX_SEARCH_LENGTH = 120;
 
 
-export class ListEmployeesQueryDto {
+export class ListEmployeesRequestDto {
   @Allow()
   page?: unknown;
 
@@ -38,7 +38,7 @@ function parseInteger(raw: unknown, fallback: number, min: number, max: number):
   return Number.isSafeInteger(value) && value >= min && value <= max ? value : null;
 }
 
-export function toListEmployeesParams(query: ListEmployeesQueryDto): EmployeeListParams {
+export function toListEmployeesParams(query: ListEmployeesRequestDto): EmployeeListParams {
   const details: EmployeeFieldError[] = [];
 
   const page = parseInteger(query.page, 1, 1, Number.MAX_SAFE_INTEGER);

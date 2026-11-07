@@ -7,9 +7,13 @@ import { ClockPort } from '../../../shared/clock/clock.port';
 import { SystemClock } from '../../../shared/clock/system-clock';
 import { PrismaClientProvider } from '../../../shared/infrastructure/prisma/prisma-client.provider';
 import { AuthenticateRequest } from '../core/application/use-cases/authenticate-request.use-case';
+import { CreateEmployee } from '../core/application/use-cases/create-employee.use-case';
+import { GetEmployeeById } from '../core/application/use-cases/get-employee-by-id.use-case';
+import { ListEmployees } from '../core/application/use-cases/list-employees.use-case';
 import { AuthenticateUser } from '../core/application/use-cases/authenticate-user.use-case';
 import { Logout } from '../core/application/use-cases/logout.use-case';
 import { RefreshSession } from '../core/application/use-cases/refresh-session.use-case';
+import { EmployeeRepository } from '../core/domain/ports/employee.repository';
 import { LoginThrottle } from '../core/domain/ports/login-throttle.port';
 import { PasswordHasher } from '../core/domain/ports/password-hasher.port';
 import { SessionPolicy } from '../core/domain/ports/session-policy.port';
@@ -21,9 +25,11 @@ import { loginLockTiers } from './config/login-lock-tiers';
 import { BcryptPasswordHasher, DEFAULT_BCRYPT_COST } from './external/bcrypt-password-hasher';
 import { JwtTokenIssuer } from './external/jwt-token-issuer';
 import { AuthController } from './http/controllers/auth.controller';
+import { EmployeesController } from './http/controllers/employees.controller';
 import { PermissionsGuard } from './http/guards/permissions.guard';
 import { SessionAuthGuard } from './http/guards/session-auth.guard';
 import { RefreshCookieOptions } from './http/refresh-cookie.options';
+import { PrismaEmployeeRepository } from './persistence/prisma/prisma-employee.repository';
 import { PrismaLoginThrottle } from './persistence/prisma/prisma-login-throttle';
 import { PrismaSessionRepository } from './persistence/prisma/prisma-session.repository';
 import { PrismaUserAuthRepository } from './persistence/prisma/prisma-user-auth.repository';
@@ -45,18 +51,22 @@ const readerOf = (config: ConfigService) => (key: string) => {
       useFactory: (config: ConfigService) => ({ secret: config.getOrThrow<string>('JWT_SECRET') }),
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, EmployeesController],
   providers: [
     AuthenticateUser,
     AuthenticateRequest,
     RefreshSession,
     Logout,
+    CreateEmployee,
+    GetEmployeeById,
+    ListEmployees,
     // Guards globales (D-40): primero la sesión, después los permisos. El orden de
     // registro es el orden de ejecución.
     { provide: APP_GUARD, useClass: SessionAuthGuard },
     { provide: APP_GUARD, useClass: PermissionsGuard },
     { provide: UserAuthRepository, useClass: PrismaUserAuthRepository },
     { provide: SessionRepository, useClass: PrismaSessionRepository },
+    { provide: EmployeeRepository, useClass: PrismaEmployeeRepository },
     {
       provide: PasswordHasher,
       useFactory: (config: ConfigService) =>

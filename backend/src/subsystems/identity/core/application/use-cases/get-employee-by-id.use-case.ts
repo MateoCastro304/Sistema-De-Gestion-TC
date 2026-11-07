@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Employee } from '../../domain/entities/employee';
+import { Employee } from '../../domain/entities/employee.entity';
 import { EmployeeNotFound } from '../../domain/errors/employee-not-found.error';
 import { EmployeeRepository } from '../../domain/ports/employee.repository';
 

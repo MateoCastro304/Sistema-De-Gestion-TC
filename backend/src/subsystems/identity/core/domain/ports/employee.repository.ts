@@ -1,4 +1,4 @@
-import { Employee } from '../entities/employee';
+import { Employee } from '../entities/employee.entity';
 
 export type EmployeeListParams = {
   page: number;

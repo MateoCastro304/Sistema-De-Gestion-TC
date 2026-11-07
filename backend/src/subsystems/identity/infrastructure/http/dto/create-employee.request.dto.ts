@@ -1,6 +1,6 @@
 import { Allow } from 'class-validator';
 
-export class CreateEmployeeDto {
+export class CreateEmployeeRequestDto {
   @Allow()
   firstName?: unknown;
 

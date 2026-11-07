@@ -1,10 +1,10 @@
 import { EmployeeValidationError } from '../../../core/domain/errors/employee-validation.error';
-import { ListEmployeesQueryDto, toListEmployeesParams } from './list-employees-query.dto';
+import { ListEmployeesRequestDto, toListEmployeesParams } from './list-employees.request.dto';
 
-const query = (values: Partial<ListEmployeesQueryDto> = {}): ListEmployeesQueryDto =>
-  Object.assign(new ListEmployeesQueryDto(), values);
+const query = (values: Partial<ListEmployeesRequestDto> = {}): ListEmployeesRequestDto =>
+  Object.assign(new ListEmployeesRequestDto(), values);
 
-function validationErrorOf(values: Partial<ListEmployeesQueryDto>): EmployeeValidationError {
+function validationErrorOf(values: Partial<ListEmployeesRequestDto>): EmployeeValidationError {
   try {
     toListEmployeesParams(query(values));
   } catch (error) {

@@ -1,4 +1,4 @@
-import { Employee, EmployeeInput } from './employee';
+import { Employee, EmployeeInput } from './employee.entity';
 import { EmployeeValidationError } from '../errors/employee-validation.error';
 
 const validInput = (): EmployeeInput => ({
@@ -52,6 +52,11 @@ describe('Employee (domain)', () => {
 
     it('starts active', () => {
       expect(Employee.create(validInput()).isActive()).toBe(true);
+    });
+
+    it('records who created it, or nobody when it is not given', () => {
+      expect(Employee.create(validInput(), 7).getCreatedByUserId()).toBe(7);
+      expect(Employee.create(validInput()).getCreatedByUserId()).toBeNull();
     });
 
     it('starts without a user', () => {

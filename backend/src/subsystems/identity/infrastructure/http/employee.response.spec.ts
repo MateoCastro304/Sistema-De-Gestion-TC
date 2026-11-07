@@ -1,5 +1,5 @@
-import { Employee } from '../../../core/domain/entities/employee';
-import { toEmployeeResponse } from './employee.mapper';
+import { Employee } from '../../core/domain/entities/employee.entity';
+import { EmployeeListResponse, EmployeeResponse } from './employee.response';
 
 const row = {
   id: 1,
@@ -15,14 +15,14 @@ const row = {
   updatedAt: new Date('2026-03-12T12:00:00.000Z'),
 };
 
-describe('toEmployeeResponse', () => {
+describe('EmployeeResponse', () => {
   it('serializes an employee with its user, as in the contract example', () => {
     const employee = Employee.reconstruct({
       ...row,
       user: { id: 1, username: 'wcastro', roles: ['AS'], status: 'ACTIVE' },
     });
 
-    expect(toEmployeeResponse(employee)).toEqual({
+    expect(EmployeeResponse.from(employee)).toEqual({
       id: 1,
       firstName: 'Walter',
       lastName: 'Castro',
@@ -41,7 +41,7 @@ describe('toEmployeeResponse', () => {
   it('serializes user as null when the employee has none', () => {
     const employee = Employee.reconstruct(row);
 
-    expect(toEmployeeResponse(employee).user).toBeNull();
+    expect(EmployeeResponse.from(employee).user).toBeNull();
   });
 
   it('does not share the roles array with the entity', () => {
@@ -50,8 +50,37 @@ describe('toEmployeeResponse', () => {
       user: { id: 1, username: 'wcastro', roles: ['AS'], status: 'ACTIVE' },
     });
 
-    toEmployeeResponse(employee).user!.roles.push('JT');
+    EmployeeResponse.from(employee).user!.roles.push('JT');
 
     expect(employee.getUser()!.roles).toEqual(['AS']);
+  });
+
+  it('never exposes who created the employee (D-43)', () => {
+    const employee = Employee.reconstruct({ ...row, createdByUserId: 7 });
+
+    expect(EmployeeResponse.from(employee)).not.toHaveProperty('createdByUserId');
+  });
+});
+
+describe('EmployeeListResponse', () => {
+  it('wraps the page with the total and the effective page and limit', () => {
+    const employee = Employee.reconstruct(row);
+
+    const body = EmployeeListResponse.from({ items: [employee], total: 11 }, 2, 5);
+
+    expect(body.total).toBe(11);
+    expect(body.page).toBe(2);
+    expect(body.limit).toBe(5);
+    expect(body.items).toHaveLength(1);
+    expect(body.items[0].id).toBe(1);
+  });
+
+  it('returns an empty list, not an error, when there are no results', () => {
+    expect(EmployeeListResponse.from({ items: [], total: 0 }, 1, 20)).toEqual({
+      items: [],
+      total: 0,
+      page: 1,
+      limit: 20,
+    });
   });
 });

@@ -20,6 +20,7 @@ const RESOURCES = [
   { name: 'categories', path: '/categories', roles: ['ERP'] },
   { name: 'factories', path: '/factories', roles: ['ERP'] },
   { name: 'managers', path: '/managers', roles: ['ERP'] },
+  { name: 'employees', path: '/employees', roles: ['AS'] },
 ];
 
 describe('Authorization (all the endpoints require a session and a permission)', () => {
@@ -62,6 +63,9 @@ describe('Authorization (all the endpoints require a session and a permission)',
       ['PATCH', '/process-types/1'],
       ['GET', '/process-types/1/history'],
       ['GET', '/exchange-rate'],
+      ['GET', '/employees'],
+      ['POST', '/employees'],
+      ['GET', '/employees/1'],
     ])('401 UNAUTHENTICATED on %s %s, also on the endpoints of Sprint 1', async (method, path) => {
       const res = await (request(server()) as unknown as Record<string, (url: string) => request.Test>)[
         method.toLowerCase()

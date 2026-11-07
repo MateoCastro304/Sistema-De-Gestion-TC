@@ -1,6 +1,6 @@
 import { EmployeeFieldError, EmployeeValidationError } from '../errors/employee-validation.error';
-import { EmployeePosition, isEmployeePosition } from '../value-objects/employee-position';
-import { EmployeeUser } from '../value-objects/employee-user';
+import { EmployeePosition, isEmployeePosition } from '../value-objects/employee-position.vo';
+import { EmployeeUser } from '../value-objects/employee-user.vo';
 
 // Van tipados `unknown` a propósito, ya que llegan del cuerpo de la petición SIN validar, y la entidad es quien los valida todos juntos
 
@@ -28,7 +28,10 @@ export type EmployeeSnapshot = {
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
+  /** Su usuario del sistema, si tiene. Ausente o null: no tiene. */
   user?: EmployeeUser | null;
+  /** Quién lo dio de alta (D-43). Null en el empleado del seed inicial. */
+  createdByUserId?: number | null;
 };
 
 type Fail = (field: string, message: string) => void;
@@ -79,9 +82,11 @@ export class Employee {
     private readonly _createdAt: Date,
     private readonly _updatedAt: Date,
     private readonly _user: EmployeeUser | null,
+    // Trazabilidad (D-43): no se expone en la API.
+    private readonly _createdByUserId: number | null,
   ) {}
 
-  static create(input: EmployeeInput): Employee {
+  static create(input: EmployeeInput, createdByUserId: number | null = null): Employee {
     const errors: EmployeeFieldError[] = [];
     const fail: Fail = (field, message) => errors.push({ field, message });
 
@@ -141,7 +146,21 @@ export class Employee {
     }
 
     const now = new Date();
-    return new Employee(null, firstName, lastName, dni, position, address, email, phone, true, now, now, null);
+    return new Employee(
+      null,
+      firstName,
+      lastName,
+      dni,
+      position,
+      address,
+      email,
+      phone,
+      true,
+      now,
+      now,
+      null,
+      createdByUserId,
+    );
   }
 
   static reconstruct(row: EmployeeSnapshot): Employee {
@@ -158,6 +177,7 @@ export class Employee {
       row.createdAt,
       row.updatedAt,
       row.user ?? null,
+      row.createdByUserId ?? null,
     );
   }
 
@@ -220,5 +240,9 @@ export class Employee {
 
   getUser() {
     return this._user;
+  }
+
+  getCreatedByUserId() {
+    return this._createdByUserId;
   }
 }

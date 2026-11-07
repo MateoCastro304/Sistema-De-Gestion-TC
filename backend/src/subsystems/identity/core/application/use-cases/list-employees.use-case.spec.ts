@@ -1,7 +1,7 @@
 import { ListEmployees } from './list-employees.use-case';
 import { InMemoryEmployeeRepository } from '../../../infrastructure/persistence/in-memory/in-memory-employee.repository';
-import { Employee } from '../../domain/entities/employee';
-import { EmployeePosition } from '../../domain/value-objects/employee-position';
+import { Employee } from '../../domain/entities/employee.entity';
+import { EmployeePosition } from '../../domain/value-objects/employee-position.vo';
 
 describe('ListEmployees (use case)', () => {
   let repo: InMemoryEmployeeRepository;

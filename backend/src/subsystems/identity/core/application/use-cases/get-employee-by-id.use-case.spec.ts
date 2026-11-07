@@ -1,6 +1,6 @@
 import { GetEmployeeById } from './get-employee-by-id.use-case';
 import { InMemoryEmployeeRepository } from '../../../infrastructure/persistence/in-memory/in-memory-employee.repository';
-import { Employee } from '../../domain/entities/employee';
+import { Employee } from '../../domain/entities/employee.entity';
 import { EmployeeNotFound } from '../../domain/errors/employee-not-found.error';
 
 describe('GetEmployeeById (use case)', () => {

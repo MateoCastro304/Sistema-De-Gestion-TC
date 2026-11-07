@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { TextKey } from '../../../../../shared/domain/text-key';
-import { Employee, EmployeeSnapshot } from '../../../core/domain/entities/employee';
+import { Employee, EmployeeSnapshot } from '../../../core/domain/entities/employee.entity';
 import {
   EmployeeListParams,
   EmployeeListResult,
   EmployeeRepository,
 } from '../../../core/domain/ports/employee.repository';
-import { EMPLOYEE_POSITION_LABELS } from '../../../core/domain/value-objects/employee-position';
-import { EmployeeUser } from '../../../core/domain/value-objects/employee-user';
+import { EMPLOYEE_POSITION_LABELS } from '../../../core/domain/value-objects/employee-position.vo';
+import { EmployeeUser } from '../../../core/domain/value-objects/employee-user.vo';
 
 const collator = new Intl.Collator('es', { sensitivity: 'base' });
 
@@ -24,6 +24,7 @@ function snapshotOf(employee: Employee): Omit<EmployeeSnapshot, 'id'> {
     createdAt: employee.getCreatedAt(),
     updatedAt: employee.getUpdatedAt(),
     user: employee.getUser(),
+    createdByUserId: employee.getCreatedByUserId(),
   };
 }
 
