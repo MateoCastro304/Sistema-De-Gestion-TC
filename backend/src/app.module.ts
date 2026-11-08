@@ -6,8 +6,6 @@ import { IdentityModule } from './subsystems/identity/infrastructure/identity.mo
 import { CustomersModule } from './subsystems/customers/infrastructure/customers.module';
 import { TechnicalCatalogModule } from './subsystems/technical-catalog/infrastructure/technical-catalog.module';
 import { SuppliersModule } from './subsystems/supplier/infrastructure/suppliers.module';
-import { EmployeesModule } from './subsystems/employees/infrastructure/employees.module';
-import { UsersModule } from './subsystems/users/infrastructure/users.module';
 
 import { validate } from './config/env.validation';
 
@@ -23,8 +21,6 @@ import { validate } from './config/env.validation';
     CustomersModule,
     SuppliersModule,
     TechnicalCatalogModule,
-    EmployeesModule,
-    UsersModule,
   ],
   controllers: [],
   providers: [],

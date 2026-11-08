@@ -20,15 +20,21 @@ import { SessionPolicy } from '../core/domain/ports/session-policy.port';
 import { SessionRepository } from '../core/domain/ports/session.repository';
 import { TokenIssuer } from '../core/domain/ports/token-issuer.port';
 import { UserAuthRepository } from '../core/domain/ports/user-auth.repository';
+import { CreateUser } from '../core/application/use-cases/create-user.use-case';
+import { GetUserById } from '../core/application/use-cases/get-user-by-id.use-case';
+import { ListUsers } from '../core/application/use-cases/list-users.use-case';
+import { UserRepository } from '../core/domain/ports/user.repository';
 import { ConfigSessionPolicy } from './config/config-session-policy';
 import { loginLockTiers } from './config/login-lock-tiers';
 import { BcryptPasswordHasher, DEFAULT_BCRYPT_COST } from './external/bcrypt-password-hasher';
 import { JwtTokenIssuer } from './external/jwt-token-issuer';
 import { AuthController } from './http/controllers/auth.controller';
 import { EmployeesController } from './http/controllers/employees.controller';
+import { UsersController } from './http/controllers/users.controller';
 import { PermissionsGuard } from './http/guards/permissions.guard';
 import { SessionAuthGuard } from './http/guards/session-auth.guard';
 import { RefreshCookieOptions } from './http/refresh-cookie.options';
+import { PrismaUserRepository } from './persistence/prisma/prisma-user.repository';
 import { PrismaEmployeeRepository } from './persistence/prisma/prisma-employee.repository';
 import { PrismaLoginThrottle } from './persistence/prisma/prisma-login-throttle';
 import { PrismaSessionRepository } from './persistence/prisma/prisma-session.repository';
@@ -51,7 +57,7 @@ const readerOf = (config: ConfigService) => (key: string) => {
       useFactory: (config: ConfigService) => ({ secret: config.getOrThrow<string>('JWT_SECRET') }),
     }),
   ],
-  controllers: [AuthController, EmployeesController],
+  controllers: [AuthController, EmployeesController, UsersController],
   providers: [
     AuthenticateUser,
     AuthenticateRequest,
@@ -60,6 +66,9 @@ const readerOf = (config: ConfigService) => (key: string) => {
     CreateEmployee,
     GetEmployeeById,
     ListEmployees,
+    CreateUser,
+    GetUserById,
+    ListUsers,
     // Guards globales (D-40): primero la sesión, después los permisos. El orden de
     // registro es el orden de ejecución.
     { provide: APP_GUARD, useClass: SessionAuthGuard },
@@ -67,6 +76,7 @@ const readerOf = (config: ConfigService) => (key: string) => {
     { provide: UserAuthRepository, useClass: PrismaUserAuthRepository },
     { provide: SessionRepository, useClass: PrismaSessionRepository },
     { provide: EmployeeRepository, useClass: PrismaEmployeeRepository },
+    { provide: UserRepository, useClass: PrismaUserRepository },
     {
       provide: PasswordHasher,
       useFactory: (config: ConfigService) =>
