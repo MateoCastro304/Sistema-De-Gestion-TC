@@ -6,19 +6,25 @@ import { GetExchangeRate } from '../core/application/use-cases/get-exchange-rate
 import { GetProcessTypeById } from '../core/application/use-cases/get-process-type-by-id.use-case';
 import { GetProcessTypeHistory } from '../core/application/use-cases/get-process-type-history.use-case';
 import { ModifyProcessType } from '../core/application/use-cases/modify-process-type.use-case';
+import { ListMaterialNames } from '../core/application/use-cases/list-material-names.use-case';
+import { ListMaterials } from '../core/application/use-cases/list-materials.use-case';
 import { ListProcessTypes } from '../core/application/use-cases/list-process-types.use-case';
+import { RegisterMaterial } from '../core/application/use-cases/register-material.use-case';
 import { RegisterProcessType } from '../core/application/use-cases/register-process-type.use-case';
 import { ExchangeRateProvider } from '../core/domain/ports/exchange-rate-provider.port';
 import { ExchangeRateRepository } from '../core/domain/ports/exchange-rate.repository';
+import { MaterialRepository } from '../core/domain/ports/material.repository';
 import { ProcessTypeRepository } from '../core/domain/ports/process-type.repository';
 import { DolarApiExchangeRateProvider } from './external/dolar-api-exchange-rate.provider';
 import { ExchangeRateController } from './http/controllers/exchange-rate.controller';
+import { MaterialsController } from './http/controllers/materials.controller';
 import { ProcessTypesController } from './http/controllers/process-types.controller';
 import { PrismaExchangeRateRepository } from './persistence/prisma/prisma-exchange-rate.repository';
+import { PrismaMaterialRepository } from './persistence/prisma/prisma-material.repository';
 import { PrismaProcessTypeRepository } from './persistence/prisma/prisma-process-type.repository';
 
 @Module({
-  controllers: [ProcessTypesController, ExchangeRateController],
+  controllers: [ProcessTypesController, ExchangeRateController, MaterialsController],
   providers: [
     RegisterProcessType,
     ListProcessTypes,
@@ -26,8 +32,12 @@ import { PrismaProcessTypeRepository } from './persistence/prisma/prisma-process
     GetProcessTypeHistory,
     ModifyProcessType,
     GetExchangeRate,
+    RegisterMaterial,
+    ListMaterials,
+    ListMaterialNames,
     { provide: ProcessTypeRepository, useClass: PrismaProcessTypeRepository },
     { provide: ExchangeRateRepository, useClass: PrismaExchangeRateRepository },
+    { provide: MaterialRepository, useClass: PrismaMaterialRepository },
     { provide: ExchangeRateProvider, useClass: DolarApiExchangeRateProvider },
     {
       provide: ClockPort,
