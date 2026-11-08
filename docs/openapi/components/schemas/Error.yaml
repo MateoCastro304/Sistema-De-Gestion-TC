@@ -35,7 +35,7 @@ properties:
       - `INVALID_CREDENTIALS` (401): usuario o contraseña incorrectos, o usuario dado de baja. Exclusivo de `POST /auth/login`.
       - `ACCESS_TOKEN_EXPIRED` (401): el `accessToken` venció y la sesión sigue abierta; renovarlo con `POST /auth/refresh`.
       - `SESSION_EXPIRED` (401): sesión cerrada por 30 minutos de inactividad o por cumplir sus 7 días.
-      - `UNAUTHENTICATED` (401): sin token, token desconocido o adulterado, sesión cerrada o revocada, o usuario bloqueado o inactivo.
+      - `UNAUTHENTICATED` (401): sin token, token desconocido o adulterado, sesión cerrada o revocada, o usuario inactivo.
       - `FORBIDDEN` (403): usuario autenticado sin ninguno de los roles que pide el endpoint.
       - `EMPLOYEE_NOT_FOUND`, `USER_NOT_FOUND`, `PROCESS_TYPE_NOT_FOUND` (404): recurso inexistente.
       - `RESOURCE_NOT_FOUND` (404): ruta inexistente.
@@ -45,7 +45,7 @@ properties:
       - `PROCESS_TYPE_NAME_TAKEN` (409): nombre de tipo de proceso ya registrado.
       - `MATERIAL_ALREADY_EXISTS` (409): combinación de nombre y calidad ya registrada.
       - `EMPLOYEE_INACTIVE` (422): alta de usuario para un empleado dado de baja.
-      - `USER_BLOCKED` (423): usuario bloqueado por intentos fallidos. Exclusivo de `POST /auth/login`.
+      - `USER_BLOCKED` (423): ingreso bloqueado temporalmente por intentos fallidos; trae `Retry-After`. Exclusivo de `POST /auth/login`.
       - `INTERNAL_SERVER_ERROR` (500): error interno inesperado.
       - `EXCHANGE_RATE_UNAVAILABLE` (502): el backend no pudo obtener ninguna cotización del dólar.
 

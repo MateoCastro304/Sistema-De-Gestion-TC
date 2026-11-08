@@ -160,6 +160,20 @@ Ejecutá la carga inicial de datos de Prisma:
 make seed
 ```
 
+Además de los datos de demo (rubros, proveedores, fábricas y encargados), el seed crea **un usuario por rol** para probar el ingreso y los permisos:
+
+| Usuario | Contraseña | Rol | Qué puede usar hoy |
+| --- | --- | --- | --- |
+| `admin` | `admin123` | Administrador del Sistema (AS) | Nada del Sprint 1 (usuarios y empleados llegan en este sprint) |
+| `recepcion` | `recepcion123` | Encargado de Recepción (ERP) | Rubros, fábricas y encargados |
+| `cotizacion` | `cotizacion123` | Encargado de Cotización (EC) | Proveedores, tipos de proceso y cotización del dólar |
+| `tecnico` | `tecnico123` | Administrativo Técnico (AT) | Lo mismo que EC |
+| `taller` | `taller123` | Jefe de Taller (JT) | Nada todavía |
+| `reportes` | `reportes123` | Encargado de Reportes (ER) | Nada todavía |
+| `superadmin` | `superadmin123` | Todos los roles (JT, ERP, EC, ER, AT, AS) | La unión de los permisos de todos los roles |
+
+Las contraseñas están definidas en `DEV_USERS` (`backend/src/subsystems/identity/infrastructure/bootstrap/dev-users.seed.ts`) y en la base se guarda solo su hash. **Son públicas**: sirven únicamente en bases de desarrollo descartables; no siembres una base compartida. El seed no corre con `NODE_ENV=production`. Si los usuarios ya existen, el seed no los toca (ni cambia su contraseña); para empezar de cero, `make dev-down-v` y de nuevo los pasos de arriba.
+
 ### Verificar el backend
 
 La API del backend está disponible en:
@@ -457,7 +471,7 @@ Nunca incluyas este archivo en un commit del repositorio.
 | `make backend-shell` | Consola dentro del contenedor del backend |
 | `make backend-build` | Reconstruye solo la imagen del backend |
 | `make migrate-dev` | Ejecuta migraciones Prisma |
-| `make seed` | Carga datos de prueba |
+| `make seed` | Carga datos de prueba y un usuario por rol (ver [Seed](#verificar-el-backend)) |
 
 ### Para la documentación OpenAPI
 

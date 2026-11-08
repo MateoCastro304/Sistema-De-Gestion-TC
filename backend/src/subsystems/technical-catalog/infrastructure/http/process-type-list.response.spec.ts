@@ -9,6 +9,7 @@ const processType = ProcessType.reconstruct({
   hourlyRateArs: 1180,
   hourlyRateUsd: 0.85,
   exchangeRate: 1385.5,
+  createdByUserId: 3,
   createdAt: new Date('2026-06-02T11:34:00.000Z'),
   updatedAt: new Date('2026-06-02T11:34:00.000Z'),
 });

@@ -1,15 +1,17 @@
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
 
 import { startTestApp, stopTestApp, getPrisma } from '../../../shared/harness/test-app';
+import { Api, signInAs } from '../../../shared/harness/auth';
 import { aValidCuit, createSupplier } from '../../../shared/factories/supplier-factory';
 import { SupplierType } from '../../../../src/generated/prisma/enums';
 
 describe('[CU35] List Suppliers', () => {
   let app: INestApplication;
+  let api: Api;
 
   beforeAll(async () => {
     app = await startTestApp();
+    api = await signInAs(app, 'AT');
   });
 
   afterAll(async () => {
@@ -26,7 +28,7 @@ describe('[CU35] List Suppliers', () => {
     await createSupplier();
     await createSupplier();
 
-    const response = await request(app.getHttpServer()).get('/suppliers');
+    const response = await api.get('/suppliers');
 
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({ total: 4, page: 1, limit: 20 });
@@ -39,7 +41,7 @@ describe('[CU35] List Suppliers', () => {
     await createSupplier({ supplierType: SupplierType.MATERIAL });
     await createSupplier({ supplierType: SupplierType.PROCESS });
 
-    const response = await request(app.getHttpServer()).get('/suppliers?type=PAINT');
+    const response = await api.get('/suppliers?type=PAINT');
 
     expect(response.status).toBe(200);
     expect(response.body.total).toBe(2);
@@ -52,7 +54,7 @@ describe('[CU35] List Suppliers', () => {
     await createSupplier({ legalName: 'Coca Cola Andina SA' });
     await createSupplier({ legalName: 'CorBlock' });
 
-    const response = await request(app.getHttpServer()).get('/suppliers?search=co');
+    const response = await api.get('/suppliers?search=co');
 
     expect(response.status).toBe(200);
     expect(response.body.total).toBe(2);
@@ -62,7 +64,7 @@ describe('[CU35] List Suppliers', () => {
   });
 
   it('TC-04: There are no suppliers', async () => {
-    const response = await request(app.getHttpServer()).get('/suppliers');
+    const response = await api.get('/suppliers');
 
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({ items: [], total: 0 });
@@ -72,7 +74,7 @@ describe('[CU35] List Suppliers', () => {
     await createSupplier({ legalName: 'Activo' });
     await createSupplier({ legalName: 'Inactivo', isActive: false });
 
-    const response = await request(app.getHttpServer()).get('/suppliers');
+    const response = await api.get('/suppliers');
 
     expect(response.status).toBe(200);
     expect(response.body.total).toBe(1);
@@ -83,7 +85,7 @@ describe('[CU35] List Suppliers', () => {
     await createSupplier({ legalName: 'Aceros del Sur', contactName: 'Diego Fernandez' });
     await createSupplier({ legalName: 'Otro Proveedor' });
 
-    const response = await request(app.getHttpServer()).get('/suppliers?search=fernandez');
+    const response = await api.get('/suppliers?search=fernandez');
 
     expect(response.status).toBe(200);
     expect(response.body.total).toBe(1);
@@ -96,7 +98,7 @@ describe('[CU35] List Suppliers', () => {
     await createSupplier({ legalName: 'Otro Proveedor' });
 
     // Se busca con guiones; en la base esta como 11 digitos pelados.
-    const response = await request(app.getHttpServer()).get(`/suppliers?search=${cuit.slice(0, 5)}`);
+    const response = await api.get(`/suppliers?search=${cuit.slice(0, 5)}`);
 
     expect(response.status).toBe(200);
     expect(response.body.total).toBe(1);
@@ -109,8 +111,8 @@ describe('[CU35] List Suppliers', () => {
     await createSupplier({ legalName: 'C Tres', supplierType: SupplierType.MATERIAL });
     await createSupplier({ legalName: 'D Cuatro', supplierType: SupplierType.PAINT });
 
-    const first = await request(app.getHttpServer()).get('/suppliers?type=MATERIAL&limit=2&page=1');
-    const second = await request(app.getHttpServer()).get('/suppliers?type=MATERIAL&limit=2&page=2');
+    const first = await api.get('/suppliers?type=MATERIAL&limit=2&page=1');
+    const second = await api.get('/suppliers?type=MATERIAL&limit=2&page=2');
 
     // El total cuenta los que matchean el filtro, no los de la pagina.
     expect(first.body).toMatchObject({ total: 3, page: 1, limit: 2 });
@@ -120,13 +122,13 @@ describe('[CU35] List Suppliers', () => {
   });
 
   it('TC-09: Rejects a limit over the cap', async () => {
-    const response = await request(app.getHttpServer()).get('/suppliers?limit=1000');
+    const response = await api.get('/suppliers?limit=1000');
 
     expect(response.status).toBe(400);
   });
 
   it('TC-10: Rejects an unknown type', async () => {
-    const response = await request(app.getHttpServer()).get('/suppliers?type=PAI');
+    const response = await api.get('/suppliers?type=PAI');
 
     expect(response.status).toBe(400);
   });

@@ -3,6 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import { AppModule } from '../../../src/app.module';
 import { configureApp } from '../../../src/app.setup';
 import { PrismaService } from '../../../src/shared/infrastructure/prisma/prisma.service';
+import { clearIdentityTables } from '../factories/identity-cleanup';
 
 let app: INestApplication;
 
@@ -26,6 +27,9 @@ export async function startTestApp(overrides: ProviderOverride[] = []): Promise<
 }
 
 export async function stopTestApp(): Promise<void> {
+  // Todas las suites comparten una base: las sesiones y usuarios que dejó una
+  // (`signInAs`) harían fallar la limpieza de otra que borra usuarios.
+  await clearIdentityTables(getPrisma());
   await getPrisma().$disconnect();
   await app.close();
 }

@@ -1,16 +1,18 @@
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
 
 import { startTestApp, stopTestApp, getPrisma } from '../../shared/harness/test-app';
+import { Api, signInAs } from '../../shared/harness/auth';
 import { expectData, expectError, expectNoContent } from '../../shared/contract/envelopes';
 import { createCategory } from '../../shared/factories/category.factory';
 import { aFactoryBody, createFactory } from '../../shared/factories/factory.factory';
 
 describe('Factories', () => {
   let app: INestApplication;
+  let api: Api;
 
   beforeAll(async () => {
     app = await startTestApp();
+    api = await signInAs(app, 'ERP');
   });
 
   afterAll(async () => {
@@ -28,7 +30,7 @@ describe('Factories', () => {
       const category = await createCategory();
       const body = aFactoryBody({ categoryId: category.id });
 
-      const res = await request(app.getHttpServer()).post('/factories').send(body);
+      const res = await api.post('/factories').send(body);
 
       const factory = expectData(res, 201);
       expect(factory).toMatchObject({
@@ -45,7 +47,7 @@ describe('Factories', () => {
     it('rechaza un cuit con formato inválido y no guarda nada', async () => {
       const category = await createCategory();
 
-      const res = await request(app.getHttpServer())
+      const res = await api
         .post('/factories')
         .send(aFactoryBody({ categoryId: category.id, cuit: '123' }));
 
@@ -58,7 +60,7 @@ describe('Factories', () => {
       const category = await createCategory();
       const d = existing.cuit;
 
-      const res = await request(app.getHttpServer())
+      const res = await api
         .post('/factories')
         .send(aFactoryBody({ categoryId: category.id, cuit: `${d.slice(0, 2)}-${d.slice(2, 10)}-${d.slice(10)}` }));
 
@@ -72,7 +74,7 @@ describe('Factories', () => {
       await createFactory();
       await createFactory();
 
-      const res = await request(app.getHttpServer()).get('/factories');
+      const res = await api.get('/factories');
 
       expect(res.status).toBe(200);
       expect(res.body.items).toHaveLength(2);
@@ -90,13 +92,13 @@ describe('Factories', () => {
     it('devuelve la fábrica', async () => {
       const existing = await createFactory();
 
-      const res = await request(app.getHttpServer()).get(`/factories/${existing.id}`);
+      const res = await api.get(`/factories/${existing.id}`);
 
       expect(expectData(res, 200)).toMatchObject({ id: String(existing.id), legalName: existing.name });
     });
 
     it('responde 404 si no existe', async () => {
-      const res = await request(app.getHttpServer()).get('/factories/999999');
+      const res = await api.get('/factories/999999');
 
       expectError(res, 404, 'Not Found');
     });
@@ -106,7 +108,7 @@ describe('Factories', () => {
     it('actualiza la razón social', async () => {
       const existing = await createFactory();
 
-      const res = await request(app.getHttpServer())
+      const res = await api
         .patch(`/factories/${existing.id}`)
         .send({ legalName: 'Nuevo Nombre S.A.' });
 
@@ -118,7 +120,7 @@ describe('Factories', () => {
     it('rechaza modificar el cuit (inmutable) y no cambia nada', async () => {
       const existing = await createFactory();
 
-      const res = await request(app.getHttpServer()).patch(`/factories/${existing.id}`).send({ cuit: '30-11111111-1' });
+      const res = await api.patch(`/factories/${existing.id}`).send({ cuit: '30-11111111-1' });
 
       expectError(res, 400, 'Bad Request');
       const saved = await getPrisma().factory.findUnique({ where: { id: existing.id } });
@@ -126,7 +128,7 @@ describe('Factories', () => {
     });
 
     it('responde 404 si no existe', async () => {
-      const res = await request(app.getHttpServer()).patch('/factories/999999').send({ legalName: 'X' });
+      const res = await api.patch('/factories/999999').send({ legalName: 'X' });
 
       expectError(res, 404, 'Not Found');
     });
@@ -136,7 +138,7 @@ describe('Factories', () => {
     it('da de baja lógica la fábrica (el registro se conserva)', async () => {
       const existing = await createFactory();
 
-      const res = await request(app.getHttpServer()).patch(`/factories/${existing.id}/deactivate`);
+      const res = await api.patch(`/factories/${existing.id}/deactivate`);
 
       expectNoContent(res);
       const saved = await getPrisma().factory.findUnique({ where: { id: existing.id } });
@@ -145,7 +147,7 @@ describe('Factories', () => {
     });
 
     it('responde 404 si no existe', async () => {
-      const res = await request(app.getHttpServer()).patch('/factories/999999/deactivate');
+      const res = await api.patch('/factories/999999/deactivate');
 
       expectError(res, 404, 'Not Found');
     });

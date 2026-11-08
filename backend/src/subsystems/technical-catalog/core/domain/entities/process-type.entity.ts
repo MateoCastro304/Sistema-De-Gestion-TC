@@ -46,6 +46,7 @@ export type ProcessTypeSnapshot = {
   hourlyRateArs: number;
   hourlyRateUsd: number;
   exchangeRate: number;
+  createdByUserId: number | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -76,12 +77,17 @@ export class ProcessType {
     private readonly hourlyRateArs: MoneyAmount,
     private readonly hourlyRateUsd: MoneyAmount,
     private readonly exchangeRate: MoneyAmount,
+    /** Quién lo dio de alta. `null` en los tipos creados antes de que existiera la sesión. */
+    private readonly createdByUserId: number | null,
     private readonly createdAt: Date | null,
     private readonly updatedAt: Date | null,
   ) {}
 
-  /** Alta. Valida todos los campos y informa cada error por separado. */
-  static create(data: NewProcessTypeData): ProcessType {
+  /**
+   * Alta. Valida todos los campos y informa cada error por separado.
+   * `createdByUserId` es el usuario de la sesión que lo registra.
+   */
+  static create(data: NewProcessTypeData, createdByUserId: number): ProcessType {
     const errors: FieldError[] = [];
 
     const name = (data.name ?? '').trim();
@@ -113,6 +119,7 @@ export class ProcessType {
       amounts.hourlyRateArs,
       amounts.hourlyRateUsd,
       amounts.exchangeRate,
+      createdByUserId,
       null,
       null,
     );
@@ -190,6 +197,7 @@ export class ProcessType {
       amounts.hourlyRateArs,
       amounts.hourlyRateUsd,
       priceChanged ? amounts.exchangeRate : this.exchangeRate,
+      this.createdByUserId,
       this.createdAt,
       now,
     );
@@ -215,6 +223,7 @@ export class ProcessType {
       ProcessType.storedAmount(snapshot.hourlyRateArs),
       ProcessType.storedAmount(snapshot.hourlyRateUsd),
       ProcessType.storedAmount(snapshot.exchangeRate),
+      snapshot.createdByUserId,
       snapshot.createdAt,
       snapshot.updatedAt,
     );
@@ -260,6 +269,9 @@ export class ProcessType {
   }
   getExchangeRate(): MoneyAmount {
     return this.exchangeRate;
+  }
+  getCreatedByUserId(): number | null {
+    return this.createdByUserId;
   }
   getCreatedAt(): Date | null {
     return this.createdAt;

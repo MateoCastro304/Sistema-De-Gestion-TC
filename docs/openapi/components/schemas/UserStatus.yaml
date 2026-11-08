@@ -3,10 +3,12 @@ description: |
   Estado de un usuario. Lo calcula el backend; no se envía en ningún cuerpo.
 
   - `ACTIVE` — Activo: puede iniciar sesión.
-  - `BLOCKED` — Bloqueado: llegó a 5 intentos fallidos consecutivos. No puede iniciar sesión.
+  - `BLOCKED` — Bloqueado: tiene un bloqueo temporal vigente por intentos fallidos. Se levanta solo.
   - `INACTIVE` — Inactivo: dado de baja (o su empleado fue dado de baja). No puede iniciar sesión.
 
   Si un usuario está dado de baja y además bloqueado, su estado es `INACTIVE`.
+
+  El bloqueo es temporal y automático (D-53): no hay nada que desbloquear a mano.
 enum:
   - ACTIVE
   - BLOCKED

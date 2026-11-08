@@ -73,7 +73,7 @@ post:
         - `SESSION_EXPIRED`: 30 minutos de inactividad o 7 días desde el ingreso.
         - `UNAUTHENTICATED`: no hay cookie, el refresh token no existe, la sesión
           se cerró con `POST /auth/logout`, se detectó el reuso de un refresh
-          revocado, o el usuario quedó bloqueado o inactivo.
+          revocado, o el usuario quedó inactivo.
       headers:
         Set-Cookie:
           $ref: '../components/headers/ClearRefreshCookie.yaml'

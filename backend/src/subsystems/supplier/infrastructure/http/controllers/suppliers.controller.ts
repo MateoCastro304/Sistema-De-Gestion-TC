@@ -1,3 +1,4 @@
+import { RequirePermissions } from '../../../../../shared/http/auth/auth.decorators';
 import {
   Controller,
   Body,
@@ -33,6 +34,7 @@ import { SupplierListResponse, SupplierResponse, toSupplierResponse } from '../m
  * DomainError subclasses to the right HTTP status.
  */
 @Controller('suppliers')
+@RequirePermissions('supplier:manage')
 @UseFilters(DomainErrorFilter)
 export class SuppliersController {
   constructor(

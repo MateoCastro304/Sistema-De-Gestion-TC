@@ -1,6 +1,6 @@
 # HU-10 — Modificar Tipo de Proceso (CU-10)
 
-> **Estado: en implementación, con autor provisorio.** El historial de precios exige el usuario de la sesión (`changed_by_user_id`, NOT NULL, FK a `app_user`) y todavía no existe `identity`. Mientras tanto, el `PATCH` toma el autor del header `X-User-Id` (sin él, `401 UNAUTHENTICATED`). Se reemplaza por el usuario de la sesión cuando haya autenticación; el `403` por rol (escenario 7) queda pendiente de ese módulo.
+> **Estado: implementada.** El autor de cada registro del historial de precios es el usuario de la sesión (`@CurrentUser()`), y el `PATCH` exige el permiso de AT o EC.
 
 **Fuente de verdad:** `docs/api-contract/API_CONTRACT_SPRINT_2.md` (§3.4 y §3.5). Si algo de esta historia no coincide con el contrato, manda el contrato. Cada escenario indica la respuesta de la API que lo demuestra: sirve de criterio de aceptación para el backend, el frontend y los casos de prueba (CP).
 

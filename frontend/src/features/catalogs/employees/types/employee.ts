@@ -21,6 +21,12 @@ export const EMPLOYEE_POSITION_LABELS: Record<EmployeePosition, string> = {
 
 export type UserStatus = 'ACTIVE' | 'BLOCKED' | 'INACTIVE'
 
+export const USER_STATUS_LABELS: Record<UserStatus, string> = {
+  ACTIVE: 'Activo',
+  BLOCKED: 'Bloqueado',
+  INACTIVE: 'Inactivo',
+}
+
 /** Resumen del usuario del empleado: columnas "Usuario" y "Roles" del listado. */
 export interface EmployeeUserSummary {
   id: number

@@ -1,3 +1,4 @@
+import { RequirePermissions } from '../../../../../shared/http/auth/auth.decorators';
 import {
   Controller,
   Get,
@@ -25,6 +26,7 @@ import { ManagerResponseDto } from '../dto/manager-response.dto';
 import { ManagerExceptionFilter } from '../filters/managers-exception.filter';
 
 @Controller()
+@RequirePermissions('customer:manage')
 @UseFilters(ManagerExceptionFilter)
 export class ManagersController {
   constructor(

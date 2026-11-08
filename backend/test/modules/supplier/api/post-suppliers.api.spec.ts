@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
 
 import { startTestApp, stopTestApp, getPrisma } from '../../../shared/harness/test-app';
+import { Api, signInAs } from '../../../shared/harness/auth';
 import { aSupplier } from '../../../shared/factories/supplier-factory';
 
 /**
@@ -15,9 +15,11 @@ import { aSupplier } from '../../../shared/factories/supplier-factory';
  */
 describe('POST /suppliers', () => {
   let app: INestApplication;
+  let api: Api;
 
   beforeAll(async () => {
     app = await startTestApp();
+    api = await signInAs(app, 'AT');
   });
 
   afterAll(async () => {
@@ -31,7 +33,7 @@ describe('POST /suppliers', () => {
   it('201 Supplier created successfully', async () => {
     const payload = aSupplier();
 
-    const response = await request(app.getHttpServer()).post('/suppliers').send(payload);
+    const response = await api.post('/suppliers').send(payload);
 
     expect(response.status).toBe(201);
     expect(response.body).toMatchObject({
@@ -47,7 +49,7 @@ describe('POST /suppliers', () => {
   });
 
   it('400 legalName missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await api
       .post('/suppliers')
       .send(aSupplier({ legalName: undefined }));
 
@@ -56,7 +58,7 @@ describe('POST /suppliers', () => {
   });
 
   it('400 legalName over 80 characters', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await api
       .post('/suppliers')
       .send(aSupplier({ legalName: 'a'.repeat(81) }));
 
@@ -65,7 +67,7 @@ describe('POST /suppliers', () => {
   });
 
   it('400 supplierType missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await api
       .post('/suppliers')
       .send(aSupplier({ supplierType: undefined }));
 
@@ -74,7 +76,7 @@ describe('POST /suppliers', () => {
   });
 
   it('400 unknown supplierType', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await api
       .post('/suppliers')
       .send(aSupplier({ supplierType: 'procc' }));
 
@@ -83,7 +85,7 @@ describe('POST /suppliers', () => {
   });
 
   it('400 cuit with a malformed pattern', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await api
       .post('/suppliers')
       .send(aSupplier({ cuit: '3046033121-2' }));
 
@@ -92,7 +94,7 @@ describe('POST /suppliers', () => {
   });
 
   it('400 cuit that is not a number at all', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await api
       .post('/suppliers')
       .send(aSupplier({ cuit: 'e-stonoesuncu-it' }));
 
@@ -104,7 +106,7 @@ describe('POST /suppliers', () => {
     // Pasa el patron del DTO y lo rechaza el value object Cuit, asi que el 400
     // sale del DomainErrorFilter y no del ValidationPipe: trae `message` como
     // string, no como arreglo.
-    const response = await request(app.getHttpServer())
+    const response = await api
       .post('/suppliers')
       .send(aSupplier({ cuit: '30-70987654-3' }));
 
@@ -117,7 +119,7 @@ describe('POST /suppliers', () => {
   });
 
   it('400 invalid contactEmail', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await api
       .post('/suppliers')
       .send(aSupplier({ contactEmail: 'not.valid@' }));
 
@@ -126,7 +128,7 @@ describe('POST /suppliers', () => {
   });
 
   it('400 unknown property', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await api
       .post('/suppliers')
       .send({ ...aSupplier(), nonExistentField: 'foo' });
 
@@ -136,9 +138,9 @@ describe('POST /suppliers', () => {
 
   it('409 duplicate legalName, reporting the offending field', async () => {
     const payload = aSupplier({ legalName: 'Aceros del Sur' });
-    await request(app.getHttpServer()).post('/suppliers').send(payload);
+    await api.post('/suppliers').send(payload);
 
-    const response = await request(app.getHttpServer())
+    const response = await api
       .post('/suppliers')
       .send(aSupplier({ legalName: 'Aceros del Sur' }));
 

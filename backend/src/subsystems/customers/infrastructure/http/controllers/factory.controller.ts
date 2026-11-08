@@ -1,3 +1,4 @@
+import { RequirePermissions } from '../../../../../shared/http/auth/auth.decorators';
 import {
   Controller,
   Get,
@@ -24,6 +25,7 @@ import { FactoryResponseDto } from '../dto/factory-response.dto';
 import { FactoryExceptionFilter } from '../filters/factory-exception.filter';
 
 @Controller('factories')
+@RequirePermissions('factory:manage')
 @UseFilters(FactoryExceptionFilter)
 export class FactoryController {
   constructor(

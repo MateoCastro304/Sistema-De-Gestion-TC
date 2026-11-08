@@ -11,13 +11,11 @@ import { processTypeHandlers } from '@/features/catalogs/process-types/api/proce
 import { materialHandlers } from '@/features/catalogs/materials/api/materials.mocks'
 
 /**
- * Cuándo los endpoints del Sprint 1 empiezan a pedir sesión y rol (contrato
- * del Sprint 2, §7.2, D-40). Queda en `false` mientras el frontend no mande
- * el token: prenderlo antes deja a todas las pantallas del Sprint 1 en 401.
- * El día que el login esté hecho se pasa a `true`; los tests E2E del Sprint 1
- * siguen andando porque ya arrancan con sesión (`e2e/support/session.ts`).
+ * Los endpoints del Sprint 1 piden sesión y rol (contrato del Sprint 2, §7.2,
+ * D-40). Se prendió con el login (DTC-33): los tests E2E del Sprint 1 siguen
+ * andando porque ya arrancan con sesión (`e2e/support/session.ts`).
  */
-const SPRINT_1_REQUIRES_SESSION = false
+const SPRINT_1_REQUIRES_SESSION = true
 
 /** Quién opera cada catálogo del Sprint 1 (contrato del Sprint 2, "Matriz por recurso"). */
 const SPRINT_1_ROLES: [path: string, roles: readonly string[]][] = [

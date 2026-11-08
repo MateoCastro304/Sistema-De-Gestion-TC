@@ -11,7 +11,7 @@ const valid = {
 
 function detailsOf(data: object): { field: string; message: string }[] {
   try {
-    ProcessType.create({ ...valid, ...data });
+    ProcessType.create({ ...valid, ...data }, 7);
   } catch (error) {
     if (error instanceof ProcessTypeValidationError) return error.details;
     throw error;
@@ -21,17 +21,18 @@ function detailsOf(data: object): { field: string; message: string }[] {
 
 describe('ProcessType.create', () => {
   it('guarda los precios tal como llegan y calcula la clave del nombre', () => {
-    const pt = ProcessType.create({ ...valid, name: '  Mecanizado   Tórno ' });
+    const pt = ProcessType.create({ ...valid, name: '  Mecanizado   Tórno ' }, 7);
 
     expect(pt.getName()).toBe('Mecanizado   Tórno');
     expect(pt.getNameKey()).toBe('mecanizado torno');
     expect(pt.getHourlyRateArs().getValue()).toBe(3100);
     expect(pt.getHourlyRateUsd().getValue()).toBe(2.24);
     expect(pt.getExchangeRate().getValue()).toBe(1385.5);
+    expect(pt.getCreatedByUserId()).toBe(7);
   });
 
   it('guarda la descripción vacía como null', () => {
-    expect(ProcessType.create({ ...valid, description: '  ' }).getDescription()).toBeNull();
+    expect(ProcessType.create({ ...valid, description: '  ' }, 7).getDescription()).toBeNull();
   });
 
   it('informa un error por campo cuando faltan los obligatorios', () => {

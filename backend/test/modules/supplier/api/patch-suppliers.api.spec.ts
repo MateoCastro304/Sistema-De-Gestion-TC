@@ -1,14 +1,16 @@
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
 
 import { startTestApp, stopTestApp, getPrisma } from '../../../shared/harness/test-app';
+import { Api, signInAs } from '../../../shared/harness/auth';
 import { aValidCuit, createSupplier } from '../../../shared/factories/supplier-factory';
 
 describe('PATCH /suppliers/:id', () => {
   let app: INestApplication;
+  let api: Api;
 
   beforeAll(async () => {
     app = await startTestApp();
+    api = await signInAs(app, 'AT');
   });
 
   afterAll(async () => {
@@ -22,7 +24,7 @@ describe('PATCH /suppliers/:id', () => {
   it('200 Supplier updated successfully', async () => {
     const supplier = await createSupplier({ legalName: 'Original Supplier Name' });
 
-    const response = await request(app.getHttpServer())
+    const response = await api
       .patch(`/suppliers/${supplier.id}`)
       .send({ address: 'Nueva direccion 123' });
 
@@ -37,7 +39,7 @@ describe('PATCH /suppliers/:id', () => {
   it('200 clears an optional field when null is sent', async () => {
     const supplier = await createSupplier({ legalName: 'Con contacto', contactName: 'Diego' });
 
-    const response = await request(app.getHttpServer()).patch(`/suppliers/${supplier.id}`).send({ contactName: null });
+    const response = await api.patch(`/suppliers/${supplier.id}`).send({ contactName: null });
 
     expect(response.status).toBe(200);
     // Los opcionales vacios se omiten del cuerpo, no viajan como null.
@@ -47,7 +49,7 @@ describe('PATCH /suppliers/:id', () => {
   it('200 sets the observation', async () => {
     const supplier = await createSupplier({ legalName: 'Sin observacion' });
 
-    const response = await request(app.getHttpServer())
+    const response = await api
       .patch(`/suppliers/${supplier.id}`)
       .send({ observation: 'Entrega los martes' });
 
@@ -56,7 +58,7 @@ describe('PATCH /suppliers/:id', () => {
   });
 
   it('404 Supplier not found', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await api
       .patch('/suppliers/999999')
       .send({ address: 'Nueva direccion 123' });
 
@@ -67,7 +69,7 @@ describe('PATCH /suppliers/:id', () => {
   it('404 for an inactive supplier', async () => {
     const supplier = await createSupplier({ legalName: 'Dado de baja', isActive: false });
 
-    const response = await request(app.getHttpServer())
+    const response = await api
       .patch(`/suppliers/${supplier.id}`)
       .send({ address: 'Nueva direccion 123' });
 
@@ -77,7 +79,7 @@ describe('PATCH /suppliers/:id', () => {
   it('400 supplierType cannot be updated', async () => {
     const supplier = await createSupplier({ legalName: 'Original Supplier Name' });
 
-    const response = await request(app.getHttpServer())
+    const response = await api
       .patch(`/suppliers/${supplier.id}`)
       .send({ supplierType: 'PAINT' });
 
@@ -88,7 +90,7 @@ describe('PATCH /suppliers/:id', () => {
   it('400 active is not accepted: there is no reactivation', async () => {
     const supplier = await createSupplier({ legalName: 'Original Supplier Name' });
 
-    const response = await request(app.getHttpServer()).patch(`/suppliers/${supplier.id}`).send({ active: true });
+    const response = await api.patch(`/suppliers/${supplier.id}`).send({ active: true });
 
     expect(response.status).toBe(400);
     expect(response.body.message.join(' ')).toContain('active');
@@ -97,7 +99,7 @@ describe('PATCH /suppliers/:id', () => {
   it('400 field does not exist', async () => {
     const supplier = await createSupplier({ legalName: 'Original Supplier Name' });
 
-    const response = await request(app.getHttpServer())
+    const response = await api
       .patch(`/suppliers/${supplier.id}`)
       .send({ nonExistentField: 'foo' });
 
@@ -109,7 +111,7 @@ describe('PATCH /suppliers/:id', () => {
     await createSupplier({ legalName: 'Otro Proveedor' });
     const supplier = await createSupplier({ legalName: 'Aceros del Sur' });
 
-    const response = await request(app.getHttpServer())
+    const response = await api
       .patch(`/suppliers/${supplier.id}`)
       .send({ legalName: 'OTRO PROVEEDOR' });
 
@@ -122,7 +124,7 @@ describe('PATCH /suppliers/:id', () => {
     await createSupplier({ legalName: 'Dado de baja', cuit: cuit.replace(/-/g, ''), isActive: false });
     const supplier = await createSupplier({ legalName: 'Aceros del Sur' });
 
-    const response = await request(app.getHttpServer()).patch(`/suppliers/${supplier.id}`).send({ cuit });
+    const response = await api.patch(`/suppliers/${supplier.id}`).send({ cuit });
 
     expect(response.status).toBe(200);
     expect(response.body.cuit).toBe(cuit);

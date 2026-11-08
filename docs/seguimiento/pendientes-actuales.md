@@ -12,6 +12,7 @@ Relevamiento del 15 de octubre de 2026 sobre `develop`. Reemplaza en la práctic
 | A-04 | Baja con `DELETE` en fábricas y encargados | P2 | Pendiente |
 | A-05 | Mover `supplier` a `technical-catalog` | P2 | Pendiente |
 | A-06 | Unificar los tests de proveedores y quitar el nivel de API | P2 | Pendiente |
+| A-07 | CI de `develop` en rojo: formato del backend | P1 | Pendiente |
 | H-01 | Contrato y documentación desactualizados | P1 | Pendiente |
 | H-02 | Backend: detalles menores | P2 | Pendiente |
 | H-03 | Frontend: deuda técnica | P2 | Pendiente |
@@ -146,6 +147,17 @@ Varios escenarios están duplicados entre las dos carpetas. Por ejemplo, `cu35-l
 3. Quitar la fila de `test:api` de `backend/README.md` y la excepción de `backend/test/README.md`.
 
 Mientras tanto, ningún módulo nuevo crea carpetas `api/` ni `int/`.
+
+## A-07 · P1 · CI de `develop` en rojo: formato del backend
+
+Relevado el 3 de noviembre de 2026. Desde el push del 2/11 a las 21:34 (hora de Córdoba), el job `backend` de la CI falla en el paso `npm run format:check`: hay archivos de `backend/src` o `backend/test` sin el formato de Prettier (`backend/.prettierrc`). Los jobs `frontend` y `openapi-contract` pasan.
+
+- **Origen:** el push con los 13 commits del módulo de identidad, de `63e0d03` a `bd0ddd2` (login, refresh, logout, sesiones y permisos), que tocó 106 archivos del backend. La última ejecución en verde fue `a6a204f`.
+- **Arrastre:** cada push posterior hereda el rojo (`ccc51db`, `85effba`). Mientras siga así, la CI no avisa si un push nuevo rompe otra cosa del backend (lint, build o tests unitarios): falla igual, en el paso de formato, y los pasos siguientes no corren.
+- **Falta precisar:** qué archivos exactos. El log de la CI pide sesión en GitHub; localmente los lista `npm run format:check` en `backend/`.
+- **No es la primera vez:** hay commits anteriores que sólo aplican Prettier (`141d272`, `5dd31c0`).
+
+**Cómo se arregla:** en `backend/`, `npm run format` y commitear el resultado solo, sin otros cambios (`style(backend): apply prettier formatting`). Antes de pushear, `npm run format:check` tiene que pasar, como pide CONTRIBUTING ("Running checks locally"). Para que no se repita, conviene formatear al guardar con el Prettier del proyecto (CONTRIBUTING, "Formatting").
 
 ---
 

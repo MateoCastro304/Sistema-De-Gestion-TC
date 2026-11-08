@@ -22,7 +22,9 @@ class FixedClock extends ClockPort {
 }
 
 async function seed(repository: InMemoryProcessTypeRepository, name: string): Promise<void> {
-  await repository.save(ProcessType.create({ name, hourlyRateArs: 1557, hourlyRateUsd: 1.13, exchangeRate: 1377.88 }));
+  await repository.save(
+    ProcessType.create({ name, hourlyRateArs: 1557, hourlyRateUsd: 1.13, exchangeRate: 1377.88 }, 1),
+  );
 }
 
 describe('ModifyProcessType', () => {
