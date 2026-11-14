@@ -6,6 +6,7 @@ import fotoPrensa from '@/assets/foto-prensa.webp'
 import fotoDisco from '@/assets/foto-disco.webp'
 import fotoHero from '@/assets/hero-castro.webp'
 import fotoBronce from '@/assets/foto-piezas-bronce.webp'
+import fotoBrida from '@/assets/foto-brida.webp'
 import fotoCnc from '@/assets/foto-cnc.webp'
 import fotoDispositivo from '@/assets/foto-dispositivo.webp'
 /**
@@ -16,8 +17,8 @@ import fotoDispositivo from '@/assets/foto-dispositivo.webp'
  * de la topbar (de qué panel cuelga cada listado), así que agregar un
  * catálogo nuevo a un panel es una entrada en `items`.
  *
- * Gestión muestra Proveedores y Tipos de proceso; Materiales se suma
- * cuando exista su pantalla.
+ * Gestión muestra Proveedores, Materiales y Tipos de proceso, en el orden
+ * del prototipo.
  */
 export interface PanelItem {
   /** Ruta del listado. */
@@ -93,6 +94,14 @@ export const PANELS = {
         icon: 'proveedor',
         photo: fotoBronce,
         photoPosition: 'center 60%',
+      },
+      {
+        to: '/catalogos/materiales',
+        label: 'Materiales',
+        description: 'Materiales con su calidad, para cargar en las cotizaciones.',
+        icon: 'material',
+        photo: fotoBrida,
+        photoPosition: 'center',
       },
       {
         to: '/catalogos/tipos-de-proceso',

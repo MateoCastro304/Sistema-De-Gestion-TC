@@ -23,6 +23,7 @@ import {
   NewProcessTypePage,
   ProcessTypeDetailPage,
 } from '@/features/catalogs/process-types'
+import { MaterialsPage } from '@/features/catalogs/materials'
 import { EmployeesPage, NewEmployeePage, EmployeeDetailPage } from '@/features/catalogs/employees'
 import { UsersPage, NewUserPage, UserDetailPage } from '@/features/catalogs/users'
 import { CategoriesPage } from '@/features/catalogs/categories'
@@ -105,6 +106,12 @@ export const router = createBrowserRouter([
                       { path: 'nuevo', element: <NewProcessTypePage /> },
                       { path: ':id', element: <ProcessTypeDetailPage /> },
                     ],
+                  },
+                  {
+                    // Materiales (CU-39, DTC-118). Sin alta ni detalle propios:
+                    // "Nuevo material" es una ventana del listado (CU-37).
+                    path: '/catalogos/materiales',
+                    children: [{ index: true, element: <MaterialsPage /> }],
                   },
                   {
                     // Usuarios: listado (CU-07, DTC-131), alta (CU-05, DTC-129) y detalle.
