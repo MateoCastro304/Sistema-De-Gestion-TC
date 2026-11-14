@@ -148,9 +148,9 @@ feature, el objetivo es llevar su archivo a verde.
 | ---------------- | ------------------------------------------------- | ------------------ | -------------------------------------------------------------------------------------------- |
 | Sesión           | `auth/session.e2e.spec.ts`                          | CU-53, CU-52, RNF09 | Redirección al ingreso, campos vacíos, credenciales malas, usuario dado de baja, bloqueo al 5.º intento, usuario bloqueado, pantalla inicial por rol y recarga, inicio vacío (JT), sesión expirada, acceso denegado, cerrar sesión, confirmación con datos sin guardar. Con la sesión abierta (`[DTC-33][CU-53]`): token vencido renovado con un solo refresh, sesión vencida a los 7 días y refresh token reusado. Detalle en [`src/features/auth/README.md`](../src/features/auth/README.md) |
 | Empleados        | `catalogs/employees/employees.e2e.spec.ts`          | CU-45, CU-47       | Listado, búsqueda por puesto, dados de baja, alta, obligatorios, DNI repetido, detalle con y sin usuario |
-| Usuarios         | `catalogs/users/users.e2e.spec.ts`                  | CU-05, CU-07       | Listado con bloqueados, filtro por rol, dados de baja, alta con nombre propuesto, validaciones, usuario repetido, empleado que ya tiene usuario, aviso de bloqueado |
+| Usuarios         | `catalogs/users/users.e2e.spec.ts`                  | CU-05, CU-07       | Listado con bloqueados, filtro por rol, dados de baja, alta con nombre propuesto, validaciones, usuario repetido, empleado que ya tiene usuario, aviso de bloqueado. Con `[DTC-129]`: buscador de empleado que se abre al hacer clic, "+ Registrar empleado" sin perder lo cargado y llegada con `?employeeId=`. Con `[DTC-131]`: orden por nombre de usuario, búsqueda sin acentos, sin resultados, detalle desde el listado, inactivo, inexistente y acceso denegado (`mrios`) |
 | Tipos de proceso | `catalogs/process-types/process-types.e2e.spec.ts`  | CU-09, CU-10, CU-11 | Un `describe` por historia (DTC-203/204/205). Listado ordenado, búsqueda y sin resultados; detalle con historial; alta con precios vinculados, cotización precargada y "Restablecer", sin cotización (502), obligatorios, precios inválidos y nombre repetido; modificación por dólar y por pesos con "Confirmar cambios", sólo descripción, nombre de otro tipo y "No hay cambios para guardar"; acceso denegado a JT, ER, ERP y AS |
-| Materiales       | `catalogs/materials/materials.e2e.spec.ts`          | CU-37, CU-39       | Filtro por material con orden natural, búsqueda por calidad, alta con la grafía existente, obligatorios y combinación repetida |
+| Materiales       | `catalogs/materials/materials.e2e.spec.ts`          | CU-37, CU-39       | Filtro por material con orden natural, búsqueda por calidad, alta con la grafía existente, obligatorios y combinación repetida. Con `[DTC-116]`: nombre nuevo escrito a mano que entra al filtro y sugerencias del campo "Material" (`<datalist>`). Con `[DTC-118]`: filtro y búsqueda combinados, orden del catálogo, sin resultados, opciones del filtro y acceso denegado (`wcastro`) |
 
 #### Lo que estos tests esperan de las pantallas del Sprint 2
 
@@ -173,8 +173,12 @@ se cambia el test en el mismo PR:
 - **Formularios:** cada campo con su `<label>` asociado (el componente `Input` ya
   lo garantiza) y los textos de error y avisos del prototipo y del contrato.
 - **Usuario nuevo:** el buscador "Empleado" muestra sugerencias como `option` (con
-  "Ya tiene usuario" si corresponde) y "Permisos" es un `combobox` con una
-  `listbox` de opciones múltiples.
+  "Ya tiene usuario" si corresponde) apenas se hace clic, y abajo el botón
+  "+ Registrar empleado", que abre la ventana "Registrar empleado". "Permisos" es
+  un `combobox` con una `listbox` de opciones múltiples.
+- **Nuevo material:** botón "+ Nuevo material" (en la barra y en "sin
+  resultados") que abre la ventana (`dialog`) "Nuevo material", con "Material"
+  (sugerencias en un `<datalist>`), "Calidad" y "Registrar material".
 
 ## Problemas que encontraron los tests
 
@@ -197,6 +201,14 @@ Al escribir el Sprint 1 aparecieron dos bugs de la app, ya corregidos:
   [MOCKS.md](MOCKS.md#lo-que-no-está-mockeado).
 - Los tests corren sólo en Chromium y en escritorio. El menú de celular no está
   cubierto.
+- **Paginación sin probar** en Empleados, Usuarios y Materiales: las semillas
+  tienen menos de 20 registros y no llegan a una segunda página.
+- **Sólo de la API, sin test de pantalla:** el rol inexistente en `GET /users`
+  (400) y los filtros de más de 60 caracteres en `GET /materials` (400). La
+  pantalla nunca los manda; los rechazan el mock y el backend.
+- Al elegir una opción cuyo texto está contenido en otra ("Acero" y "Acero
+  inoxidable", "Jefe" y "Jefe de taller"), usar una regex exacta (`/^Acero$/`):
+  `getByRole('option', { name })` busca por "contiene".
 - No están en CI. Para sumarlos, en el job `frontend` de `.github/workflows/ci.yaml`
   alcanza con `npx playwright install --with-deps chromium` y
   `npm run test:e2e:sprint1`.

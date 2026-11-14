@@ -119,9 +119,10 @@ El menú lateral no lleva directo a los listados, sino a **paneles de tarjetas**
 | Panel      | Ruta                  | Tarjetas (listados)                          |
 | ---------- | --------------------- | -------------------------------------------- |
 | Clientes   | `/catalogos/clientes` | Encargados, Fábricas, Rubros                 |
-| Gestión    | `/catalogos/gestion`  | Proveedores (Materiales y Tipos de proceso se suman en el sprint 2) |
+| Gestión    | `/catalogos/gestion`  | Proveedores, Materiales, Tipos de proceso    |
+| Administración | `/administracion` | Empleados, Usuarios                          |
 
-El panel **Administración** (`/administracion`, Empleados y Usuarios, como en el prototipo) ya existe con la tarjeta Empleados; Usuarios se suma con su pantalla. El menú solo muestra los paneles y tarjetas que permiten los roles del usuario (`canAccess()`).
+El orden de las tarjetas es el del prototipo. El menú solo muestra los paneles y tarjetas que permiten los roles del usuario (`canAccess()`): por ejemplo, el Administrador del Sistema ve sólo Administración, y el Encargado de Cotización, Clientes y Gestión.
 
 `features/catalogs/panels/panels.ts` es la fuente de verdad de esta agrupación. De ahí salen tres cosas:
 
@@ -143,7 +144,9 @@ Para sumar un catálogo nuevo a un panel, alcanza con agregar una entrada en `it
 | `/catalogos/rubros`                    | `CategoriesPage`        |
 | `/administracion`                      | `PanelPage` (Administración) |
 | `/administracion/empleados`            | `EmployeesPage`, `nuevo`, `:id` |
+| `/administracion/usuarios`             | `UsersPage`, `nuevo` (acepta `?employeeId=`), `:id` |
 | `/catalogos/proveedores`               | `SuppliersPage`, `nuevo`, `:id` |
+| `/catalogos/materiales`                | `MaterialsPage` (el alta es una ventana del listado, sin ruta propia) |
 | `/catalogos/tipos-de-proceso`          | `ProcessTypesPage`, `nuevo`, `:id` |
 | `*`                                    | `NotFoundPage`          |
 

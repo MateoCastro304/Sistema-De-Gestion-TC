@@ -32,7 +32,7 @@ Reglas del contrato: DNI de 7 u 8 dígitos sin puntos, único entre todos los em
 | No existe | `404 EMPLOYEE_NOT_FOUND`, `400 INVALID_PATH_PARAMETER` o un id que no es número (ni siquiera se llama a la API): "No se encontró el empleado." Cualquier otro error muestra "No se pudo cargar el empleado." | ídem |
 | Sin permiso | Otro rol ve "No tenés permisos para realizar esta operación."; la API responde `403` | `app/router/guards.tsx` |
 
-Fuera de esta historia: el buscador de empleado del alta de usuario (escenario 8, `limit=8`, etiqueta "Ya tiene usuario") es de DTC-129; el filtro `hasUser` y los parámetros inválidos (escenario 9) son sólo de la API. `listEmployees` ya acepta `limit` y `hasUser`, para reutilizarlo después.
+Fuera de esta historia: el buscador de empleado del alta de usuario (escenario 8, `limit=8`, etiqueta "Ya tiene usuario") está en `catalogs/users/` (DTC-129); el filtro `hasUser` y los parámetros inválidos (escenario 9) son sólo de la API. `listEmployees` ya acepta `limit` y `hasUser`, para reutilizarlo después.
 
 ## Qué hace cada archivo
 
@@ -66,7 +66,7 @@ El id `[DTC-28]` o `[DTC-201]` en el nombre marca los tests agregados con cada h
 | 4. Acceso denegado a otros roles | `[DTC-28] deniega el acceso al alta` (entra `mrios`, rol `ERP`) |
 | 5. Formato inválido | `[DTC-28] marca los formatos inválidos y no registra` (DNI de 3 dígitos, email sin arroba) |
 | 6. Homónimo con otro DNI | `[DTC-28] un homónimo con otro DNI se registra sin pedir confirmación` (otro Walter Castro, DNI distinto) |
-| 7. Alta desde el formulario de usuario | **Pendiente:** depende del formulario de usuario (DTC-129) |
+| 7. Alta desde el formulario de usuario | `[DTC-129] registra un empleado desde el alta y lo deja elegido sin perder lo cargado`, en `e2e/catalogs/users/users.e2e.spec.ts` |
 
 Ajustes a tests que ya existían: la opción `Jefe` se busca con `/^Jefe$/` (si no, también coincide con "Jefe de taller") y `wcastro` con `exact: true` (el email del empleado también lo contiene). El desplegable de Puesto muestra "Seleccioná un puesto" y no "Elegí el puesto" para que ese texto sea sólo el del error.
 
@@ -80,12 +80,12 @@ Ajustes a tests que ya existían: la opción `Jefe` se busca con `/^Jefe$/` (si 
 | 5. Dados de baja | Dentro de `lista los empleados activos…`: tilda "Incluir dados de baja" y Omar aparece como "Inactivo" |
 | 6. Detalle | `[DTC-201] abre el detalle desde el listado`, `[DTC-201] el recuadro de usuario muestra el estado` y `[DTC-201] el detalle de un empleado dado de baja lo avisa` (Omar, id 12) |
 | 7. Empleado inexistente | `[DTC-201] informa si el empleado no existe o el identificador no es un número` (id 99 y `/abc`) |
-| 8. Buscador del alta de usuario | **Pendiente:** es de DTC-129 |
+| 8. Buscador del alta de usuario | Tests `[DTC-129]` de `e2e/catalogs/users/users.e2e.spec.ts` (lista al hacer clic, "Ya tiene usuario") |
 | 9. `hasUser` y parámetros inválidos | **Sin test:** son sólo de la API, no hay pantalla |
 
 Sin cubrir: **la paginación de a 20**, porque los datos del mock tienen 12 empleados y no alcanzan para una segunda página.
 
-Un test sigue fallando a propósito: el último paso de `el detalle muestra su usuario o el acceso para crearlo` espera ver "Matías Castro" en el alta de usuario, que es DTC-129.
+`el detalle muestra su usuario o el acceso para crearlo` termina en el alta de usuario con Matías Castro ya elegido: pasa desde que el alta lee `?employeeId=` (DTC-129).
 
 Por qué se agregaron estos tests: el único que había cubría el listado de punta a punta pero no las columnas, el orden, la búsqueda sin acentos, el "sin resultados", el aviso de baja, el estado del usuario ni el empleado inexistente, que son criterios de aceptación de la historia.
 

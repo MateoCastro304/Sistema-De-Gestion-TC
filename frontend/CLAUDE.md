@@ -118,11 +118,17 @@ Trabajá de a una feature por vez y en pasos chicos que se puedan revisar.
 
 ---
 
-## Sprint 2 — qué se programa y dónde
+## Sprint 2 — qué se hizo y dónde (cerrado)
 
-Las once historias del sprint "DTC Sprint 2" (contrato, tabla del principio).
-**Los mocks, los tipos y los tests E2E ya están hechos para todas**; faltan las
-pantallas. Las rutas son las de `frontend/e2e/support/routes.ts`.
+Las once historias del sprint "DTC Sprint 2" (contrato, tabla del principio)
+**están terminadas y en `develop`** desde el 14/11/2026: pantallas, mocks y tests
+E2E (`npm run test:e2e:sprint2` y `test:e2e:sprint1` en verde). La tabla queda
+como mapa de dónde vive cada historia. Las rutas son las de
+`frontend/e2e/support/routes.ts`.
+
+**Al empezar el Sprint 3**, esta sección se reemplaza por la del sprint nuevo:
+su contrato, su tabla de historias y sus reglas. Los pasos de "Cómo se programa
+una feature" y las reglas que no se negocian no cambian.
 
 | Jira | CU | Historia | Módulo | Ruta | Tests |
 | --- | --- | --- | --- | --- | --- |
@@ -138,14 +144,13 @@ pantallas. Las rutas son las de `frontend/e2e/support/routes.ts`.
 | DTC-116 | 37 | Registrar material | `catalogs/materials/` | (modal del listado) | `e2e/catalogs/materials/` |
 | DTC-118 | 39 | Consultar materiales | `catalogs/materials/` | `/catalogos/materiales` | ídem |
 
-Orden sugerido: **sesión primero** (todo lo demás la necesita), después empleados
-→ usuarios → tipos de proceso → materiales.
+Las features del sprint tienen un README con el flujo, los archivos y los tests
+criterio por criterio: `features/auth/`, `features/catalogs/employees/`,
+`features/catalogs/users/` y `features/catalogs/materials/`.
+El Sprint 1 ya exige token en los mocks (`SPRINT_1_REQUIRES_SESSION = true` en
+`src/app/mocks/handlers.ts`, contrato §7.2).
 
-**Al terminar la sesión**, todo el Sprint 1 pasa a exigir token (contrato §7.2):
-pasá `SPRINT_1_REQUIRES_SESSION` a `true` en `src/app/mocks/handlers.ts` y
-corré `npm run test:e2e:sprint1`.
-
-### Lo que cambia sobre lo que ya está
+### Lo que cambió respecto del Sprint 1 (ya hecho)
 
 El contrato (§8.4) lo detalla. En resumen:
 
@@ -180,6 +185,26 @@ Las completas están en el contrato; estas son las que más se olvidan:
 - Montos con formato argentino en pantalla (`$ 1.385,50`, `US$ 1,13`), números
   con dos decimales en la API. Fechas en UTC en la API, hora de Córdoba en
   pantalla.
+
+### Lo que quedó pendiente del Sprint 2
+
+Decisiones de diseño que tocan componentes compartidos de `shared/`; se
+plantean al equipo, no se resuelven "de paso" en una historia:
+
+- **"Bloqueado" en rojo.** El prototipo lo pinta rojo; `Badge` no tiene variante
+  roja y en Usuarios va en `ambar` (`STATUS_BADGE` de `UsersPage.tsx`).
+- **Ícono de usuario.** `EntityIcon` no lo tiene; la tarjeta Usuarios usa el de
+  `empleado` (`panels.ts`). Para sumarlo, su trazo va a `PATHS` (el `IC.usu` del
+  prototipo).
+- **Íconos por fila.** El prototipo muestra el ícono de la entidad en cada fila
+  de Materiales; ningún listado del proyecto lo hace, así que se decide para
+  todos juntos.
+- **Botón con forma de enlace.** "+ Registrar empleado" (`EmployeePicker.tsx`)
+  lleva estilos en línea porque `styles.css` no tiene una clase para un botón
+  dentro de un texto.
+
+Sin test por falta de datos o porque son sólo de la API: ver TESTING.md,
+"Pendientes y observaciones".
 
 ## Verificar
 
