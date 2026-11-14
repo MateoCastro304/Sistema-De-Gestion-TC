@@ -8,6 +8,8 @@ export const userKeys = {
   all: ['users'] as const,
   lists: () => [...userKeys.all, 'list'] as const,
   list: (params?: UserListParams) => [...userKeys.lists(), params ?? {}] as const,
+  // Cuelga de `lists()` para que el alta también refresque el encabezado.
+  count: () => [...userKeys.lists(), 'count'] as const,
   detail: (id: number) => [...userKeys.all, 'detail', id] as const,
 }
 

@@ -1,6 +1,28 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { UserListParams } from '../types/user'
 import { employeeOptionKeys, userKeys } from './users.keys'
-import { createUser, getUser, searchEmployeeOptions } from './users.api'
+import { countUsers, createUser, getUser, listUsers, searchEmployeeOptions } from './users.api'
+
+/**
+ * CU-07 Listado de usuarios con búsqueda, rol, dados de baja y página.
+ * `keepPreviousData` deja la tabla anterior mientras llega la nueva, así no
+ * parpadea al tipear en el buscador o al cambiar el filtro.
+ */
+export function useUsers(params: UserListParams) {
+  return useQuery({
+    queryKey: userKeys.list(params),
+    queryFn: () => listUsers(params),
+    placeholderData: keepPreviousData,
+  })
+}
+
+/** Cantidad del encabezado ("8 usuarios activos"): activos y bloqueados. */
+export function useUsersCount() {
+  return useQuery({
+    queryKey: userKeys.count(),
+    queryFn: countUsers,
+  })
+}
 
 /** Detalle de un usuario: a donde lleva el alta después de registrar. */
 export function useUser(id: number) {

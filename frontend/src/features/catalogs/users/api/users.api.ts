@@ -8,9 +8,20 @@ const USERS = '/users'
 /** Cuántos empleados muestra el buscador "Empleado" (el prototipo pide `limit=8`). */
 export const EMPLOYEE_SEARCH_LIMIT = 8
 
+/** CU-07 Listado de usuarios: búsqueda, rol, dados de baja y página. */
 export async function listUsers(params?: UserListParams): Promise<Page<User>> {
   const { data } = await http.get<Page<User>>(USERS, { params })
   return data
+}
+
+/**
+ * Cantidad de usuarios del encabezado ("8 usuarios activos"): `limit=1` sin
+ * filtros y se toma `total`. Cuenta activos y bloqueados, no los dados de
+ * baja (D-28).
+ */
+export async function countUsers(): Promise<number> {
+  const { total } = await listUsers({ page: 1, limit: 1 })
+  return total
 }
 
 /**

@@ -81,4 +81,66 @@ test.describe('[CU-05][CU-07] Usuarios', { tag: '@sprint2' }, () => {
       page.getByText('Este usuario está bloqueado por 5 intentos fallidos de ingreso: no puede ingresar al sistema.'),
     ).toBeVisible()
   })
+
+  test('[DTC-131] el listado está ordenado por nombre de usuario y muestra empleado y roles', async ({ page }) => {
+    await page.goto(ROUTES.users)
+    await expect(rows(page)).toHaveCount(8)
+    // dcastro abre la lista y wcastro la cierra: orden alfabético del usuario.
+    await expect(rows(page).first()).toContainText('dcastro')
+    await expect(rows(page).last()).toContainText('wcastro')
+    await expect(row(page, 'dcastro')).toContainText('Castro')
+    await expect(row(page, 'dcastro')).toContainText('Encargado de Cotización')
+  })
+
+  test('[DTC-131] busca por usuario o empleado sin distinguir mayúsculas ni acentos', async ({ page }) => {
+    await page.goto(ROUTES.users)
+    const search = page.getByRole('searchbox', { name: 'Buscar por usuario o empleado' })
+
+    // Por el nombre del empleado, sin el acento de "Mónica".
+    await search.fill('MONICA')
+    await expect(rows(page)).toHaveCount(1)
+    await expect(row(page, 'mrios')).toBeVisible()
+
+    // Por el nombre de usuario.
+    await search.fill('FPAZ')
+    await expect(rows(page)).toHaveCount(1)
+    await expect(row(page, 'fpaz')).toBeVisible()
+  })
+
+  test('[DTC-131] avisa si no hay resultados y ofrece crear un usuario', async ({ page }) => {
+    await page.goto(ROUTES.users)
+    await page.getByRole('searchbox', { name: 'Buscar por usuario o empleado' }).fill('zzzz')
+
+    await expect(page.getByText('No se encontraron usuarios con ese criterio')).toBeVisible()
+    await expect(page.getByRole('link', { name: '+ Nuevo usuario' }).last()).toBeVisible()
+  })
+
+  test('[DTC-131] abre el detalle desde el listado', async ({ page }) => {
+    await page.goto(ROUTES.users)
+    await row(page, 'wcastro').getByRole('link', { name: 'Ver' }).click()
+    await expect(page).toHaveURL(detail.user(1))
+    await expect(page.getByRole('heading', { name: /wcastro/ })).toBeVisible()
+  })
+
+  test('[DTC-131] el detalle de un usuario dado de baja lo avisa', async ({ page }) => {
+    await page.goto(detail.user(9))
+    await expect(page.getByRole('heading', { name: /ogimenez/ })).toBeVisible()
+    await expect(page.getByText('Este usuario está inactivo: no puede ingresar al sistema.')).toBeVisible()
+  })
+
+  test('[DTC-131] avisa si el usuario no existe', async ({ page }) => {
+    await page.goto(detail.user(999))
+    await expect(page.getByText('No encontramos el usuario que buscabas.')).toBeVisible()
+  })
+})
+
+test.describe('[DTC-131][CU-07] Usuarios: acceso por rol', { tag: '@sprint2' }, () => {
+  // mrios es Encargado de Presupuesto: no administra usuarios.
+  test.use({ sessionUser: 'mrios' })
+
+  test('otro rol ve acceso denegado en el listado de usuarios', async ({ page }) => {
+    await page.goto(ROUTES.users)
+    await expect(page.getByRole('heading', { name: 'Acceso denegado' })).toBeVisible()
+    await expect(page.getByText('No tenés permisos para realizar esta operación.')).toBeVisible()
+  })
 })
