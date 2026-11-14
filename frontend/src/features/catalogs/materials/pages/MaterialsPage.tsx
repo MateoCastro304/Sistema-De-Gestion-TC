@@ -6,6 +6,7 @@ import { isApiError } from '@/shared/api/ApiError'
 import fotoEjes from '@/assets/foto-ejes.webp'
 import { PANELS } from '@/features/catalogs/panels'
 import { useMaterialNames, useMaterials, useMaterialsCount } from '../api/materials.queries'
+import { MaterialFormModal } from '../components/MaterialFormModal'
 import type { Material } from '../types/material'
 
 /** Columnas del prototipo: material y calidad. El listado no tiene detalle ni acciones por fila. */
@@ -14,7 +15,10 @@ const COLUMNS: Column<Material>[] = [
   { header: 'Calidad', render: (material) => material.quality },
 ]
 
-/** CU-39 Consultar materiales: filtro por material, búsqueda por calidad y paginación. */
+/**
+ * CU-39 Consultar materiales: filtro por material, búsqueda por calidad y
+ * paginación. "+ Nuevo material" abre la ventana de alta (CU-37).
+ */
 export function MaterialsPage() {
   // `search` es lo que se ve en el buscador; `debouncedSearch`, lo que viaja a la API.
   const [search, setSearch] = useState('')
@@ -22,6 +26,8 @@ export function MaterialsPage() {
   // '' es "Todos los materiales".
   const [name, setName] = useState('')
   const [page, setPage] = useState(1)
+  /** La ventana "Nuevo material", abierta o cerrada. */
+  const [creating, setCreating] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300)
@@ -60,8 +66,8 @@ export function MaterialsPage() {
     setPage(1)
   }
 
-  // La ventana "Nuevo material" es DTC-116 (CU-37): ahí se conecta este botón.
-  const newMaterialButton = <Button>+ Nuevo material</Button>
+  // Va en la barra y en "sin resultados" (escenario 3 de CU-39).
+  const newMaterialButton = <Button onClick={() => setCreating(true)}>+ Nuevo material</Button>
 
   let emptyState
   if (error) {
@@ -129,6 +135,8 @@ export function MaterialsPage() {
           />
         }
       />
+
+      <MaterialFormModal open={creating} onClose={() => setCreating(false)} />
     </>
   )
 }

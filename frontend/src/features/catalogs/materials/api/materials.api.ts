@@ -1,6 +1,6 @@
 import { http } from '@/shared/api/http'
 import type { Page } from '@/shared/api/pagination'
-import type { Material, MaterialListParams } from '../types/material'
+import type { Material, MaterialCreate, MaterialListParams } from '../types/material'
 
 const MATERIALS = '/materials'
 
@@ -21,10 +21,22 @@ export async function countMaterials(): Promise<number> {
 
 /**
  * Los nombres de material distintos, en orden alfabético: las opciones del
- * filtro "Todos los materiales". No se pagina (D-38): son unas decenas como
- * mucho. La API responde `{ items }` y acá se devuelve directamente la lista.
+ * filtro "Todos los materiales" y del campo "Material" del alta. No se pagina
+ * (D-38): son unas decenas como mucho. La API responde `{ items }` y acá se
+ * devuelve directamente la lista.
  */
 export async function listMaterialNames(): Promise<string[]> {
   const { data } = await http.get<{ items: string[] }>(`${MATERIALS}/names`)
   return data.items
+}
+
+/**
+ * CU-37 Registrar material: `201` con el material creado. Si el nombre ya
+ * existe con otra grafía ("acero"), la API lo guarda con la del existente
+ * ("Acero", D-37). Un nombre y calidad repetidos → `409 MATERIAL_ALREADY_EXISTS`
+ * sobre `quality`.
+ */
+export async function createMaterial(input: MaterialCreate): Promise<Material> {
+  const { data } = await http.post<Material>(MATERIALS, input)
+  return data
 }

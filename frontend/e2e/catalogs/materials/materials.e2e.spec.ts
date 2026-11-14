@@ -58,6 +58,30 @@ test.describe('[CU-37][CU-39] Materiales', { tag: '@sprint2' }, () => {
     await expect(dialog.getByText('Ya existe un material registrado con ese nombre y calidad')).toBeVisible()
   })
 
+  test('[DTC-116] un material nuevo escrito a mano aparece en el filtro', async ({ page }) => {
+    await page.getByRole('button', { name: '+ Nuevo material' }).first().click()
+    const dialog = page.getByRole('dialog', { name: 'Nuevo material' })
+    await dialog.getByLabel('Material').fill('Latón')
+    await dialog.getByLabel('Calidad').fill('CuZn37')
+    await dialog.getByRole('button', { name: 'Registrar material' }).click()
+
+    await expect(toast(page, 'Material registrado correctamente')).toBeVisible()
+    await expect(row(page, 'CuZn37')).toContainText('Latón')
+    await chooseOption(page.getByRole('combobox', { name: 'Filtrar por material' }), 'Latón')
+    await expect(rows(page)).toHaveCount(1)
+  })
+
+  test('[DTC-116] el campo "Material" ofrece los nombres que ya existen', async ({ page }) => {
+    await page.getByRole('button', { name: '+ Nuevo material' }).first().click()
+    const dialog = page.getByRole('dialog', { name: 'Nuevo material' })
+    await expect(dialog.getByText('Elegí uno de la lista o escribí uno nuevo.')).toBeVisible()
+    // Las sugerencias del campo (un <datalist>): los 8 nombres, en orden alfabético.
+    const suggestions = dialog.locator('datalist option')
+    await expect(suggestions).toHaveCount(8)
+    await expect(suggestions.first()).toHaveAttribute('value', 'Acero')
+    await expect(suggestions.last()).toHaveAttribute('value', 'Teflón')
+  })
+
   test('[DTC-118] combina el filtro por material con la búsqueda por calidad', async ({ page }) => {
     // Exacto: "Acero" sin "Acero inoxidable".
     await chooseOption(page.getByRole('combobox', { name: 'Filtrar por material' }), /^Acero$/)
