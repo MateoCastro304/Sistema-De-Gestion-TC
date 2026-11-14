@@ -7,6 +7,7 @@ import fotoDisco from '@/assets/foto-disco.webp'
 import fotoHero from '@/assets/hero-castro.webp'
 import fotoBronce from '@/assets/foto-piezas-bronce.webp'
 import fotoCnc from '@/assets/foto-cnc.webp'
+import fotoDispositivo from '@/assets/foto-dispositivo.webp'
 /**
  * Los paneles de tarjetas del menú. "Clientes" y "Gestión" no son un
  * catálogo: son la puerta a varios. Cada tarjeta lleva a un listado.
@@ -111,7 +112,6 @@ export const PANELS = {
     description: 'Empleados de la empresa y sus usuarios del sistema.',
     photo: fotoPrensa,
     photoPosition: 'center 40%',
-    // Usuarios se suma con su pantalla (DTC-129).
     items: [
       {
         to: '/administracion/empleados',
@@ -120,6 +120,16 @@ export const PANELS = {
         icon: 'empleado',
         photo: fotoPrensa,
         photoPosition: 'center 40%',
+      },
+      {
+        to: '/administracion/usuarios',
+        label: 'Usuarios',
+        description: 'Cuentas de acceso al sistema de cada empleado y sus roles.',
+        // `EntityIcon` todavía no tiene el ícono propio de usuario del
+        // prototipo: va el de empleado, que es la persona dueña de la cuenta.
+        icon: 'empleado',
+        photo: fotoDispositivo,
+        photoPosition: 'center 45%',
       },
     ],
   },
