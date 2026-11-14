@@ -1,7 +1,7 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { MaterialListParams } from '../types/material'
 import { materialKeys } from './materials.keys'
-import { countMaterials, listMaterialNames, listMaterials } from './materials.api'
+import { countMaterials, createMaterial, listMaterialNames, listMaterials } from './materials.api'
 
 /**
  * CU-39 Listado de materiales con filtro por material, búsqueda por calidad
@@ -26,11 +26,27 @@ export function useMaterialsCount() {
 
 /**
  * Los nombres de material distintos, en orden alfabético: las opciones del
- * filtro "Todos los materiales" (y, en el alta, las del campo "Material").
+ * filtro "Todos los materiales" y las sugerencias del campo "Material" del
+ * alta. Las dos comparten esta caché.
  */
 export function useMaterialNames() {
   return useQuery({
     queryKey: materialKeys.names(),
     queryFn: listMaterialNames,
+  })
+}
+
+/**
+ * CU-37 Registrar material. Un material nuevo cambia el listado, el contador
+ * y, si su nombre no existía, las opciones del filtro: se invalida todo lo
+ * de materiales de una vez.
+ */
+export function useCreateMaterial() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: createMaterial,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: materialKeys.all })
+    },
   })
 }
