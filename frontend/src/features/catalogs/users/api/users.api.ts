@@ -4,6 +4,7 @@ import type { User, UserCreate, UserListParams } from '../types/user'
 import type { EmployeeOption } from '../types/employee-option'
 
 const USERS = '/users'
+const EMPLOYEES = '/employees'
 
 /** Cuántos empleados muestra el buscador "Empleado" (el prototipo pide `limit=8`). */
 export const EMPLOYEE_SEARCH_LIMIT = 8
@@ -45,12 +46,24 @@ export async function createUser(input: UserCreate): Promise<User> {
 }
 
 /**
- * Empleados activos para el buscador del alta de usuario. Trae también los
- * que ya tienen usuario: la opción se muestra con "Ya tiene usuario".
+ * Empleados activos para el buscador del alta de usuario, ordenados por
+ * apellido. Sin texto trae los primeros 8: el buscador los muestra apenas
+ * se hace clic, como el prototipo. Trae también los que ya tienen usuario:
+ * la opción se muestra con "Ya tiene usuario".
  */
 export async function searchEmployeeOptions(search: string): Promise<EmployeeOption[]> {
-  const { data } = await http.get<Page<EmployeeOption>>('/employees', {
-    params: { search, limit: EMPLOYEE_SEARCH_LIMIT },
+  const { data } = await http.get<Page<EmployeeOption>>(EMPLOYEES, {
+    params: { search: search || undefined, limit: EMPLOYEE_SEARCH_LIMIT },
   })
   return data.items
+}
+
+/**
+ * Un empleado por id, para dejarlo elegido cuando se llega desde "Crear
+ * usuario" del detalle del empleado (`?employeeId=`). `GET /employees/{id}`
+ * trae más campos de los que usa el buscador: sobran, no molestan.
+ */
+export async function getEmployeeOption(id: number): Promise<EmployeeOption> {
+  const { data } = await http.get<EmployeeOption>(`${EMPLOYEES}/${id}`)
+  return data
 }

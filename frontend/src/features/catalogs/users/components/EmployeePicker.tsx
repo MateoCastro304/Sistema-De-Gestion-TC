@@ -12,6 +12,8 @@ interface EmployeePickerProps {
   selected: EmployeeOption | null
   onSelect: (employee: EmployeeOption | null) => void
   onBlur?: () => void
+  /** "+ Registrar empleado": abre el alta de empleado en una ventana (CU-05, escenario 6). */
+  onRegisterNew: () => void
   /** Error del formulario ("Elegí el empleado") o de la API (409 / 422). */
   error?: string
   /** react-hook-form lo usa para enfocar el buscador cuando hay error. */
@@ -24,9 +26,10 @@ function fullName(employee: EmployeeOption): string {
 
 /**
  * Buscador "Empleado" del alta de usuario (CU-05), como el del prototipo:
- * al tipear muestra hasta 8 empleados activos, y los que ya tienen usuario
- * llevan la etiqueta "Ya tiene usuario". Al elegir uno se ve su tarjeta, con
- * el aviso y el enlace a su usuario si ya tiene.
+ * al hacer clic muestra los primeros 8 empleados activos, y al tipear, los
+ * que coinciden. Los que ya tienen usuario llevan la etiqueta "Ya tiene
+ * usuario". Al elegir uno se ve su tarjeta, con el aviso y el enlace a su
+ * usuario si ya tiene. Si la persona no está, "+ Registrar empleado".
  *
  * Los resultados van debajo del campo (no flotando), así que no hace falta
  * un portal como en `Select`.
@@ -34,14 +37,15 @@ function fullName(employee: EmployeeOption): string {
  * Accesibilidad: patrón combobox con lista. El foco se queda en el input y
  * la opción resaltada se anuncia con aria-activedescendant.
  */
-export function EmployeePicker({ id, selected, onSelect, onBlur, error, ref }: EmployeePickerProps) {
+export function EmployeePicker({ id, selected, onSelect, onBlur, onRegisterNew, error, ref }: EmployeePickerProps) {
   const listId = useId()
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
 
-  const { data: options = [], isFetching, isError } = useEmployeeOptions(search)
-  const showList = open && search.trim().length > 0
+  // Se pide sólo con la lista abierta: sin texto, los primeros 8.
+  const { data: options = [], isFetching, isError } = useEmployeeOptions(search, open)
+  const showList = open
 
   function choose(employee: EmployeeOption) {
     onSelect(employee)
@@ -124,6 +128,8 @@ export function EmployeePicker({ id, selected, onSelect, onBlur, error, ref }: E
           setOpen(true)
         }}
         onFocus={() => setOpen(true)}
+        // Si se cerró con Escape, un clic la vuelve a abrir sin salir del campo.
+        onClick={() => setOpen(true)}
         onBlur={() => {
           setOpen(false)
           onBlur?.()
@@ -175,6 +181,24 @@ export function EmployeePicker({ id, selected, onSelect, onBlur, error, ref }: E
       )}
 
       {error && <span className="form-field__error">{error}</span>}
+      <span className="form-field__hint">
+        ¿No aparece?{' '}
+        <button
+          type="button"
+          onClick={onRegisterNew}
+          style={{
+            font: 'inherit',
+            fontWeight: 700,
+            color: 'var(--rp-azul)',
+            background: 'none',
+            border: 0,
+            padding: 0,
+            cursor: 'pointer',
+          }}
+        >
+          + Registrar empleado
+        </button>
+      </span>
     </div>
   )
 }
