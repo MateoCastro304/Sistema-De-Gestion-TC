@@ -21,4 +21,6 @@ export const userKeys = {
 export const employeeOptionKeys = {
   all: ['employees', 'user-options'] as const,
   search: (search: string) => [...employeeOptionKeys.all, search] as const,
+  // El empleado que llega elegido desde "Crear usuario" (`?employeeId=`).
+  detail: (id: number) => [...employeeOptionKeys.all, 'detail', id] as const,
 }

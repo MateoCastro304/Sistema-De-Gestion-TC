@@ -82,6 +82,40 @@ test.describe('[CU-05][CU-07] Usuarios', { tag: '@sprint2' }, () => {
     ).toBeVisible()
   })
 
+  test('[DTC-129] el buscador de empleado muestra empleados al hacer clic, sin escribir', async ({ page }) => {
+    await page.goto(ROUTES.newUser)
+    await page.getByLabel('Empleado').click()
+    // Los primeros 8 activos, ordenados por apellido: Benítez abre la lista.
+    await expect(page.getByRole('option')).toHaveCount(8)
+    await expect(page.getByRole('option').first()).toContainText('Lucía Benítez')
+  })
+
+  test('[DTC-129] registra un empleado desde el alta y lo deja elegido sin perder lo cargado', async ({ page }) => {
+    await page.goto(ROUTES.newUser)
+    await page.getByLabel('Contraseña', { exact: true }).fill('Tz8kq4Rmw2')
+    await page.getByRole('button', { name: '+ Registrar empleado' }).click()
+
+    const dialog = page.getByRole('dialog', { name: 'Registrar empleado' })
+    await dialog.getByLabel('Nombre').fill('Julián')
+    await dialog.getByLabel('Apellido').fill('Ferreyra')
+    await dialog.getByLabel('DNI').fill('42345678')
+    await chooseOption(dialog.getByRole('combobox', { name: 'Puesto' }), 'Empleado')
+    await dialog.getByRole('button', { name: 'Registrar empleado' }).click()
+
+    await expect(toast(page, 'Empleado registrado y elegido para el usuario.')).toBeVisible()
+    await expect(dialog).toHaveCount(0)
+    await expect(page.getByText('Julián Ferreyra')).toBeVisible()
+    await expect(page.getByLabel('Nombre de usuario')).toHaveValue('jferreyra')
+    // Lo cargado antes de abrir la ventana sigue ahí.
+    await expect(page.getByLabel('Contraseña', { exact: true })).toHaveValue('Tz8kq4Rmw2')
+  })
+
+  test('[DTC-129] llega con el empleado elegido desde "Crear usuario"', async ({ page }) => {
+    await page.goto(`${ROUTES.newUser}?employeeId=9`)
+    await expect(page.getByText('Matías Castro')).toBeVisible()
+    await expect(page.getByLabel('Nombre de usuario')).toHaveValue('mcastro')
+  })
+
   test('[DTC-131] el listado está ordenado por nombre de usuario y muestra empleado y roles', async ({ page }) => {
     await page.goto(ROUTES.users)
     await expect(rows(page)).toHaveCount(8)

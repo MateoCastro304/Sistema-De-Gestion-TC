@@ -1,7 +1,14 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { UserListParams } from '../types/user'
 import { employeeOptionKeys, userKeys } from './users.keys'
-import { countUsers, createUser, getUser, listUsers, searchEmployeeOptions } from './users.api'
+import {
+  countUsers,
+  createUser,
+  getEmployeeOption,
+  getUser,
+  listUsers,
+  searchEmployeeOptions,
+} from './users.api'
 
 /**
  * CU-07 Listado de usuarios con búsqueda, rol, dados de baja y página.
@@ -36,17 +43,30 @@ export function useUser(id: number) {
 }
 
 /**
- * Empleados que coinciden con lo escrito en el buscador. Sin texto no se
- * pide nada. `keepPreviousData` deja las opciones anteriores mientras llegan
- * las nuevas, para que la lista no parpadee al tipear.
+ * Empleados para el buscador del alta. Se pide sólo con la lista abierta:
+ * sin texto trae los primeros 8 (lo que se ve apenas se hace clic) y con
+ * texto, los que coinciden. `keepPreviousData` deja las opciones anteriores
+ * mientras llegan las nuevas, para que la lista no parpadee al tipear.
  */
-export function useEmployeeOptions(search: string) {
+export function useEmployeeOptions(search: string, enabled: boolean) {
   const term = search.trim()
   return useQuery({
     queryKey: employeeOptionKeys.search(term),
     queryFn: () => searchEmployeeOptions(term),
-    enabled: term.length > 0,
+    enabled,
     placeholderData: keepPreviousData,
+  })
+}
+
+/**
+ * El empleado que llega elegido desde "Crear usuario" (`?employeeId=`). Sin
+ * id, o con uno que no es un número válido, no se pide nada.
+ */
+export function useEmployeeOption(id: number | null) {
+  return useQuery({
+    queryKey: employeeOptionKeys.detail(id ?? 0),
+    queryFn: () => getEmployeeOption(id!),
+    enabled: id !== null && Number.isInteger(id) && id > 0,
   })
 }
 

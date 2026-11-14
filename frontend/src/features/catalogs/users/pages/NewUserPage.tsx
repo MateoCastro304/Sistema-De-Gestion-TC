@@ -1,9 +1,9 @@
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { useToast } from '@/app/providers/ToastContext'
 import { isApiError } from '@/shared/api/ApiError'
 import { heroPhoto } from '@/shared/lib/heroPhoto'
 import fotoDispositivo from '@/assets/foto-dispositivo.webp'
-import { useCreateUser } from '../api/users.queries'
+import { useCreateUser, useEmployeeOption } from '../api/users.queries'
 import { UserForm, type SetFieldError } from '../components/UserForm'
 import { toUserCreate, type UserFormValues } from '../schemas/user.schema'
 import { USERS_PATH, userDetailPath } from '../utils/paths'
@@ -16,6 +16,13 @@ export function NewUserPage() {
   const navigate = useNavigate()
   const showToast = useToast()
   const create = useCreateUser()
+
+  // "Crear usuario" del detalle del empleado llega con `?employeeId=9`: ese
+  // empleado ya aparece elegido. Sin el parámetro, el formulario arranca vacío.
+  const [searchParams] = useSearchParams()
+  const rawEmployeeId = searchParams.get('employeeId')
+  const initialEmployeeId = rawEmployeeId === null ? null : Number(rawEmployeeId)
+  const initialEmployee = useEmployeeOption(initialEmployeeId)
 
   const handleSubmit = (values: UserFormValues, setFieldError: SetFieldError) => {
     create.mutate(toUserCreate(values), {
@@ -65,7 +72,20 @@ export function NewUserPage() {
         </div>
       </div>
 
-      <UserForm onSubmit={handleSubmit} onCancel={() => void navigate(USERS_PATH)} submitting={create.isPending} />
+      {/* El formulario lee el empleado inicial al abrirse: se espera a tenerlo.
+          Si no se encuentra, el formulario arranca vacío y se elige a mano. */}
+      {initialEmployee.isLoading ? (
+        <div className="empty-state">
+          <p className="empty-state__text">Cargando empleado…</p>
+        </div>
+      ) : (
+        <UserForm
+          initialEmployee={initialEmployee.data ?? null}
+          onSubmit={handleSubmit}
+          onCancel={() => void navigate(USERS_PATH)}
+          submitting={create.isPending}
+        />
+      )}
     </>
   )
 }
