@@ -72,6 +72,14 @@ export const materialHandlers = [
     const query = new URL(request.url).searchParams
     const name = query.get('name')?.trim() ?? ''
     const quality = query.get('quality')?.trim() ?? ''
+    // Los filtros tienen el mismo tope que los campos del alta (contrato §3.6).
+    const filterErrors: FieldError[] = []
+    if (name.length > 60) filterErrors.push({ field: 'name', message: 'El material admite hasta 60 caracteres' })
+    if (quality.length > 60) filterErrors.push({ field: 'quality', message: 'La calidad admite hasta 60 caracteres' })
+    if (filterErrors.length > 0) {
+      return validationError(request, filterErrors, 'Los parámetros de consulta no son válidos.')
+    }
+
     const matching = db.materials
       // `name` es coincidencia exacta; `quality`, "contiene".
       .filter((m) => !name || sameText(m.name, name))
