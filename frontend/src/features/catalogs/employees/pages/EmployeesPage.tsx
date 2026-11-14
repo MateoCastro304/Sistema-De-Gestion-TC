@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { Badge, Button, CheckBox, PageHero, Pagination, SearchField, Table, type Column } from '@/shared/components/ui'
+import { Avatar, Badge, Button, CheckBox, PageHero, Pagination, SearchField, Table, type Column } from '@/shared/components/ui'
 import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import { DEFAULT_PAGE_SIZE } from '@/shared/api/pagination'
 import { isApiError } from '@/shared/api/ApiError'
@@ -19,10 +19,14 @@ const COLUMNS: Column<Employee>[] = [
     header: 'Empleado',
     render: (employee) => {
       const fullName = `${employee.lastName}, ${employee.firstName}`
+      // Las personas van en círculo, como en Encargados y en el detalle del empleado.
       return (
-        <span className="table__cell--stack">
-          <b>{fullName}</b>
-          <span className="table__cell--tel-sub">DNI {employee.dni}</span>
+        <span className="table__cell--nombre">
+          <Avatar name={fullName} icon="empleado" tone={toneByStatus(employee.active)} shape="round" />
+          <span className="table__cell--stack">
+            <b>{fullName}</b>
+            <span className="table__cell--tel-sub">DNI {employee.dni}</span>
+          </span>
         </span>
       )
     },

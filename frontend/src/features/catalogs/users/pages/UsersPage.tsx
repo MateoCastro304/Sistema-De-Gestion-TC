@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { Badge, Button, CheckBox, PageHero, Pagination, SearchField, Select, Table, type BadgeVariant, type Column } from '@/shared/components/ui'
+import { Avatar, Badge, Button, CheckBox, PageHero, Pagination, SearchField, Select, Table, type BadgeVariant, type Column } from '@/shared/components/ui'
 import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import { DEFAULT_PAGE_SIZE } from '@/shared/api/pagination'
 import { isApiError } from '@/shared/api/ApiError'
@@ -14,14 +14,13 @@ import { formatLongDateTime } from '../utils/dates'
 import { NEW_USER_PATH, userDetailPath } from '../utils/paths'
 
 /**
- * Color de la etiqueta de estado. El prototipo pinta "Bloqueado" en rojo,
- * pero el sistema de diseño no tiene una etiqueta roja: va en ámbar, que es
- * la de "atención". "Inactivo" va en neutral, como los dados de baja de
- * Empleados.
+ * Color de la etiqueta de estado. "Bloqueado" va en `peligro`, el rojo suave
+ * de la paleta, como en el prototipo. "Inactivo" va en neutral, como los
+ * dados de baja de Empleados.
  */
 const STATUS_BADGE: Record<UserStatus, BadgeVariant> = {
   ACTIVE: 'verde',
-  BLOCKED: 'ambar',
+  BLOCKED: 'peligro',
   INACTIVE: 'neutral',
 }
 
@@ -33,7 +32,15 @@ const ROLE_OPTIONS = [
 
 /** Columnas del prototipo: usuario, empleado, roles, estado y último acceso. */
 const COLUMNS: Column<User>[] = [
-  { header: 'Nombre de usuario', render: (user) => <b>{user.username}</b> },
+  {
+    header: 'Nombre de usuario',
+    render: (user) => (
+      <span className="table__cell--nombre">
+        <Avatar name={user.username} icon="usuario" tone={toneByStatus(user.status !== 'INACTIVE')} />
+        <b>{user.username}</b>
+      </span>
+    ),
+  },
   { header: 'Empleado', render: (user) => `${user.employee.firstName} ${user.employee.lastName}` },
   { header: 'Roles', render: (user) => user.roles.map((role) => ROL_LABEL[role]).join(', ') },
   {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Button, PageHero, Pagination, SearchField, Select, Table, type Column } from '@/shared/components/ui'
+import { Avatar, Button, PageHero, Pagination, SearchField, Select, Table, type Column } from '@/shared/components/ui'
 import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import { DEFAULT_PAGE_SIZE } from '@/shared/api/pagination'
 import { isApiError } from '@/shared/api/ApiError'
@@ -11,7 +11,15 @@ import type { Material } from '../types/material'
 
 /** Columnas del prototipo: material y calidad. El listado no tiene detalle ni acciones por fila. */
 const COLUMNS: Column<Material>[] = [
-  { header: 'Material', render: (material) => <b>{material.name}</b> },
+  {
+    header: 'Material',
+    render: (material) => (
+      <span className="table__cell--nombre">
+        <Avatar name={material.name} icon="material" />
+        <b>{material.name}</b>
+      </span>
+    ),
+  },
   { header: 'Calidad', render: (material) => material.quality },
 ]
 

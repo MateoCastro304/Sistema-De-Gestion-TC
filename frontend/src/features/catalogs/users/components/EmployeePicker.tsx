@@ -183,19 +183,7 @@ export function EmployeePicker({ id, selected, onSelect, onBlur, onRegisterNew, 
       {error && <span className="form-field__error">{error}</span>}
       <span className="form-field__hint">
         ¿No aparece?{' '}
-        <button
-          type="button"
-          onClick={onRegisterNew}
-          style={{
-            font: 'inherit',
-            fontWeight: 700,
-            color: 'var(--rp-azul)',
-            background: 'none',
-            border: 0,
-            padding: 0,
-            cursor: 'pointer',
-          }}
-        >
+        <button type="button" className="link-inline" onClick={onRegisterNew}>
           + Registrar empleado
         </button>
       </span>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { Button, PageHero, Pagination, SearchField, Table, type Column } from '@/shared/components/ui'
+import { Avatar, Button, PageHero, Pagination, SearchField, Table, type Column } from '@/shared/components/ui'
 import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import { DEFAULT_PAGE_SIZE } from '@/shared/api/pagination'
 import { isApiError } from '@/shared/api/ApiError'
@@ -19,9 +19,12 @@ const COLUMNS: Column<ProcessType>[] = [
   {
     header: 'Nombre',
     render: (processType) => (
-      <span className="table__cell--stack">
-        <b>{processType.name}</b>
-        <span className="table__cell--tel-sub">{processType.description || 'Sin descripción'}</span>
+      <span className="table__cell--nombre">
+        <Avatar name={processType.name} icon="proceso" />
+        <span className="table__cell--stack">
+          <b>{processType.name}</b>
+          <span className="table__cell--tel-sub">{processType.description || 'Sin descripción'}</span>
+        </span>
       </span>
     ),
   },

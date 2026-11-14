@@ -10,7 +10,7 @@ Rutas: `/administracion/usuarios` (listado), `/administracion/usuarios/nuevo` (a
 | --- | --- | --- |
 | Entrada | "+ Nuevo usuario" del listado, o "Crear usuario" del detalle de un empleado sin usuario (llega con `?employeeId=` y ese empleado ya elegido) | `pages/UsersPage.tsx`, `pages/NewUserPage.tsx` |
 | Empleado | Buscador "Empleado": al hacer clic muestra los primeros 8 empleados activos (`GET /employees?limit=8`) y al tipear, los que coinciden. Los que ya tienen usuario llevan "Ya tiene usuario"; si se elige uno así, aviso con enlace a su usuario | `components/EmployeePicker.tsx` |
-| Empleado nuevo | "¿No aparece? + Registrar empleado" abre `EmployeeFormModal` (de Empleados). Al registrarlo queda elegido, con el aviso "Empleado registrado y elegido para el usuario.", sin perder lo ya cargado | `components/UserForm.tsx` |
+| Empleado nuevo | "¿No aparece? + Registrar empleado" (un botón `.link-inline`) abre `EmployeeFormModal` (de Empleados). Al registrarlo queda elegido, con el aviso "Empleado registrado y elegido para el usuario.", sin perder lo ya cargado | `components/UserForm.tsx` |
 | Nombre de usuario | Se propone inicial + apellido (`mcastro`), con un número si ya existe (`mcastro2`), sin pisar lo escrito a mano (D-23) | `utils/username.ts`, `UserForm.tsx` |
 | Contraseña | 8 a 72 caracteres, "Repetir contraseña" y "Generar" son del formulario: a la API llega una sola (D-24) | `components/PasswordField.tsx`, `schemas/user.schema.ts` |
 | Permisos | Desplegable de selección múltiple; al menos un rol. Viajan en el orden del catálogo | `components/RolesSelect.tsx` |
@@ -32,7 +32,7 @@ La ventana de alta de empleado va **afuera** del `<form>` del usuario: si quedar
 | Detalle | Usuario, empleado, roles, estado, último acceso y alta, con el aviso de inactivo o bloqueado. `404` o id no numérico: "No encontramos el usuario que buscabas." | `pages/UserDetailPage.tsx` |
 | Sin permiso | Otro rol ve "Acceso denegado" | `app/router/guards.tsx` |
 
-Estado en pantalla: Activo en verde, Bloqueado en ámbar (el prototipo lo pinta rojo, pero `Badge` no tiene rojo) e Inactivo en neutral.
+Estado en pantalla: Activo con la etiqueta común, Bloqueado en rojo suave (`peligro`, como el prototipo) e Inactivo en gris (`neutral`). Cada fila lleva el ícono `usuario` (una llave), en gris si está inactivo; la tarjeta del panel usa el mismo.
 
 ## Tests (`e2e/catalogs/users/users.e2e.spec.ts`)
 

@@ -134,9 +134,7 @@ export const PANELS = {
         to: '/administracion/usuarios',
         label: 'Usuarios',
         description: 'Cuentas de acceso al sistema de cada empleado y sus roles.',
-        // `EntityIcon` todavía no tiene el ícono propio de usuario del
-        // prototipo: va el de empleado, que es la persona dueña de la cuenta.
-        icon: 'empleado',
+        icon: 'usuario',
         photo: fotoDispositivo,
         photoPosition: 'center 45%',
       },

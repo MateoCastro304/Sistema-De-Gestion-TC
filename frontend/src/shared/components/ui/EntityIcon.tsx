@@ -22,6 +22,8 @@ const PATHS = {
     'M2.5 4.5h15v11h-15zM8.6 8.7a1.8 1.8 0 1 1-3.6 0a1.8 1.8 0 1 1 3.6 0M4.5 13c.4-1.3 1.3-2 2.3-2s1.9.7 2.3 2M11.5 8.5h3.5M11.5 11.5h3.5',
   proceso:
     'M10 7a3 3 0 1 1 0 6a3 3 0 1 1 0-6M10 2.5V5M10 15v2.5M2.5 10H5M15 10h2.5M4.7 4.7l1.8 1.8M13.5 13.5l1.8 1.8M4.7 15.3l1.8-1.8M13.5 6.5l1.8-1.8',
+  // Una llave: la cuenta de acceso al sistema (`IC.usu` del prototipo).
+  usuario: 'M7 13.5a3.5 3.5 0 1 1 0-7a3.5 3.5 0 1 1 0 7M10.5 10h7M15 10v2.5M17.5 10v2',
 } as const
 
 export type EntityIconName = keyof typeof PATHS

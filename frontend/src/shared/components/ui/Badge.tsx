@@ -18,9 +18,14 @@ import type { EntityIconName } from './EntityIcon'
  * como clase (`.badge--ambar`) para que el día que una necesite color
  * propio alcance con escribir esa regla en styles.css.
  *
+ * Las que SÍ tienen color propio son las de estado: `neutral` (gris, dado
+ * de baja) y `peligro` (los colores de alerta de la paleta, para algo que
+ * impide usar el registro, como un usuario bloqueado).
+ *
  * CÓMO SE USA
  *   <Badge variant="ambar" icon="material">Material</Badge>
  *   <Badge variant="neutral">Inactivo</Badge>
+ *   <Badge variant="peligro">Bloqueado</Badge>
  *   <Badge>Sin categoría</Badge>
  */
 export type BadgeVariant =
@@ -28,6 +33,8 @@ export type BadgeVariant =
   | 'ambar'
   | 'verde'
   | 'neutral'
+  /** Estado que impide usar el registro (usuario bloqueado): rojo suave de la paleta. */
+  | 'peligro'
   /**
    * Para un dato que es una categoría pero no entra en una lista cerrada:
    * el rubro de una fábrica, que es texto libre creado por el usuario.

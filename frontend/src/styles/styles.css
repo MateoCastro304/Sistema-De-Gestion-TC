@@ -547,6 +547,11 @@ table { border-collapse: collapse; width: 100%; }
 .table__cell--tel { font-size: 14px; font-weight: 500; color: var(--rp-texto); white-space: nowrap; }
 /* Dos datos en una celda: el contacto y, debajo, su teléfono. */
 .table__cell--stack { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+/* Avatar y, al lado, nombre con un dato debajo (empleado y su DNI, tipo de
+   proceso y su descripción): el bloque ocupa el resto de la celda y el
+   nombre ya no tiene que descontar el avatar. */
+.table__cell--nombre .table__cell--stack { flex: 1; }
+.table__cell--nombre .table__cell--stack b { max-width: none; }
 .table__cell--tel-sub { font-size: 13px; font-weight: 500; color: var(--rp-texto); white-space: nowrap; }
 .table__cell--vacio { color: #b0b5be; }
 /* Varias etiquetas en una celda (los tipos de un proveedor): si no
@@ -704,6 +709,14 @@ table { border-collapse: collapse; width: 100%; }
 }
 .link-btn:hover { background: var(--rp-azul); color: #fff; }
 
+/* Botón dentro de un texto, con forma de enlace ("¿No aparece? + Registrar
+   empleado"). Es un <button> porque abre algo en la misma pantalla. */
+.link-inline {
+  font: inherit; font-weight: 700; color: var(--rp-azul);
+  background: none; border: 0; padding: 0; cursor: pointer;
+}
+.link-inline:hover { text-decoration: underline; }
+
 /* Acción secundaria de la fila en ícono (el lápiz de editar). Neutra en
    reposo: no puede pesar lo mismo que "Ver". */
 .row-action {
@@ -767,6 +780,12 @@ table { border-collapse: collapse; width: 100%; }
 .badge--neutral {
   padding: 4px 9px; font-size: 11px; letter-spacing: .06em;
   color: #6b7280; background: #f1f2f4;
+}
+/* "Bloqueado": los colores de alerta de la paleta (los de "Eliminar"), con
+   la misma forma que "Inactivo". Se distingue sin salirse de la gama. */
+.badge--peligro {
+  padding: 4px 9px; font-size: 11px; letter-spacing: .06em;
+  color: var(--rp-peligro); background: var(--rp-peligro-fondo);
 }
 
 

@@ -232,6 +232,8 @@ Acepta todas las props de un `<button>` nativo, más:
 
 `type` es `button` por defecto: para enviar un formulario hay que poner `type="submit"`.
 
+**Botón dentro de un texto.** Para una acción que va en medio de una frase y abre algo en la misma pantalla ("¿No aparece? + Registrar empleado"), un `<button type="button" className="link-inline">`: se ve como un enlace en negrita. No es `Button` (que es un botón con fondo) ni `.link-btn` (la píldora "Ver" de las filas). Si la acción navega a otra pantalla, va un `<Link>`.
+
 **Cuidado al intercambiar botones en el mismo lugar.** Si al tocar un botón se renderiza otro en su lugar (por ejemplo "Editar" → "Guardar cambios" con `type="submit"`), ponele un `key` distinto a cada uno. Si no, React reutiliza el mismo `<button>`, le cambia el `type` en medio del click y el navegador envía el formulario. Pasó en los detalles de encargado y de fábrica.
 
 ### `TrashButton`
@@ -361,7 +363,7 @@ Las altas y los detalles no usan `PageHero`: arman su propia cabecera `.page-hea
 
 ### `Badge`
 
-Etiqueta corta. `variant`: `azul`, `ambar`, `verde`, `neutral` (registro dado de baja) o `suave` (categoría de texto libre, como el rubro de una fábrica). `icon` agrega un `EntityIcon` a la izquierda.
+Etiqueta corta. `variant`: `azul`, `ambar`, `verde`, `neutral` (registro dado de baja), `peligro` (estado que impide usar el registro, como un usuario bloqueado) o `suave` (categoría de texto libre, como el rubro de una fábrica). `azul`, `ambar`, `verde` y `suave` se ven iguales (el tipo se distingue por el ícono); sólo `neutral` y `peligro` tienen color propio, con los tonos de la paleta (`--rp-peligro`, `--rp-peligro-fondo`). `icon` agrega un `EntityIcon` a la izquierda.
 
 ### `Avatar`
 
@@ -373,7 +375,7 @@ Muestra las iniciales del `name` (máximo 2) o, si se pasa `icon`, el ícono de 
 
 ### `EntityIcon`
 
-Íconos fijos por tipo de registro: `encargado`, `fabrica`, `rubro`, `proveedor`, `material`, `repuesto`, `pintura`, `tercerizado`, `proceso` y `empleado`. Toma tamaño y color del contenedor. Para agregar uno nuevo (usuario, por ejemplo), se suma su trazo a `PATHS`; los trazos están en el `IC` del prototipo.
+Íconos fijos por tipo de registro: `encargado`, `fabrica`, `rubro`, `proveedor`, `material`, `repuesto`, `pintura`, `tercerizado`, `proceso`, `empleado` y `usuario`. Toma tamaño y color del contenedor. Para agregar uno nuevo, se suma su trazo a `PATHS`; los trazos están en el `IC` del prototipo. En los listados va dentro de un `Avatar`, al lado del nombre, en la primera columna (`table__cell--nombre`).
 
 ---
 

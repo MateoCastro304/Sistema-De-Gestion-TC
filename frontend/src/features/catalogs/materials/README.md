@@ -8,7 +8,7 @@ Ruta: `/catalogos/materiales`. No hay detalle ni página de alta: "Nuevo materia
 
 | Paso | Qué pasa | Dónde |
 | --- | --- | --- |
-| Listado | `GET /materials` con `page` y `limit=20`. Columnas: Material y Calidad, ordenado por material y por calidad con orden natural ("SAE 62" antes que "SAE 65"). Sin detalle ni acciones por fila | `pages/MaterialsPage.tsx` |
+| Listado | `GET /materials` con `page` y `limit=20`. Columnas: Material (con el ícono `material`) y Calidad, ordenado por material y por calidad con orden natural ("SAE 62" antes que "SAE 65"). Sin detalle ni acciones por fila | `pages/MaterialsPage.tsx` |
 | Encabezado | "13 materiales registrados": llamada aparte con `limit=1` sin filtros | `useMaterialsCount` |
 | Filtro | "Todos los materiales" y los nombres de `GET /materials/names` (sin paginar, D-38). Manda `name`, coincidencia exacta | `useMaterialNames` |
 | Búsqueda | "Buscar por calidad" manda `quality` ("contiene"), con 300 ms de espera al tipear | `MaterialsPage.tsx` |

@@ -186,22 +186,15 @@ Las completas están en el contrato; estas son las que más se olvidan:
   con dos decimales en la API. Fechas en UTC en la API, hora de Córdoba en
   pantalla.
 
-### Lo que quedó pendiente del Sprint 2
+### Diferencias con el prototipo que se decidieron
 
-Decisiones de diseño que tocan componentes compartidos de `shared/`; se
-plantean al equipo, no se resuelven "de paso" en una historia:
-
-- **"Bloqueado" en rojo.** El prototipo lo pinta rojo; `Badge` no tiene variante
-  roja y en Usuarios va en `ambar` (`STATUS_BADGE` de `UsersPage.tsx`).
-- **Ícono de usuario.** `EntityIcon` no lo tiene; la tarjeta Usuarios usa el de
-  `empleado` (`panels.ts`). Para sumarlo, su trazo va a `PATHS` (el `IC.usu` del
-  prototipo).
-- **Íconos por fila.** El prototipo muestra el ícono de la entidad en cada fila
-  de Materiales; ningún listado del proyecto lo hace, así que se decide para
-  todos juntos.
-- **Botón con forma de enlace.** "+ Registrar empleado" (`EmployeePicker.tsx`)
-  lleva estilos en línea porque `styles.css` no tiene una clase para un botón
-  dentro de un texto.
+- **Las etiquetas de categoría se ven todas iguales**; sólo las de estado
+  tienen color: `neutral` (gris, dado de baja) y `peligro` (rojo suave de la
+  paleta, usuario bloqueado; `STATUS_BADGE` de `UsersPage.tsx`).
+- **Cada listado lleva el ícono de su entidad** en la primera columna, con
+  `Avatar` + `EntityIcon` dentro de `table__cell--nombre` (como Proveedores):
+  las personas en círculo (`shape="round"`) y los dados de baja en gris
+  (`toneByStatus`). Un listado nuevo sigue el mismo patrón.
 
 Sin test por falta de datos o porque son sólo de la API: ver TESTING.md,
 "Pendientes y observaciones".
